@@ -1,5 +1,6 @@
 /* frontend/app/globals.css */
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
@@ -22,4 +23,117 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-y: scroll; /* Ensures scrollbar presence consistency */
+}
+
+/* --- CYBERPUNK SCROLLBAR (Aggressive Global) --- */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #050510; /* Very Dark Navy */
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 5px;
+  border: 1px solid rgba(34, 211, 238, 0.2); /* Cyan-400 transparent */
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4; /* Cyan 500 */
+  border: 1px solid #22d3ee;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.6); /* Neon Glow */
+}
+
+*::-webkit-scrollbar-corner {
+  background: #050510;
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Utility to hide scrollbar but keep functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Custom thin scrollbar for smaller areas */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.6);
+  }
+}
+
+/* Print Logic: Hide everything except #printable-area */
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  /* Only make #printable-area and its children visible */
+  #printable-area,
+  #printable-area * {
+    visibility: visible;
+  }
+
+  /* Position it at top-left of the page */
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 297mm;
+    height: 210mm;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: hidden;
+  }
+}
+
+/* Rich Text Editor Overrides */
+/* Fix 1: Force transparency on pasted spans to remove white backgrounds */
+.ql-editor span {
+  background-color: transparent !important;
+  color: inherit;
+}
+
+/* Fix 2: Preserve Code Indentation */
+.ql-editor pre.ql-syntax {
+  background-color: #0f172a !important; /* Slate-900 */
+  color: #a5b4fc !important; /* Indigo-300 */
+  white-space: pre-wrap !important; /* CRITICAL: Preserves tabs & spaces */
+  overflow-x: auto;
+  padding: 1rem;
+  border-radius: 0.5rem;
 }

@@ -2,13 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Courses", href: "/courses" },
-  { label: "Features", href: "#features" },
-  { label: "About", href: "#about" },
-  { label: "Verification", href: "/verify" },
-];
+import { Navbar } from "@/components/layout/Navbar";
 
 const courses = [
   {
@@ -88,48 +82,7 @@ export default function Home() {
         <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0d0b2f]/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-10 lg:px-14">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-cyan-400 via-blue-500 to-fuchsia-500 text-lg font-semibold text-slate-950 shadow-lg shadow-cyan-500/25">
-              Cn
-            </div>
-            <div>
-              <p className="text-lg font-semibold">Chainnesa</p>
-              <p className="text-xs text-slate-300">
-                Blockchain-based Learning Management System
-              </p>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-6 text-sm text-slate-200 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="transition hover:text-white hover:underline"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3 text-sm">
-            <Link
-              href="/verify"
-              className="hidden rounded-full border border-white/25 px-4 py-2 font-semibold transition hover:border-white hover:-translate-y-0.5 md:inline-flex"
-            >
-              Verify
-            </Link>
-            <Link
-              href="/issuer"
-              className="rounded-full bg-linear-to-r from-fuchsia-500 via-orange-400 to-amber-300 px-4 py-2 font-semibold text-slate-950 shadow-lg shadow-fuchsia-500/25 transition hover:-translate-y-0.5"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="relative mx-auto flex max-w-6xl flex-col px-6 sm:px-10 lg:px-14">
         <section
@@ -305,7 +258,7 @@ export default function Home() {
               cross-check the IPFS CID, and surface the stored hash.
             </p>
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {["Issue", "Distribute", "Verify"].map((title, idx) => (
+              {["Distribute", "Verify"].map((title, idx) => (
                 <div
                   key={title}
                   className="rounded-2xl border border-white/10 bg-slate-900/70 p-4"
@@ -318,22 +271,15 @@ export default function Home() {
                   </div>
                   <p className="mt-2 text-xs text-slate-200">
                     {idx === 0 &&
-                      "Upload the credential, add learner details, anchor to IPFS + Fabric."}
-                    {idx === 1 &&
                       "Share the certId or verification link with learners and partners."}
-                    {idx === 2 &&
+                    {idx === 1 &&
                       "Confirm integrity by checking the chain-stored hash and CID."}
                   </p>
                 </div>
               ))}
             </div>
             <div className="mt-5 flex flex-wrap gap-3 text-sm">
-              <Link
-                href="/issuer"
-                className="rounded-full bg-white px-4 py-2 font-semibold text-slate-900 shadow-lg shadow-cyan-500/25 transition hover:-translate-y-0.5"
-              >
-                Issue a new credential
-              </Link>
+              {/* Issue button removed */}
               <Link
                 href="/verify"
                 className="rounded-full border border-white/30 px-4 py-2 font-semibold text-slate-50 transition hover:border-white hover:-translate-y-0.5"

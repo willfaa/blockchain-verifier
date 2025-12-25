@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // Folder sumber dan hasil build
-    "rootDir": "./src",
+    // "rootDir": "./src",
     "outDir": "./dist",
 
     // Target environment Node.js biasa
@@ -22,6 +22,6 @@
     // Source map kalau nanti mau debug
     "sourceMap": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["node_modules"]
 }
