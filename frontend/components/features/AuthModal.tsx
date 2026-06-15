@@ -44,9 +44,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setErrorV(null);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify({
           identifier: loginId,
           password: loginPass,
@@ -90,9 +93,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         payload.lectureMajority = regLectureMajority;
       }
 
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();

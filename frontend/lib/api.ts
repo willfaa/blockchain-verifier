@@ -6,6 +6,9 @@ const API_URL = `${API_BASE}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
+  headers: {
+    "ngrok-skip-browser-warning": "true",
+  },
   // Do NOT default Content-Type to application/json, as it breaks FormData.
   // Axios automatically sets application/json for objects and multipart/form-data for FormData.
 });

@@ -21,9 +21,12 @@ export default function HiddenAdminLogin() {
 
     try {
       // Hardcode role: 'admin' agar backend memvalidasi tabel users dengan benar
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify({ identifier, password, role: "admin" }),
       });
 
