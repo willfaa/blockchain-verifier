@@ -75,3 +75,5 @@ testConnection()
   .catch((err) => {
     console.error("Critical Registry Failure:", err);
   });
+
+export default app;
