@@ -15,9 +15,15 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
   "http://localhost:4000",
   "https://blockchain-verifier-eight.vercel.app",
 ];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
 
 app.use(
   cors({
@@ -25,6 +31,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -33,11 +40,6 @@ app.use(
 );
 
 // --- GLOBAL MIDDLEWARES ---
-app.use(
-  cors({
-    origin: (origin, callback) => {},
-  }),
-);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
