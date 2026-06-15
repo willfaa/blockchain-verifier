@@ -5,12 +5,12 @@ import api from "@/lib/api";
 import {
   Plus,
   Trash2,
-  Edit,
   ChevronDown,
   ChevronRight,
   Video,
   FileText,
   GripVertical,
+  Layers,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -25,305 +25,347 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
 
 export default function CurriculumPage() {
   const params = useParams();
   const courseId = params?.courseId as string;
-  const [chapters, setChapters] = useState<any[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedChapters, setExpandedChapters] = useState<
+  const [expandedModules, setExpandedModules] = useState<
     Record<string, boolean>
   >({});
 
   // State for creating new items
-  const [isAddingChapter, setIsAddingChapter] = useState(false);
-  const [newChapterTitle, setNewChapterTitle] = useState("");
-  const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null); // Chapter ID
+  const [isAddingModule, setIsAddingModule] = useState(false);
+  const [newModuleTitle, setNewModuleTitle] = useState("");
+  const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null);
   const [newLessonTitle, setNewLessonTitle] = useState("");
-  const [chapterToDelete, setChapterToDelete] = useState<string | null>(null);
+  const [moduleToDelete, setModuleToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCurriculum();
-  }, []);
+  }, [courseId]);
 
-  const fetchCurriculum = () => {
-    setLoading(true);
-    // Use courseId
-    api
-      .get(`/lms/teacher/courses/${courseId}`)
-      .then((res) => {
-        setChapters(res.data.data.chapters || []);
-        // Auto expand all for now
-        const expanded: Record<string, boolean> = {};
-        res.data.data.chapters?.forEach((c: any) => (expanded[c.id] = true));
-        setExpandedChapters(expanded);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+  const fetchCurriculum = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/lms/courses/${courseId}`);
+      const data = res.data.data;
+      setModules(data.modules || []);
+
+      // Auto expand first module if none expanded
+      if (
+        Object.keys(expandedModules).length === 0 &&
+        data.modules?.length > 0
+      ) {
+        setExpandedModules({ [data.modules[0].id]: true });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load curriculum");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleChapter = (id: string) => {
-    setExpandedChapters((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleModule = (id: string) => {
+    setExpandedModules((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleAddChapter = () => {
-    if (!newChapterTitle.trim()) return;
-
-    api
-      .post("/lms/chapters", {
-        title: newChapterTitle,
-        courseId: courseId, // Use courseId
-        order: chapters.length + 1,
-      })
-      .then(() => {
-        setNewChapterTitle("");
-        setIsAddingChapter(false);
-        fetchCurriculum();
-      })
-      .catch((err) => toast.error("Failed to add chapter"));
+  const handleAddModule = async () => {
+    if (!newModuleTitle.trim()) return;
+    try {
+      await api.post(`/lms/courses/${courseId}/modules`, {
+        title: newModuleTitle,
+      });
+      setNewModuleTitle("");
+      setIsAddingModule(false);
+      fetchCurriculum();
+      toast.success("Module created successfully");
+    } catch (err) {
+      toast.error("Failed to create module");
+    }
   };
 
-  const handleDeleteChapter = (id: string) => {
-    setChapterToDelete(id);
+  const executeDeleteModule = async () => {
+    if (!moduleToDelete) return;
+    try {
+      await api.delete(`/lms/modules/${moduleToDelete}`);
+      toast.success("Module permanently removed");
+      setModuleToDelete(null);
+      fetchCurriculum();
+    } catch (err) {
+      toast.error("Failed to delete module");
+    }
   };
 
-  const executeDeleteChapter = () => {
-    if (!chapterToDelete) return;
-    api
-      .delete(`/lms/chapters/${chapterToDelete}`)
-      .then(() => {
-        fetchCurriculum();
-        setChapterToDelete(null);
-        toast.success("Chapter deleted");
-      })
-      .catch((err) => toast.error("Failed to delete chapter"));
-  };
-
-  const handleAddLesson = (chapterId: string) => {
+  const handleAddLesson = async (moduleId: string) => {
     if (!newLessonTitle.trim()) return;
-
-    const chapter = chapters.find((c) => c.id === chapterId);
-    const order = (chapter?.lessons?.length || 0) + 1;
-
-    api
-      .post("/lms/lessons", {
+    try {
+      await api.post(`/lms/modules/${moduleId}/lessons`, {
         title: newLessonTitle,
-        chapterId,
-        order,
-        content: "", // Init empty content
-      })
-      .then(() => {
-        setNewLessonTitle("");
-        setAddingLessonTo(null);
-        fetchCurriculum();
-      })
-      .catch((err) => toast.error("Failed to add lesson"));
+      });
+      setNewLessonTitle("");
+      setAddingLessonTo(null);
+      fetchCurriculum();
+      toast.success("Lesson added successfully");
+    } catch (err) {
+      toast.error("Failed to add lesson");
+    }
   };
 
-  if (loading && chapters.length === 0)
-    return (
-      <div className="text-teal-400 font-mono animate-pulse">
-        Loading_Curriculum...
-      </div>
-    );
+  if (loading && modules.length === 0)
+    return <CyberpunkLoader text="Loading Curriculum..." />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-teal-900/30 pb-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex items-center justify-between border-b border-white/5 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white uppercase tracking-tight">
-            Curriculum_Builder
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">
+            Course Curriculum
           </h1>
-          <p className="text-teal-500/60 text-xs">
-            Structure your course content.
+          <p className="text-slate-500 text-xs font-mono uppercase tracking-[0.2em] mt-1">
+            Manage your course modules and lessons
           </p>
         </div>
         <button
-          onClick={() => setIsAddingChapter(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-teal-500/10 border border-teal-500 text-teal-400 text-xs font-bold uppercase rounded hover:bg-teal-500 hover:text-black transition-colors"
+          onClick={() => setIsAddingModule(true)}
+          className="group flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-500/50 text-white font-black uppercase tracking-widest text-[10px] rounded-sm transition-all shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]"
         >
-          <Plus size={14} /> Add_Chapter
+          <Plus
+            size={14}
+            className="group-hover:text-cyan-400 transition-colors"
+          />{" "}
+          New Module
         </button>
       </div>
 
-      <div className="space-y-4">
-        {chapters.length === 0 && !isAddingChapter && (
-          <div className="text-center py-12 border border-dashed border-teal-900/30 rounded-lg text-teal-500/30">
-            Course is empty. Start by adding a chapter.
+      <div className="space-y-6">
+        {modules.length === 0 && !isAddingModule ? (
+          <div className="flex flex-col items-center justify-center py-24 border border-dashed border-white/5 rounded-3xl bg-white/[0.01] group">
+            <Layers
+              className="text-white/10 mb-4 group-hover:text-cyan-500/30 transition-colors"
+              size={48}
+            />
+            <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">
+              Your curriculum is empty
+            </p>
+            <button
+              onClick={() => setIsAddingModule(true)}
+              className="mt-6 text-cyan-500 text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors"
+            >
+              [ Create your first module to get started ]
+            </button>
           </div>
-        )}
-
-        {chapters.map((chapter) => (
-          <div
-            key={chapter.id}
-            className="border border-teal-900/50 bg-[#050510] rounded-lg overflow-hidden"
-          >
-            {/* Chapter Header */}
-            <div className="flex items-center justify-between p-3 bg-teal-900/10 border-b border-teal-900/30">
+        ) : (
+          <div className="space-y-4">
+            {modules.map((moduleItem, index) => (
               <div
-                className="flex items-center gap-3 flex-1 cursor-pointer"
-                onClick={() => toggleChapter(chapter.id)}
+                key={moduleItem.id}
+                className={`group border transition-all duration-300 rounded-2xl overflow-hidden ${
+                  expandedModules[moduleItem.id]
+                    ? "bg-white/[0.03] border-white/10 shadow-2xl"
+                    : "bg-white/[0.01] border-white/5 hover:border-white/20"
+                }`}
               >
-                <GripVertical
-                  size={14}
-                  className="text-teal-500/30 cursor-grab"
-                />
-                <span className="text-teal-500/50">
-                  {expandedChapters[chapter.id] ? (
-                    <ChevronDown size={14} />
-                  ) : (
-                    <ChevronRight size={14} />
-                  )}
-                </span>
-                <span className="font-bold text-teal-100 uppercase text-sm tracking-wide">
-                  {chapter.title}
-                </span>
-                <span className="text-[10px] text-teal-500/40 font-mono">
-                  ({chapter.lessons?.length || 0} Lessons)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setAddingLessonTo(chapter.id)}
-                  className="p-1 px-2 text-[10px] uppercase border border-teal-500/30 text-teal-400 hover:bg-teal-500/20 rounded opacity-60 hover:opacity-100 transition-opacity"
-                >
-                  + Lesson
-                </button>
-                <button
-                  onClick={() => handleDeleteChapter(chapter.id)}
-                  className="p-1 text-red-500/50 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Lessons List */}
-            {expandedChapters[chapter.id] && (
-              <div className="p-2 space-y-2 bg-[#02020a]">
-                {chapter.lessons?.map((lesson: any) => (
+                {/* Module Header */}
+                <div className="flex items-center justify-between p-5 select-none transition-colors border-b border-white/[0.05]">
                   <div
-                    key={lesson.id}
-                    className="flex items-center justify-between p-2 rounded border border-teal-900/20 bg-teal-900/5 hover:border-teal-500/30 transition-colors group"
+                    className="flex items-center gap-4 flex-1 cursor-pointer"
+                    onClick={() => toggleModule(moduleItem.id)}
                   >
-                    <div className="flex items-center gap-3">
-                      <GripVertical
-                        size={12}
-                        className="text-teal-500/20 cursor-grab"
-                      />
-                      {lesson.videoPath ? (
-                        <Video size={14} className="text-blue-400" />
-                      ) : (
-                        <FileText size={14} className="text-slate-400" />
-                      )}
-                      <span className="text-sm text-teal-100/80 group-hover:text-teal-100 transition-colors">
-                        {lesson.title}
-                      </span>
-                      <span
-                        className={`text-[10px] px-1 rounded ${
-                          lesson.isPublished
-                            ? "bg-green-900/30 text-green-400"
-                            : "bg-yellow-900/30 text-yellow-500"
-                        }`}
-                      >
-                        {lesson.isPublished ? "PUB" : "DRAFT"}
-                      </span>
+                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-mono text-xs text-white/40 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 transition-all border border-white/5">
+                      {String(index + 1).padStart(2, "0")}
                     </div>
-                    <Link
-                      href={`/teacher/courses/${courseId}/manage/lessons/${lesson.id}`}
-                      className="px-3 py-1 bg-black border border-teal-900 text-teal-400 text-[10px] uppercase font-bold rounded hover:border-teal-500 transition-colors"
-                    >
-                      Edit_Content
-                    </Link>
+                    <div>
+                      <h3 className="font-black text-white uppercase text-[13px] tracking-widest group-hover:text-cyan-400 transition-colors">
+                        {moduleItem.title}
+                      </h3>
+                      <p className="text-[9px] text-slate-500 font-mono uppercase tracking-widest mt-0.5">
+                        LESSONS: {moduleItem.lessons?.length || 0}
+                      </p>
+                    </div>
                   </div>
-                ))}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setAddingLessonTo(moduleItem.id)}
+                      className="px-3 py-1.5 text-[9px] font-black uppercase bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded transition-all tracking-widest"
+                    >
+                      + Lesson
+                    </button>
+                    <button
+                      onClick={() => setModuleToDelete(moduleItem.id)}
+                      className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <div className="w-px h-6 bg-white/5 mx-1" />
+                    <button
+                      onClick={() => toggleModule(moduleItem.id)}
+                      className="p-1 text-white/40 group-hover:text-white transition-colors"
+                    >
+                      {expandedModules[moduleItem.id] ? (
+                        <ChevronDown size={20} />
+                      ) : (
+                        <ChevronRight size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-                {/* Add Lesson Form */}
-                {addingLessonTo === chapter.id && (
-                  <div className="flex items-center gap-2 p-2 bg-teal-900/20 rounded animate-in fade-in slide-in-from-top-2">
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder="Lesson Title..."
-                      className="flex-1 bg-black border border-teal-500/50 rounded px-2 py-1 text-sm text-white focus:outline-none"
-                      value={newLessonTitle}
-                      onChange={(e) => setNewLessonTitle(e.target.value)}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && handleAddLesson(chapter.id)
-                      }
-                    />
-                    <button
-                      onClick={() => handleAddLesson(chapter.id)}
-                      className="text-teal-400 text-xs font-bold uppercase hover:underline"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => setAddingLessonTo(null)}
-                      className="text-red-400 text-xs font-bold uppercase hover:underline"
-                    >
-                      Cancel
-                    </button>
+                {/* Lessons List */}
+                {expandedModules[moduleItem.id] && (
+                  <div className="p-4 space-y-3 bg-black/40 animate-in slide-in-from-top-2 duration-300">
+                    {moduleItem.lessons?.length === 0 && !addingLessonTo && (
+                      <p className="text-center py-6 text-[10px] text-slate-600 font-mono uppercase tracking-widest">
+                        No lessons found in this module
+                      </p>
+                    )}
+
+                    {moduleItem.lessons?.map((lesson: any, lIdx: number) => (
+                      <div
+                        key={lesson.id}
+                        className="flex items-center justify-between p-4 rounded-xl border border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.04] hover:border-cyan-500/20 transition-all group/lesson shadow-sm"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="text-[10px] font-mono text-white/20 w-4">
+                            {lIdx + 1}
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover/lesson:text-cyan-400 transition-colors">
+                            {lesson.videoUrl ? (
+                              <Video size={14} />
+                            ) : (
+                              <FileText size={14} />
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-sm font-bold text-slate-300 group-hover/lesson:text-white transition-colors leading-none">
+                              {lesson.title}
+                            </span>
+                            <div className="flex gap-2 mt-1">
+                              <span
+                                className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${
+                                  lesson.isPublished
+                                    ? "bg-green-500/10 text-green-400"
+                                    : "bg-fuchsia-500/10 text-fuchsia-400"
+                                }`}
+                              >
+                                {lesson.isPublished ? "Active" : "Static"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Link
+                          href={`/teacher/courses/${courseId}/manage/lessons/${lesson.id}`}
+                          className="px-4 py-2 bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all"
+                        >
+                          Edit Lesson
+                        </Link>
+                      </div>
+                    ))}
+
+                    {/* Add Lesson Form */}
+                    {addingLessonTo === moduleItem.id && (
+                      <div className="flex items-center gap-3 p-4 bg-cyan-500/5 rounded-xl border border-cyan-500/20 animate-in fade-in slide-in-from-top-2">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Lesson Title"
+                          className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition-all font-mono"
+                          value={newLessonTitle}
+                          onChange={(e) => setNewLessonTitle(e.target.value)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleAddLesson(moduleItem.id)
+                          }
+                        />
+                        <button
+                          onClick={() => handleAddLesson(moduleItem.id)}
+                          className="px-4 py-2 bg-cyan-500 text-black text-[9px] font-black uppercase tracking-widest rounded hover:brightness-110 active:scale-95 transition-all"
+                        >
+                          Add
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAddingLessonTo(null);
+                            setNewLessonTitle("");
+                          }}
+                          className="text-white/40 text-[9px] font-black uppercase tracking-widest hover:text-white transition-colors px-2"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
+        )}
 
-        {/* Add Chapter Form */}
-        {isAddingChapter && (
-          <div className="border border-dashed border-teal-500 bg-teal-900/10 p-4 rounded-lg flex items-center gap-3">
-            <span className="text-teal-400 font-bold uppercase text-xs">
-              New Chapter:
-            </span>
-            <input
-              autoFocus
-              type="text"
-              placeholder="Chapter Title (e.g. Introduction)"
-              className="flex-1 bg-[#050510] border border-teal-900 rounded px-3 py-2 text-sm text-white focus:border-teal-500 outline-none"
-              value={newChapterTitle}
-              onChange={(e) => setNewChapterTitle(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddChapter()}
-            />
-            <button
-              onClick={handleAddChapter}
-              className="px-4 py-2 bg-teal-500 text-black font-bold uppercase text-xs rounded hover:bg-teal-400"
-            >
-              Create
-            </button>
-            <button
-              onClick={() => setIsAddingChapter(false)}
-              className="px-4 py-2 text-red-400 font-bold uppercase text-xs hover:text-red-300"
-            >
-              Cancel
-            </button>
+        {/* Add Module Form */}
+        {isAddingModule && (
+          <div className="border border-dashed border-cyan-500/50 bg-cyan-500/[0.02] p-6 rounded-3xl flex flex-col md:flex-row items-center gap-4 animate-in zoom-in-95">
+            <div className="flex-1 w-full">
+              <label className="text-cyan-500 text-[9px] font-black uppercase tracking-[0.3em] mb-2 block">
+                Initialize New Module
+              </label>
+              <input
+                autoFocus
+                type="text"
+                placeholder="TITLE"
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500 outline-none font-mono transition-all"
+                value={newModuleTitle}
+                onChange={(e) => setNewModuleTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
+              />
+            </div>
+            <div className="flex items-center gap-3 mt-4 md:mt-5">
+              <button
+                onClick={handleAddModule}
+                className="px-8 py-3 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-lg hover:brightness-110 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddingModule(false);
+                  setNewModuleTitle("");
+                }}
+                className="px-6 py-3 text-white/40 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
-        open={!!chapterToDelete}
-        onOpenChange={(open: boolean) => !open && setChapterToDelete(null)}
+        open={!!moduleToDelete}
+        onOpenChange={(open: boolean) => !open && setModuleToDelete(null)}
       >
-        <AlertDialogContent className="bg-[#050510] border border-teal-900/50 text-white">
+        <AlertDialogContent className="bg-[#0b0724] border border-white/10 text-white rounded-3xl shadow-2xl backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chapter?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to delete this chapter? All lessons inside
-              will be lost. This action cannot be undone.
+            <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">
+              Delete Module?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400 font-medium">
+              You are about to permanently delete this module. All lessons
+              contained within will be removed from the curriculum. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-teal-900 text-teal-400 hover:bg-teal-900/20 hover:text-teal-300">
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={executeDeleteChapter}
-              className="bg-red-500/10 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              onClick={executeDeleteModule}
+              className="bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
             >
-              Delete Chapter
+              Delete Module
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

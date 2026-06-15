@@ -116,170 +116,190 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -left-40 top-10 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
-        <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
+    <div className="min-h-screen bg-dark-bg text-slate-50 selection:bg-neon-purple/30">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -left-40 top-10 h-[500px] w-[500px] rounded-full bg-neon-purple/10 blur-[130px] animate-pulse" />
+        <div className="absolute right-0 bottom-0 h-[600px] w-[600px] rounded-full bg-neon-blue/10 blur-[150px]" />
       </div>
 
       <Navbar />
 
-      <main className="relative mx-auto flex max-w-6xl flex-col px-6 py-8 sm:px-10 lg:px-14">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <main className="relative mx-auto flex max-w-6xl flex-col px-6 pt-32 pb-16 sm:px-10 lg:px-14">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Verify form + result */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/25">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-cyan-100">
-              Verification
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <section className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-10 shadow-3xl backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-neon-blue to-neon-purple opacity-20" />
+
+            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-neon-blue mb-6">
+              Institutional Records Hub
+              <div className="h-1 w-1 rounded-full bg-neon-blue animate-ping" />
             </div>
-            <h1 className="mt-2 text-2xl font-semibold text-white">
-              Verify a certificate by ID
+
+            <h1 className="text-4xl font-bold text-white tracking-tight">
+              Credential{" "}
+              <span className="galaxy-gradient-text">Validation</span>
             </h1>
-            <p className="mt-1 text-sm text-slate-200">
-              Enter the{" "}
-              <code className="rounded bg-slate-900/70 px-1 py-0.5 text-[0.75rem]">
-                certId
+
+            <p className="mt-4 text-[13px] text-white/40 font-medium leading-relaxed">
+              Authenticate academic achievements through our secure
+              institutional ledger. Enter the unique{" "}
+              <code className="text-neon-purple font-bold px-1.5 py-0.5 bg-neon-purple/10 rounded-md">
+                Credential ID
               </code>{" "}
-              generated during issuance (e.g., CERT-17323xxxxxxx). The backend
-              calls{" "}
-              <code className="rounded bg-slate-900/70 px-1 py-0.5 text-[0.75rem]">
-                POST /verify
-              </code>{" "}
-              and returns metadata from PostgreSQL, Fabric (anchor), and IPFS.
+              provided on the physical certificate or digital transcript.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-200">
-                  Certificate ID
-                </label>
-                <input
-                  value={certId}
-                  onChange={(e) => setCertId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/40"
-                  placeholder="e.g.: CERT-1732312345678"
-                  required
-                />
+            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+              <div className="group/input relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 rounded-2xl blur opacity-0 group-focus-within/input:opacity-100 transition-opacity" />
+                <div className="relative">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2 ml-1">
+                    Credential Identifier
+                  </label>
+                  <input
+                    value={certId}
+                    onChange={(e) => setCertId(e.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-white outline-none ring-0 placeholder:text-white/20 transition-all focus:border-neon-purple/30 focus:bg-white/[0.08]"
+                    placeholder="e.g. CERT-1732312345678"
+                    required
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center justify-center rounded-lg bg-linear-to-r from-blue-500 via-cyan-400 to-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/30 transition hover:-translate-y-0.5 disabled:opacity-60"
+                className="w-full group/btn relative inline-flex items-center justify-center rounded-2xl bg-white px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-black transition-all hover:bg-neon-purple hover:text-white disabled:opacity-50 overflow-hidden"
               >
-                {loading ? "Verifying..." : "Verify certificate"}
+                <div className="absolute inset-0 bg-gradient-to-r from-neon-purple to-neon-blue opacity-0 group-hover/btn:opacity-100 transition-opacity" />
+                <span className="relative z-10 flex items-center gap-2">
+                  {loading ? "Validating Ledger..." : "Validate Achievement"}
+                </span>
               </button>
             </form>
 
             {errorMsg && (
-              <p className="mt-4 text-xs rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-2 text-red-200">
-                Error: {errorMsg}
-              </p>
+              <div className="mt-8 flex items-start gap-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-5 text-[11px] font-bold uppercase tracking-widest text-red-400">
+                <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-red-500" />
+                <span>Error: {errorMsg}</span>
+              </div>
             )}
 
             {result && !errorMsg && (
-              <div className="mt-5 space-y-4">
-                {/* Metadata card */}
-                <div className="space-y-2 rounded-lg border border-emerald-400/40 bg-emerald-500/5 p-3 text-xs text-slate-100">
-                  <p className="font-semibold text-emerald-200">
-                    Verification result
-                  </p>
+              <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="rounded-[1.5rem] border border-white/5 bg-white/[0.02] p-8 shadow-inner overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/5 blur-3xl -z-10" />
 
-                  <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Certificate ID
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neon-purple opacity-80">
+                      Assessment Result
+                    </h3>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest text-emerald-400">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Authentic
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Achievement Identifier
                       </p>
-                      <p className="font-mono text-[0.8rem] text-slate-50">
+                      <p className="font-mono text-[11px] font-bold text-white tracking-tight">
                         {result.certId}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Status
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Session Status
                       </p>
-                      <p className="text-[0.8rem] font-semibold text-emerald-300">
+                      <p className="text-[11px] font-bold text-neon-blue uppercase tracking-widest">
                         {result.status}
                       </p>
                     </div>
 
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        NIM (Student ID)
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Student ID
                       </p>
-                      <p className="text-[0.8rem] text-slate-50">
+                      <p className="text-[11px] font-bold text-white uppercase tracking-widest">
                         {result.nim}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Name
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Recipient Name
                       </p>
-                      <p className="text-[0.8rem] text-slate-50">
+                      <p className="text-[11px] font-bold text-white uppercase tracking-widest">
                         {result.name}
                       </p>
                     </div>
 
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Major / Department
+                    <div className="space-y-1 md:col-span-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Academic Program
                       </p>
-                      <p className="text-[0.8rem] text-slate-50">
-                        {result.majority}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Program / Level
-                      </p>
-                      <p className="text-[0.8rem] text-slate-50">
-                        {result.program}
+                      <p className="text-[11px] font-bold text-white uppercase tracking-widest">
+                        {result.program} in {result.majority}
                       </p>
                     </div>
 
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        Issued at
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Certification Date
                       </p>
-                      <p className="text-[0.8rem] text-slate-50">
+                      <p className="text-[11px] font-bold text-white/60">
                         {result.issuedAt
-                          ? new Date(result.issuedAt).toLocaleString()
+                          ? new Date(result.issuedAt).toLocaleDateString(
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )
                           : "-"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[0.7rem] uppercase text-slate-400">
-                        On-chain (Fabric)
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
+                        Ledger Verification
                       </p>
-                      <p className="text-[0.8rem] text-slate-50">
-                        {result.onChain ? "Found on Fabric" : "Not found"}
+                      <p className="text-[11px] font-bold text-neon-purple uppercase tracking-widest flex items-center gap-2">
+                        {result.onChain ? (
+                          <>Found in Records Hub</>
+                        ) : (
+                          <span className="text-white/20">Awaiting Record</span>
+                        )}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-1">
-                    <p className="text-[0.7rem] uppercase text-slate-400">
-                      Hash (SHA-256)
-                    </p>
-                    <p className="font-mono text-[0.7rem] break-all text-slate-100">
-                      {result.hash}
-                    </p>
+                  <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">
+                        Institutional Signature (SHA-256)
+                      </p>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/5 font-mono text-[9px] break-all text-white/40 leading-relaxed group-hover:text-white/60 transition-colors">
+                        {result.hash}
+                      </div>
+                    </div>
                     {result.cid && (
-                      <>
-                        <p className="mt-2 text-[0.7rem] uppercase text-slate-400">
-                          CID (IPFS)
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">
+                          Digital Artifact Reference
                         </p>
-                        <p className="font-mono text-[0.7rem] break-all text-slate-100">
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/5 font-mono text-[9px] break-all text-white/40 leading-relaxed">
                           {result.cid}
-                        </p>
-                      </>
+                        </div>
+                      </div>
                     )}
                   </div>
 
                   {result.note && (
-                    <p className="mt-2 text-[0.75rem] text-slate-200">
+                    <div className="mt-6 p-4 rounded-xl bg-neon-blue/5 border border-neon-blue/10 text-[10px] font-bold uppercase tracking-widest text-neon-blue/60 leading-relaxed">
                       {result.note}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -287,33 +307,33 @@ export default function VerifyPage() {
           </section>
 
           {/* Side info / IPFS Preview */}
-          <div className="flex flex-col gap-6">
-            {result && !errorMsg && (
+          <div className="flex flex-col gap-10">
+            {result && !errorMsg ? (
               /* IPFS preview */
-              <div className="rounded-2xl border border-white/10 bg-slate-900 text-xs text-slate-100 overflow-hidden shadow-xl shadow-black/25 h-fit sticky top-6">
-                <div className="flex items-center justify-between gap-3 bg-slate-900/90 px-4 py-3 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-xs font-semibold text-cyan-200">
-                      IPFS
+              <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] overflow-hidden shadow-3xl backdrop-blur-xl h-fit sticky top-12 group/preview">
+                <div className="flex items-center justify-between gap-6 px-8 py-6 border-b border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-[10px] font-bold text-neon-blue uppercase tracking-widest">
+                      Ledger
                     </div>
                     <div className="leading-tight">
-                      <p className="text-sm font-semibold text-white">
-                        {fileLabel || "IPFS Preview"}
+                      <p className="text-sm font-bold text-white tracking-tight">
+                        {fileLabel || "Achievement Transcript"}
                       </p>
                       {result?.cid && (
-                        <p className="font-mono text-[0.7rem] text-slate-400">
+                        <p className="font-bold text-[9px] uppercase tracking-widest text-white/20 mt-1">
                           CID: {result.cid.substring(0, 12)}...
                         </p>
                       )}
                     </div>
                   </div>
                   {ipfsUrl && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <a
                         href={ipfsUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 transition hover:text-white hover:bg-neon-blue hover:border-neon-blue hover:shadow-[0_0_15px_rgba(0,229,255,0.3)]"
                         aria-label="Open in new tab"
                       >
                         <svg
@@ -322,7 +342,7 @@ export default function VerifyPage() {
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
-                          strokeWidth={1.5}
+                          strokeWidth={2}
                         >
                           <path
                             strokeLinecap="round"
@@ -339,7 +359,7 @@ export default function VerifyPage() {
                       <button
                         onClick={handleDownload}
                         disabled={downloading}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10 disabled:opacity-60"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 transition hover:text-white hover:bg-neon-purple hover:border-neon-purple hover:shadow-[0_0_15px_rgba(176,38,255,0.3)] disabled:opacity-30"
                         aria-label="Download file"
                       >
                         <svg
@@ -348,7 +368,7 @@ export default function VerifyPage() {
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
-                          strokeWidth={1.5}
+                          strokeWidth={2}
                         >
                           <path
                             strokeLinecap="round"
@@ -361,55 +381,41 @@ export default function VerifyPage() {
                   )}
                 </div>
                 {downloadError && (
-                  <p className="mt-2 px-4 text-[0.7rem] text-red-200">
+                  <p className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-red-400 bg-red-500/5">
                     {downloadError}
                   </p>
                 )}
 
                 {ipfsUrl ? (
-                  <div className="flex h-[32vh] sm:h-[36vh] lg:h-[40vh] items-center justify-center bg-slate-950 overflow-hidden">
-                    <div className="h-full w-full max-w-full overflow-hidden border-t border-white/5 bg-slate-900">
-                      <iframe
-                        src={ipfsUrl}
-                        className="h-full w-full border-0"
-                        title="IPFS preview"
-                      />
-                    </div>
+                  <div className="flex h-[450px] items-center justify-center bg-black/40 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+                    <iframe
+                      src={ipfsUrl}
+                      className="h-full w-full border-0 opacity-80 group-hover/preview:opacity-100 transition-opacity"
+                      title="Digital Ledger Preview"
+                    />
                   </div>
                 ) : (
-                  <div className="mt-3 rounded-md border border-dashed border-white/15 bg-slate-900/70 p-4 text-[0.8rem] text-slate-400 m-4">
-                    No verification yet. Enter a{" "}
-                    <span className="font-mono">certId</span>.
+                  <div className="p-12 text-center">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/10">
+                      Signature Required
+                    </div>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="rounded-[2.5rem] border border-dashed border-white/10 bg-white/[0.01] p-12 text-center space-y-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">
+                  Verification Pending
+                </div>
+                <p className="text-[11px] text-white/10 font-medium uppercase tracking-widest">
+                  Confirm the validity of digital transcripts in real-time.
+                </p>
               </div>
             )}
           </div>
         </div>
       </main>
-
-      <style jsx global>{`
-        /* Subtle slate-themed scrollbar */
-        body {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.7);
-        }
-        body::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        body::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.8);
-        }
-        body::-webkit-scrollbar-thumb {
-          background-color: rgba(148, 163, 184, 0.6);
-          border-radius: 9999px;
-          border: 2px solid rgba(15, 23, 42, 0.9);
-        }
-        body::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(148, 163, 184, 0.8);
-        }
-      `}</style>
     </div>
   );
 }

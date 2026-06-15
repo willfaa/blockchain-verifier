@@ -1,3 +1,4 @@
+//frontend/src/app/courses/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,6 +6,8 @@ import api from "@/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
 import CourseCard from "@/components/features/CourseCard";
 import { BookOpen, Loader2 } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
@@ -22,49 +25,52 @@ export default function CoursesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0b0724] text-slate-50">
+    <div className="min-h-screen bg-dark-bg text-white font-sans selection:bg-neon-purple/30 overflow-x-hidden">
       <Navbar />
 
-      <main className="max-w-[1400px] mx-auto px-6 py-12">
-        <div className="text-center mb-16">
-          <p className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-3 animate-in fade-in slide-in-from-bottom-4">
-            Course Catalog
+      <main className="max-w-[1400px] mx-auto px-10 pt-40 pb-32 relative">
+        {/* Glow Backdrop */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-neon-purple/5 blur-[150px] rounded-full pointer-events-none"></div>
+
+        <div className="text-center mb-32 relative z-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+          <p className="text-[10px] font-bold text-neon-blue uppercase tracking-[0.6em] mb-6">
+            Institutional Catalog // Professional Education
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-cyan-400 via-blue-500 to-fuchsia-500 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            Explore Verified Knowledge
+          <h1 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight">
+            Academic <span className="galaxy-gradient-text">Curriculum</span>
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            Discover a wide range of courses secured by blockchain technology.
-            Every achievement is verifiable and permanent.
+          <p className="text-white/40 max-w-2xl mx-auto text-sm font-medium leading-relaxed">
+            Discover a premium selection of high-fidelity courses, designed for
+            institutional success and individual growth. Every learning track is
+            verified for professional excellence and global recognition.
           </p>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 text-cyan-400">
-            <Loader2 size={48} className="animate-spin mb-4" />
-            <p className="text-slate-500 text-sm tracking-wider">
-              Loading Library...
+          <div className="flex flex-col items-center justify-center py-40 gap-8 relative z-10">
+            <div className="h-16 w-16 border-4 border-white/5 border-t-neon-purple rounded-full animate-spin shadow-[0_0_20px_rgba(176,38,255,0.2)]"></div>
+            <p className="text-white/40 font-bold text-[10px] uppercase tracking-[0.5em] animate-pulse">
+              Preparing Course Library
             </p>
           </div>
-        ) : courses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-3xl border border-white/10 max-w-lg mx-auto">
-            <div className="bg-slate-900/50 p-4 rounded-full mb-4">
-              <BookOpen className="h-12 w-12 text-slate-600" />
-            </div>
-            <h3 className="text-xl font-bold text-white">
-              No Courses Available
+        ) : (courses?.length || 0) === 0 ? (
+          <div className="glass-panel p-24 rounded-[2.5rem] text-center max-w-xl mx-auto border-white/5 relative z-10 animate-in fade-in duration-1000">
+            <BookOpen className="mx-auto h-20 w-20 text-white/5 mb-8" />
+            <h3 className="text-2xl font-bold text-white tracking-tight">
+              Library Currently Updating
             </h3>
-            <p className="text-slate-400 mt-2 text-sm">
-              Our library is currently empty. Check back soon for new content.
+            <p className="text-white/30 mt-6 text-sm font-medium leading-relaxed">
+              We are currently finalizing new academic content. Please check
+              back shortly for our updated curriculum selection.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 relative z-10">
             {courses.map((course, idx) => (
               <div
                 key={course.id}
-                className="h-[380px]" // Fixed height container for uniform grid
-                style={{ animationDelay: `${idx * 50}ms` }} // Stagger animation
+                className="animate-in fade-in zoom-in-95"
+                style={{ animationDelay: `${idx * 150}ms` }}
               >
                 <CourseCard
                   id={course.id}
@@ -72,12 +78,14 @@ export default function CoursesPage() {
                   description={course.description}
                   category={course.category || "General"}
                   image={
-                    course.thumbnail
-                      ? `http://localhost:4000${course.thumbnail}`
+                    course.imageUrl || course.thumbnail
+                      ? (course.imageUrl || course.thumbnail).startsWith("http")
+                        ? course.imageUrl || course.thumbnail
+                        : `${API_BASE}${course.imageUrl || course.thumbnail}`
                       : ""
                   }
                   teacherName={course.teacher?.name}
-                  lessonCount={course._count?.lessons || 0} // requires aggregated count or manual check
+                  lessonCount={course._count?.lessons || 0}
                 />
               </div>
             ))}

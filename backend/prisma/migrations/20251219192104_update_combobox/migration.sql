@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "exam_results" ADD COLUMN     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

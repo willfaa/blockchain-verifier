@@ -59,48 +59,48 @@ export default function AdminLayout({
 
   const menuItems = [
     {
-      label: "System_Overview",
+      label: "System Overview",
       icon: LayoutDashboard,
       href: "/admin/dashboard",
     },
-    { label: "Users_&_Roles", icon: Users, href: "/admin/users" },
+    { label: "Users & Roles", icon: Users, href: "/admin/users" },
     {
-      label: "Transaction_Logs",
+      label: "Transaction Logs",
       icon: FileText,
       href: "/admin/certificates",
     },
     {
-      label: "Network_Explorer",
+      label: "Network Explorer",
       icon: Globe,
       href: "/admin/explorer",
     },
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#0b0724] text-teal-50 font-mono selection:bg-teal-900/50">
-      {/* Sidebar - TERMINAL THEME (Teal/Black) */}
+    <div className="flex min-h-screen bg-dark-bg text-slate-100 font-sans selection:bg-neon-purple/30 overflow-hidden">
+      {/* Sidebar - GALAXY THEME */}
       <aside
         className={`${
           isCollapsed ? "w-20" : "w-72"
-        } relative hidden md:flex flex-col border-r border-teal-900/30 bg-[#050510] transition-all duration-300 shadow-[0_0_50px_rgba(45,212,191,0.05)] z-20`}
+        } relative hidden md:flex flex-col border-r border-white/5 bg-dark-bg/40 backdrop-blur-2xl transition-all duration-300 z-30`}
       >
         {/* Brand */}
         <div
-          className={`h-20 flex items-center ${
-            isCollapsed ? "justify-center" : "px-6"
-          } border-b border-teal-900/20`}
+          className={`h-24 flex items-center ${
+            isCollapsed ? "justify-center" : "px-8"
+          } border-b border-white/5`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-teal-900/20 flex items-center justify-center shrink-0 border border-teal-500/50 shadow-[0_0_15px_rgba(45,212,191,0.2)]">
-              <ShieldAlert className="text-teal-400 h-6 w-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-neon-purple/10 flex items-center justify-center shrink-0 border border-neon-purple/30 shadow-[0_0_20px_rgba(176,38,255,0.1)]">
+              <ShieldAlert className="text-neon-purple h-6 w-6" />
             </div>
             {!isCollapsed && (
-              <div>
-                <h1 className="font-bold text-lg tracking-tight text-teal-100">
-                  SYSTEM_MONITOR
+              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                <h1 className="font-bold text-xl tracking-tight text-white">
+                  User Records <span className="text-neon-purple">Hub</span>
                 </h1>
-                <p className="text-[10px] text-teal-500 font-bold tracking-widest uppercase">
-                  v2.0.4 :: ROOT
+                <p className="text-[10px] text-white/40 font-semibold tracking-widest uppercase">
+                  Institutional Controls
                 </p>
               </div>
             )}
@@ -108,94 +108,84 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 px-3 space-y-2">
+        <nav className="flex-1 py-12 px-6 space-y-3">
           {!isCollapsed && (
-            <p className="px-4 text-[10px] font-bold text-teal-900/50 uppercase tracking-widest mb-4">
-              ./modules
+            <p className="px-2 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-6">
+              Menu Navigation
             </p>
           )}
 
-          {menuItems.map((item) => {
+          {menuItems.map((item, idx) => {
             const isActive = pathname === item.href;
+            const colors = [
+              "group-hover:text-neon-purple",
+              "group-hover:text-neon-blue",
+              "group-hover:text-neon-pink",
+              "group-hover:text-neon-soft-blue",
+            ];
+            const activeBorders = [
+              "border-neon-purple/40 bg-neon-purple/10 shadow-[0_0_15px_rgba(176,38,255,0.1)]",
+              "border-neon-blue/40 bg-neon-blue/10 shadow-[0_0_15px_rgba(0,229,255,0.1)]",
+              "border-neon-pink/40 bg-neon-pink/10 shadow-[0_0_15px_rgba(255,0,255,0.1)]",
+              "border-neon-soft-blue/40 bg-neon-soft-blue/10 shadow-[0_0_15px_rgba(112,161,255,0.1)]",
+            ];
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200 relative overflow-hidden ${
+                className={`group flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
                   isActive
-                    ? "bg-teal-900/20 text-teal-400 border border-teal-500/30 shadow-[0_0_15px_rgba(45,212,191,0.1)]"
-                    : "text-slate-500 hover:text-teal-300 hover:bg-teal-900/10"
+                    ? `text-white ${activeBorders[idx % 4]}`
+                    : "text-white/40 border-transparent hover:bg-white/5 hover:text-white"
                 } ${isCollapsed ? "justify-center" : ""}`}
               >
-                {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500"></div>
-                )}
                 <item.icon
-                  size={18}
-                  className={`transition-colors ${
-                    isActive ? "text-teal-400" : "group-hover:text-teal-300"
+                  size={22}
+                  className={`transition-all duration-300 ${
+                    isActive ? "animate-float" : colors[idx % 4]
                   }`}
                 />
 
                 {!isCollapsed && (
-                  <span className="text-sm tracking-tight font-medium">
+                  <span className="text-sm font-semibold tracking-tight">
                     {item.label}
                   </span>
+                )}
+
+                {isActive && !isCollapsed && (
+                  <div
+                    className={`absolute right-4 w-1.5 h-1.5 rounded-full animate-pulse ${
+                      idx % 4 === 0
+                        ? "bg-neon-purple shadow-[0_0_10px_#b026ff]"
+                        : idx % 4 === 1
+                        ? "bg-neon-blue shadow-[0_0_10px_#00e5ff]"
+                        : idx % 4 === 2
+                        ? "bg-neon-pink shadow-[0_0_10px_#ff00ff]"
+                        : "bg-neon-soft-blue shadow-[0_0_10px_#70a1ff]"
+                    }`}
+                  ></div>
                 )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Collapse Toggle */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-24 bg-[#050510] border border-teal-900/50 rounded-md p-1 text-teal-500 hover:text-white hover:bg-teal-600 transition-all shadow-lg shadow-teal-900/20"
-        >
-          <ChevronLeft
-            size={14}
-            className={`transition-transform duration-300 ${
-              isCollapsed ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-
-        {/* Footer / User Profile Stub */}
-        <div className="p-4 border-t border-teal-900/20">
-          <div
-            className={`flex items-center gap-3 ${
-              isCollapsed
-                ? "justify-center"
-                : "bg-teal-900/10 p-3 rounded-lg border border-teal-900/20"
-            }`}
-          >
-            <div className="w-8 h-8 rounded bg-teal-950 flex items-center justify-center text-xs font-bold text-teal-500 border border-teal-800">
-              SU
-            </div>
-            {!isCollapsed && (
-              <div className="overflow-hidden">
-                <p className="text-xs font-bold text-teal-200 truncate">
-                  SysAdmin
-                </p>
-                <p className="text-[10px] text-teal-500 truncate">
-                  uid: 0 | root
-                </p>
-              </div>
-            )}
-          </div>
+        {/* Footer */}
+        <div className="p-8 border-t border-white/5">
           <button
             onClick={logout}
-            className={`mt-4 w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group hover:bg-red-500/10 ${
+            className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 group hover:bg-red-500/10 border border-transparent hover:border-red-500/30 ${
               isCollapsed ? "justify-center" : ""
             }`}
           >
             <LogOut
-              size={16}
-              className="text-red-400 group-hover:text-red-300"
+              size={20}
+              className="text-red-500 group-hover:animate-pulse"
             />
             {!isCollapsed && (
-              <span className="text-xs font-bold text-red-400 group-hover:text-red-300 uppercase tracking-wider">
-                System_Logout
+              <span className="text-xs font-bold text-red-500 tracking-tight">
+                Logout Session
               </span>
             )}
           </button>
@@ -203,23 +193,28 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-[#0b0724]">
-        {/* Top Bar */}
-        <header className="h-16 border-b border-teal-900/20 bg-[#0b0724]/90 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10 w-full">
-          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-3">
-            <span className="text-teal-500 opacity-50 text-xl">~/</span>
-            {menuItems.find((i) => i.href === pathname)?.label || "dashboard"}
-          </h2>
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-dark-bg">
+        {/* Glow Backdrop */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-neon-purple/5 blur-[150px] rounded-full pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-neon-blue/5 blur-[120px] rounded-full pointer-events-none"></div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded bg-teal-950/50 border border-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest">
-              <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
-              SECURE_CONN_ESTABLISHED
+        {/* Top Bar */}
+        <header className="h-20 border-b border-white/5 bg-dark-bg/60 backdrop-blur-xl flex items-center justify-between px-12 sticky top-0 z-20 w-full">
+          <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-4">
+            <span className="text-neon-purple opacity-40">//</span>
+            {menuItems.find((i) => i.href === pathname)?.label || "Dashboard"}
+          </h2>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-neon-blue shadow-[0_0_10px_#00e5ff] animate-pulse"></div>
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Live Status
+              </span>
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-10 md:p-14 relative z-10 animate-in fade-in duration-1000">
           {children}
         </div>
       </main>

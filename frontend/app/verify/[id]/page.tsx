@@ -89,21 +89,24 @@ export default async function VerificationPage({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50">
+      <div className="min-h-screen bg-dark-bg text-slate-50">
         <Navbar />
-        <main className="mx-auto max-w-4xl px-6 py-12 text-center">
+        <main className="mx-auto max-w-4xl px-6 py-24 text-center relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-red-500/10 blur-[120px] -z-10" />
+
           <Link
-            href="/"
-            className="mb-6 inline-flex items-center text-sm font-medium text-slate-400 hover:text-white"
+            href="/verify"
+            className="mb-10 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+            <ArrowLeft className="h-4 w-4" /> Return to Registry
           </Link>
-          <div className="rounded-xl border border-red-500/30 bg-red-900/10 p-8 shadow-lg">
-            <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h1 className="text-2xl font-bold text-red-100">
-              Verification Error
+
+          <div className="rounded-[2.5rem] border border-red-500/20 bg-red-500/5 p-16 shadow-2xl backdrop-blur-xl">
+            <AlertTriangle className="mx-auto h-16 w-16 text-red-500 mb-6" />
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-4">
+              Validation <span className="text-red-500">Error</span>
             </h1>
-            <p className="text-red-300 mt-2">{error}</p>
+            <p className="text-white/40 text-sm font-medium">{error}</p>
           </div>
         </main>
       </div>
@@ -112,23 +115,29 @@ export default async function VerificationPage({
 
   if (!cert) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50">
+      <div className="min-h-screen bg-dark-bg text-slate-50">
         <Navbar />
-        <main className="mx-auto max-w-4xl px-6 py-12 text-center">
+        <main className="mx-auto max-w-4xl px-6 py-24 text-center relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[120px] -z-10" />
+
           <Link
-            href="/"
-            className="mb-6 inline-flex items-center text-sm font-medium text-slate-400 hover:text-white"
+            href="/verify"
+            className="mb-10 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+            <ArrowLeft className="h-4 w-4" /> Back to Registry
           </Link>
-          <div className="rounded-xl border border-white/10 p-12">
-            <h1 className="text-2xl font-bold text-white">
-              Certificate Not Found
+
+          <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-16 shadow-2xl backdrop-blur-xl">
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-4">
+              Credential <span className="text-white/20">Not Found</span>
             </h1>
-            <p className="text-slate-400 mt-2">
-              The requested ID does not exist in our registry.
+            <p className="text-white/40 text-sm font-medium italic">
+              The requested identifier does not exist in our institutional
+              records.
             </p>
-            <div className="mt-4 font-mono text-sm text-slate-500">{id}</div>
+            <div className="mt-8 font-mono text-[10px] text-white/10 uppercase tracking-[0.4em]">
+              {id}
+            </div>
           </div>
         </main>
       </div>
@@ -137,151 +146,189 @@ export default async function VerificationPage({
 
   // Certificate Found - Render Good UI
   return (
-    <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50 pb-20">
+    <div className="min-h-screen bg-dark-bg text-slate-50 pb-20 selection:bg-neon-purple/30">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -left-40 top-10 h-[500px] w-[500px] rounded-full bg-neon-purple/5 blur-[130px]" />
+        <div className="absolute right-0 bottom-0 h-[600px] w-[600px] rounded-full bg-neon-blue/5 blur-[150px]" />
+      </div>
+
       <Navbar />
 
-      <main className="mx-auto max-w-4xl px-6 py-8">
+      <main className="mx-auto max-w-4xl px-6 pt-32 pb-12">
         <Link
-          href="/"
-          className="mb-6 inline-flex items-center text-sm font-medium text-slate-400 hover:text-white transition-colors print:hidden"
+          href="/verify"
+          className="mb-10 inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-all print:hidden"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Verify Another ID
+          <div className="p-2 bg-white/5 rounded-lg">
+            <ArrowLeft size={14} />
+          </div>
+          Return to Records Hub
         </Link>
 
         {/* Mobile Friendly Status Card */}
-        <div className="flex flex-col gap-6 print:hidden">
+        <div className="flex flex-col gap-10 print:hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div
             className={clsx(
-              "rounded-xl border px-6 py-6 shadow-xl flex flex-col sm:flex-row items-center gap-6",
+              "rounded-[2.5rem] border px-10 py-10 shadow-3xl flex flex-col sm:flex-row items-center gap-10 backdrop-blur-xl relative overflow-hidden",
               cert.status === "ISSUED"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                ? "border-emerald-500/10 bg-emerald-500/[0.02]"
                 : cert.status === "REVOKED"
-                ? "border-red-500/30 bg-red-500/10 text-red-100"
-                : "border-yellow-500/30 bg-yellow-500/10 text-yellow-100"
+                ? "border-red-500/10 bg-red-500/[0.02]"
+                : "border-amber-500/10 bg-amber-500/[0.02]"
             )}
           >
+            <div
+              className={clsx(
+                "absolute top-0 left-0 w-full h-1 opacity-20",
+                cert.status === "ISSUED"
+                  ? "bg-emerald-500"
+                  : cert.status === "REVOKED"
+                  ? "bg-red-500"
+                  : "bg-amber-500"
+              )}
+            />
+
             {/* Icon */}
             <div
               className={clsx(
-                "p-4 rounded-full",
+                "p-6 rounded-[2rem] border transition-transform duration-500 hover:scale-110",
                 cert.status === "ISSUED"
-                  ? "bg-emerald-500/20"
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                   : cert.status === "REVOKED"
-                  ? "bg-red-500/20"
-                  : "bg-yellow-500/20"
+                  ? "bg-red-500/10 border-red-500/20 text-red-500"
+                  : "bg-amber-500/10 border-amber-500/20 text-amber-500"
               )}
             >
               {cert.status === "ISSUED" && (
-                <CheckCircle className="h-12 w-12 text-emerald-400" />
+                <CheckCircle className="h-16 w-16" />
               )}
-              {cert.status === "REVOKED" && (
-                <XCircle className="h-12 w-12 text-red-400" />
-              )}
+              {cert.status === "REVOKED" && <XCircle className="h-16 w-16" />}
               {cert.status === "PENDING" && (
-                <Loader2 className="h-12 w-12 animate-spin text-yellow-400" />
+                <Loader2 className="h-16 w-16 animate-spin" />
               )}
             </div>
 
             <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-3xl font-bold uppercase tracking-tight">
-                {cert.status === "ISSUED" ? "Verified & Valid" : cert.status}
+              <h2 className="text-4xl font-bold tracking-tight text-white mb-2">
+                {cert.status === "ISSUED" ? (
+                  <>
+                    Authentic{" "}
+                    <span className="text-neon-blue">Achievement</span>
+                  </>
+                ) : (
+                  cert.status
+                )}
               </h2>
-              <p className="text-sm opacity-80 mt-1">
+              <p className="text-sm font-medium text-white/40 leading-relaxed">
                 {cert.status === "ISSUED"
-                  ? "This certificate is authentic and recorded on the blockchain."
+                  ? "This credential has been successfully verified against the institutional blockchain records."
                   : cert.status === "REVOKED"
-                  ? `This certificate was revoked on ${cert.revokedAt}. Reason: ${cert.revocationReason}`
-                  : "This certificate is currently pending confirmation."}
+                  ? `Access to this credential was terminated on ${cert.revokedAt}. Reason: ${cert.revocationReason}`
+                  : "The record for this achievement is currently awaiting final network consensus."}
               </p>
-              <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-4 text-xs font-mono opacity-70">
-                <span className="bg-black/20 rounded px-2 py-1">
-                  ID: {cert.certId}
+              <div className="mt-8 flex flex-wrap justify-center sm:justify-start gap-3">
+                <span className="bg-white/5 border border-white/5 text-[9px] font-bold uppercase tracking-widest text-white/40 rounded-full px-4 py-2">
+                  REF: {cert.certId}
                 </span>
-                <span className="bg-black/20 rounded px-2 py-1">
-                  Hash: {cert.hash.substring(0, 16)}...
+                <span className="bg-white/5 border border-white/5 text-[9px] font-bold uppercase tracking-widest text-white/40 rounded-full px-4 py-2">
+                  SIG: {cert.hash.substring(0, 16)}...
                 </span>
               </div>
             </div>
           </div>
 
           {/* Mobile Data Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">
-                Student Details
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-10 backdrop-blur-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-neon-purple/10 blur-[60px] -z-10 group-hover:scale-150 transition-transform duration-1000" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neon-purple mb-8">
+                Recipient Details
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-8">
                 <div>
-                  <p className="text-xs text-slate-500">Full Name</p>
-                  <p className="text-lg font-bold text-white">{cert.name}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-2">
+                    Legal Name
+                  </p>
+                  <p className="text-2xl font-bold text-white tracking-tight">
+                    {cert.name}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Student ID (NIM)</p>
-                  <p className="text-lg font-mono text-cyan-300">{cert.nim}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-2">
+                    Institutional ID
+                  </p>
+                  <p className="text-lg font-bold text-neon-blue tracking-widest">
+                    {cert.nim}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-xs text-slate-500">Program & Majority</p>
-                  <p className="text-base text-slate-200">
-                    {cert.program} in {cert.majority}
+                <div className="pt-6 border-t border-white/5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-2">
+                    Academic Credentials
+                  </p>
+                  <p className="text-[13px] font-bold text-white/60 tracking-tight leading-relaxed">
+                    {cert.program} in{" "}
+                    <span className="text-white">{cert.majority}</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur flex flex-col justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">
-                Blockchain Proof
+            <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-10 backdrop-blur-xl flex flex-col justify-between relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-neon-blue/10 blur-[60px] -z-10 group-hover:scale-150 transition-transform duration-1000" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neon-blue mb-8">
+                Ledger Verification
               </h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-500/20 p-2 rounded-lg">
-                    <CheckCircle className="h-6 w-6 text-blue-400" />
+              <div className="space-y-8">
+                <div className="flex items-center gap-5">
+                  <div className="bg-neon-blue/10 border border-neon-blue/20 p-4 rounded-2xl text-neon-blue">
+                    <CheckCircle className="h-8 w-8" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-[13px] font-bold text-white tracking-tight">
                       Immutable Record
                     </p>
-                    <p className="text-xs text-slate-400">
-                      Anchored on Hyperledger Fabric
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mt-1">
+                      Institutional Records Secured
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-2 text-xs">
-                  <p className="uppercase text-slate-500 mb-1">
-                    Transaction ID
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-3">
+                    Transaction Instance
                   </p>
-                  <p className="font-mono text-cyan-300 break-all bg-black/20 p-2 rounded border border-white/5">
-                    {cert.txId || "PENDING_CONSENSUS"}
+                  <p className="font-mono text-[10px] text-neon-blue break-all bg-white/5 p-4 rounded-xl border border-white/5 leading-relaxed">
+                    {cert.txId || "AWAITING_CONSENSUS_NODE"}
                   </p>
                 </div>
 
-                <div className="mt-2 text-xs">
-                  <p className="uppercase text-slate-500 mb-1">
-                    Data Hash (SHA-256)
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-3">
+                    Digital Signature (SHA-256)
                   </p>
-                  <p className="font-mono text-slate-300 break-all">
+                  <p className="font-mono text-[10px] text-white/40 break-all leading-relaxed">
                     {cert.hash}
                   </p>
                 </div>
 
                 {/* RESTORED IPFS LINK */}
                 {cert.cid && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-xs text-slate-500 mb-2 font-semibold uppercase">
-                      STORED ON IPFS
+                  <div className="mt-4 pt-8 border-t border-white/5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-4">
+                      Digital Transcript Artifact
                     </p>
                     <a
                       href={`http://127.0.0.1:8080/ipfs/${cert.cid}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="block w-full text-center rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition"
+                      className="block w-full text-center rounded-2xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neon-blue hover:text-white transition-all shadow-2xl overflow-hidden relative group/btn"
                     >
-                      View Original File
+                      <span className="relative z-10">
+                        Access Original Artifact
+                      </span>
                     </a>
-                    <p className="text-[10px] text-center text-slate-500 mt-2 font-mono">
-                      CID: {cert.cid.substring(0, 15)}...
+                    <p className="text-[9px] text-center text-white/20 mt-4 font-bold uppercase tracking-widest">
+                      REF: {cert.cid.substring(0, 15)}...
                     </p>
                   </div>
                 )}

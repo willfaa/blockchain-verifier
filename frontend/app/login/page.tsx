@@ -53,8 +53,17 @@ export default function LoginPage() {
       toast.success("Welcome back! ⚡");
     } catch (err: any) {
       // Handle error dari axios
-      const msg = err.response?.data?.error || err.message || "Login failed";
-      // setError(msg);
+      let msg = err.response?.data?.error || "Login failed";
+
+      // Fallback for generic 400/401 without specific message
+      if (
+        !err.response?.data?.error &&
+        (err.response?.status === 400 || err.response?.status === 401)
+      ) {
+        msg = "Invalid Email/ID or Password. Please try again.";
+      }
+
+      setError(msg);
       toast.error(msg);
     } finally {
       setIsLoading(false);
@@ -109,17 +118,6 @@ export default function LoginPage() {
               }`}
             >
               Teacher
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("admin")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                role === "admin"
-                  ? "bg-red-600 text-white shadow-lg shadow-red-600/25"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Admin
             </button>
           </div>
 

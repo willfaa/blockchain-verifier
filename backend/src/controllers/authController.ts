@@ -4,12 +4,13 @@ import jwt from "jsonwebtoken";
 import {
   registerUser,
   loginUser,
-  getUserByNim,
+  getUserByNisn,
 } from "../repositories/userRepo";
-import { PrismaClient } from "@prisma/client";
+import { Prisma } from "../generated/prisma";
 import bcrypt from "bcryptjs";
+import { db } from "../config/db";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 // 1. REGISTER
 // 1. REGISTER
@@ -17,6 +18,11 @@ export const register = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
     console.log("Registering user:", payload.role, payload.name);
+
+    // MAPPING: If frontend sends 'nim', map it to 'nisn'
+    if (payload.nim && !payload.nisn) {
+      payload.nisn = payload.nim;
+    }
 
     // Front-end now generates the ID (payload.email) and sends recovery (payload.personalEmail)
     // We trust valid institutional emails end with @chainnesa.com
@@ -39,25 +45,12 @@ export const register = async (req: Request, res: Response) => {
       personalEmail: payload.personalEmail,
     });
 
-    // --- GENERATE TOKEN (Auto Login) ---
-    const uniqueId = user.email || user.nim || user.nip;
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-        identifier: uniqueId,
-      },
-      process.env.JWT_SECRET || "rahasia_default",
-      { expiresIn: "24h" }
-    );
-
     res.json({
       ok: true,
       user: {
         ...user,
-        token, // Add token to response
       },
-      message: `Registration Successful!`,
+      message: `Registration Successful! Please wait for Admin approval.`,
     });
   } catch (err: any) {
     console.error("Register error:", err.message);
@@ -77,28 +70,22 @@ export const login = async (req: Request, res: Response) => {
         .json({ error: "Identifier and password are required" });
     }
 
-    // Smart Search: Cek Email OR NIM OR NIP
-    // Note: We don't filter by role here to allow "Smart Auth".
-    // If strict role check is needed, we can check user.role === req.body.role later,
-    // but typically username/password is enough unique ID.
-    // Let's assume unique identifier across system is enforcing uniqueness or just pick first.
-    // Ideally Email/NIM/NIP are unique constraints.
+    // Smart Search: Cek Email OR NISN OR NIP
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: identifier }, { nim: identifier }, { nip: identifier }],
+        OR: [{ email: identifier }, { nisn: identifier }, { nip: identifier }],
       },
     });
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ error: "Invalid credentials or User not found" });
+      // User requested specific error messages for "correlated word"
+      return res.status(401).json({ error: "User not found" });
     }
 
     // Cek Password
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid password" });
     }
 
     // STRICT ROLE CHECK
@@ -116,9 +103,16 @@ export const login = async (req: Request, res: Response) => {
         .json({ error: "Your account has been deactivated. Contact Admin." });
     }
 
+    // Cek Status Approval (New Feature)
+    if ((user as any).isApproved === false) {
+      return res.status(403).json({
+        error: "Account pending approval. Please wait for Admin confirmation.",
+      });
+    }
+
     // --- GENERATE TOKEN ---
     // Logika fallback: cari identifier unik
-    const uniqueId = user.email || user.nim || user.nip;
+    const uniqueId = user.email || user.nisn || user.nip;
 
     const token = jwt.sign(
       {
@@ -127,7 +121,7 @@ export const login = async (req: Request, res: Response) => {
         identifier: uniqueId,
       },
       process.env.JWT_SECRET || "rahasia_default",
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
 
     // Kirim Response
@@ -144,11 +138,11 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// 3. GET STUDENT BY NIM (Untuk Autocomplete di Sertifikat)
-export const findStudentByNim = async (req: Request, res: Response) => {
+// 3. GET STUDENT BY NISN (Untuk Autocomplete di Sertifikat)
+export const findStudentByNisn = async (req: Request, res: Response) => {
   try {
-    const { nim } = req.params;
-    const student = await getUserByNim(nim);
+    const { nisn } = req.params;
+    const student = await getUserByNisn(nisn);
 
     if (!student) {
       return res.status(404).json({ error: "User is not found" });

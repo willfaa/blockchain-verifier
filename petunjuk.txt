@@ -11,7 +11,7 @@ peer channel list
   -ccep "OR('Org1MSP.peer','Org2MSP.peer')" \
   -cci InitLedger
 
-
+  
 export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=$PWD/../config/
 export CORE_PEER_TLS_ENABLED=true
@@ -20,6 +20,8 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.e
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
 export CORE_PEER_ADDRESS=localhost:7051
 peer lifecycle chaincode queryinstalled
+
+(export core_peer dulu boss sebelum check certif)
 peer chaincode query -C mychannel -n basic -c '{"function":"GetAllCertificates","Args":[]}'
 
 docker stop $(docker ps -a -q)
@@ -33,7 +35,14 @@ npx ts-node backend/src/fabric/scripts/enrollAdmin.ts
 npx ts-node backend/src/fabric/scripts/seedAdmin.ts
 npx ts-node backend/src/fabric/scripts/registerUser.ts
 npx ts-node backend/src/fabric/scripts/syncWallet.ts
-npx ts-node src/index.ts
 
 cp ~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json backend/fabric-network/
 cp connection-org1.json /mnt/c/Users/willfaa/Documents/VSCode-Project/blockchain-verifier/backend/fabric-network/
+
+~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+
+
+cmd admin bro
+netstat -ano | findstr :8081
+tasklist /fi "pid eq 4832"   4832 itu baris paling kanan di cmd admin
+taskkill /PID 4832 /F

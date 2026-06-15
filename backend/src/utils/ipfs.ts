@@ -4,7 +4,7 @@ import { create } from "ipfs-http-client";
 // Ensure IPFS URL is read from environment or default
 // Note: We use HTTP Client to connect to the REMOTE node (Windows Desktop).
 // It does NOT spawn a local node.
-const IPFS_API_URL = process.env.IPFS_API || "http://127.0.0.1:5001";
+const IPFS_API_URL = process.env.IPFS_API;
 
 // Create client with explicit HTTP agent (though default is fine)
 // We use simple auth-less connection for local dev.

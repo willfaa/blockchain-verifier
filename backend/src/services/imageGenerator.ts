@@ -10,7 +10,7 @@ export interface CertData {
   certId: string;
   issuedAt: string;
   issuerId: string;
-  nim: string;
+  nisn: string;
   // Dynamic Instructor Details
   instructorName?: string;
   instructorNip?: string;
@@ -18,7 +18,7 @@ export interface CertData {
 }
 
 export const generateCertificateImage = async (
-  data: CertData
+  data: CertData,
 ): Promise<Buffer> => {
   const width = 1920;
   const height = 1080;
@@ -142,7 +142,7 @@ export const generateCertificateImage = async (
   ctx.lineTo(centerX + 300, 650);
   ctx.stroke();
 
-  // Major / Program / NIM
+  // Major / Program / NISN
   ctx.fillStyle = "#e2e8f0"; // Slate 200
   ctx.font = "bold 22px Arial";
   ctx.fillText(
@@ -150,10 +150,10 @@ export const generateCertificateImage = async (
       data.program || "Level"
     ).toUpperCase()}`,
     centerX,
-    690
+    690,
   );
   ctx.fillStyle = "#67e8f9"; // Cyan 300
-  ctx.fillText(`NIM : ${data.nim}`, centerX, 725); // Slightly below
+  ctx.fillText(`NISN : ${data.nisn}`, centerX, 725); // Slightly below
 
   // COURSE NAME (Added prominently below details)
   ctx.fillStyle = "#94a3b8"; // Slate 400

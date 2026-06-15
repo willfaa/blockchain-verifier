@@ -22,6 +22,6 @@
     // Source map kalau nanti mau debug
     "sourceMap": true
   },
-  "include": ["src/**/*", "prisma/**/*"],
+  "include": ["src/**/*", "prisma/**/*", "prisma.config.ts"],
   "exclude": ["node_modules"]
 }

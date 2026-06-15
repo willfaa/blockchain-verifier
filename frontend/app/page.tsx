@@ -84,10 +84,10 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="relative mx-auto flex max-w-6xl flex-col px-6 sm:px-10 lg:px-14">
+      <main className="max-w-[1400px] mx-auto px-10  pb-32 relative">
         <section
           id="home"
-          className="grid grid-cols-1 items-center gap-10 pb-16 pt-12 lg:grid-cols-[1.1fr_0.9fr]"
+          className="grid grid-cols-1 items-center gap-10 pb-16 pt-32 lg:grid-cols-[1.1fr_0.9fr]"
         >
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-100 ring-1 ring-white/20">
@@ -447,8 +447,96 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="mt-8 text-center text-xs text-slate-400">
-          (c) {new Date().getFullYear()} Chainnesa. All rights reserved.
+        <div className="mt-12 flex flex-col items-center gap-6 text-center text-xs text-slate-500">
+          <p>
+            &copy; {new Date().getFullYear()} Chainnesa. All rights reserved.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-8 opacity-50 grayscale transition-all duration-500 hover:opacity-100 hover:grayscale-0">
+            {/* Hyperledger Fabric */}
+            <a
+              href="https://www.hyperledger.org/use/fabric"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Hyperledger Fabric"
+            >
+              <img
+                src="https://raw.githubusercontent.com/hyperledger/fabric/release-1.1/docs/source/images/hyperledger_fabric_logo_color.png"
+                alt="Hyperledger Fabric"
+                className="h-8 w-auto object-contain"
+              />
+            </a>
+
+            {/* IPFS */}
+            <a
+              href="https://ipfs.tech/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="IPFS Storage"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/1/18/Ipfs-logo-1024-ice-text.png"
+                alt="IPFS"
+                className="h-10 w-auto object-contain"
+              />
+            </a>
+
+            {/* Next.js */}
+            <a
+              href="https://nextjs.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Next.js 14"
+            >
+              <img
+                src="https://assets.vercel.com/image/upload/v1662130559/nextjs/Icon_light_background.png"
+                alt="Next.js"
+                className="h-8 w-auto object-contain invert"
+              />
+            </a>
+
+            {/* TypeScript */}
+            <a
+              href="https://www.typescriptlang.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="TypeScript"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg"
+                alt="TypeScript"
+                className="h-8 w-auto object-contain"
+              />
+            </a>
+
+            {/* Tailwind CSS */}
+            <a
+              href="https://tailwindcss.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Tailwind CSS"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg"
+                alt="Tailwind CSS"
+                className="h-6 w-auto object-contain"
+              />
+            </a>
+
+            {/* Prisma */}
+            <a
+              href="https://prisma.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Prisma ORM"
+            >
+              <img
+                src="https://made-with.prisma.io/indigo.svg"
+                alt="Prisma"
+                className="h-8 w-auto object-contain"
+              />
+            </a>
+          </div>
         </div>
       </footer>
     </div>

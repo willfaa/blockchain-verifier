@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- USER MANAGEMENT ---
+model User {
+  id            String  @id @default(uuid())
+  email         String  @unique
+  personalEmail String? @unique
+  password      String
+  name          String
+  role          String // "admin", "teacher", "student"
+  isVerified    Boolean @default(false)
+  isApproved    Boolean @default(false)
+  isActive      Boolean @default(true)
+
+  bio    String? @db.Text
+  avatar String?
+  nisn   String? @unique
+  nip    String? @unique
+
+  faculty      String?
+  majority     String?
+  studyProgram String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdCourses        Course[]               @relation("CreatedCourses")
+  enrollments           Enrollment[]
+  certificates          Certificate[]
+  examResults           ExamResult[]
+  assignmentSubmissions AssignmentSubmission[]
+
+  @@map("users")
+}
+
+// --- LMS HIERARCHY ---
+
+model Category {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  courses Course[]
+
+  @@map("categories")
+}
+
+model Course {
+  id     String @id @default(uuid())
+  userId String // Teacher ID
+  user   User   @relation("CreatedCourses", fields: [userId], references: [id])
+
+  title       String
+  description String? @db.Text
+  imageUrl    String?
+  isPublished Boolean @default(false)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  // Added missing fields
+  studyProgram    String?
+  targetAudience  String?
+  allowedPrograms Json? // Using Json for array of strings compatibility
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attachments  Attachment[]
+  modules      Module[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+
+  @@map("courses")
+}
+
+model Attachment {
+  id       String @id @default(uuid())
+  name     String
+  url      String
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attachments")
+}
+
+model Module {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  isPublished Boolean @default(false)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons     Lesson[]
+  assignments Assignment[]
+  exams       Exam[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("modules")
+}
+
+model Lesson {
+  id            String  @id @default(uuid())
+  title         String
+  description   String?
+  content       String? @db.Text
+  videoUrl      String?
+  position      Int
+  isPublished   Boolean @default(false)
+  isFreePreview Boolean @default(false)
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lessons")
+}
+
+// --- ASSIGNMENTS ---
+
+model Assignment {
+  id          String    @id @default(uuid())
+  title       String
+  description String?   @db.Text // Rich Text
+  dueDate     DateTime?
+  duration    Int? // Duration in minutes
+  maxScore    Int       @default(100)
+  isVisible   Boolean   @default(true)
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  submissions AssignmentSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assignments")
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AssignmentSubmission {
+  id          String           @id @default(uuid())
+  fileUrl     String?          @db.Text
+  status      SubmissionStatus @default(PENDING)
+  grade       Float?
+  feedback    String?          @db.Text
+  ipfsHash    String?
+  fileHash    String?
+  ipfsCid     String?
+  startedAt   DateTime?
+  submittedAt DateTime?
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assignment_submissions")
+}
+
+model Exam {
+  id        String @id @default(uuid())
+  title     String
+  questions Json // Storing questions as JSON structure
+  position  Int
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // Legacy relation for ExamResults if needed, or update logic later
+  results ExamResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("exams")
+}
+
+// --- LEGACY/SUPPORTING MODELS ---
+
+model Enrollment {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  status      String  @default("Pending")
+  progress    Int     @default(0)
+  isCompleted Boolean @default(false)
+
+  enrolledAt    DateTime  @default(now())
+  completedAt   DateTime?
+  certificateId String?
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Certificate {
+  id          String @id @default(uuid())
+  certId      String @unique
+  studentName String
+  nisn        String
+  program     String
+  majority    String
+
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  issuedAt String
+  cid      String
+  hash     String
+  status   String @default("ISSUED")
+
+  @@map("certificates")
+}
+
+model ExamResult {
+  id     String @id @default(uuid())
+  score  Float
+  status String
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  examId String
+  exam   Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  startedAt  DateTime @default(now())
+  finishedAt DateTime @default(now())
+
+  // answers removed/commented as UserAnswer model is deleted
+  // answers    Json? 
+
+  @@map("exam_results")
+}

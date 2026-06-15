@@ -35,14 +35,14 @@ const FUNC_REVOKE = "RevokeCertificate";
 const CCP_PATH = path.join(
   process.cwd(),
   "fabric-network",
-  "connection-org1.json"
+  "connection-org1.json",
 );
 const WALLET_PATH = path.resolve(
   __dirname,
   "..",
   "..",
   "fabric-network",
-  "wallet"
+  "wallet",
 );
 
 function loadConnectionProfile() {
@@ -66,7 +66,7 @@ function getWalletPath(role?: string): string {
 export async function getContract(
   userId?: string,
   role?: string,
-  chaincodeName: string = CHAINCODE_NAME
+  chaincodeName: string = CHAINCODE_NAME,
 ): Promise<{ gateway: Gateway; contract: Contract }> {
   const ccp = loadConnectionProfile();
 
@@ -81,7 +81,7 @@ export async function getContract(
   const identity = await wallet.get(identityName);
   if (!identity) {
     console.error(
-      `❌ Identity "${identityName}" not found in wallet: ${targetWalletPath}`
+      `❌ Identity "${identityName}" not found in wallet: ${targetWalletPath}`,
     );
     throw new Error(`Identity ${identityName} not found in user wallet`);
   }
@@ -116,7 +116,7 @@ export async function getBlockchainInfo(username: string, role: string) {
     // Arg1: GetChainInfo, Arg2: ChannelName
     const resultBuffer = await contract.evaluateTransaction(
       "GetChainInfo",
-      CHANNEL_NAME
+      CHANNEL_NAME,
     );
 
     // Result is a Protobuf byte array in standard Fabric, BUT
@@ -152,19 +152,20 @@ export async function getBlockchainInfo(username: string, role: string) {
 export async function issueCertificateOnFabric(
   record: CertificateRecord,
   issuerId: string,
-  issuerRole: string
+  issuerRole: string,
 ): Promise<void> {
   const { gateway, contract } = await getContract(issuerId, issuerRole);
   try {
     console.log(
-      `⚡ Submitting Issue to Fabric: ${record.certId} by ${issuerId}`
+      `⚡ Submitting Issue to Fabric: ${record.certId} by ${issuerId}`,
     );
 
     await contract.submitTransaction(
       FUNC_ISSUE,
       record.certId,
       record.name,
-      record.nim,
+      record.nisn, // Arg 3: NISN (formerly NIM)
+      "", // Arg 4: Empty (formerly NISN placeholder)
       record.program,
       record.majority,
       record.issuedAt,
@@ -173,7 +174,7 @@ export async function issueCertificateOnFabric(
       record.status,
       record.nonce,
       issuerId,
-      issuerRole
+      issuerRole,
     );
     console.log("✅ Fabric Transaction Committed");
   } catch (err: any) {
@@ -189,7 +190,7 @@ export async function issueCertificateOnFabric(
 export async function revokeCertificateOnFabric(
   certId: string,
   revocationReason: string,
-  revokedAt: string
+  revokedAt: string,
 ): Promise<void> {
   const { gateway, contract } = await getContract();
   try {
@@ -197,7 +198,7 @@ export async function revokeCertificateOnFabric(
       FUNC_REVOKE,
       certId,
       revocationReason,
-      revokedAt
+      revokedAt,
     );
   } finally {
     gateway.disconnect();
@@ -205,7 +206,7 @@ export async function revokeCertificateOnFabric(
 }
 
 export async function getCertificateFromFabric(
-  certId: string
+  certId: string,
 ): Promise<CertificateRecord | null> {
   const { gateway, contract } = await getContract();
   try {
@@ -239,7 +240,7 @@ export async function getCertificatesFromFabric(): Promise<
 // --- FUNGSI REGISTER USER ---
 export async function registerFabricUser(
   userId: string,
-  role: string
+  role: string,
 ): Promise<void> {
   try {
     const ccp = loadConnectionProfile();
@@ -248,7 +249,7 @@ export async function registerFabricUser(
     const ca = new FabricCAServices(
       caInfo.url,
       { trustedRoots: caTLSCACerts, verify: false },
-      caInfo.caName
+      caInfo.caName,
     );
 
     const adminWallet = await Wallets.newFileSystemWallet(WALLET_PATH);
@@ -272,7 +273,7 @@ export async function registerFabricUser(
     const adminIdentity = await adminWallet.get("admin");
     if (!adminIdentity) {
       throw new Error(
-        'Identity "admin" not found in root wallet. Run enrollAdmin.ts first.'
+        'Identity "admin" not found in root wallet. Run enrollAdmin.ts first.',
       );
     }
 
@@ -288,7 +289,7 @@ export async function registerFabricUser(
         enrollmentID: userId,
         role: "client",
       },
-      adminUser
+      adminUser,
     );
 
     console.log(`⏳ Enrolling Fabric user: ${userId}...`);
@@ -315,7 +316,7 @@ export async function registerFabricUser(
 
 export async function checkFabricReady(
   userId?: string,
-  role?: string
+  role?: string,
 ): Promise<boolean> {
   const { gateway } = await getContract(userId, role);
   try {
@@ -328,7 +329,7 @@ export async function checkFabricReady(
 
 export async function getAllCertificatesFromFabric(
   username: string,
-  role: string
+  role: string,
 ) {
   try {
     // Gunakan getContract yang sudah ada
@@ -337,9 +338,8 @@ export async function getAllCertificatesFromFabric(
     console.log(`Fabric Client: Fetching ALL certificates for ${username}...`);
 
     // PENTING: Gunakan 'evaluateTransaction' (Read-Only)
-    const resultBuffer = await contract.evaluateTransaction(
-      "GetAllCertificates"
-    );
+    const resultBuffer =
+      await contract.evaluateTransaction("GetAllCertificates");
 
     // Parse hasil
     const resultString = resultBuffer.toString();

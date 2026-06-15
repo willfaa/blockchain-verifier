@@ -1,149 +1,309 @@
-// backend/src/routes/lmsRoutes.ts
 import { Router } from "express";
-import { upload } from "../middleware/uploadMiddleware";
-import * as LMS from "../controllers/lmsController"; // Pastikan path benar
+import * as lmsController from "../controllers/lmsController";
+import { CertificateController } from "../controllers/certificateController";
 import {
   verifyToken,
-  verifyIssuer,
-  verifyIssuerType,
+  verifyTeacher,
+  optionalVerifyToken,
 } from "../middleware/authMiddleware";
-import * as ExamController from "../controllers/examController";
-import * as QuestionController from "../controllers/questionController";
+import { upload } from "../middleware/uploadMiddleware";
 
 const router = Router();
+const certController = new CertificateController();
 
-// Public Routes
+/**
+ * LMS API Manifest
+ * Base Path: /api/lms
+ */
 
-// Question Bank
-// ...
-router.delete("/questions/:id", verifyToken, QuestionController.deleteQuestion);
-
-// Student Exam Routes MOVED TO examRoutes.ts
-// router.get("/exams/:id/take", ...);
-
-// Debug Route
-router.get("/courses", LMS.getCourses);
-
-// --- LESSON MANAGEMENT ---
-// Note: Some lesson implementation uses courseId in params, but logic is inside controller usually by lessonId
-// But for consistency with frontend structure:
-
-// --- EXAM & QUESTION BANK ROUTES ---
+// --- STUDENT / PUBLIC ROUTES ---
+router.get("/courses", lmsController.getCourses);
 router.get(
-  "/courses/:courseId/exam",
-  verifyToken,
-  ExamController.getCourseExam
+  "/courses/:courseId",
+  optionalVerifyToken,
+  lmsController.getCourseById
 );
-router.post(
-  "/courses/:courseId/exam",
-  verifyToken,
-  verifyIssuerType("teacher"),
-  ExamController.upsertExam
-);
+router.post("/enroll", verifyToken, lmsController.enrollCourse);
 
-// Question Bank
-router.post(
-  "/courses/:courseId/exam/questions",
-  verifyToken,
-  // verifyIssuerType("teacher"), // Optional: Strict check
-  QuestionController.addQuestionToCourseExam
+// Certificates (Student)
+router.get("/certificates", verifyToken, (req, res) =>
+  certController.getMyCertificates(req, res)
+);
+router.post("/certificates/claim", verifyToken, (req, res) =>
+  certController.claimCertificate(req, res)
+);
+router.get("/certificates/:id", (req, res) =>
+  certController.getCertificate(req, res)
 );
 
-router.post(
-  "/courses/:courseId/exam/questions/bulk",
-  verifyToken,
-  QuestionController.bulkAddQuestions
-);
+// --- TEACHER ROUTES (Protected) ---
 
-router.patch(
-  "/questions/:id/toggle",
-  verifyToken,
-  QuestionController.toggleQuestionStatus
-);
-
-router.delete("/questions/:id", verifyToken, QuestionController.deleteQuestion);
-
-// Moved to top (Definitions are at line 17)
-// Removed duplicate entries here.
-
-// Debug Route
-router.get("/ping", (req, res) =>
-  res.json({ msg: "LMS PONG", time: new Date() })
-);
-
-router.get("/courses/:courseId/outline", LMS.getCourseOutline);
-router.get("/courses/:id", LMS.getPublicCourse);
-router.get(
-  "/teacher/courses/:id",
-  verifyToken,
-  verifyIssuer,
-  LMS.getTeacherCourse
-);
+// Dashboard & Stats
 router.get(
   "/teacher/my-courses",
   verifyToken,
-  verifyIssuer,
-  LMS.getTeacherCourses
-);
-router.get("/lessons/:id", verifyToken, LMS.getLesson);
-router.get("/courses/:id/students", verifyToken, LMS.getCourseStudents);
-router.get("/students/:nim", verifyToken, verifyIssuer, LMS.getStudentByNim);
-router.put(
-  "/enrollments/status",
-  verifyToken,
-  verifyIssuer,
-  verifyIssuer,
-  LMS.updateEnrollmentStatus
-);
-router.delete(
-  "/courses/:courseId/students/:studentId",
-  verifyToken,
-  verifyIssuer,
-  LMS.kickStudent
+  verifyTeacher,
+  lmsController.getTeacherCourses
 );
 
-// Protected Routes
-router.post("/enroll", verifyToken, LMS.enrollStudent);
+// Course Management
 router.post(
   "/courses",
   verifyToken,
-  verifyIssuer,
+  verifyTeacher,
   upload.single("thumbnail"),
-  LMS.createCourse
+  lmsController.createCourse
 );
+
 router.put(
-  "/courses/:id",
+  "/courses/:courseId",
   verifyToken,
-  verifyIssuer,
+  verifyTeacher,
   upload.single("thumbnail"),
-  LMS.updateCourse
+  lmsController.updateCourse
 );
-router.delete("/courses/:id", verifyToken, verifyIssuer, LMS.deleteCourse);
-router.post(
-  "/lessons",
+
+router.delete(
+  "/courses/:courseId",
   verifyToken,
-  verifyIssuer,
-  upload.single("video"),
-  LMS.addLesson
+  verifyTeacher,
+  lmsController.deleteCourse
 );
+
+router.post(
+  "/courses/:courseId/exam",
+  verifyToken,
+  verifyTeacher,
+  lmsController.upsertExam
+);
+
+router.post(
+  "/courses/:courseId/exam/questions",
+  verifyToken,
+  verifyTeacher,
+  lmsController.addExamQuestion
+);
+
+router.delete(
+  "/questions/:questionId",
+  verifyToken,
+  verifyTeacher,
+  lmsController.deleteExamQuestion
+);
+
+router.post(
+  "/exams/:examId/submit",
+  verifyToken,
+  lmsController.submitExamAttempt
+);
+
+// Course Sub-Features (Fixing 404s)
+router.get(
+  "/courses/:courseId/students",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getCourseStudents
+);
+router.delete(
+  "/courses/:courseId/students/:userId",
+  verifyToken,
+  verifyTeacher,
+  lmsController.removeStudent
+);
+
+router.get(
+  "/courses/:courseId/exam",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getCourseExam
+);
+
+router.get(
+  "/courses/:courseId/assignments",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getCourseAssignments
+);
+
+router.get(
+  "/courses/:courseId/results",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getExamResults
+);
+
+// Alias for Results (Frontend Alignment)
+router.get(
+  "/exams/course/:courseId/results",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getExamResults
+);
+
+// Exam Management (Advanced)
+router.get(
+  "/exams/results/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getExamResultDetail
+);
+
+router.delete(
+  "/exams/submissions/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.deleteSubmission
+);
+
+router.get(
+  "/exams/template",
+  verifyToken,
+  verifyTeacher,
+  lmsController.downloadQuestionTemplate
+);
+
+router.post(
+  "/exams/:examId/questions/import",
+  verifyToken,
+  verifyTeacher,
+  upload.single("file"),
+  lmsController.importQuestions
+);
+
+router.get(
+  "/exams/:examId/export",
+  verifyToken,
+  verifyTeacher,
+  lmsController.exportExamGrades
+);
+
+// Module Management
+router.post(
+  "/courses/:courseId/modules",
+  verifyToken,
+  verifyTeacher,
+  lmsController.createModule
+);
+
+router.put(
+  "/modules/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.updateModule
+);
+
+router.delete(
+  "/modules/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.deleteModule
+);
+
+// Lesson Management
+router.get(
+  "/lessons/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getLessonById
+);
+
+router.post(
+  "/modules/:moduleId/lessons",
+  verifyToken,
+  verifyTeacher,
+  lmsController.createLesson
+);
+
 router.put(
   "/lessons/:id",
   verifyToken,
-  verifyIssuer,
-  upload.single("video"),
-  LMS.updateLesson
+  verifyTeacher,
+  lmsController.updateLesson
 );
 
-// Chapter Routes
-import * as Chapter from "../controllers/chapterController";
-router.post("/chapters", verifyToken, verifyIssuer, Chapter.createChapter);
 router.delete(
-  "/chapters/:id",
+  "/lessons/:id",
   verifyToken,
-  verifyIssuer,
-  Chapter.deleteChapter
+  verifyTeacher,
+  lmsController.deleteLesson
 );
 
-// End of Question Bank Routes
+// --- ASSIGNMENT MANAGEMENT ---
+
+router.post(
+  "/assignments",
+  verifyToken,
+  verifyTeacher,
+  lmsController.createAssignment
+);
+
+router.put(
+  "/assignments/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.updateAssignment
+);
+
+router.delete(
+  "/assignments/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.deleteAssignment
+);
+
+router.get("/assignments/:id", verifyToken, lmsController.getAssignment);
+router.post(
+  "/assignments/:id/start",
+  verifyToken,
+  lmsController.startAssignment
+);
+
+router.post(
+  "/assignments/submit",
+  verifyToken,
+  upload.single("assignment_file"),
+  lmsController.submitAssignment
+);
+
+router.post(
+  "/assignments/upload-artifact",
+  verifyToken,
+  upload.single("assignment_file"),
+  lmsController.uploadAssignmentArtifact
+);
+
+router.patch(
+  "/assignments/submissions/:id",
+  verifyToken,
+  upload.single("assignment_file"),
+  lmsController.updateAssignmentSubmission
+);
+
+router.delete(
+  "/assignments/submissions/:id",
+  verifyToken,
+  lmsController.deleteAssignmentSubmission
+);
+
+router.delete(
+  "/teacher/assignments/submissions/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.teacherDeleteSubmission
+);
+
+router.get(
+  "/assignments/:assignmentId/submissions",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getAssignmentSubmissions
+);
+
+router.put(
+  "/assignments/submissions/:id",
+  verifyToken,
+  verifyTeacher,
+  lmsController.gradeSubmission
+);
 
 export default router;

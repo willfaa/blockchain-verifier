@@ -1,21 +1,19 @@
-// frontend/components/Navbar.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
+import {
+  Lock,
+  Menu,
+  User as UserIcon,
+  LogOut,
+  ChevronDown,
+  LayoutDashboard,
+  ShieldCheck,
+} from "lucide-react";
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Courses", href: "/courses" },
-  { label: "About", href: "/#about" },
-  { label: "Verification", href: "/verify" },
-];
-
-const API_BASE_URL = "http://localhost:4000";
-
-import { Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -24,287 +22,319 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-// ... existing imports
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();
-  // Fix Hydration Mismatch for Radix UI (Sheet)
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const getFullAvatarUrl = (path: string | undefined) => {
-    if (!path) return null;
-    if (path.startsWith("http")) return path;
-    return `${API_BASE_URL}${path}`;
-  };
-
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0d0b2f]/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-10 lg:px-14">
-        {/* LOGO */}
+    <nav className="fixed top-0 w-full z-[100] bg-dark-bg/60 backdrop-blur-xl border-b border-white/5 h-20 flex items-center">
+      <div className="max-w-[1400px] mx-auto w-full px-6 flex items-center justify-between">
+        {/* Brand */}
         <Link
           href="/"
-          className="flex items-center gap-3 transition hover:opacity-80"
+          className="group flex items-center gap-4 transition-transform hover:scale-105"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-cyan-400 via-blue-500 to-fuchsia-500 text-lg font-semibold text-slate-950 shadow-lg shadow-cyan-500/25">
-            Cn
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-neon-purple to-neon-blue flex items-center justify-center shadow-lg group-hover:shadow-[0_0_20px_rgba(176,38,255,0.3)] transition-all">
+            <Lock className="text-white w-6 h-6 group-hover:rotate-12 transition-transform" />
           </div>
-          <div>
-            <p className="text-lg font-semibold">Chainnesa</p>
-            <p className="text-xs text-slate-300">Blockchain-based LMS</p>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold tracking-tight text-white">
+              Chain<span className="galaxy-gradient-text">Academy</span>
+            </span>
+            <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest -mt-1">
+              Secure Credentials
+            </span>
           </div>
         </Link>
 
-        {/* DESKTOP NAV */}
-        <nav className="hidden items-center gap-6 text-sm text-slate-200 md:flex">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={`transition-all duration-300 relative group ${
-                  isActive
-                    ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-bold scale-105"
-                    : "text-slate-300 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:via-fuchsia-500 hover:to-pink-500"
-                }`}
-              >
-                {link.label}
-                {/* Active Indicator Dot */}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
-                )}
-                {/* Hover Underline Animation */}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-500 transition-all duration-300 group-hover:w-full opacity-0 group-hover:opacity-100"></span>
-              </Link>
-            );
-          })}
-          {user?.role === "student" && (
-            <Link
-              href="/student/certificates"
-              className="transition hover:text-white hover:underline font-medium text-teal-400"
-            >
-              My Certificates
-            </Link>
-          )}
-          {user?.role === "teacher" && (
-            <Link
-              href="/teacher/dashboard"
-              className="transition hover:text-white hover:underline"
-            >
-              Dashboard
-            </Link>
-          )}
-          {user?.role === "admin" && (
-            <Link
-              href="/admin/dashboard"
-              className="transition px-3 py-1 rounded border border-teal-500/50 text-teal-400 hover:bg-teal-500/10 text-xs font-bold uppercase tracking-wider"
-            >
-              [ Admin Console ]
-            </Link>
-          )}
-        </nav>
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-10">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-white/60 hover:text-white transition-colors"
+          >
+            Home
+          </Link>
+          <Link
+            href="/courses"
+            className="text-sm font-semibold text-white/60 hover:text-white transition-colors"
+          >
+            Courses
+          </Link>
+          <Link
+            href="/verify"
+            className="text-sm font-semibold text-white/60 hover:text-white transition-colors"
+          >
+            Verification
+          </Link>
 
-        <div className="flex items-center gap-3 text-sm">
-          {!user ? (
-            <>
-              {/* Desktop Verify/Login */}
-              <div className="hidden md:flex items-center gap-3">
-                <Link
-                  href="/verify"
-                  className="rounded-full border border-white/25 px-4 py-2 font-semibold transition hover:border-white hover:-translate-y-0.5"
-                >
-                  Verify
-                </Link>
+          <div className="ml-6 flex items-center gap-4 border-l border-white/10 pl-10">
+            {isLoading ? (
+              <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-neon-purple animate-spin" />
+            ) : user ? (
+              <div className="flex items-center gap-6">
+                {user.role === "teacher" && (
+                  <Link
+                    href="/teacher/dashboard"
+                    className="text-xs font-bold text-white/40 hover:text-neon-purple transition-all flex items-center gap-2 group"
+                  >
+                    <LayoutDashboard
+                      size={14}
+                      className="group-hover:animate-pulse"
+                    />
+                    Management
+                  </Link>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl bg-white/5 border border-white/5 hover:border-neon-purple/30 transition-all outline-none group">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-blue/20 flex items-center justify-center border border-white/10 group-hover:border-neon-purple/40">
+                      {user.avatar ? (
+                        <img
+                          src={
+                            user.avatar.startsWith("http")
+                              ? user.avatar
+                              : `${API_BASE}${user.avatar}`
+                          }
+                          alt="Avatar"
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        <UserIcon className="text-neon-purple w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="text-left hidden xl:block">
+                      <p className="text-xs font-bold text-white group-hover:text-neon-purple transition-colors truncate w-24">
+                        {user.name}
+                      </p>
+                      <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-0.5">
+                        {user.role}
+                      </p>
+                    </div>
+                    <ChevronDown
+                      size={14}
+                      className="text-white/20 group-hover:text-neon-purple transition-transform group-data-[state=open]:rotate-180"
+                    />
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent className="w-64 mt-4 bg-dark-bg/95 backdrop-blur-2xl border-white/5 p-2 rounded-2xl shadow-3xl">
+                    <div className="p-3">
+                      <p className="text-xs font-bold text-white">
+                        {user.name}
+                      </p>
+                      <p className="text-[10px] text-white/30 truncate w-full">
+                        {user.email}
+                      </p>
+                    </div>
+                    <div className="h-px bg-white/5 my-2 mx-1" />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/profile/edit"
+                        className="p-3 text-xs font-bold text-white/60 hover:text-white flex items-center gap-3 rounded-xl"
+                      >
+                        <UserIcon size={16} /> Edit Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    {(user.role === "admin" || user.role === "teacher") && (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={
+                            user.role === "admin"
+                              ? "/admin/dashboard"
+                              : "/teacher/dashboard"
+                          }
+                          className="p-3 text-xs font-bold text-white/60 hover:text-white flex items-center gap-3 rounded-xl transition-all hover:bg-white/5"
+                        >
+                          <LayoutDashboard
+                            size={16}
+                            className="text-neon-purple"
+                          />
+                          {user.role === "admin"
+                            ? "Admin Console"
+                            : "Instructor Hub"}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user.role === "student" && (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/student/certificates"
+                          className="p-3 text-xs font-bold text-white/60 hover:text-white flex items-center gap-3 rounded-xl transition-all hover:bg-white/5"
+                        >
+                          <ShieldCheck size={16} className="text-neon-blue" />{" "}
+                          My Credentials
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={logout}
+                      className="p-3 text-xs font-bold text-red-500/60 hover:text-red-500 flex items-center gap-3 rounded-xl cursor-pointer"
+                    >
+                      <LogOut size={16} /> Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
                 <Link
                   href="/login"
-                  className="rounded-full bg-linear-to-r from-fuchsia-500 via-orange-400 to-amber-300 px-4 py-2 font-semibold text-slate-950 shadow-lg shadow-fuchsia-500/25 transition hover:-translate-y-0.5"
+                  className="px-6 py-3 text-xs font-bold text-white/60 hover:text-white transition-all"
                 >
-                  Sign In
+                  Log In
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-8 py-3.5 bg-gradient-to-r from-neon-purple to-neon-blue text-white rounded-2xl text-xs font-bold uppercase tracking-widest shadow-xl hover:shadow-[0_0_20px_rgba(176,38,255,0.3)] transition-all transform hover:-translate-y-0.5 active:scale-95"
+                >
+                  Join Academy
                 </Link>
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* MOBILE MENU TRIGGER (Public) */}
-              <div className="md:hidden">
-                {isMounted && (
-                  <Sheet>
-                    <SheetTrigger className="p-2 text-slate-300 hover:text-white">
-                      <Menu size={24} />
-                    </SheetTrigger>
-                    <SheetContent
-                      side="right"
-                      className="w-[300px] border-l border-white/10 bg-[#0b0724]"
-                    >
-                      <SheetHeader className="text-left mb-6">
-                        <SheetTitle className="text-white text-xl font-bold flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-lg bg-linear-to-br from-cyan-400 to-blue-500" />
-                          Chainnesa
-                        </SheetTitle>
-                      </SheetHeader>
+        {/* Mobile Menu */}
+        <div className="lg:hidden">
+          {isMounted && (
+            <Sheet>
+              <SheetTrigger className="p-2 text-white/60 hover:text-white">
+                <Menu size={24} />
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[300px] border-l border-white/5 bg-dark-bg/95 backdrop-blur-2xl"
+              >
+                <SheetHeader className="text-left mb-10">
+                  <SheetTitle className="text-white text-xl font-bold flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-neon-purple to-neon-blue flex items-center justify-center">
+                      <Lock size={20} className="text-white" />
+                    </div>
+                    ChainAcademy
+                  </SheetTitle>
+                </SheetHeader>
 
-                      <div className="flex flex-col gap-4">
-                        {navLinks.map((link) => (
-                          <Link
-                            key={link.label}
-                            href={link.href}
-                            className="text-lg font-medium text-slate-300 hover:text-white transition-colors"
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
-                        <div className="h-px bg-white/10 my-2" />
-                        <Link
-                          href="/login"
-                          className="text-center w-full rounded-xl bg-linear-to-r from-fuchsia-500 to-orange-400 py-3 font-bold text-slate-950"
-                        >
-                          Sign In
-                        </Link>
-                        <Link
-                          href="/verify"
-                          className="text-center w-full rounded-xl border border-white/20 py-3 font-bold text-white hover:bg-white/5"
-                        >
-                          Verify Certificate
-                        </Link>
+                <div className="flex flex-col gap-6">
+                  <Link
+                    href="/"
+                    className="text-lg font-semibold text-white/60 hover:text-white transition-colors"
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    href="/courses"
+                    className="text-lg font-semibold text-white/60 hover:text-white transition-colors"
+                  >
+                    Courses
+                  </Link>
+                  <Link
+                    href="/verify"
+                    className="text-lg font-semibold text-white/60 hover:text-white transition-colors"
+                  >
+                    Verification
+                  </Link>
+
+                  <div className="h-px bg-white/5 my-4" />
+
+                  {user ? (
+                    <>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden border border-white/10">
+                          {user.avatar ? (
+                            <img
+                              src={
+                                user.avatar.startsWith("http")
+                                  ? user.avatar
+                                  : `${API_BASE}${user.avatar}`
+                              }
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <UserIcon className="text-neon-purple" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">
+                            {user.name}
+                          </p>
+                          <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">
+                            {user.role}
+                          </p>
+                        </div>
                       </div>
-                    </SheetContent>
-                  </Sheet>
-                )}
-              </div>
-            </>
-          ) : (
-            // LOGGED IN VIEW
-            // Keep user avatar visible on mobile, maybe simplify
-            <>
-              <div className="flex items-center gap-3 mr-2">
-                {/* Hide text on mobile */}
-                <div className="text-right hidden sm:block max-w-[140px]">
-                  <p className="text-xs text-slate-400 uppercase font-bold">
-                    {user.role}
-                  </p>
-                  <p className="font-semibold text-white leading-tight">
-                    {user.name}
-                  </p>
-                </div>
-
-                {/* Avatar always visible */}
-                <div className="h-8 w-8 rounded-full bg-linear-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold text-slate-950 overflow-hidden relative">
-                  {user.avatar ? (
-                    <img
-                      src={getFullAvatarUrl(user.avatar) || ""}
-                      alt="User"
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
+                      <Link
+                        href="/profile/edit"
+                        className="text-lg text-white/60 hover:text-white"
+                      >
+                        Edit Profile
+                      </Link>
+                      {user.role === "student" && (
+                        <Link
+                          href="/student/certificates"
+                          className="text-lg text-neon-blue font-bold"
+                        >
+                          My Credentials
+                        </Link>
+                      )}
+                      {user.role === "teacher" && (
+                        <Link
+                          href="/teacher/dashboard"
+                          className="text-lg text-neon-purple font-bold"
+                        >
+                          Management
+                        </Link>
+                      )}
+                      {user.role === "admin" && (
+                        <Link
+                          href="/admin/dashboard"
+                          className="text-lg text-white/60 font-bold"
+                        >
+                          Admin Settings
+                        </Link>
+                      )}
+                      <button
+                        onClick={logout}
+                        className="text-left text-lg text-red-500/60 hover:text-red-500"
+                      >
+                        Sign Out
+                      </button>
+                    </>
                   ) : (
-                    <span>{user.name.charAt(0)}</span>
+                    <div className="flex flex-col gap-4">
+                      <Link
+                        href="/login"
+                        className="w-full py-4 rounded-2xl border border-white/10 text-center font-bold text-white"
+                      >
+                        Log In
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-neon-purple to-neon-blue text-center font-bold text-white"
+                      >
+                        Join Academy
+                      </Link>
+                    </div>
                   )}
                 </div>
-              </div>
-
-              {/* Desktop Actions */}
-              <div className="hidden md:flex items-center gap-2">
-                <Link
-                  href="/profile/edit"
-                  className="rounded-full border border-white/20 hover:bg-white/10 px-3 py-2 text-xs font-semibold transition flex items-center gap-1"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={logout}
-                  className="rounded-full border border-red-500/30 text-red-400 hover:bg-red-500/10 px-3 py-2 text-xs font-semibold transition"
-                >
-                  Logout
-                </button>
-              </div>
-
-              {/* MOBILE MENU (Logged In) */}
-              <div className="md:hidden ml-2">
-                {isMounted && (
-                  <Sheet>
-                    <SheetTrigger className="p-2 text-slate-300 hover:text-white">
-                      <Menu size={24} />
-                    </SheetTrigger>
-                    <SheetContent
-                      side="right"
-                      className="bg-[#0b0724] border-l border-white/10"
-                    >
-                      <SheetHeader className="mb-6 text-left">
-                        <SheetTitle className="sr-only">User Menu</SheetTitle>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="h-10 w-10 rounded-full bg-linear-to-tr from-cyan-400 to-blue-500 overflow-hidden">
-                            {user.avatar ? (
-                              <img
-                                src={getFullAvatarUrl(user.avatar) || ""}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-bold text-slate-950">
-                                {user.name.charAt(0)}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-bold text-white">{user.name}</p>
-                            <p className="text-xs text-slate-400 uppercase">
-                              {user.role}
-                            </p>
-                          </div>
-                        </div>
-                      </SheetHeader>
-                      <div className="flex flex-col gap-3">
-                        {navLinks.map((link) => (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            className="text-lg text-slate-300 hover:text-white"
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
-                        {user?.role === "student" && (
-                          <Link
-                            href="/student/certificates"
-                            className="text-lg text-teal-400 font-bold"
-                          >
-                            My Certificates
-                          </Link>
-                        )}
-                        {user.role === "teacher" && (
-                          <Link
-                            href="/teacher/dashboard"
-                            className="text-lg text-cyan-400 font-bold"
-                          >
-                            Dashboard
-                          </Link>
-                        )}
-                        <div className="h-px bg-white/10 my-2" />
-                        <Link
-                          href="/profile/edit"
-                          className="text-lg text-slate-300"
-                        >
-                          Edit Profile
-                        </Link>
-                        <button
-                          onClick={logout}
-                          className="text-left text-lg text-red-400 hover:text-red-300"
-                        >
-                          Sign Out
-                        </button>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                )}
-              </div>
-            </>
+              </SheetContent>
+            </Sheet>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

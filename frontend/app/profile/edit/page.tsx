@@ -78,7 +78,7 @@ export default function EditProfilePage() {
       const res = await api.put("/users/profile", formData);
 
       const currentUser = JSON.parse(
-        localStorage.getItem("chainnesa_user") || "{}"
+        localStorage.getItem("chainnesa_user") || "{}",
       );
       const updatedUserWithToken = {
         ...currentUser,
@@ -99,7 +99,7 @@ export default function EditProfilePage() {
       console.error("Failed to update profile", err);
       toast.error(
         "Failed to update profile: " +
-          (err.response?.data?.error || err.message)
+          (err.response?.data?.error || err.message),
       );
     } finally {
       setLoading(false);
@@ -109,45 +109,50 @@ export default function EditProfilePage() {
   if (!user) return null; // or loading spinner
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
+    <div className="min-h-screen bg-dark-bg text-white pb-20 font-sans selection:bg-neon-lime/30">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-slate-950/80 px-4 py-4 backdrop-blur border-b border-white/10">
+      <div className="sticky top-0 z-50 flex items-center justify-between bg-dark-bg/80 px-8 py-6 backdrop-blur-xl border-b border-white/5">
         <Link
-          href="/"
-          className="text-slate-400 hover:text-white transition-colors"
+          href="/profile"
+          className="text-white/40 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.3em]"
         >
           Cancel
         </Link>
-        <h1 className="text-lg font-bold">Edit Profile</h1>
+        <h1 className="text-xl font-black uppercase italic tracking-tighter">
+          Edit <span className="neon-text-lime">Profile</span>
+        </h1>
         <button
           onClick={handleSave}
           disabled={loading}
-          className="font-bold text-teal-400 hover:text-teal-300 disabled:opacity-50"
+          className="font-black text-neon-lime hover:text-white disabled:opacity-50 text-[10px] uppercase tracking-[0.3em] transition-colors"
         >
-          {loading ? "Saving..." : "Done"}
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </div>
 
-      <div className="mx-auto max-w-xl px-6 py-8">
-        {/* Avatar Section (Instagram Style Overlay) */}
-        <div className="flex justify-center mb-8">
-          <label className="relative group cursor-pointer w-32 h-32 rounded-full overflow-hidden border-4 border-slate-800 hover:border-teal-500 transition-colors">
+      <div className="mx-auto max-w-xl px-10 py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        {/* Avatar Section */}
+        <div className="flex justify-center mb-12 relative group">
+          <div className="absolute inset-0 bg-neon-lime/5 blur-3xl rounded-full"></div>
+          <label className="relative cursor-pointer w-40 h-40 rounded-3xl overflow-hidden border border-white/10 p-1 bg-white/[0.02] hover:border-neon-lime/50 transition-all duration-500 transform hover:scale-105 shadow-2xl">
             {/* The Image */}
-            {avatarPreview ? (
-              <img
-                src={avatarPreview}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl font-bold bg-linear-to-tr from-cyan-500 to-blue-600">
-                {name.charAt(0)}
-              </div>
-            )}
+            <div className="w-full h-full rounded-2xl overflow-hidden relative">
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-5xl font-black bg-neon-lime text-black">
+                  {name.charAt(0)}
+                </div>
+              )}
 
-            {/* The Hover Overlay */}
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <Camera className="text-white w-8 h-8" />
+              {/* The Hover Overlay */}
+              <div className="absolute inset-0 bg-dark-bg/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
+                <Camera className="text-neon-lime w-10 h-10" />
+              </div>
             </div>
 
             {/* Hidden Input */}
@@ -161,91 +166,108 @@ export default function EditProfilePage() {
         </div>
 
         {/* Form Fields */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Name */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Name
+          <div className="space-y-3">
+            <label className="text-neon-lime text-[10px] uppercase font-black tracking-[0.3em] flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-neon-lime animate-pulse" />{" "}
+              Full Name
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-transparent border-b border-slate-700 py-2 text-white placeholder-slate-600 focus:border-teal-500 focus:outline-none transition-colors"
-              placeholder="Your Name"
+              className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-white focus:outline-none focus:border-neon-lime/50 focus:bg-white/[0.05] transition-all font-bold"
+              placeholder="Enter Full Name"
             />
           </div>
 
           {/* Bio */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Bio
+          <div className="space-y-3">
+            <label className="text-neon-purple text-[10px] uppercase font-black tracking-[0.3em] flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-neon-purple animate-pulse" />{" "}
+              Biography
             </label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              className="w-full bg-transparent border-b border-slate-700 py-2 text-white placeholder-slate-600 focus:border-teal-500 focus:outline-none transition-colors resize-none"
-              placeholder="Write a short bio..."
+              rows={4}
+              className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-white focus:outline-none focus:border-neon-purple/50 focus:bg-white/[0.05] transition-all resize-none font-bold"
+              placeholder="Write a brief description about yourself..."
             />
-            <p className="text-right text-[10px] text-slate-600">
-              {bio.length}/150
+            <p className="text-right text-[10px] font-black text-white/20 uppercase tracking-widest mt-2">
+              {bio.length} / 150{" "}
+              <span className="text-neon-purple italic">Limit</span>
             </p>
           </div>
 
           {/* Personal Email */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="space-y-3">
+            <label className="text-neon-blue text-[10px] uppercase font-black tracking-[0.3em] flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-neon-blue animate-pulse" />{" "}
               Personal Email
             </label>
             <input
               type="email"
               value={personalEmail}
               onChange={(e) => setPersonalEmail(e.target.value)}
-              className="w-full bg-transparent border-b border-slate-700 py-2 text-white placeholder-slate-600 focus:border-teal-500 focus:outline-none transition-colors"
-              placeholder="you@gmail.com"
+              className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-white focus:outline-none focus:border-neon-blue/50 focus:bg-white/[0.05] transition-all font-bold"
+              placeholder="user@example.com"
             />
           </div>
 
           {/* Locked Info */}
-          <div className="pt-6 mt-8 border-t border-slate-800">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">
-              Academic Identity{" "}
-              <span className="text-[10px] font-normal normal-case ml-1 opacity-50">
-                (Locked)
+          <div className="pt-10 mt-10 border-t border-white/5 space-y-6">
+            <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em] mb-4 flex items-center gap-4">
+              Academic Information{" "}
+              <span
+                className="text-neon-purple shrink-0 hover:text-white transition-colors cursor-help"
+                title="These fields are managed by the institution"
+              >
+                (Read Only)
               </span>
+              <div className="h-px w-full bg-white/5"></div>
             </h3>
 
-            <div className="space-y-5 opacity-60">
-              <div className="space-y-1 relative">
-                <label className="text-xs font-semibold text-slate-500">
-                  Institutional ID
+            <div className="space-y-4">
+              <div className="glass-panel p-6 rounded-2xl border-white/5 relative group">
+                <label className="text-[9px] font-black text-white/40 uppercase tracking-widest block mb-2">
+                  Institutional Email
                 </label>
-                <div className="flex items-center text-slate-300 font-mono text-sm py-1 border-b border-slate-800">
+                <div className="flex items-center text-white font-bold text-sm">
                   {user.email}
-                  <Lock size={12} className="ml-auto text-slate-600" />
+                  <Lock
+                    size={12}
+                    className="ml-auto text-white/10 group-hover:text-neon-purple transition-colors"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-1 relative">
-                <label className="text-xs font-semibold text-slate-500">
-                  {user.role === "student"
-                    ? "Major - Study Program"
-                    : "Department - Homebase"}
+              <div className="glass-panel p-6 rounded-2xl border-white/5 relative group">
+                <label className="text-[9px] font-black text-white/40 uppercase tracking-widest block mb-2">
+                  {user.role === "student" ? "Major" : "Department"}
                 </label>
-                <div className="flex items-center text-slate-300 text-sm py-1 border-b border-slate-800">
+                <div className="flex items-center text-white font-bold text-sm">
                   {user.majority}{" "}
-                  {user.studyProgram ? `- ${user.studyProgram}` : ""}
-                  <Lock size={12} className="ml-auto text-slate-600" />
+                  {user.studyProgram ? `// ${user.studyProgram}` : ""}
+                  <Lock
+                    size={12}
+                    className="ml-auto text-white/10 group-hover:text-neon-purple transition-colors"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-1 relative">
-                <label className="text-xs font-semibold text-slate-500">
-                  {user.role === "student" ? "NIM" : "NIP"}
+              <div className="glass-panel p-6 rounded-2xl border-white/5 relative group">
+                <label className="text-[9px] font-black text-white/40 uppercase tracking-widest block mb-2">
+                  {user.role === "student"
+                    ? "Student ID (NISN)"
+                    : "Employee ID (NIP)"}
                 </label>
-                <div className="flex items-center text-slate-300 font-mono text-sm py-1 border-b border-slate-800">
-                  {user.role === "student" ? user.nim : user.nip}
-                  <Lock size={12} className="ml-auto text-slate-600" />
+                <div className="flex items-center text-white font-bold text-sm">
+                  {user.role === "student" ? user.nisn : user.nip}
+                  <Lock
+                    size={12}
+                    className="ml-auto text-white/10 group-hover:text-neon-purple transition-colors"
+                  />
                 </div>
               </div>
             </div>

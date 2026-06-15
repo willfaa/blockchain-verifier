@@ -12,6 +12,7 @@ import {
   CheckSquare,
   BarChart,
   Menu, // New import
+  ClipboardList,
 } from "lucide-react";
 
 import {
@@ -24,6 +25,8 @@ import {
 
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 export default function ManageCourseLayout({
   children,
@@ -39,6 +42,11 @@ export default function ManageCourseLayout({
   const navItems = [
     { label: "Basic Info", href: `${baseUrl}/basics`, icon: FileText },
     { label: "Curriculum", href: `${baseUrl}/curriculum`, icon: Book },
+    {
+      label: "Assignments",
+      href: `${baseUrl}/assignments`,
+      icon: ClipboardList,
+    },
     { label: "Exam & Quiz", href: `${baseUrl}/exam`, icon: CheckSquare },
     { label: "Exam Results", href: `${baseUrl}/results`, icon: BarChart },
     { label: "Students", href: `${baseUrl}/students`, icon: Users },
@@ -57,23 +65,13 @@ export default function ManageCourseLayout({
 
     setLoading(true);
 
-    // Use shared API instance which handles token extraction from 'chainnesa_user'
     api
-      .get(`/lms/teacher/courses/${courseId}`)
+      .get(`/lms/courses/${courseId}`)
       .then((res) => {
         setCourse(res.data.data);
       })
       .catch((err) => {
         console.error("Sidebar context load error:", err);
-        // Handle Token Expiry
-        if (
-          err.response &&
-          (err.response.status === 401 || err.response.status === 403)
-        ) {
-          // Redirect to login or show alert
-          console.warn("Token invalid, redirecting...");
-          // router.push("/login"); // Optional: Auto-redirect
-        }
       })
       .finally(() => {
         setLoading(false);
@@ -81,80 +79,101 @@ export default function ManageCourseLayout({
   }, [courseId]);
 
   return (
-    <div className="flex h-screen bg-[#0b0724] text-white font-mono overflow-hidden flex-col md:flex-row">
-      {/* Sidebar specific for Course Management (Desktop) */}
-      <aside className="hidden md:flex w-64 border-r border-teal-900/30 bg-[#050510] flex-col">
-        <div className="p-6 border-b border-teal-900/30 min-h-[88px] flex items-center">
+    <div className="flex h-screen bg-dark-bg text-white font-sans overflow-hidden flex-col md:flex-row">
+      {/* Sidebar specific for Course Management (Desktop) - GALAXY THEME */}
+      <aside className="hidden md:flex w-72 border-r border-white/5 bg-dark-bg/40 backdrop-blur-2xl flex-col z-30">
+        <div className="py-10 px-8 border-b border-white/5 min-h-[120px] flex items-center">
           {course ? (
             <Link
               href={`/courses/${courseId}`}
-              className="flex items-center gap-3 group w-full hover:bg-white/5 p-2 -ml-2 rounded-xl transition-all"
+              className="flex items-center gap-4 group w-full p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
             >
-              <img
-                src={
-                  course.thumbnail
-                    ? course.thumbnail.startsWith("http")
-                      ? course.thumbnail
-                      : `${
-                          process.env.NEXT_PUBLIC_API_URL ||
-                          "http://localhost:4000"
-                        }${course.thumbnail}`
-                    : "/course/placeholder.svg"
-                }
-                alt="Thumbnail"
-                className="w-12 h-8 rounded-md object-cover border border-white/10 group-hover:border-teal-400/50 transition-colors"
-              />
+              <div className="relative shrink-0">
+                <img
+                  src={
+                    course.imageUrl || course.thumbnail
+                      ? (course.imageUrl || course.thumbnail).startsWith("http")
+                        ? course.imageUrl || course.thumbnail
+                        : `${API_BASE}${course.imageUrl || course.thumbnail}`
+                      : "/course/placeholder.svg"
+                  }
+                  alt="Thumbnail"
+                  className="w-14 h-14 rounded-2xl object-cover border border-white/10 group-hover:border-neon-purple/50 transition-all duration-500 shadow-xl"
+                />
+                <div className="absolute inset-0 rounded-2xl bg-neon-purple/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
               <div className="flex flex-col overflow-hidden">
-                <h2 className="text-sm font-bold text-white truncate w-full group-hover:text-teal-400 transition-colors">
+                <h2 className="text-sm font-bold text-white truncate w-full group-hover:text-neon-purple transition-colors">
                   {course.title}
                 </h2>
-                <span className="text-[10px] text-cyan-400 font-bold tracking-wider uppercase">
-                  EDITING MODE
+                <span className="text-[10px] text-neon-purple font-semibold tracking-widest uppercase mt-1">
+                  Active Session
                 </span>
               </div>
             </Link>
           ) : (
-            <div>
+            <div className="px-2">
               <h2
-                className={`text-xl font-bold uppercase tracking-widest text-teal-500 ${
+                className={`text-xl font-bold tracking-tight text-white ${
                   loading ? "animate-pulse" : ""
                 }`}
               >
-                CMS_Terminal
+                Curriculum <span className="text-neon-purple">Hub</span>
               </h2>
-              <p className="text-[10px] text-teal-800 mt-1">
-                v2.0.4 [Teacher_Mode]
+              <p className="text-[10px] text-white/30 font-semibold tracking-widest uppercase mt-2">
+                Manager Workspace
               </p>
             </div>
           )}
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
+        <nav className="flex-1 p-8 space-y-3">
+          <p className="px-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-6">
+            Module Navigator
+          </p>
+          {navItems.map((item, idx) => {
             const isActive = pathname.startsWith(item.href);
+            const colors = [
+              "text-neon-purple",
+              "text-neon-blue",
+              "text-neon-pink",
+              "text-neon-soft-blue",
+            ];
+            const activeBorders = [
+              "border-neon-purple/40 bg-neon-purple/10 shadow-[0_0_15px_rgba(176,38,255,0.1)]",
+              "border-neon-blue/40 bg-neon-blue/10 shadow-[0_0_15px_rgba(0,229,255,0.1)]",
+              "border-neon-pink/40 bg-neon-pink/10 shadow-[0_0_15px_rgba(255,0,255,0.1)]",
+              "border-neon-soft-blue/40 bg-neon-soft-blue/10 shadow-[0_0_15px_rgba(112,161,255,0.1)]",
+            ];
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-all ${
+                className={`flex items-center gap-4 px-4 py-4 rounded-2xl text-xs font-bold transition-all duration-300 border ${
                   isActive
-                    ? "bg-teal-500/10 text-teal-400 border border-teal-500/50 shadow-[0_0_15px_rgba(20,184,166,0.2)]"
-                    : "text-teal-500/50 hover:text-teal-300 hover:bg-teal-900/10"
+                    ? `text-white ${activeBorders[idx % 4]}`
+                    : "text-white/40 border-transparent hover:text-white hover:bg-white/5"
                 }`}
               >
-                <item.icon size={18} />
+                <item.icon
+                  size={20}
+                  className={`transition-all ${
+                    isActive ? "animate-float" : colors[idx % 4]
+                  }`}
+                />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-teal-900/30">
+        <div className="p-10 border-t border-white/5">
           <Link
             href="/teacher/dashboard"
-            className="flex items-center justify-center w-full py-2 border border-teal-900/50 text-teal-600 text-xs font-bold uppercase rounded hover:bg-teal-900/20 hover:text-teal-400 transition-colors"
+            className="flex items-center justify-center w-full py-4 border border-white/10 text-white/40 text-[10px] font-bold uppercase tracking-widest rounded-2xl hover:bg-white/5 hover:text-white hover:border-white/20 transition-all"
           >
-            &larr; Exit_Console
+            &larr; Exit Management
           </Link>
         </div>
       </aside>
@@ -164,85 +183,109 @@ export default function ManageCourseLayout({
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
 
         {/* Mobile Header with Menu Trigger */}
-        <div className="md:hidden p-4 border-b border-teal-900/30 flex items-center justify-between bg-[#050510] relative z-20">
-          <Sheet>
-            <SheetTrigger className="flex items-center gap-2 text-teal-400 hover:text-white transition-colors">
+        <div className="md:hidden p-6 border-b border-white/5 flex items-center justify-between bg-dark-bg/60 backdrop-blur-xl relative z-20">
+          {/* Client-Only Render for Sheet to avoid Hydration ID Mismatch (Radix UI) */}
+          {loading ? (
+            <div className="flex items-center gap-3 text-white/20">
               <Menu size={24} />
-              <span className="font-bold uppercase tracking-wider text-sm">
-                Course Menu
+              <span className="font-bold uppercase tracking-widest text-[10px]">
+                Loading...
               </span>
-            </SheetTrigger>
-            <SheetContent
-              side="left"
-              className="bg-[#050510] border-r border-teal-900/30 p-0"
-            >
-              <SheetHeader className="sr-only">
-                <SheetTitle>Manage Course Menu</SheetTitle>
-              </SheetHeader>
-              {/* Mobile Sidebar Content (Clone of Desktop) */}
-              <div className="p-6 border-b border-teal-900/30 min-h-[88px] flex items-center">
-                {course ? (
-                  <div className="flex items-center gap-3 w-full">
-                    <img
-                      src={
-                        course.thumbnail
-                          ? course.thumbnail.startsWith("http")
-                            ? course.thumbnail
-                            : `${
-                                process.env.NEXT_PUBLIC_API_URL ||
-                                "http://localhost:4000"
-                              }${course.thumbnail}`
-                          : "/course/placeholder.svg"
-                      }
-                      alt="Thumb"
-                      className="w-12 h-8 rounded-md object-cover border border-white/10"
-                    />
-                    <div className="overflow-hidden">
-                      <h2 className="text-sm font-bold text-white truncate">
-                        {course.title}
-                      </h2>
-                      <span className="text-[10px] text-cyan-400 font-bold uppercase">
-                        Editing Mode
-                      </span>
+            </div>
+          ) : (
+            <Sheet>
+              <SheetTrigger className="flex items-center gap-3 text-white/60 hover:text-white transition-colors">
+                <Menu size={24} />
+                <span className="font-bold uppercase tracking-widest text-[10px]">
+                  Course Menu
+                </span>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="bg-dark-bg/95 border-r border-white/5 p-0 backdrop-blur-2xl"
+              >
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Manage Course Menu</SheetTitle>
+                </SheetHeader>
+                {/* Mobile Sidebar Content (Clone of Desktop) */}
+                <div className="p-8 border-b border-white/5 min-h-[100px] flex items-center">
+                  {course ? (
+                    <div className="flex items-center gap-4 w-full">
+                      <img
+                        src={
+                          course.imageUrl || course.thumbnail
+                            ? (course.imageUrl || course.thumbnail).startsWith(
+                                "http"
+                              )
+                              ? course.imageUrl || course.thumbnail
+                              : `${API_BASE}${
+                                  course.imageUrl || course.thumbnail
+                                }`
+                            : "/course/placeholder.svg"
+                        }
+                        alt="Thumb"
+                        className="w-12 h-12 rounded-xl object-cover border border-white/10"
+                      />
+                      <div className="overflow-hidden">
+                        <h2 className="text-sm font-bold text-white truncate">
+                          {course.title}
+                        </h2>
+                        <span className="text-[10px] text-neon-purple font-bold uppercase tracking-widest">
+                          Active Session
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div>Loading...</div>
-                )}
-              </div>
-
-              <nav className="p-4 space-y-2">
-                {navItems.map((item) => {
-                  const isActive = pathname.startsWith(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-all ${
-                        isActive
-                          ? "bg-teal-500/10 text-teal-400 border border-teal-500/50"
-                          : "text-teal-500/50 hover:text-teal-300"
-                      }`}
-                    >
-                      <item.icon size={18} />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-
-                <div className="mt-8 pt-4 border-t border-teal-900/30">
-                  <Link
-                    href="/teacher/dashboard"
-                    className="flex items-center gap-2 text-teal-600 text-xs font-bold uppercase hover:text-teal-400"
-                  >
-                    &larr; Exit Console
-                  </Link>
+                  ) : (
+                    <div className="text-white/20 font-bold uppercase tracking-widest text-[10px]">
+                      Loading...
+                    </div>
+                  )}
                 </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
 
-          <div className="font-bold text-sm text-teal-500 truncate max-w-[150px]">
+                <nav className="p-6 space-y-3">
+                  {navItems.map((item, idx) => {
+                    const isActive = pathname.startsWith(item.href);
+                    const colors = [
+                      "text-neon-purple",
+                      "text-neon-blue",
+                      "text-neon-pink",
+                      "text-neon-soft-blue",
+                    ];
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          isActive
+                            ? "bg-white/5 text-white border border-white/10"
+                            : "text-white/40 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <item.icon
+                          size={18}
+                          className={
+                            isActive ? "animate-float" : colors[idx % 4]
+                          }
+                        />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+
+                  <div className="mt-10 pt-6 border-t border-white/5">
+                    <Link
+                      href="/teacher/dashboard"
+                      className="flex items-center gap-3 text-white/20 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors"
+                    >
+                      &larr; Exit Console
+                    </Link>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          )}
+
+          <div className="font-bold text-[10px] text-neon-blue uppercase tracking-widest truncate max-w-[150px]">
             {course?.title || "Loading..."}
           </div>
         </div>

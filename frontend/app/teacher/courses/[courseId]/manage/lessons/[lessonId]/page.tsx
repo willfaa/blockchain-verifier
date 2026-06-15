@@ -39,7 +39,7 @@ export default function LessonEditorPage() {
         setContent(l.content || "");
         setIsPublished(l.isPublished);
         setIsFreePreview(l.isFreePreview);
-        setCurrentVideo(l.videoPath);
+        setCurrentVideo(l.videoUrl);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));

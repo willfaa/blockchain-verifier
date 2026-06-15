@@ -4,20 +4,24 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import api from "@/lib/api";
 import {
-  Loader2,
   Search,
   CheckCircle,
   XCircle,
   AlertCircle,
   Clock,
-  LayoutGrid,
+  Target,
   Filter,
   FileSpreadsheet,
   Trash2,
+  Users,
+  Trophy,
+  History,
+  ChevronRight,
 } from "lucide-react";
 import MultiSelectFilter from "@/components/ui/MultiSelectFilter";
 import StudentExamModal from "@/components/ui/StudentExamModal";
 import { toast } from "sonner";
+import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +34,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MAJORITIES, getProgramsByMajor } from "@/lib/constants/academics";
 
-// Interfaces
 interface StudentResult {
   student: {
     id: string;
@@ -45,20 +48,19 @@ interface StudentResult {
   bestScore: number;
   status: "PASSED" | "FAILED" | "NOT_STARTED";
   lastAttemptAt: string | null;
-  isPassed: boolean;
   resultId: string | null;
 }
 
 const STATUS_OPTIONS = [
-  { label: "Passed", value: "PASSED" },
-  { label: "Failed", value: "FAILED" },
-  { label: "Not Started", value: "NOT_STARTED" },
+  { label: "PASSED", value: "PASSED" },
+  { label: "FAILED", value: "FAILED" },
+  { label: "NOT STARTED", value: "NOT_STARTED" },
 ];
 
 const SCORE_OPTIONS = [
-  { label: "High (>80)", value: "high" },
-  { label: "Mid (50-80)", value: "mid" },
-  { label: "Low (<50)", value: "low" },
+  { label: "High Pass (>80)", value: "high" },
+  { label: "Standard (50-80)", value: "mid" },
+  { label: "Low Score (<50)", value: "low" },
 ];
 
 export default function ExamResultsPage() {
@@ -69,23 +71,25 @@ export default function ExamResultsPage() {
   const [data, setData] = useState<StudentResult[]>([]);
   const [filteredData, setFilteredData] = useState<StudentResult[]>([]);
 
-  // Filters
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [scoreFilter, setScoreFilter] = useState<string[]>([]);
   const [selectedMajor, setSelectedMajor] = useState("All Majors");
   const [selectedProgram, setSelectedProgram] = useState("All Programs");
 
-  // Modal State
   const [selectedResult, setSelectedResult] = useState<{
     id: string;
     name: string;
   } | null>(null);
+  const [resultToDelete, setResultToDelete] = useState<{
+    id: string;
+    studentName: string;
+  } | null>(null);
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
   useEffect(() => {
-    if (courseId) {
-      loadResults();
-    }
+    if (courseId) loadResults();
   }, [courseId]);
 
   useEffect(() => {
@@ -96,11 +100,8 @@ export default function ExamResultsPage() {
     try {
       setLoading(true);
       const res = await api.get(`/lms/exams/course/${courseId}/results`);
-      if (res.data.ok) {
-        setData(res.data.data);
-      }
+      if (res.data.ok) setData(res.data.data);
     } catch (error) {
-      console.error(error);
       toast.error("Failed to load results");
     } finally {
       setLoading(false);
@@ -109,8 +110,6 @@ export default function ExamResultsPage() {
 
   const applyFilters = () => {
     let result = [...data];
-
-    // 1. Search (Name or Email)
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -119,13 +118,8 @@ export default function ExamResultsPage() {
           item.student.email.toLowerCase().includes(q)
       );
     }
-
-    // 2. Status Filter
-    if (statusFilter.length > 0) {
+    if (statusFilter.length > 0)
       result = result.filter((item) => statusFilter.includes(item.status));
-    }
-
-    // 3. Score Filter
     if (scoreFilter.length > 0) {
       result = result.filter((item) => {
         const s = item.bestScore;
@@ -137,8 +131,6 @@ export default function ExamResultsPage() {
         });
       });
     }
-
-    // 4. Major Filter
     if (selectedMajor !== "All Majors") {
       result = result.filter((item) => {
         const majName =
@@ -148,8 +140,6 @@ export default function ExamResultsPage() {
         return majName === selectedMajor;
       });
     }
-
-    // 5. Program Filter
     if (selectedProgram !== "All Programs") {
       result = result.filter((item) => {
         const progName =
@@ -159,32 +149,14 @@ export default function ExamResultsPage() {
         return progName && progName.includes(selectedProgram);
       });
     }
-
     setFilteredData(result);
-  };
-
-  const getScoreColor = (score: number, hasAttempt: boolean) => {
-    if (!hasAttempt) return "text-slate-500";
-    if (score >= 80) return "text-green-400";
-    if (score >= 50) return "text-yellow-400";
-    return "text-red-400";
-  };
-
-  const getAvatarUrl = (path: string | null) => {
-    if (!path) return "https://ui-avatars.com/api/?background=random&color=fff";
-    if (path.startsWith("http")) return path;
-    return `http://localhost:4000${path}`;
   };
 
   const handleExportGrades = async () => {
     try {
       const examRes = await api.get(`/lms/courses/${courseId}/exam`);
       const examId = examRes.data.data?.id;
-
-      if (!examId) {
-        toast.error("No exam found for this course.");
-        return;
-      }
+      if (!examId) return toast.error("Assessment records not found");
 
       const response = await api.get(`/lms/exams/${examId}/export`, {
         responseType: "blob",
@@ -192,77 +164,70 @@ export default function ExamResultsPage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "Exam_Grades.xlsx");
+      link.setAttribute("download", "Assessment_Results.xlsx");
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success("Grade report downloaded!");
+      toast.success("Report downloaded successfully");
     } catch (error) {
-      toast.error("Failed to export grades");
+      toast.error("Failed to export report");
     }
-  };
-
-  // --- NEW: DELETE RESULT HANDLER ---
-  const [resultToDelete, setResultToDelete] = useState<{
-    id: string;
-    studentName: string;
-  } | null>(null);
-
-  const handleDeleteResult = (
-    resultId: string,
-    studentName: string,
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation();
-    setResultToDelete({ id: resultId, studentName });
   };
 
   const executeDeleteResult = async () => {
     if (!resultToDelete) return;
-
     try {
-      // Use existing endpoint: DELETE /api/lms/exams/submissions/:id
       const res = await api.delete(
         `/lms/exams/submissions/${resultToDelete.id}`
       );
       if (res.data.ok) {
-        toast.success("Exam result deleted successfully");
+        toast.success("Assessment records reset");
         setResultToDelete(null);
         loadResults();
       }
     } catch (error: any) {
-      console.error("Delete Error:", error);
-      toast.error(error.response?.data?.error || "Failed to delete result");
+      toast.error(error.response?.data?.error || "Reset failed");
     }
   };
 
+  if (loading && data.length === 0)
+    return <CyberpunkLoader text="Loading Assessment Data" />;
+
   return (
-    <div className="space-y-6 pb-20">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Exam Results</h1>
-        <p className="text-slate-400">
-          Monitor student performance and review submissions.
-        </p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-8">
+        <div>
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">
+            Assessment Analytics
+          </h1>
+          <p className="text-slate-500 text-xs font-mono uppercase tracking-[0.3em] mt-1">
+            Student Progress Overview
+          </p>
+        </div>
+        <button
+          onClick={handleExportGrades}
+          className="flex items-center gap-2 px-6 py-2.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 text-[10px] font-black uppercase tracking-widest rounded transition-all"
+        >
+          <FileSpreadsheet size={16} /> Download Report
+        </button>
       </div>
 
-      {/* --- FILTERS --- */}
-      <div className="bg-[#0d0b2f] border border-white/5 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative group">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search student..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-[#0b0c24] border border-white/10 rounded-xl text-sm focus:outline-none focus:border-cyan-500/50 w-full md:w-56 transition-all"
-            />
-          </div>
-          <div className="h-8 w-[1px] bg-white/10 hidden md:block" />
+      <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-wrap gap-4 items-center">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Filter by Student Name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
+          />
+        </div>
 
+        <div className="flex flex-wrap items-center gap-3">
           <MultiSelectFilter
             label="Status"
             options={STATUS_OPTIONS}
@@ -270,216 +235,260 @@ export default function ExamResultsPage() {
             onChange={setStatusFilter}
           />
           <MultiSelectFilter
-            label="Score"
+            label="Score Range"
             options={SCORE_OPTIONS}
             selectedValues={scoreFilter}
             onChange={setScoreFilter}
           />
 
-          <div className="hidden md:block w-[1px] h-8 bg-white/10 mx-2"></div>
+          <div className="w-px h-8 bg-white/5 mx-1 hidden lg:block" />
 
-          {/* New Major Filter */}
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-              <Filter size={14} />
-            </div>
+          <div className="relative group">
+            <Filter
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              size={14}
+            />
             <select
               value={selectedMajor}
               onChange={(e) => {
                 setSelectedMajor(e.target.value);
                 setSelectedProgram("All Programs");
               }}
-              className="appearance-none bg-[#0d0b2f] border border-white/10 rounded-xl py-2 pl-9 pr-8 text-white focus:border-cyan-500 focus:outline-none cursor-pointer text-sm min-w-[130px]"
+              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest"
             >
               <option value="All Majors">All Majors</option>
               {MAJORITIES.map((m) => (
                 <option key={m} value={m}>
-                  {m}
+                  {m.toUpperCase()}
                 </option>
               ))}
             </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
+              <ChevronRight size={14} className="rotate-90" />
+            </div>
           </div>
 
-          {/* New Program Filter */}
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-              <Filter size={14} />
-            </div>
+          <div className="relative group">
+            <Filter
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              size={14}
+            />
             <select
               value={selectedProgram}
               onChange={(e) => setSelectedProgram(e.target.value)}
-              className="appearance-none bg-[#0d0b2f] border border-white/10 rounded-xl py-2 pl-9 pr-8 text-white focus:border-cyan-500 focus:outline-none cursor-pointer text-sm min-w-[130px]"
+              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[180px]"
             >
               <option value="All Programs">All Programs</option>
               {getProgramsByMajor(selectedMajor).map((p) => (
                 <option key={p} value={p}>
-                  {p}
+                  {p.toUpperCase()}
                 </option>
               ))}
             </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
+              <ChevronRight size={14} className="rotate-90" />
+            </div>
           </div>
         </div>
 
-        <button
-          onClick={handleExportGrades}
-          className="flex items-center gap-2 px-4 py-2 bg-green-900/20 hover:bg-green-900/40 text-green-400 border border-green-500/30 rounded-xl transition-all font-bold text-sm"
-        >
-          <FileSpreadsheet size={18} /> Export Excel
-        </button>
-
-        <div className="text-slate-400 text-sm font-mono hidden md:block">
-          Showing{" "}
-          <span className="text-white font-bold">{filteredData.length}</span>{" "}
-          students
+        <div className="ml-auto flex items-center gap-4">
+          <div className="flex flex-col items-end px-4 border-r border-white/5">
+            <span className="text-[10px] font-black text-white tracking-widest">
+              {filteredData.length}
+            </span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-tighter">
+              Records Found
+            </span>
+          </div>
+          <Target className="text-white/10" size={24} />
         </div>
       </div>
 
-      {/* --- TABLE --- */}
-      <div className="bg-[#0d0b2f] border border-white/5 rounded-2xl overflow-hidden">
-        {loading ? (
-          <div className="p-20 flex justify-center text-cyan-500">
-            <Loader2 className="animate-spin" size={32} />
-          </div>
-        ) : filteredData.length === 0 ? (
-          <div className="p-20 text-center text-slate-500">
-            <LayoutGrid className="mx-auto mb-4 opacity-20" size={48} />
-            <p>No results found matching filters.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="bg-[#0b0c24] text-slate-400 text-xs uppercase tracking-wider border-b border-white/5">
-                  <th className="px-4 py-3 pl-6">Student</th>
-                  <th className="px-4 py-3">Dept</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Score</th>
-                  <th className="px-4 py-3">Attempts</th>
-                  <th className="px-4 py-3">Last</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredData.map((row) => (
-                  <tr
-                    key={row.student.id}
-                    className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
-                    onClick={() => {
-                      if (row.hasAttempt && row.resultId) {
-                        setSelectedResult({
-                          id: row.resultId,
-                          name: row.student.name,
-                        });
-                      } else {
-                        toast("Student has not taken the exam yet.");
-                      }
-                    }}
-                  >
-                    <td className="px-4 py-3 pl-6">
-                      <div className="flex items-center gap-3">
+      <div className="bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-md">
+        <div className="overflow-x-auto overflow-y-hidden custom-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="bg-white/[0.03] text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] border-b border-white/5">
+                <th className="px-8 py-5">Student Detail</th>
+                <th className="px-6 py-5">Course Module</th>
+                <th className="px-6 py-5">Achievement</th>
+                <th className="px-6 py-5">Top Score</th>
+                <th className="px-6 py-5 text-right">Attempts</th>
+                <th className="px-8 py-5 text-right">Last Activity</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.03]">
+              {filteredData.map((row) => (
+                <tr
+                  key={row.student.id}
+                  className="hover:bg-cyan-500/[0.02] transition-colors group cursor-pointer border-l-2 border-transparent hover:border-cyan-500/50"
+                  onClick={() => {
+                    if (row.hasAttempt && row.resultId) {
+                      setSelectedResult({
+                        id: row.resultId,
+                        name: row.student.name,
+                      });
+                    } else {
+                      toast("Student has not yet completed any assessments.");
+                    }
+                  }}
+                >
+                  <td className="px-8 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
                         <img
-                          src={getAvatarUrl(row.student.avatar)}
-                          alt={row.student.name}
-                          className="w-8 h-8 rounded-full object-cover border border-white/10 group-hover:border-cyan-500/50 transition-colors"
-                        />
-                        <div>
-                          <p className="text-white font-bold text-sm group-hover:text-cyan-400 transition-colors">
-                            {row.student.name}
-                          </p>
-                          <p className="text-[11px] text-slate-500">
-                            {row.student.email}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col">
-                        <span
-                          className="text-xs font-medium text-white line-clamp-1 max-w-[180px]"
-                          title={
-                            typeof row.student.program === "object"
-                              ? row.student.program?.name
-                              : row.student.program || ""
+                          src={
+                            row.student.avatar
+                              ? row.student.avatar.startsWith("http")
+                                ? row.student.avatar
+                                : `${API_BASE}${row.student.avatar}`
+                              : `https://ui-avatars.com/api/?name=${row.student.name}&background=random&color=fff`
                           }
-                        >
-                          {typeof row.student.program === "object"
-                            ? row.student.program?.name
-                            : row.student.program || "-"}
-                        </span>
-                        <span className="text-[10px] text-slate-500 line-clamp-1 max-w-[150px]">
-                          {typeof row.student.majority === "object"
-                            ? row.student.majority?.name
-                            : row.student.majority || "General"}
-                        </span>
+                          alt={row.student.name}
+                          className="w-10 h-10 rounded-xl object-cover border border-white/10 group-hover:border-cyan-500/50 transition-all group-hover:scale-105"
+                        />
+                        {row.status === "PASSED" && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-black flex items-center justify-center">
+                            <CheckCircle size={10} className="text-black" />
+                          </div>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
+                      <div>
+                        <p className="text-[13px] font-bold text-white group-hover:text-cyan-400 transition-colors uppercase tracking-tight">
+                          {row.student.name}
+                        </p>
+                        <p className="text-[9px] text-slate-500 font-mono tracking-tighter mt-0.5">
+                          {row.student.email.toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-white uppercase tracking-wider line-clamp-1 max-w-[200px]">
+                        {typeof row.student.program === "object"
+                          ? row.student.program?.name
+                          : row.student.program || "Not Set"}
+                      </span>
+                      <span className="text-[8px] text-slate-500 font-mono uppercase mt-1 tracking-widest">
+                        {typeof row.student.majority === "object"
+                          ? row.student.majority?.name
+                          : row.student.majority || "General"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
                       {row.status === "PASSED" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20">
-                          <CheckCircle size={12} /> Passed
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-green-500/10 text-green-400 text-[9px] font-black border border-green-500/20 uppercase tracking-widest">
+                          <Trophy size={10} /> Passed
                         </span>
                       )}
                       {row.status === "FAILED" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">
-                          <XCircle size={12} /> Failed
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-fuchsia-500/10 text-fuchsia-400 text-[9px] font-black border border-fuchsia-500/20 uppercase tracking-widest">
+                          <AlertCircle size={10} /> Failed
                         </span>
                       )}
                       {row.status === "NOT_STARTED" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-bold border border-slate-500/20">
-                          Not Started
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 text-slate-500 text-[9px] font-black border border-white/10 uppercase tracking-widest">
+                          <History size={10} /> Not Started
                         </span>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden shrink-0">
+                        <div
+                          className={`h-full transition-all duration-700 ${
+                            row.bestScore >= 80
+                              ? "bg-green-500"
+                              : row.bestScore >= 50
+                              ? "bg-yellow-500"
+                              : "bg-fuchsia-500"
+                          }`}
+                          style={{
+                            width: `${row.hasAttempt ? row.bestScore : 0}%`,
+                          }}
+                        />
+                      </div>
                       <span
-                        className={`font-mono font-bold text-lg ${getScoreColor(
-                          row.bestScore,
-                          row.hasAttempt
-                        )}`}
+                        className={`font-mono text-xs font-black ${
+                          row.bestScore >= 80
+                            ? "text-green-400"
+                            : row.bestScore >= 50
+                            ? "text-yellow-400"
+                            : row.bestScore > 0
+                            ? "text-fuchsia-400"
+                            : "text-slate-700"
+                        }`}
                       >
-                        {row.hasAttempt ? row.bestScore.toFixed(1) : "-"}
+                        {row.hasAttempt
+                          ? `${row.bestScore.toFixed(0)}%`
+                          : "00%"}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-slate-400 text-sm font-mono bg-white/5 px-2 py-1 rounded">
-                        {row.attemptsCount}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-400 font-mono">
-                      {row.lastAttemptAt
-                        ? new Date(row.lastAttemptAt).toLocaleDateString() +
-                          " " +
-                          new Date(row.lastAttemptAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "-"}
-                    </td>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-white font-mono text-xs px-2.5 py-1 bg-white/5 rounded-md border border-white/10 group-hover:border-cyan-500/30 transition-all">
+                      {String(row.attemptsCount).padStart(2, "0")}
+                    </span>
+                  </td>
+                  <td className="px-8 py-4 text-right">
+                    <div className="flex items-center justify-end gap-6">
+                      <div className="text-right">
+                        <p className="text-[10px] text-white font-mono uppercase font-black tracking-tighter">
+                          {row.lastAttemptAt
+                            ? new Date(row.lastAttemptAt).toLocaleDateString(
+                                undefined,
+                                {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
+                            : "--/--/--"}
+                        </p>
+                        <p className="text-[8px] text-slate-600 font-mono mt-0.5 uppercase tracking-widest">
+                          {row.lastAttemptAt
+                            ? new Date(row.lastAttemptAt).toLocaleTimeString(
+                                undefined,
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )
+                            : "00:00:00"}
+                        </p>
+                      </div>
 
-                    {/* Action Column */}
-                    <td className="px-4 py-3 text-right">
                       {row.hasAttempt && row.resultId && (
                         <button
-                          onClick={(e) =>
-                            handleDeleteResult(
-                              row.resultId!,
-                              row.student.name,
-                              e
-                            )
-                          }
-                          className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                          title="Delete Result (Reset)"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setResultToDelete({
+                              id: row.resultId!,
+                              studentName: row.student.name,
+                            });
+                          }}
+                          className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                          title="Reset Assessment"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      <ChevronRight
+                        size={18}
+                        className="text-white/10 group-hover:text-cyan-500 transition-colors"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <StudentExamModal
@@ -489,32 +498,33 @@ export default function ExamResultsPage() {
         studentName={selectedResult?.name || ""}
       />
 
-      {/* Delete Result Dialog */}
       <AlertDialog
         open={!!resultToDelete}
         onOpenChange={(open: boolean) => !open && setResultToDelete(null)}
       >
-        <AlertDialogContent className="bg-[#050510] border border-white/10 text-white">
+        <AlertDialogContent className="bg-[#0b0c24] border border-white/10 text-white rounded-3xl shadow-2xl backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Exam Attempt?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to delete the exam result for{" "}
-              <span className="text-white font-bold">
+            <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">
+              Reset Student Assessment
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400 font-medium">
+              You are about to reset the assessment record for{" "}
+              <span className="text-white font-black">
                 {resultToDelete?.studentName}
               </span>
-              ? This action cannot be undone. The student will be allowed to
-              retake the exam.
+              . This will remove their current score and allow them to take the
+              assessment again. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-white/10 text-slate-400 hover:text-white hover:bg-white/5">
+          <AlertDialogFooter className="mt-8 font-mono text-[9px] uppercase tracking-[0.2em]">
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl py-3 px-6">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={executeDeleteResult}
-              className="bg-red-500/10 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              className="bg-fuchsia-500/20 border border-fuchsia-500 text-fuchsia-500 hover:bg-fuchsia-500 hover:text-white rounded-xl transition-all py-3 px-6"
             >
-              Delete Result
+              Confirm Reset
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

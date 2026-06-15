@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Trophy,
   Menu,
+  FileText,
 } from "lucide-react";
 import {
   Sheet,
@@ -43,7 +44,6 @@ export default function CourseLearningPage() {
   const [course, setCourse] = useState<any>(null);
   const [activeLesson, setActiveLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  // const [sidebarOpen, setSidebarOpen] = useState(true); // Unused variable removal
 
   // New State for Enrollment
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -51,9 +51,21 @@ export default function CourseLearningPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
 
+  // State for View Mode
+  const [activeTab, setActiveTab] = useState<"lessons" | "assignments">(
+    "lessons"
+  );
+  const [selectedAssignment, setSelectedAssignment] = useState<any>(null); // For detail view
+
   useEffect(() => {
     fetchCourseData();
   }, [courseId]);
+
+  useEffect(() => {
+    if (activeLesson) {
+      setActiveTab("lessons"); // Switch to lessons if a lesson is selected active
+    }
+  }, [activeLesson]);
 
   useEffect(() => {
     if (activeLesson) {
@@ -80,13 +92,13 @@ export default function CourseLearningPage() {
           setIsEnrolled(false);
         }
 
-        // Handle Chapters vs Direct Lessons
-        if (data.chapters && data.chapters.length > 0) {
-          const firstChapter = data.chapters.find(
-            (c: any) => c.lessons && c.lessons.length > 0
+        // Handle Modules vs Direct Lessons
+        if (data.modules && data.modules.length > 0) {
+          const firstModule = data.modules.find(
+            (m: any) => m.lessons && m.lessons.length > 0
           );
-          if (firstChapter) {
-            setActiveLesson(firstChapter.lessons[0]);
+          if (firstModule) {
+            setActiveLesson(firstModule.lessons[0]);
           }
         } else if (data.lessons && data.lessons.length > 0) {
           setActiveLesson(data.lessons[0]);
@@ -151,14 +163,15 @@ export default function CourseLearningPage() {
       return;
     }
     setActiveLesson(lesson);
+    setActiveTab("lessons");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Helper to get flat list for navigation
   const getAllLessons = () => {
     if (!course) return [];
-    if (course.chapters) {
-      return course.chapters.flatMap((c: any) => c.lessons || []);
+    if (course.modules) {
+      return course.modules.flatMap((m: any) => m.lessons || []);
     }
     return course.lessons || [];
   };
@@ -171,21 +184,9 @@ export default function CourseLearningPage() {
   const goToNextLesson = () => {
     // UPDATED GUARD
     if (!canAccess) {
-      // Logic simplification: if they are viewing a lesson, they likely have access,
-      // unless they clicked Next into a locked lesson?
-      // For now, assume if they are viewing, they can navigate, BUT check next lesson lock status?
-      // Let's just use the same guard.
-      // Actually if they are Owner, canAccess is true.
-      // If they are Student and !isEnrolled, they shouldn't be here unless Free Preview.
-      // If next lesson is NOT free, trigger modal.
-      // But let's keep it simple: check canAccess.
       if (!user) {
         setShowLoginModal(true);
       } else {
-        setEnrollModalOpen(true); // Should we check free preview of next lesson?
-        // For simplicity, enforce enrollment for navigation if not enrolled/owner.
-        // Unless we want to support Free Preview navigation?
-        // Let's stick to strict guard for now to be safe.
         setEnrollModalOpen(true);
       }
       return;
@@ -199,7 +200,6 @@ export default function CourseLearningPage() {
   // Same for Prev
   const goToPrevLesson = () => {
     if (!canAccess) {
-      // ... same logic
       if (!user) {
         setShowLoginModal(true);
       } else {
@@ -290,20 +290,21 @@ export default function CourseLearningPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-4">
-        {course.chapters && course.chapters.length > 0
-          ? // Chapter-based Rendering
-            course.chapters.map((chapter: any) => (
-              <div key={chapter.id} className="space-y-1">
+        {course.modules && course.modules.length > 0
+          ? // Module-based Rendering
+            course.modules.map((module: any) => (
+              <div key={module.id} className="space-y-1">
                 <h3 className="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2">
-                  {chapter.title}
+                  {module.title}
                 </h3>
-                {chapter.lessons?.map((lesson: any, idx: number) => {
-                  const isActive = activeLesson?.id === lesson.id;
+                {module.lessons?.map((lesson: any, idx: number) => {
+                  const isActive =
+                    activeLesson?.id === lesson.id && activeTab === "lessons";
                   const isLocked = !canAccess && !lesson.isFreePreview;
 
                   return (
                     <button
-                      key={lesson.id} // Added key here
+                      key={lesson.id}
                       onClick={() => handleLessonChange(lesson)}
                       className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${
                         isActive
@@ -322,7 +323,7 @@ export default function CourseLearningPage() {
                           <Lock size={10} />
                         ) : (
                           <span className="text-[10px]">
-                            {lesson.order || idx + 1}
+                            {lesson.position || idx + 1}
                           </span>
                         )}
                       </div>
@@ -345,13 +346,18 @@ export default function CourseLearningPage() {
             ))
           : // Legacy Flat Rendering (Fallback)
             course.lessons?.map((lesson: any, idx: number) => {
-              const isActive = activeLesson?.id === lesson.id;
+              const isActive =
+                activeLesson?.id === lesson.id && activeTab === "lessons";
               const isLocked = !canAccess && !lesson.isFreePreview;
               return (
                 <button
                   key={lesson.id}
                   onClick={() => handleLessonChange(lesson)}
-                  className="w-full text-left p-3 rounded-xl hover:bg-white/5 border border-transparent flex items-start gap-3 group"
+                  className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${
+                    isActive
+                      ? "bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+                      : "hover:bg-white/5 border border-transparent"
+                  }`}
                 >
                   <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-slate-600">
                     {isLocked ? (
@@ -361,7 +367,13 @@ export default function CourseLearningPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-medium leading-tight text-slate-400 group-hover:text-slate-200">
+                    <h4
+                      className={`text-sm font-medium leading-tight ${
+                        isActive
+                          ? "text-cyan-400"
+                          : "text-slate-400 group-hover:text-slate-200"
+                      }`}
+                    >
                       {lesson.title}
                     </h4>
                   </div>
@@ -369,9 +381,57 @@ export default function CourseLearningPage() {
               );
             })}
 
+        {/* --- ASSIGNMENTS MENU LINK --- */}
+        <div className="pt-4 mt-4 border-t border-white/5 px-2">
+          <button
+            onClick={() => {
+              if (!isEnrolled && !isOwner) {
+                setEnrollModalOpen(true);
+                return;
+              }
+              setActiveTab("assignments");
+              setActiveLesson(null); // Deselect lesson
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${
+              activeTab === "assignments"
+                ? "bg-purple-500/20 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                : "hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            <div
+              className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border ${
+                activeTab === "assignments"
+                  ? "bg-purple-500 border-purple-500 text-white"
+                  : "border-slate-600 text-slate-500"
+              }`}
+            >
+              <FileText size={10} />
+            </div>
+            <div className="flex-1">
+              <h4
+                className={`text-sm font-bold leading-tight ${
+                  activeTab === "assignments"
+                    ? "text-purple-300"
+                    : "text-slate-400 group-hover:text-purple-300"
+                } transition-colors uppercase tracking-wide`}
+              >
+                Assignments
+              </h4>
+              <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-1">
+                {course.modules?.reduce(
+                  (acc: number, m: any) => acc + (m.assignments?.length || 0),
+                  0
+                ) || 0}{" "}
+                Tasks
+              </span>
+            </div>
+          </button>
+        </div>
+
         {/* --- FINAL EXAM LINK --- */}
         {course.exam && course.exam.isEnabled && (
-          <div className="pt-4 mt-4 border-t border-white/5 px-2">
+          <div className="mt-1 px-2">
             <Link
               href={`/exam/${course.exam.id}`}
               className="w-full text-left p-3 rounded-xl hover:bg-white/5 border border-transparent flex items-start gap-3 group bg-gradient-to-r from-cyan-900/10 to-transparent hover:from-cyan-900/30 transition-all"
@@ -394,8 +454,177 @@ export default function CourseLearningPage() {
     </>
   );
 
+  const renderContent = () => {
+    if (activeTab === "assignments") {
+      return (
+        <div className="max-w-4xl mx-auto p-6 md:p-10 pb-32">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-8 border-b border-white/10 pb-4">
+            Course Assignments
+          </h1>
+
+          <div className="space-y-8">
+            {course.modules?.map((module: any) => {
+              if (!module.assignments || module.assignments.length === 0)
+                return null;
+              return (
+                <div key={module.id} className="space-y-4">
+                  <h3 className="text-xl font-bold text-slate-400 uppercase tracking-wider">
+                    {module.title}
+                  </h3>
+                  <div className="grid gap-4">
+                    {module.assignments.map((assign: any) => (
+                      <div
+                        key={assign.id}
+                        className="bg-[#0f172a] border border-white/5 p-5 rounded-xl hover:border-purple-500/30 transition-all group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-lg font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                              {assign.title}
+                            </h4>
+                            <p className="text-slate-400 text-sm mb-4 line-clamp-2">
+                              {assign.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/courses/${courseId}/assignments/${assign.id}`}
+                            className="px-4 py-2 bg-purple-600/20 text-purple-400 text-xs font-bold uppercase rounded border border-purple-500/30 hover:bg-purple-600 hover:text-white transition-all"
+                          >
+                            View Details & Submit
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {(!course.modules ||
+              course.modules.every(
+                (m: any) => !m.assignments || m.assignments.length === 0
+              )) && (
+              <div className="text-center py-12 text-slate-500 italic">
+                No assignments available for this course.
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeLesson) {
+      return (
+        <div className="max-w-4xl mx-auto p-6 md:p-10 pb-32">
+          {/* NEW BACK BUTTON */}
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-cyan-400 transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Courses</span>
+          </Link>
+
+          {/* Navigation Header (Mobile Only) */}
+          <div className="lg:hidden mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-white mb-1 line-clamp-1">
+                {course.title}
+              </h1>
+              <p className="text-cyan-400 font-medium flex items-center gap-2 text-sm">
+                <span className="bg-cyan-500/10 px-2 py-0.5 rounded text-xs whitespace-nowrap">
+                  Lesson {activeIndex + 1}
+                </span>
+                <span className="line-clamp-1">{activeLesson.title}</span>
+              </p>
+            </div>
+
+            {/* Mobile Menu Trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2.5 bg-[#0d0b2f] border border-white/10 rounded-lg text-slate-300 hover:text-white hover:border-cyan-500/50 transition-all">
+                  <Menu size={20} />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="w-[300px] border-r border-white/10 bg-[#0b0c24] p-0"
+              >
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Course Navigation</SheetTitle>
+                  <SheetDescription>
+                    Select a lesson to navigate.
+                  </SheetDescription>
+                </SheetHeader>
+                {renderSidebarContent()}
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Content Header */}
+          <div className="mb-8 border-b border-white/5 pb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+              {activeLesson.title}
+            </h1>
+            {/* Video Player */}
+            {activeLesson.videoUrl && (
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-900/10 mb-8 bg-black">
+                <VideoPlayer
+                  url={`http://localhost:4000${activeLesson.videoUrl}`}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Rich Text Content */}
+          <div className="prose prose-invert prose-cyan max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-slate-300 prose-p:leading-relaxed prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-code:text-fuchsia-400 prose-code:bg-fuchsia-500/10 prose-code:px-1 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+            <div dangerouslySetInnerHTML={{ __html: activeLesson.content }} />
+          </div>
+
+          {/* Navigation Footer */}
+          <div className="mt-20 pt-10 border-t border-white/5 flex justify-between items-center">
+            <button
+              onClick={goToPrevLesson}
+              disabled={activeIndex <= 0}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft size={20} />
+              <div className="text-left hidden md:block">
+                <span className="block text-xs uppercase tracking-wider opacity-70">
+                  Previous
+                </span>
+                <span className="font-semibold">Lesson</span>
+              </div>
+            </button>
+
+            <button
+              onClick={goToNextLesson}
+              disabled={activeIndex >= allLessons.length - 1}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-600 text-white font-bold hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <div className="text-right hidden md:block">
+                <span className="block text-xs uppercase tracking-wider opacity-70">
+                  Next
+                </span>
+                <span className="font-semibold">Next Lesson</span>
+              </div>
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 h-[500px]">
+        <p>Select a lesson to start learning.</p>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0724] text-slate-200 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0b0724] text-slate-200 flex flex-col font-sans pt-20">
       <Navbar />
 
       {/* Login Gate Modal */}
@@ -456,110 +685,8 @@ export default function CourseLearningPage() {
                 Enroll Now
               </button>
             </div>
-          ) : activeLesson ? (
-            <div className="max-w-4xl mx-auto p-6 md:p-10 pb-32">
-              {/* NEW BACK BUTTON */}
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-cyan-400 transition-colors mb-6"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Courses</span>
-              </Link>
-
-              {/* Navigation Header (Mobile Only) */}
-              <div className="lg:hidden mb-6 flex items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl font-bold text-white mb-1 line-clamp-1">
-                    {course.title}
-                  </h1>
-                  <p className="text-cyan-400 font-medium flex items-center gap-2 text-sm">
-                    <span className="bg-cyan-500/10 px-2 py-0.5 rounded text-xs whitespace-nowrap">
-                      Lesson {activeIndex + 1}
-                    </span>
-                    <span className="line-clamp-1">{activeLesson.title}</span>
-                  </p>
-                </div>
-
-                {/* Mobile Menu Trigger */}
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <button className="p-2.5 bg-[#0d0b2f] border border-white/10 rounded-lg text-slate-300 hover:text-white hover:border-cyan-500/50 transition-all">
-                      <Menu size={20} />
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent
-                    side="left"
-                    className="w-[300px] border-r border-white/10 bg-[#0b0c24] p-0"
-                  >
-                    <SheetHeader className="sr-only">
-                      <SheetTitle>Course Navigation</SheetTitle>
-                      <SheetDescription>
-                        Select a lesson to navigate.
-                      </SheetDescription>
-                    </SheetHeader>
-                    {renderSidebarContent()}
-                  </SheetContent>
-                </Sheet>
-              </div>
-
-              {/* Content Header */}
-              <div className="mb-8 border-b border-white/5 pb-8">
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-                  {activeLesson.title}
-                </h1>
-                {/* Video Player */}
-                {activeLesson.videoPath && (
-                  <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-900/10 mb-8 bg-black">
-                    <VideoPlayer
-                      url={`http://localhost:4000${activeLesson.videoPath}`}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Rich Text Content */}
-              <div className="prose prose-invert prose-cyan max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-slate-300 prose-p:leading-relaxed prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-code:text-fuchsia-400 prose-code:bg-fuchsia-500/10 prose-code:px-1 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
-                <div
-                  dangerouslySetInnerHTML={{ __html: activeLesson.content }}
-                />
-              </div>
-
-              {/* Navigation Footer */}
-              <div className="mt-20 pt-10 border-t border-white/5 flex justify-between items-center">
-                <button
-                  onClick={goToPrevLesson}
-                  disabled={activeIndex <= 0}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <ChevronLeft size={20} />
-                  <div className="text-left hidden md:block">
-                    <span className="block text-xs uppercase tracking-wider opacity-70">
-                      Previous
-                    </span>
-                    <span className="font-semibold">Lesson</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={goToNextLesson}
-                  disabled={activeIndex >= allLessons.length - 1}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-600 text-white font-bold hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <div className="text-right hidden md:block">
-                    <span className="block text-xs uppercase tracking-wider opacity-70">
-                      Next
-                    </span>
-                    <span className="font-semibold">Next Lesson</span>
-                  </div>
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-500 h-[500px]">
-              <p>Select a lesson to start learning.</p>
-            </div>
+            renderContent()
           )}
         </main>
       </div>

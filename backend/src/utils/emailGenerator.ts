@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { db } from "../config/db";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 export const generateInstitutionalEmail = async (
   fullName: string

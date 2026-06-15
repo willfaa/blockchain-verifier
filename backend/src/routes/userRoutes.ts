@@ -1,11 +1,11 @@
 import express, { Request, Response } from "express";
 import { verifyToken } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
-import { PrismaClient } from "@prisma/client";
+import { db } from "../config/db";
 import fs from "fs";
 import path from "path";
 
-const prisma = new PrismaClient();
+const prisma = db;
 const router = express.Router();
 
 // 0. Debug Entry Log

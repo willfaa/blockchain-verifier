@@ -102,18 +102,8 @@ export default function RegisterPage() {
       // 1. Kirim ke Backend
       const res = await api.post("/auth/register", payload);
 
-      // 2. Auto Login
-      const userData = res.data.user;
-      login(userData, null);
-
-      toast.success("Welcome to Chainnesa! 🚀");
-
-      // 3. Redirect sesuai Role
-      if (userData.role === "teacher") {
-        router.push("/teacher/dashboard");
-      } else {
-        router.push("/courses");
-      }
+      // 2. Redirect to Success Page (No Auto Login)
+      router.push("/register/success");
     } catch (err: any) {
       const msg =
         err.response?.data?.error || err.message || "Registration failed";
@@ -241,6 +231,26 @@ export default function RegisterPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 mb-1">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              required
+              onChange={(e) => {
+                if (e.target.value !== password) {
+                  // Optional: Real-time validation style, but here we just store local or validate on submit
+                  e.target.setCustomValidity("Passwords do not match");
+                } else {
+                  e.target.setCustomValidity("");
+                }
+              }}
               className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none"
               placeholder="••••••••"
             />

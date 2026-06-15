@@ -1,67 +1,63 @@
+import { PrismaClient } from "../generated/prisma";
 import { Pool } from "pg";
-import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// STRICT ENV PARSING
-const DB_HOST = process.env.DB_HOST || process.env.PGHOST || "localhost";
-const DB_PORT = parseInt(
-  process.env.DB_PORT || process.env.PGPORT || "5432",
-  10
-);
-const DB_NAME = process.env.DB_NAME || process.env.PGDATABASE;
-const DB_USER = process.env.DB_USER || process.env.PGUSER;
-const DB_PASSWORD = process.env.DB_PASSWORD || process.env.PGPASSWORD;
+// 1. Create a Postgres Pool with the connection string from env
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
 
-const pool = new Pool({
-  host: DB_HOST,
-  port: DB_PORT,
-  user: DB_USER,
-  password: DB_PASSWORD,
-  database: DB_NAME,
-  // Timeouts for cross-environment reliability
-  connectionTimeoutMillis: 10000, // 10s
-  idleTimeoutMillis: 30000,
-});
+// 2. Create the Prisma Adapter
+const adapter = new PrismaPg(pool);
 
-// Event listener for errors on idle clients
-pool.on("error", (err) => {
-  console.error("❌ Unexpected error on idle client", err);
-  // process.exit(-1); // Don't crash immediately, let the app decide
-});
+// 3. Global Singleton for consistency across hot-reloads
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Helper Umum
-export async function query<T = any>(
-  text: string,
-  params?: any[]
-): Promise<T[]> {
-  const client = await pool.connect();
+export const db =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    adapter,
+    log: ["error", "warn"], // Reduced noise
+  });
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+
+export const prisma = db;
+export default db;
+
+/**
+ * Validates the database connection at startup.
+ * Uses a lightweight query to ensure the pool and adapter are functional.
+ */
+export const testConnection = async () => {
   try {
-    const res = await client.query(text, params);
-    return res.rows as T[];
-  } catch (err) {
-    console.error(`❌ Query Failed: [${text}]`, err);
-    throw err;
-  } finally {
-    client.release();
-  }
-}
+    console.log("⏳ Connecting to PostgreSQL & Hardening Schema...");
+    // Lightweight ping
+    await db.$queryRaw`SELECT 1`;
 
-// Helper Cek Koneksi
-export async function testConnection(): Promise<void> {
-  console.log(
-    `⏳ Connecting to Postgres at ${DB_HOST}:${DB_PORT} (DB: ${DB_NAME})...`
-  );
-  const client = await pool.connect();
-  try {
-    const res = await client.query("SELECT NOW() as now");
-    console.log(`✅ Connection Success! Database time: ${res.rows[0].now}`);
-  } catch (err: any) {
-    console.error("❌ Connection Test Failed:", err.message);
-    throw err;
-  } finally {
-    client.release();
-  }
-}
+    // Embedded Auto-Migration (Hardening)
+    // This ensures missing columns exist regardless of Prisma sync state
+    const hardeningQueries = [
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS faculty TEXT;",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS majority TEXT;",
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS "studyProgram" TEXT;',
+      "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS duration INTEGER;",
+      'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "startedAt" TIMESTAMP;',
+      'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "submittedAt" TIMESTAMP;',
+    ];
 
-import { PrismaClient } from "@prisma/client";
-export const prisma = new PrismaClient();
-export default prisma;
+    for (const sql of hardeningQueries) {
+      await db.$executeRawUnsafe(sql);
+    }
+
+    console.log("✅ PostgreSQL Connected & Schema Hardened Successfully");
+  } catch (error: any) {
+    console.error("❌ Database Connection Failed:", error.message);
+    // Log helpful recovery tips
+    if (error.message.includes("timed out")) {
+      console.error(
+        "TIP: Ensure the PostgreSQL service is running on port 5433.",
+      );
+    }
+    process.exit(1);
+  }
+};

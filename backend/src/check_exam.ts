@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { db } from "./config/db";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 async function checkExam() {
   const id = "7e139703-6c8d-4dbf-93e1-2bd2d923b832";
@@ -9,7 +9,7 @@ async function checkExam() {
   try {
     const exam = await prisma.exam.findUnique({
       where: { id },
-      include: { course: { select: { title: true } } },
+      include: { module: { include: { course: { select: { title: true } } } } },
     });
 
     if (exam) {
@@ -20,7 +20,7 @@ async function checkExam() {
 
       // List all exams to help debug
       const allExams = await prisma.exam.findMany({
-        select: { id: true, title: true, isEnabled: true },
+        select: { id: true, title: true },
       });
       console.log("Available Exams:", allExams);
     }

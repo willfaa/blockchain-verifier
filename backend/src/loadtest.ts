@@ -7,7 +7,7 @@ import FormData from "form-data";
 const API_BASE = process.env.LOADTEST_API_BASE ?? "http://localhost:4000";
 
 interface SampleCert {
-  nim: string;
+  nisn: string;
   name: string;
   majority: string;
   program: string;
@@ -17,7 +17,7 @@ interface SampleCert {
 const sampleCerts: SampleCert[] = [
   // kecil ~100 KB
   {
-    nim: "21050974001",
+    nisn: "21050974001",
     name: "User Kecil 1",
     majority: "Informatics",
     program: "S1 PTI",
@@ -25,7 +25,7 @@ const sampleCerts: SampleCert[] = [
   },
   // sedang ~500 KB
   // {
-  //   nim: "21050974002",
+  //   nisn: "21050974002",
   //   name: "User Sedang 1",
   //   majority: "Informatics",
   //   program: "S1 PTI",
@@ -33,7 +33,7 @@ const sampleCerts: SampleCert[] = [
   // },
   // besar ~2 MB
   // {
-  //   nim: "21050974003",
+  //   nisn: "21050974003",
   //   name: "User Besar 1",
   //   majority: "Informatics",
   //   program: "S1 PTI",
@@ -54,7 +54,7 @@ async function issueOnce(sample: SampleCert, index: number): Promise<void> {
   const fileStream = fs.createReadStream(fileAbs);
   const form = new FormData();
 
-  form.append("nim", sample.nim);
+  form.append("nisn", sample.nisn);
   form.append("name", sample.name);
   form.append("majority", sample.majority);
   form.append("program", sample.program);
@@ -70,13 +70,13 @@ async function issueOnce(sample: SampleCert, index: number): Promise<void> {
     latencies.push(duration);
 
     console.log(
-      `#${index} OK -> certId=${resp.data.certId}, cid=${resp.data.cid}, ${duration} ms`
+      `#${index} OK -> certId=${resp.data.certId}, cid=${resp.data.cid}, ${duration} ms`,
     );
   } catch (err: any) {
     const duration = Date.now() - start;
     console.error(
       `#${index} FAIL (${duration} ms):`,
-      err.response?.data ?? err.message
+      err.response?.data ?? err.message,
     );
   }
 }
@@ -85,7 +85,7 @@ async function main(): Promise<void> {
   const runs = Number(process.env.LOADTEST_RUNS ?? "10");
 
   console.log(
-    `Mulai load test: ${runs} permintaan /issue ke ${API_BASE} (paralel).`
+    `Mulai load test: ${runs} permintaan /issue ke ${API_BASE} (paralel).`,
   );
 
   const tasks: Promise<void>[] = [];

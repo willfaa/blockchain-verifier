@@ -1,21 +1,23 @@
-// backend/src/controllers/userController.ts
 import { Request, Response } from "express";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "../generated/prisma";
+import { db } from "../config/db";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const {
       role, // "student" | "teacher"
-      search, // matches name, email, nim, or nip
+      search, // matches name, email, nisn, or nip
       program, // exact match
       majority, // exact match
-      sortBy, // "name" | "nim" | "majority" | "program" | "createdAt"
+      sortBy, // "name" | "nisn" | "majority" | "program" | "createdAt"
       sortOrder, // "asc" | "desc"
     } = req.query;
 
-    const whereClause: Prisma.UserWhereInput = {};
+    const whereClause: Prisma.UserWhereInput = {
+      isApproved: true, // Auto-filter: Only show approved users in public lists
+    };
 
     // 1. Role Filter
     if (role) {
@@ -28,7 +30,7 @@ export const getUsers = async (req: Request, res: Response) => {
       whereClause.OR = [
         { name: { contains: searchStr, mode: "insensitive" } },
         { email: { contains: searchStr, mode: "insensitive" } },
-        { nim: { contains: searchStr } }, // Case sensitive biasanya untuk ID/Code
+        { nisn: { contains: searchStr } }, // Case sensitive biasanya untuk ID/Code
         { nip: { contains: searchStr } },
       ];
     }
@@ -50,7 +52,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
       // Mapping sortBy ke field Prisma
       if (field === "name") orderBy = { name: order };
-      else if (field === "nim") orderBy = { nim: order };
+      else if (field === "nisn") orderBy = { nisn: order };
       else if (field === "majority") orderBy = { majority: order };
       else if (field === "program" || field === "studyProgram")
         orderBy = { studyProgram: order };
@@ -68,7 +70,7 @@ export const getUsers = async (req: Request, res: Response) => {
         name: true,
         email: true,
         role: true,
-        nim: true,
+        nisn: true,
         nip: true,
         majority: true,
         studyProgram: true,
@@ -116,13 +118,12 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       console.log(">> Mengupdate Avatar ke path:", updateData.avatar);
     } else {
       // DETEKSI SILENT FAILURE
-      // Jika header ada 'multipart', tapi file kosong, beri peringatan di terminal
       if (req.headers["content-type"]?.includes("multipart/form-data")) {
         console.warn(
-          "⚠️ PERINGATAN: Header multipart terdeteksi tapi req.file KOSONG/UNDEFINED!"
+          "⚠️ PERINGATAN: Header multipart terdeteksi tapi req.file KOSONG/UNDEFINED!",
         );
         console.warn(
-          "   Kemungkinan: Field name di Frontend bukan 'avatar', atau Middleware Multer belum terpasang."
+          "   Kemungkinan: Field name di Frontend bukan 'avatar', atau Middleware Multer belum terpasang.",
         );
       }
     }
@@ -136,9 +137,9 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         email: true,
         personalEmail: true,
         bio: true,
-        avatar: true, // Pastikan field ini terpilih
+        avatar: true,
         role: true,
-        nim: true,
+        nisn: true,
         nip: true,
         majority: true,
         studyProgram: true,

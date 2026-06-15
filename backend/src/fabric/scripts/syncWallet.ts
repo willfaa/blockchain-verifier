@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import { Wallets, X509Identity } from "fabric-network";
 import FabricCAServices from "fabric-ca-client";
 import * as fs from "fs";
-import { query } from "../../config/db";
+import { prisma } from "../../utils/prisma";
 
 console.log("🛠️ DEBUG DB HOST:", process.env.PGHOST);
 console.log("🛠️ DEBUG DB USER:", process.env.PGUSER);
@@ -71,11 +71,23 @@ async function main() {
     ).getUserContext(adminIdentity, "admin");
 
     // 4. Ambil User dari Database
-    console.log("📥 Mengambil data user dari Database PostgreSQL...");
-    // Filter: Hanya ambil user yang bukan 'admin' (karena admin sistem beda dengan admin fabric)
-    const dbUsers = await query(
-      "SELECT email AS identifier, role FROM users WHERE role != 'admin'"
+    console.log(
+      "📥 Mengambil data user dari Database PostgreSQL via Prisma..."
     );
+    // Filter: Hanya ambil user yang bukan 'admin' (karena admin sistem beda dengan admin fabric)
+    const users = await prisma.user.findMany({
+      where: {
+        role: {
+          not: "admin",
+        },
+      },
+      select: {
+        email: true,
+        role: true,
+      },
+    });
+
+    const dbUsers = users.map((u) => ({ identifier: u.email, role: u.role }));
 
     if (dbUsers.length === 0) {
       console.log("⚠️ Tidak ada user di database untuk disinkronkan.");

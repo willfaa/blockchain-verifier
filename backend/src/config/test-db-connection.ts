@@ -37,7 +37,7 @@ async function main() {
     user,
     password,
     database,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 30000,
   });
 
   try {

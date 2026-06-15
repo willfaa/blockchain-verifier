@@ -1,202 +1,253 @@
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // --- USER MANAGEMENT ---
-// Single Source of Truth untuk semua pengguna
 model User {
   id       String  @id @default(uuid())
-  email    String  @unique // The generated @chainnesa.com email
-  personalEmail String? @unique // The original Gmail/Yahoo input
+  email    String  @unique 
+  personalEmail String? @unique 
   password String
   name     String
   role     String  // "admin", "teacher", "student"
-  isVerified Boolean @default(false) // Verified by Admin (Teachers need this)
-  isActive   Boolean @default(true)  // For Banning users
+  isVerified Boolean @default(false)
+  isApproved Boolean @default(false)
+  isActive   Boolean @default(true)
 
-  // Identitas Khusus (Nullable)
   bio      String? @db.Text
-  avatar   String? // Store path to uploaded avatar
-  nim      String? @unique // Diisi jika Student
-  nip      String? @unique // Diisi jika Teacher
+  avatar   String? 
+  nisn     String? @unique
+  nip      String? @unique 
    
-  // Data Akademik (Nullable - Bisa dipakai Student & Teacher)
-  majority String? // Jurusan / Departemen
-  studyProgram  String? // Prodi / Bidang Keahlian
+  faculty  String?
+  majority String? 
+  studyProgram  String? 
 
-  createdAt DateTime @default(now()) // Best practice: audit trail
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // --- RELASI ---
-  // 1. Course yang dibuat oleh user ini (sebagai Teacher)
   createdCourses Course[]      @relation("CreatedCourses")
-  
-  // 2. Course yang diikuti user ini (sebagai Student)
   enrollments    Enrollment[]  
-  
-  // 3. Sertifikat yang dimiliki user ini
   certificates   Certificate[] 
-
-  // 4. Hasil ujian user ini
-  examResults    ExamResult[] 
+  examResults    ExamResult[]
+  assignmentSubmissions AssignmentSubmission[] 
 
   @@map("users")
 }
 
-// --- LMS CORE ---
+// --- LMS HIERARCHY ---
+
+model Category {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  courses Course[]
+
+  @@map("categories")
+}
+
 model Course {
   id          String   @id @default(uuid())
+  userId      String   // Teacher ID
+  user        User     @relation("CreatedCourses", fields: [userId], references: [id])
+  
   title       String
-  description String
-  thumbnail   String?  
+  description String?  @db.Text
+  imageUrl    String?
   isPublished Boolean  @default(false)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  // Added missing fields
+  studyProgram    String?
+  targetAudience  String?
+  allowedPrograms Json?    // Using Json for array of strings compatibility
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  // Metadata
-  category       String? 
-  studyProgram   String? 
-  targetAudience String?
-  allowedPrograms String[] @default([])
 
-  // Relasi ke Pembuat (Teacher)
-  // Tetap pakai 'teacherId' sesuai request, mengacu ke User.id
-  teacherId   String
-  teacher     User     @relation("CreatedCourses", fields: [teacherId], references: [id])
-   
-  // Relasi Konten
-  chapters    Chapter[]   // New Hierarchy
-  exams       Exam[]    
+  attachments Attachment[]
+  modules     Module[]
   enrollments Enrollment[]
-  certificates Certificate[] 
+  certificates Certificate[]
 
   @@map("courses")
 }
 
-// New Model: Chapter (Section)
-model Chapter {
-  id          String   @id @default(uuid())
-  title       String
-  order       Int      // Urutan Chapter
-  isPublished Boolean  @default(true)
-  
-  courseId    String
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
-  lessons     Lesson[]
-  
-  @@map("chapters")
+model Attachment {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attachments")
 }
 
-// Model Video Offline
+model Module {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  isPublished Boolean  @default(false)
+
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons     Lesson[]
+  assignments Assignment[]
+  exams       Exam[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("modules")
+}
+
 model Lesson {
-  id        String   @id @default(uuid())
-  title     String
-  content   String?  
-  videoPath String?  // Path video lokal (/uploads/videos/...)
-  duration  Int?     
-  order     Int      
-  isPublished Boolean @default(false) // Add publish status for granular control
-  isFreePreview Boolean @default(false) // Allow free preview for non-enrolled students
-   
-  // Hierarchy Change: Lesson belongs to Chapter, not Course directly
-  chapterId String
-  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  content     String?  @db.Text
+  videoUrl    String?
+  position    Int
+  isPublished Boolean  @default(false)
+  isFreePreview Boolean @default(false)
+
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("lessons")
 }
 
-// Model Pendaftaran Siswa ke Kursus
-model Enrollment {
-  id        String   @id @default(uuid())
-  
-  // Relasi ke Siswa (User)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Relasi ke Kursus
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  status    String   @default("Pending") 
-  progress    Int      @default(0)
-  isCompleted Boolean  @default(false)
+// --- ASSIGNMENTS ---
 
-  enrolledAt  DateTime @default(now())
-  completedAt DateTime? // Added for certificate tracking
-  certificateId String? // Added for certificate tracking
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text // Rich Text
+  dueDate     DateTime?
+  duration    Int?     // Duration in minutes
+  maxScore    Int      @default(100)
+  isVisible   Boolean  @default(true)
 
-  // Mencegah satu user enroll course yang sama 2x
-  @@unique([userId, courseId])
-  @@map("enrollments")
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  submissions AssignmentSubmission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("assignments")
 }
 
-// --- EXAM SYSTEM ---
-model Exam {
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AssignmentSubmission {
   id           String   @id @default(uuid())
-  title        String
-  description  String?  @db.Text
-  durationMinutes Int   @default(60)
-  passingScore Int      @default(70)
-  isEnabled    Boolean  @default(false) // Renamed from isPublished
-  strictMode   Boolean  @default(false)
-  isPractice   Boolean  @default(false)
-  
-  courseId     String   @unique // Enforce 1:1 Relation
-  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
-  questions    Question[]
-  results      ExamResult[]
-  
+  fileUrl      String?   @db.Text
+  status       SubmissionStatus @default(PENDING)
+  grade        Float?
+  feedback     String?  @db.Text
+  ipfsHash     String?
+  fileHash     String?
+  ipfsCid      String?
+  startedAt    DateTime?
+  submittedAt  DateTime?
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@map("assignment_submissions")
+}
+
+model Exam {
+  id          String   @id @default(uuid())
+  title       String
+  questions   Json     // Storing questions as JSON structure
+  position    Int
+
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // Legacy relation for ExamResults if needed, or update logic later
+  results     ExamResult[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("exams")
 }
 
-enum QuestionType {
-  MULTIPLE_CHOICE
-  ESSAY // Prepared for future
+// --- LEGACY/SUPPORTING MODELS ---
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  status    String   @default("Pending") 
+  progress  Int      @default(0)
+  isCompleted Boolean  @default(false)
+  
+  enrolledAt  DateTime @default(now())
+  completedAt DateTime? 
+  certificateId String? 
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
 }
 
-model Question {
-  id        String       @id @default(uuid())
-  text      String       @db.Text
-  type      QuestionType @default(MULTIPLE_CHOICE)
-  isActive  Boolean      @default(false) // Toggle for Question Bank
-  position  Int          @default(0)
-  points    Int          @default(10)
-  
-  examId    String
-  exam      Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
-  
-  options   Option[]
-  userAnswers UserAnswer[]
+model Certificate {
+  id          String   @id @default(uuid())
+  certId      String   @unique 
+  studentName String
+  nisn        String
+  program     String
+  majority    String
+   
+  courseId    String?
+  course      Course?  @relation(fields: [courseId], references: [id])
 
-  @@map("questions")
-}
+  userId      String    
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-model Option {
-  id         String   @id @default(uuid())
-  text       String
-  isCorrect  Boolean  @default(false)
-  
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  userAnswers UserAnswer[]
+  issuedAt    String   
+  cid         String   
+  hash        String   
+  status      String   @default("ISSUED") 
 
-  @@map("options")
+  @@map("certificates")
 }
 
 model ExamResult {
   id        String   @id @default(uuid())
   score     Float
-  status    String   // "PASSED" | "FAILED"
+  status    String   
   
   studentId String
   student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -207,51 +258,8 @@ model ExamResult {
   startedAt  DateTime @default(now())
   finishedAt DateTime @default(now())
 
-  answers    UserAnswer[]
+  // answers removed/commented as UserAnswer model is deleted
+  // answers    Json? 
 
   @@map("exam_results")
-}
-
-model UserAnswer {
-  id           String     @id @default(uuid())
-  
-  examResultId String
-  examResult   ExamResult @relation(fields: [examResultId], references: [id], onDelete: Cascade)
-  
-  questionId   String
-  question     Question   @relation(fields: [questionId], references: [id])
-  
-  optionId     String
-  option       Option     @relation(fields: [optionId], references: [id])
-
-  @@map("user_answers")
-}
-
-// --- CERTIFICATE ---
-model Certificate {
-  id          String   @id @default(uuid())
-  certId      String   @unique 
-  
-  // Data Snapshot (Disimpan sebagai string agar historis tetap aman meski user berubah nama)
-  studentName String
-  nim         String
-  program     String
-  majority    String
-   
-  // Relasi Opsional (Bisa null jika course dihapus/manual issue)
-  courseId    String?
-  course      Course?  @relation(fields: [courseId], references: [id])
-
-  // Relasi ke Pemilik (Siswa)
-  userId      String    
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  issuedAt    String   // ISO Date String
-  
-  // Blockchain Data
-  cid         String   
-  hash        String   
-  status      String   @default("ISSUED") // "ISSUED", "REVOKED"
-
-  @@map("certificates")
 }

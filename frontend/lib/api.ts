@@ -1,7 +1,8 @@
 // frontend/lib/api.ts
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+const API_URL = `${API_BASE}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -36,10 +37,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: any) => {
-    if (error.response && error.response.status === 401) {
-      // Token expired or invalid
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      // Token expired, invalid, or access denied
       if (typeof window !== "undefined") {
-        console.warn("Session expired or invalid (401). Logging out...");
+        console.warn(
+          "Session expired or Access Denied (401/403). Logging out..."
+        );
         // Prevent infinite loop if login page itself throws 401 (unlikely for login)
         if (!window.location.pathname.includes("/login")) {
           localStorage.removeItem("chainnesa_user");

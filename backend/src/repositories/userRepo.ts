@@ -1,12 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { db } from "../config/db";
 import bcrypt from "bcryptjs";
 
 // Kita gunakan PrismaClient global atau buat instance baru
-const prisma = new PrismaClient();
+const prisma = db;
 
 // --- REGISTER USER ---
 export const registerUser = async (data: any) => {
-  const { name, email, password, role, nim, nip, majority, program } = data;
+  const { name, email, password, role, nisn, nip, majority, program } = data;
 
   // 1. Hash Password
   const saltRounds = 10;
@@ -17,10 +17,10 @@ export const registerUser = async (data: any) => {
   const existingEmail = await prisma.user.findUnique({ where: { email } });
   if (existingEmail) throw new Error(`Email ${email} already registered`);
 
-  // Cek NIM (Student)
-  if (role === "student" && nim) {
-    const existingNim = await prisma.user.findUnique({ where: { nim } });
-    if (existingNim) throw new Error(`NIM ${nim} already registered`);
+  // Cek NISN (Student)
+  if (role === "student" && nisn) {
+    const existingNisn = await prisma.user.findUnique({ where: { nisn } });
+    if (existingNisn) throw new Error(`NISN ${nisn} already registered`);
   }
 
   // Cek NIP (Teacher)
@@ -39,7 +39,7 @@ export const registerUser = async (data: any) => {
         password: hashedPassword,
         role,
         // Field Nullable
-        nim: role === "student" ? nim : null,
+        nisn: role === "student" ? nisn : null,
         nip: role === "teacher" ? nip : null,
         majority,
         studyProgram: program || data.studyProgram,
@@ -47,6 +47,7 @@ export const registerUser = async (data: any) => {
         // DEVELOPMENT OVERRIDE:
         isVerified: true, // Auto-verify new users
         isActive: true,
+        isApproved: false, // Require Admin Approval explicitly
       } as any,
     });
 
@@ -60,13 +61,13 @@ export const registerUser = async (data: any) => {
 export const loginUser = async (
   identifier: string,
   password: string,
-  role: string
+  role: string,
 ) => {
-  // Logic Pintar: Cari user di mana Role cocok DAN (Email=ID ATAU NIM=ID ATAU NIP=ID)
+  // Logic Pintar: Cari user di mana Role cocok DAN (Email=ID ATAU NISN=ID ATAU NIP=ID)
   const user = await prisma.user.findFirst({
     where: {
       role: role,
-      OR: [{ email: identifier }, { nim: identifier }, { nip: identifier }],
+      OR: [{ email: identifier }, { nisn: identifier }, { nip: identifier }],
     },
   });
 
@@ -81,9 +82,9 @@ export const loginUser = async (
 
 // --- HELPER LAIN ---
 
-export const getUserByNim = async (nim: string) => {
+export const getUserByNisn = async (nisn: string) => {
   return prisma.user.findUnique({
-    where: { nim },
+    where: { nisn },
   });
 };
 

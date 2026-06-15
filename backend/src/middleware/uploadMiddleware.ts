@@ -4,7 +4,6 @@ import path from "path";
 import fs from "fs";
 
 // Konfigurasi penyimpanan file
-// Konfigurasi penyimpanan file
 const storage = multer.diskStorage({
   destination: (req: any, file, cb) => {
     let folder = "others";
@@ -15,18 +14,16 @@ const storage = multer.diskStorage({
     } else if (
       file.fieldname === "thumbnail" ||
       file.fieldname === "image" ||
-      file.fieldname === "video"
+      file.fieldname === "video" ||
+      file.fieldname === "assignment_file"
     ) {
-      folder = "courses";
+      folder = file.fieldname === "assignment_file" ? "assignments" : "courses";
     }
 
     // 1. Get User ID from Request (Auth Middleware must run first!)
-    // Fallback to 'anonymous' if no user found
-    // Note: req.user structure from authMiddleware is { id, identifier, role }
     const userId = req.user?.id || req.user?.userId || "anonymous";
 
     // 2. Define User-Specific Path: /uploads/{type}/{userId}/
-    // Use process.cwd() as requested for systemic fix
     const uploadPath = path.join(process.cwd(), "uploads", folder, userId);
 
     console.log("Multer Destination Logic Triggered");

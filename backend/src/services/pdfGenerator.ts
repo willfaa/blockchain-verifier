@@ -6,7 +6,7 @@ import fs from "fs";
 interface PdfData {
   certId: string;
   name: string;
-  nim: string;
+  nisn: string;
   program: string;
   majority: string;
   courseName: string;
@@ -16,7 +16,7 @@ interface PdfData {
 
 // Generate PDF Buffer (Using Image Template)
 export const generateCertificatePDF = async (
-  data: PdfData
+  data: PdfData,
 ): Promise<Buffer> => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -38,7 +38,7 @@ export const generateCertificatePDF = async (
         doc.image(bgPath, 0, 0, { width: 841.89, height: 595.28 });
       } else {
         console.warn(
-          `⚠️ Background image not found at ${bgPath}! Text will be plain.`
+          `⚠️ Background image not found at ${bgPath}! Text will be plain.`,
         );
       }
 
@@ -75,7 +75,7 @@ export const generateCertificatePDF = async (
           `${(data.majority || "MAJORITY").toUpperCase()} MAJORITY`,
           0,
           275,
-          { align: "center", width: pageWidth }
+          { align: "center", width: pageWidth },
         );
 
       doc
@@ -86,15 +86,15 @@ export const generateCertificatePDF = async (
           `${(data.program || "STUDY PROGRAM").toUpperCase()} STUDY PROGRAM`,
           0,
           295,
-          { align: "center", width: pageWidth }
+          { align: "center", width: pageWidth },
         );
 
-      // C. NIM
+      // C. NISN
       doc
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor("#D32F2F")
-        .text(`NIM : ${data.nim || "0000000"}`, 0, 325, {
+        .text(`NISN : ${data.nisn || "0000000"}`, 0, 325, {
           align: "center",
           width: pageWidth,
         });
@@ -111,7 +111,7 @@ export const generateCertificatePDF = async (
           {
             align: "center",
             width: pageWidth,
-          }
+          },
         );
 
       // F. PENERBIT / REKTOR

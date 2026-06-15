@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Award, Lock, ExternalLink, Calendar, Loader2 } from "lucide-react";
+import {
+  Award,
+  ExternalLink,
+  Calendar,
+  Loader2,
+  Search,
+  ShieldCheck,
+  Download,
+  Share2,
+  Cpu,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
+import { toast } from "sonner";
 
 interface Certificate {
   id: string;
@@ -13,136 +24,238 @@ interface Certificate {
   cid: string;
   status: string;
   issuedAt: string;
+  hash: string;
   course: {
     title: string;
-    thumbnail: string | null;
+    imageUrl: string | null;
   };
 }
 
 export default function MyCertificatesPage() {
   const [certs, setCerts] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    api
-      .get("/certificates/my-certificates")
-      .then((res) => {
-        if (res.data.ok) setCerts(res.data.data);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchCertificates();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-teal-400" size={32} />
-      </div>
-    );
-  }
+  const fetchCertificates = async (query = "") => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/certificates/my-certificates`, {
+        params: { search: query || undefined },
+      });
+
+      if (res.data.ok) {
+        setCerts(res.data.data);
+      }
+    } catch (err: any) {
+      console.error("[Certs] Fetch Error:", err);
+      if (err.response?.status !== 401) {
+        toast.error("Network instability detected. Re-syncing protocol...");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchCertificates(search);
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "TBD";
+      return date.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "TBD";
+    }
+  };
+
+  const truncateHash = (hash: string) => {
+    if (!hash || hash.includes("Not_Available")) return "PENDING_BLOCK_SYNC";
+    return `${hash.substring(0, 6)}...${hash.substring(hash.length - 4)}`;
+  };
 
   return (
-    <div className="min-h-screen bg-[#0b0724] text-slate-50">
+    <div className="min-h-screen bg-dark-bg text-slate-50 overflow-x-hidden selection:bg-neon-purple/30 font-sans">
       <Navbar />
 
-      <main className="max-w-[1400px] mx-auto px-6 py-12">
-        <div className="text-center mb-16">
-          <p className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-3 animate-in fade-in slide-in-from-bottom-4">
-            Validation
+      <main className="max-w-[1400px] mx-auto px-8 pt-40 pb-24">
+        {/* Galaxy Header */}
+        <div className="text-center mb-24 relative">
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-purple/5 blur-[120px] pointer-events-none" />
+          <p className="text-[10px] font-bold text-neon-blue uppercase tracking-widest mb-4 animate-in fade-in slide-in-from-bottom-4">
+            Academic Verification Hub
           </p>
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-teal-400 via-emerald-500 to-cyan-500 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            My Blockchain Certificates
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-in fade-in slide-in-from-bottom-6 duration-1000 tracking-tight">
+            Student <span className="galaxy-gradient-text">Achievements</span>
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            Verify and download your blockchain-secured credentials. Immutable
-            proof of your academic achievements.
+          <p className="text-white/40 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 text-sm md:text-base leading-relaxed">
+            Your earned credentials, secured by blockchain technology.
+            Verifiable, permanent, and recognized globally as institutional
+            proof of excellence.
           </p>
         </div>
 
+        {/* Search Bar - Galaxy Style */}
+        <div className="max-w-2xl mx-auto mb-20 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
+          <form onSubmit={handleSearch} className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 rounded-full blur opacity-0 group-focus-within:opacity-100 transition-all duration-500" />
+            <input
+              type="text"
+              placeholder="Search certificates by course title..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-full py-5 pl-14 pr-8 text-sm md:text-md focus:outline-none focus:border-neon-purple/30 focus:bg-white/[0.08] transition-all relative z-10"
+            />
+            <Search
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-neon-purple z-10 transition-colors"
+              size={22}
+            />
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 px-8 py-2.5 bg-gradient-to-r from-neon-purple to-neon-blue text-white font-bold rounded-full text-xs uppercase z-10 hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 text-teal-400">
-            <Loader2 size={48} className="animate-spin mb-4" />
-            <p className="text-slate-500 text-sm tracking-wider">
-              Loading Credentials...
+          <div className="flex flex-col items-center justify-center py-40 gap-8 relative">
+            <div className="h-16 w-16 border-4 border-white/5 border-t-neon-purple rounded-full animate-spin shadow-[0_0_20px_rgba(176,38,255,0.2)]" />
+            <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.4em] animate-pulse">
+              Retrieving Secured Data
             </p>
           </div>
         ) : certs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-3xl border border-white/10 max-w-lg mx-auto">
-            <div className="bg-slate-900/50 p-4 rounded-full mb-4">
-              <Award className="h-12 w-12 text-slate-600" />
+          <div className="flex flex-col items-center justify-center py-32 glass-panel rounded-[3rem] border-white/5 max-w-2xl mx-auto text-center animate-in zoom-in duration-700">
+            <div className="bg-white/[0.02] p-8 rounded-full mb-8 border border-white/5 shadow-inner">
+              <Award className="h-20 w-20 text-white/5" />
             </div>
-            <h3 className="text-xl font-bold text-white">
-              No Certificates Yet
+            <h3 className="text-2xl font-bold text-white tracking-tight">
+              No Records Found
             </h3>
-            <p className="text-slate-400 mt-2 text-sm text-center px-6">
-              Complete courses and pass exams to earn verified blockchain
-              certificates.
+            <p className="text-white/30 mt-6 text-sm max-w-sm px-8 leading-relaxed font-medium">
+              Your academic vault is currently empty. Complete your enrolled
+              courses to earn blockchain-secured credentials.
             </p>
             <Link
               href="/courses"
-              className="inline-block mt-6 px-6 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-full font-medium transition-colors"
+              className="mt-12 px-12 py-5 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-3xl hover:bg-neon-blue hover:text-white transition-all transform hover:scale-105 shadow-xl"
             >
-              Browse Courses
+              Browse Curriculum
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 animate-in fade-in duration-1000">
             {certs.map((cert, idx) => (
-              <Link
+              <div
                 key={cert.id}
-                href={`/student/certificates/${cert.id}`}
-                className="group relative bg-[#0a0a0f] border border-slate-800 rounded-xl overflow-hidden hover:border-teal-500/50 transition-all hover:shadow-[0_0_20px_rgba(20,184,166,0.1)] h-full flex flex-col"
-                style={{ animationDelay: `${idx * 50}ms` }}
+                className="group relative h-[440px] bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden hover:border-neon-purple/40 transition-all duration-500 hover:shadow-3xl flex flex-col animate-in slide-in-from-bottom-12"
+                style={{ animationDelay: `${idx * 120}ms` }}
               >
-                <div className="aspect-video relative bg-slate-900">
-                  {/* Certificate Preview / Thumbnail */}
+                {/* Image Section with Overlay */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
                   <Image
-                    src={`http://localhost:8080/ipfs/${cert.cid}`}
+                    src={
+                      cert.cid
+                        ? `http://localhost:8081/ipfs/${cert.cid}`
+                        : "/placeholder-cert.jpg"
+                    }
                     alt="Certificate"
                     fill
-                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="font-bold text-white text-lg line-clamp-2 leading-tight drop-shadow-md">
-                      {cert.course.title}
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/20 to-transparent" />
+
+                  {/* Verified Badge */}
+                  <div className="absolute top-5 left-5">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 backdrop-blur-xl border border-neon-purple/20 rounded-full">
+                      <ShieldCheck size={12} className="text-neon-purple" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+                        Verified
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-5 left-6 right-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-700">
+                    <h3 className="font-bold text-white text-lg line-clamp-2 leading-tight drop-shadow-2xl group-hover:text-neon-blue transition-colors tracking-tight">
+                      {cert.course?.title || "Active Course"}
                     </h3>
                   </div>
                 </div>
 
-                <div className="p-4 space-y-4 flex-1 flex flex-col justify-end">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(cert.issuedAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] uppercase font-bold tracking-wider">
-                      {cert.status}
-                    </span>
+                {/* Content Section */}
+                <div className="p-8 flex-1 flex flex-col justify-between">
+                  {/* Meta Group */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-[10px] text-white/30 font-bold uppercase tracking-widest">
+                        <Calendar size={14} className="text-neon-purple" />
+                        {formatDate(cert.issuedAt)}
+                      </div>
+                      <div className="w-10 h-px bg-white/5 flex-1 mx-4" />
+                      <div className="text-[10px] font-bold text-neon-blue uppercase tracking-widest">
+                        EST CONFIRMED
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">
+                        Blockchain Certificate Hash
+                      </p>
+                      <div className="group/hash flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all cursor-help">
+                        <p className="font-mono text-[10px] text-white/40">
+                          {truncateHash(cert.hash)}
+                        </p>
+                        <ExternalLink
+                          size={12}
+                          className="text-white/20 group-hover/hash:text-white transition-colors"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-1 pt-2 border-t border-slate-800/50">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                      Certificate ID
-                    </p>
-                    <p
-                      className="font-mono text-xs text-slate-300 truncate"
-                      title={cert.certId}
+                  {/* Actions */}
+                  <div className="flex gap-4 mt-8 pt-6 border-t border-white/5">
+                    <Link
+                      href={`/student/certificates/${cert.id}`}
+                      className="flex-1 flex items-center justify-center gap-3 px-4 py-3 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all font-bold text-[10px] uppercase tracking-widest"
                     >
-                      {cert.certId}
-                    </p>
+                      <ExternalLink size={14} /> View Details
+                    </Link>
+                    <button
+                      onClick={() =>
+                        window.open(
+                          `http://localhost:8081/ipfs/${cert.cid}`,
+                          "_blank"
+                        )
+                      }
+                      className="w-14 flex items-center justify-center bg-neon-purple text-white rounded-2xl hover:bg-neon-blue transition-all shadow-xl"
+                    >
+                      <Download size={18} />
+                    </button>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* Background Decor */}
+      <div className="fixed top-0 right-0 w-[800px] h-[800px] bg-neon-purple/5 blur-[180px] -z-10 animate-pulse" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-neon-blue/5 blur-[150px] -z-10" />
     </div>
   );
 }

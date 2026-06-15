@@ -33,7 +33,6 @@ export default function CourseEditorPage() {
     // Mock Data for now, eventually call API: /courses/:id
     // But since backend Logic for full nested lessons might not be fully ready in `getCourseDetail` with content?
     // Let's assume `getCourseDetail` returns lessons without full content for list, and we fetch detail on click?
-    // Or just fetch all.
     async function fetchCourse() {
       if (!courseId) return;
       try {

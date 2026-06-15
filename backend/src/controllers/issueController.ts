@@ -11,7 +11,7 @@ import fs from "fs";
 // Helper: Generate PDF Buffer (Using Image Template)
 const generatePDF = async (
   data: any,
-  outputPath: string | null = null
+  outputPath: string | null = null,
 ): Promise<Buffer> => {
   console.log("🛠️ START GENERATING PDF...");
 
@@ -43,7 +43,7 @@ const generatePDF = async (
         doc.image(bgPath, 0, 0, { width: 841.89, height: 595.28 });
       } else {
         console.warn(
-          `⚠️ Background image not found at ${bgPath}! Text will be plain.`
+          `⚠️ Background image not found at ${bgPath}! Text will be plain.`,
         );
       }
 
@@ -83,7 +83,7 @@ const generatePDF = async (
           `${(data.majority || "MAJORITY").toUpperCase()} MAJORITY`,
           0,
           275,
-          { align: "center", width: pageWidth }
+          { align: "center", width: pageWidth },
         );
 
       doc
@@ -94,18 +94,20 @@ const generatePDF = async (
           `${(data.program || "STUDY PROGRAM").toUpperCase()} STUDY PROGRAM`,
           0,
           295,
-          { align: "center", width: pageWidth }
+          { align: "center", width: pageWidth },
         );
 
-      // C. NIM (Merah)
+      // C. NISN (Merah)
       doc
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor("#D32F2F")
-        .text(`NIM : ${data.nim || "0000000"}`, 0, 325, {
+        .text(`NISN : ${data.nisn || "0000000"}`, 0, 325, {
           align: "center",
           width: pageWidth,
         });
+
+      // C.2 REMOVED (Merged into above)
 
       // D. NAMA KURSUS / TOPIK (Pink, Besar)
       // Posisi di bawah teks statis "on the topic of:"
@@ -120,7 +122,7 @@ const generatePDF = async (
           {
             align: "center",
             width: pageWidth,
-          }
+          },
         );
 
       // F. PENERBIT / REKTOR (Merah, Bawah Garis)
@@ -167,19 +169,19 @@ export const issueCertificate = async (req: Request, res: Response) => {
     const {
       name,
       studentName,
-      nim,
       program,
       majority,
       issuedAt,
       issuerId,
       issuerRole,
-      courseName, // <-- Tambahan field Course Name
+      courseName,
+      nisn, // Extract NISN
     } = req.body;
 
     const finalName = studentName || name;
 
     // Validation
-    if (!finalName || !nim || !program || !majority) {
+    if (!finalName || !nisn || !program || !majority) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -202,7 +204,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
     // Create Hash
     const dataString = JSON.stringify({
       studentName: finalName,
-      nim,
+      nisn,
       program,
       majority,
       course: finalCourse,
@@ -228,7 +230,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
       "certs",
       safeFolder(majority),
       safeFolder(program),
-      safeFolder(finalCourse)
+      safeFolder(finalCourse),
     );
 
     // Ensure directory exists recursively
@@ -236,15 +238,15 @@ export const issueCertificate = async (req: Request, res: Response) => {
       fs.mkdirSync(dirPath, { recursive: true });
     }
 
-    // Define File Path: {NIM}-{CertID}.pdf
-    const fileName = `${nim}-${certId}.pdf`;
+    // Define File Path: {NISN}-{CertID}.pdf
+    const fileName = `${nisn}-${certId}.pdf`;
     const filePath = path.join(dirPath, fileName);
 
     // 4. GENERATE PDF (And Save to File)
     const pdfBuffer = await generatePDF(
       {
         name: finalName,
-        nim,
+        nisn,
         program,
         majority,
         courseName: finalCourse,
@@ -252,14 +254,14 @@ export const issueCertificate = async (req: Request, res: Response) => {
         certId,
         issuerId: finalIssuerId,
       },
-      filePath // Pass output path to save file
+      filePath, // Pass output path to save file
     );
 
     console.log(`📄 PDF Saved locally: ${filePath}`);
 
     // 5. Upload to IPFS (with structured MFS path)
     const mfsPath = `/${safeFolder(majority)}/${safeFolder(
-      program
+      program,
     )}/${safeFolder(finalCourse)}/${safeFolder(finalName)}/${fileName}`;
 
     console.log(`Open IPFS Uploading to MFS: ${mfsPath}`);
@@ -273,7 +275,8 @@ export const issueCertificate = async (req: Request, res: Response) => {
       "IssueCertificate",
       certId,
       finalName,
-      nim,
+      nisn || "", // New 13th Argument (placed after NIM)
+      "", // Placeholder for 13-arg support
       program,
       majority,
       formattedDate,
@@ -282,7 +285,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
       status,
       nonce,
       finalIssuerId,
-      finalIssuerRole
+      finalIssuerRole,
     );
 
     console.log(`Transaction committed to Fabric.`);
@@ -293,12 +296,12 @@ export const issueCertificate = async (req: Request, res: Response) => {
       cid,
       ipfsUrl: `http://127.0.0.1:8080/ipfs/${cid}`,
       localPath: `/certs/${safeFolder(majority)}/${safeFolder(
-        program
+        program,
       )}/${safeFolder(finalCourse)}/${fileName}`, // Relative path for serving
       message: "Certificate issued successfully.",
       record: {
         certId,
-        nim,
+        nisn,
         name: finalName,
         program,
         majority,
@@ -346,7 +349,7 @@ export const getCertificateFromChain = async (req: Request, res: Response) => {
       const { contract } = await getContract("admin", "admin");
       const resultBuffer = await contract.evaluateTransaction(
         "ReadCertificate",
-        id
+        id,
       );
       if (resultBuffer && resultBuffer.length > 0) {
         chainData = JSON.parse(resultBuffer.toString());
@@ -354,7 +357,7 @@ export const getCertificateFromChain = async (req: Request, res: Response) => {
     } catch (chainErr) {
       console.warn(
         "Chain verification failed (might be network issue or not synced):",
-        chainErr
+        chainErr,
       );
       // If strict mode, maybe fail? For now, we allow local data if chain fails but mark as unverified?
       // Actually, the frontend expects "source: blockchain".

@@ -47,8 +47,8 @@ export default function ExamManagementPage() {
 
   const fetchExams = async () => {
     try {
-      const res = await api.get(`/courses/${courseId}/exams`);
-      setExams(res.data.data);
+      const res = await api.get(`/lms/courses/${courseId}/exam`);
+      setExams(res.data.data ? [res.data.data] : []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load exams");
@@ -102,7 +102,7 @@ export default function ExamManagementPage() {
     if (questions.length === 0) return toast.error("Add at least one question");
 
     try {
-      await api.post(`/courses/${courseId}/exams`, {
+      await api.post(`/lms/courses/${courseId}/exam`, {
         title,
         description,
         duration,

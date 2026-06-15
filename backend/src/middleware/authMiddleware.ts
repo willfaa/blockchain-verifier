@@ -1,15 +1,12 @@
-// backend/src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// Interface untuk data yang disimpan dalam Token
 interface UserPayload {
   id: string;
   identifier: string;
-  role: string; // 'admin', 'student', 'teacher'
+  role: string;
 }
 
-// Extend Request Express agar bisa membaca req.user
 declare global {
   namespace Express {
     interface Request {
@@ -23,34 +20,50 @@ export const verifyToken = (
   res: Response,
   next: NextFunction
 ) => {
-  // 1. Ambil token dari Header (Authorization: Bearer <token>)
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(" ")[1]; // Ambil kata kedua setelah 'Bearer'
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ error: "Akses Ditolak. Token tidak ditemukan." });
+    // STOP EXECUTION WITH RETURN
+    return res.status(401).json({ error: "Access Denied. Token missing." });
   }
 
   try {
-    // 2. Verifikasi Tanda Tangan Token
     const secret =
       process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
     const decoded = jwt.verify(token, secret) as UserPayload;
-
-    // 3. Simpan data user ke request agar bisa dipakai di Controller
     req.user = decoded;
-
     next();
   } catch (error) {
-    return res
-      .status(403)
-      .json({ error: "Token Tidak Valid atau Kadaluarsa." });
+    // STOP EXECUTION
+    return res.status(403).json({ error: "Invalid or Expired Token." });
   }
 };
 
-// Middleware Khusus Admin (Untuk Revoke atau tugas berat lain)
+export const optionalVerifyToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const secret =
+      process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
+    const decoded = jwt.verify(token, secret) as UserPayload;
+    req.user = decoded;
+    next();
+  } catch (error) {
+    // If token is invalid, we just proceed without req.user
+    next();
+  }
+};
+
 export const verifyAdmin = (
   req: Request,
   res: Response,
@@ -58,14 +71,36 @@ export const verifyAdmin = (
 ) => {
   const role = req.user?.role?.toLowerCase();
   if (role !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Akses Ditolak. Hanya Admin yang boleh melakukan ini." });
+    // STOP EXECUTION
+    return res.status(403).json({ error: "Access Denied. Admin only." });
   }
   next();
 };
 
-// Middleware Baru: Mengizinkan Teacher DAN Admin untuk Issue
+export const verifyTeacher = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const role = req.user?.role?.toLowerCase();
+  if (role !== "teacher" && role !== "admin") {
+    return res.status(403).json({ error: "Access Denied. Teachers only." });
+  }
+  next();
+};
+
+export const verifyStudent = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const role = req.user?.role?.toLowerCase();
+  if (role !== "student" && role !== "admin") {
+    return res.status(403).json({ error: "Access Denied. Students only." });
+  }
+  next();
+};
+
 export const verifyIssuer = (
   req: Request,
   res: Response,
@@ -94,6 +129,26 @@ export const verifyIssuerType = (allowedRole: string) => {
         error: `Access Denied. Only ${targetedRole} or Admin allowed.`,
       });
     }
+    next();
+  };
+};
+
+export const authorize = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const userRole = req.user?.role?.toLowerCase();
+
+    // Safety check
+    if (!userRole) {
+      return res.status(401).json({ error: "Unauthorized: No role found." });
+    }
+
+    const rolesLower = allowedRoles.map((r) => r.toLowerCase());
+    if (!rolesLower.includes(userRole)) {
+      return res.status(403).json({
+        error: `Access Denied. Allowed roles: ${allowedRoles.join(", ")}`,
+      });
+    }
+
     next();
   };
 };

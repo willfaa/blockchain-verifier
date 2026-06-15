@@ -381,9 +381,25 @@ export class CertController {
       console.log("️ Generating PNG for Claim...");
       const imgBuffer = await generateCertificateImage(pdfData);
 
+      // Helper to sanitize path segments (remove special chars, replace spaces)
+      const cleanPath = (str: string) => {
+        return str
+          .replace(/[^a-zA-Z0-9\s-_]/g, "") // Remove non-alphanumeric (except space, -, _)
+          .trim()
+          .replace(/\s+/g, "_"); // Replace spaces with underscores
+      };
+
+      // Construct Hierarchical MFS Path
+      // Format: /certs/Majority/StudyProgram/CourseName/StudentName_CertId.png
+      const mfsPath = `/certs/${cleanPath(pdfData.majority)}/${cleanPath(
+        pdfData.program
+      )}/${cleanPath(pdfData.courseName)}/${cleanPath(
+        pdfData.name
+      )}_${certId.substring(0, 8)}.png`;
+
       // 5. Upload to IPFS
-      const cid = await uploadToIpfs(imgBuffer, `/certs/${certId}.png`);
-      console.log(`✅ IPFS Upload Success: ${cid}`);
+      const cid = await uploadToIpfs(imgBuffer, mfsPath);
+      console.log(`✅ IPFS Upload Success: ${cid} (MFS: ${mfsPath})`);
 
       // 6. Calculate Hash
       const dataString = `${pdfData.nim}|${pdfData.name}|${pdfData.program}|${pdfData.majority}`;

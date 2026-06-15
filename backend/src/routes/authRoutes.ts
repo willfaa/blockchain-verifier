@@ -11,8 +11,8 @@ router.post("/register", Auth.register);
 // Endpoint: /api/auth/login
 router.post("/login", Auth.login);
 
-// Endpoint: /api/auth/nim/:nim (Pindah kesini karena terkait user lookup)
-router.get("/nim/:nim", Auth.findStudentByNim);
+// Endpoint: /api/auth/nisn/:nisn (Pindah kesini karena terkait user lookup)
+router.get("/nisn/:nisn", Auth.findStudentByNisn);
 
 // Endpoint: /api/auth/me (Get Current User Data)
 router.get("/me", verifyToken, Auth.getMe);

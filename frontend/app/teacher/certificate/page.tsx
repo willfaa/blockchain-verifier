@@ -74,7 +74,7 @@ export default function SmartIssueCertificatePage() {
     } catch (err: any) {
       console.error(err);
       setSearchError(
-        err.response?.data?.error || "Student not found or server error"
+        err.response?.data?.error || "Student not found or server error",
       );
     } finally {
       setLoadingSearch(false);
@@ -90,6 +90,7 @@ export default function SmartIssueCertificatePage() {
       const payload = {
         studentName: foundStudent.name,
         nim: foundStudent.nim,
+        nisn: foundStudent.nisn || "", // Include NISN
         program: foundStudent.program,
         majority: foundStudent.majority,
         courseId: courseId || null,
@@ -107,7 +108,7 @@ export default function SmartIssueCertificatePage() {
       setCourseId("");
     } catch (err: any) {
       toast.error(
-        "Issue Failed: " + (err.response?.data?.error || err.message)
+        "Issue Failed: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setLoadingIssue(false);
@@ -138,14 +139,14 @@ export default function SmartIssueCertificatePage() {
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5 ml-1">
-                  Student NIM
+                  Student NIM / NISN
                 </label>
                 <div className="relative">
                   <input
                     value={searchNim}
                     onChange={(e) => setSearchNim(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-slate-950/50 pl-11 pr-4 py-3 text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-slate-600"
-                    placeholder="e.g. 1805097..."
+                    placeholder="e.g. 1805097 or NISN..."
                     autoFocus
                   />
                   <Hash
@@ -283,6 +284,18 @@ export default function SmartIssueCertificatePage() {
                   <Hash size={18} className="text-cyan-400" />
                   <span className="font-mono text-slate-300">
                     {foundStudent?.nim || "..."}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  NISN
+                </label>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-white/5">
+                  <Hash size={18} className="text-purple-400" />
+                  <span className="font-mono text-slate-300">
+                    {foundStudent?.nisn || "..."}
                   </span>
                 </div>
               </div>

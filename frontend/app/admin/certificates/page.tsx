@@ -10,21 +10,6 @@ export default function CertificateLedgerPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Admin needs a special route to list ALL certificates or reuse user endpoint?
-    // Let's use /admin/certificates endpoint if it existed, or just generic GET /cert (if it returns all for admin).
-    // Assuming GET /cert with admin token returns all? Or user-controller usage?
-    // Let's create a quick "getAllCertificates" in admin logic or just rely on existing getCertificates if tailored.
-    // For now, let's try calling the existing /lms/courses or assume an Endpoint exists.
-    // Actually, task description says "Global View". Let's assume we implement fetching logic via admin stats or similar.
-    // Wait, let's check `api` routes...
-    // Implementing a client-side fetch for the sake of speed using the 'recentActivity' logic expander
-    // OR BETTER: Use the `getDashboardStats` logic I wrote which has "recentActivity".
-    // BUT we need pagination.
-    // Let's add GET /admin/certificates to AdminController later.
-    // For THIS Step, I will fetch from `/admin/stats` and mock the full list or assume we add the route.
-    // I will add the route in the next step to be robust. For now, UI shell.
-
-    // TEMPORARY: Fetch stats which has "recentActivity" and use that as initial data
     api
       .get("/admin/stats")
       .then((res) => {
@@ -41,7 +26,11 @@ export default function CertificateLedgerPage() {
       label: "Timestamp",
       render: (r: any) => (
         <span className="font-mono text-xs text-teal-300">
-          {new Date(r.issuedAt).toISOString().split("T")[0]}
+          {
+            new Date(r.createdAt || r.issuedAt || Date.now())
+              .toISOString()
+              .split("T")[0]
+          }
         </span>
       ),
     },
@@ -56,7 +45,11 @@ export default function CertificateLedgerPage() {
             size={10}
             className="text-teal-600 group-hover:text-teal-400"
           />
-          {r.hash.substring(0, 15)}...
+          {r.hash ? (
+            `${r.hash.substring(0, 15)}...`
+          ) : (
+            <span className="text-gray-500 italic">Pending...</span>
+          )}
         </div>
       ),
     },

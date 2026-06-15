@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import {
+  X,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Trophy,
+  Target,
+  History,
+  Hash,
+  Terminal,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -9,9 +19,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
 import api from "@/lib/api";
+import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
 
 interface StudentExamModalProps {
   isOpen: boolean;
@@ -44,24 +54,8 @@ export default function StudentExamModal({
   const fetchDetails = async () => {
     try {
       setLoading(true);
-      // We use the submissions detail endpoint which returns exact answers
-      // This endpoint was created earlier: GET /lms/exams/:examId/submissions
-      // Wait, that returns ALL submissions. We need specific result details.
-      // But we don't have a specific GET /results/:id endpoint yet.
-      // Let's create a quick client-side fetcher using the generic submissions endpoint if possible?
-      // No that's inefficient.
-      // Actually, for now, let's assume we can fetch the specific one via a new endpoint
-      // OR we reuse the deleteSubmission endpoint logic but for GET.
-      // Let's create a temporary client-side mock or fetch logic if the endpoint exists.
-      // Step 288 (examRoutes) shows: GET /:examId/submissions
-      // It DOES NOT show GET /submissions/:id.
-      // I will implement a quick GET /api/lms/exams/results/:id in backend if I can.
-      // For now, I will simulate the fetch or use a placeholder if backend not ready.
-      // But user asked for "content".
-      // I will assume the endpoint exists or I will add it in next step.
-      // I'll call: GET /lms/exams/results/${resultId}
       const res = await api.get(`/lms/exams/results/${resultId}`);
-      setDetails(res.data.data);
+      if (res.data.ok) setDetails(res.data.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -72,146 +66,243 @@ export default function StudentExamModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-[#0d0b2f] border border-cyan-500/50 rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="relative w-full max-w-5xl bg-[#0b0c24] border border-white/10 rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Decorative Grid Background */}
+        <div
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
+
         {/* Header */}
-        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-900/50">
+        <div className="relative p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {studentName}
-            </h2>
-            <p className="text-cyan-400 text-sm font-mono tracking-widest uppercase">
-              Exam Analytics
+            <div className="flex items-center gap-3 mb-1">
+              <Terminal size={18} className="text-cyan-500" />
+              <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
+                {studentName}
+              </h2>
+            </div>
+            <p className="text-slate-500 text-[10px] font-mono tracking-[0.4em] uppercase">
+              //_LOGS_DECIPHERED_ENTRY_ID:[{resultId?.slice(0, 8)}]
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="group relative p-3 rounded-2xl bg-white/5 hover:bg-fuchsia-500 transition-all duration-300"
           >
-            <X size={24} />
+            <X
+              size={20}
+              className="text-white group-hover:scale-110 transition-transform"
+            />
+            <div className="absolute inset-0 rounded-2xl border border-white/10 group-hover:border-fuchsia-400 opacity-50" />
           </button>
         </div>
 
         {loading ? (
-          <div className="flex-1 flex items-center justify-center p-20 text-cyan-500">
-            <Loader2 className="animate-spin" size={48} />
+          <div className="flex-1 min-h-[400px]">
+            <CyberpunkLoader text="Loading Analytics..." />
           </div>
         ) : !details ? (
-          <div className="p-10 text-center text-slate-500">
-            Failed to load details.
+          <div className="p-20 text-center font-mono text-fuchsia-500 uppercase tracking-widest">
+            ERROR: ACCESS_DENIED_OR_DATA_CORRUPTED
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
             {/* Score & Chart Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="text-center p-6 bg-[#0b0c24] rounded-2xl border border-white/5 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors" />
-                <h3 className="text-slate-400 text-sm uppercase tracking-widest mb-2">
-                  Final Score
-                </h3>
-                <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-                  {details.score.toFixed(0)}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 flex flex-col items-center justify-center p-8 bg-white/[0.02] rounded-[2rem] border border-white/5 relative group overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50" />
+
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">
+                  Final_Efficiency
+                </span>
+
+                <div className="relative">
+                  <div className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                    {details.score.toFixed(0)}
+                  </div>
+                  <span className="absolute -top-1 -right-6 text-2xl font-black text-cyan-500">
+                    %
+                  </span>
                 </div>
+
                 <div
-                  className={`inline-block px-4 py-1 rounded-full text-sm font-bold mt-4 ${
+                  className={`mt-6 inline-flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase border transition-all ${
                     details.status === "PASSED"
-                      ? "bg-green-500/20 text-green-400 border border-green-500/50"
-                      : "bg-red-500/20 text-red-400 border border-red-500/50"
+                      ? "bg-green-500/10 text-green-400 border-green-500/30"
+                      : "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/30 shadow-[0_0_15px_rgba(217,70,239,0.2)]"
                   }`}
                 >
+                  {details.status === "PASSED" ? (
+                    <Trophy size={14} />
+                  ) : (
+                    <Target size={14} />
+                  )}
                   {details.status}
                 </div>
               </div>
 
-              {/* Chart */}
-              <div className="h-64 w-full bg-[#0b0c24] p-4 rounded-2xl border border-white/5">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      {
-                        name: "Student",
-                        score: details.score,
-                        fill: "#22d3ee",
-                      }, // Cyan
-                      { name: "Average", score: 75, fill: "#c026d3" }, // Magenta (Mock Avg)
-                    ]}
-                    layout="vertical"
-                    margin={{ left: 20 }}
-                  >
-                    <XAxis type="number" hide domain={[0, 100]} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#94a3b8", fontSize: 12 }}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "transparent" }}
-                      contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
-                        color: "#f8fafc",
-                      }}
-                    />
-                    <Bar
-                      dataKey="score"
-                      radius={[0, 4, 4, 0]}
-                      barSize={32}
-                      className="filter drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+              {/* Analytics Graph */}
+              <div className="lg:col-span-2 p-8 bg-white/[0.02] rounded-[2rem] border border-white/5">
+                <div className="flex items-center justify-between mb-8">
+                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                    Comparative_Vector
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                      <span className="text-[8px] font-mono text-slate-500 uppercase">
+                        Subject
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-fuchsia-500" />
+                      <span className="text-[8px] font-mono text-slate-500 uppercase">
+                        Avg_Matrix
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-48 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: "SUBJECT",
+                          score: details.score,
+                          fill: "#22d3ee",
+                        },
+                        { name: "MATRIX", score: 72, fill: "#d946ef" },
+                      ]}
+                      layout="vertical"
+                      barCategoryGap="30%"
+                    >
+                      <XAxis type="number" hide domain={[0, 100]} />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: "#475569",
+                          fontSize: 10,
+                          fontWeight: 900,
+                          letterSpacing: "0.1em",
+                        }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "rgba(255,255,255,0.02)" }}
+                        contentStyle={{
+                          backgroundColor: "#0b0c24",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "12px",
+                          fontSize: "10px",
+                          color: "#fff",
+                        }}
+                      />
+                      <Bar
+                        dataKey="score"
+                        radius={[0, 12, 12, 0]}
+                        className="transition-all duration-1000"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
             {/* Questions Breakdown */}
-            <div>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <div className="w-1 h-6 bg-cyan-500 rounded-full" />
-                Question Breakdown
-              </h3>
-              <div className="space-y-3">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="h-px flex-1 bg-white/5" />
+                <h3 className="text-[11px] font-black text-white uppercase tracking-[0.5em] shrink-0">
+                  Detailed_Protocol_Log
+                </h3>
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {details.answers.map((ans: any, idx: number) => (
                   <div
                     key={ans.id}
-                    className={`p-4 rounded-xl border ${
+                    className={`group relative p-6 rounded-[1.5rem] border transition-all duration-300 ${
                       ans.option.isCorrect
-                        ? "bg-green-500/5 border-green-500/20"
-                        : "bg-red-500/5 border-red-500/20"
+                        ? "bg-green-500/[0.02] border-green-500/10 hover:border-green-500/30"
+                        : "bg-fuchsia-500/[0.02] border-fuchsia-500/10 hover:border-fuchsia-500/30"
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-mono text-slate-500">
-                        Q{idx + 1}
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+                        CHUNK_{String(idx + 1).padStart(2, "0")}
                       </span>
-                      {ans.option.isCorrect ? (
-                        <CheckCircle size={16} className="text-green-500" />
-                      ) : (
-                        <XCircle size={16} className="text-red-500" />
-                      )}
+                      <div
+                        className={`p-1.5 rounded-lg border ${
+                          ans.option.isCorrect
+                            ? "bg-green-500/10 border-green-500/20 text-green-400"
+                            : "bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400"
+                        }`}
+                      >
+                        {ans.option.isCorrect ? (
+                          <CheckCircle size={14} />
+                        ) : (
+                          <XCircle size={14} />
+                        )}
+                      </div>
                     </div>
-                    <p className="text-slate-200 font-medium mb-3">
+
+                    <p className="text-[13px] font-bold text-white mb-6 leading-relaxed flex items-start gap-2">
+                      <span className="text-white/20 mt-1">
+                        <Hash size={12} />
+                      </span>
                       {ans.question.text}
                     </p>
-                    <div className="flex flex-col gap-1 text-sm">
-                      <div className="flex gap-2">
-                        <span className="text-slate-500 w-20">Selected:</span>
-                        <span
-                          className={
-                            ans.option.isCorrect
-                              ? "text-green-400"
-                              : "text-red-400"
-                          }
-                        >
-                          {ans.option.text}
-                        </span>
+
+                    <div className="space-y-2">
+                      <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">
+                        Response_Value
                       </div>
+                      <div
+                        className={`p-3 rounded-xl border text-[11px] font-bold ${
+                          ans.option.isCorrect
+                            ? "bg-green-500/5 border-green-500/10 text-green-400"
+                            : "bg-fuchsia-500/5 border-fuchsia-500/10 text-fuchsia-400"
+                        }`}
+                      >
+                        {ans.option.text.toUpperCase()}
+                      </div>
+                    </div>
+
+                    {/* Background accent */}
+                    <div
+                      className={`absolute bottom-0 right-0 w-12 h-12 opacity-[0.03] transition-opacity group-hover:opacity-[0.07] ${
+                        ans.option.isCorrect
+                          ? "text-green-500"
+                          : "text-fuchsia-500"
+                      }`}
+                    >
+                      {ans.option.isCorrect ? (
+                        <CheckCircle className="w-full h-full" />
+                      ) : (
+                        <XCircle className="w-full h-full" />
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        {!loading && (
+          <div className="p-6 border-t border-white/5 bg-white/[0.01] flex justify-center">
+            <p className="text-[8px] font-mono text-slate-600 uppercase tracking-[0.5em]">
+              End_Of_Transmission // Verified_Results
+            </p>
           </div>
         )}
       </div>

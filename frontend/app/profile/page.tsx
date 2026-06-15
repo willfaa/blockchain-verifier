@@ -86,7 +86,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-[#0b0724] text-white flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center animate-pulse text-cyan-500">
-          Loading Identity...
+          Loading User Profile...
         </div>
       </div>
     );
@@ -120,7 +120,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Identity Info */}
+          {/* Profile Info */}
           <div className="text-center mb-8 relative z-10">
             <h1 className="text-2xl font-bold text-white mb-2">{user.name}</h1>
             <p className="text-teal-400 font-mono text-sm mb-4 bg-teal-950/30 inline-block px-3 py-1 rounded border border-teal-900/50">
