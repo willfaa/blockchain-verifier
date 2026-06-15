@@ -2,6 +2,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/blockchain-verifier",
   images: {
     remotePatterns: [
       {

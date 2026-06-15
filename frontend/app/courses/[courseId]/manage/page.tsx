@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
 import { ArrowLeft, Check, X, Filter, User, Search } from "lucide-react";
 
-export default function ManageCoursePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const resolvedParams = use(params);
-  const courseId = resolvedParams.id;
+export default function ManageCoursePage() {
+  const params = useParams();
+  const courseId = params?.courseId as string;
 
   const [activeTab, setActiveTab] = useState<"approval" | "progress">(
     "approval"
