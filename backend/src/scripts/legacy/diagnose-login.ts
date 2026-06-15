@@ -12,16 +12,16 @@ async function main() {
     }
 
     // 2. Attempt Column Rename (Manual Migration)
-    console.log("2. Attempting to rename 'nim' to 'nisn' in users table...");
+    console.log("2. Attempting to rename 'nisn' to 'studentId' in users table...");
     try {
       await db.$executeRawUnsafe(
-        'ALTER TABLE "users" RENAME COLUMN "nim" TO "nisn";',
+        'ALTER TABLE "users" RENAME COLUMN "nisn" TO "studentId";',
       );
-      console.log("   ✅ User table: Renamed 'nim' to 'nisn'.");
+      console.log("   ✅ User table: Renamed 'nisn' to 'studentId'.");
     } catch (e: any) {
       if (e.message.includes("does not exist") || e.message.includes("42703")) {
         console.log(
-          "   ⚠️ User table: 'nim' column not found (maybe already renamed or 'nisn' exists).",
+          "   ⚠️ User table: 'nisn' column not found (maybe already renamed or 'studentId' exists).",
         );
       } else {
         console.error("   ❌ User table rename failed:", e.message);
@@ -29,32 +29,32 @@ async function main() {
     }
 
     console.log(
-      "3. Attempting to rename 'nim' to 'nisn' in certificates table...",
+      "3. Attempting to rename 'nisn' to 'studentId' in certificates table...",
     );
     try {
       await db.$executeRawUnsafe(
-        'ALTER TABLE "certificates" RENAME COLUMN "nim" TO "nisn";',
+        'ALTER TABLE "certificates" RENAME COLUMN "nisn" TO "studentId";',
       );
-      console.log("   ✅ Certificate table: Renamed 'nim' to 'nisn'.");
+      console.log("   ✅ Certificate table: Renamed 'nisn' to 'studentId'.");
     } catch (e: any) {
       if (e.message.includes("does not exist") || e.message.includes("42703")) {
         console.log(
-          "   ⚠️ Certificate table: 'nim' column not found (maybe already renamed).",
+          "   ⚠️ Certificate table: 'nisn' column not found (maybe already renamed).",
         );
       } else {
         console.error("   ❌ Certificate table rename failed:", e.message);
       }
     }
 
-    // 4. Verifying 'nisn' column...
-    console.log("4. Verifying 'nisn' column...");
+    // 4. Verifying 'studentId' column...
+    console.log("4. Verifying 'studentId' column...");
     try {
       const user = await db.user.findFirst({
-        where: { nisn: "CHECK_EXISTENCE" },
+        where: { studentId: "CHECK_EXISTENCE" },
       });
-      console.log("   ✅ NISN query success (Schema matches DB).");
+      console.log("   ✅ StudentId query success (Schema matches DB).");
     } catch (e: any) {
-      console.error("   ❌ NISN query still failing:", e.message);
+      console.error("   ❌ StudentId query still failing:", e.message);
     }
   } catch (e: any) {
     console.error("!!! DB DIAGNOSIS FAILED !!!");

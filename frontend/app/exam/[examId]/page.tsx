@@ -18,7 +18,7 @@ export default function ExamIntroPage() {
   const params = useParams();
   const examId = params?.examId as string;
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [notEnrolled, setNotEnrolled] = useState<boolean>(false);
   const [courseId, setCourseId] = useState<string | null>(null);
@@ -28,6 +28,12 @@ export default function ExamIntroPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push(`/login?redirect=/exam/${examId}`);
+      return;
+    }
+
     if (examId) {
       // Use the 'take' endpoint just to peek metadata, or we might need a separate 'meta' endpoint?
       // 'take' endpoint returns questions... maybe too heavy?
@@ -71,9 +77,9 @@ export default function ExamIntroPage() {
 
         .finally(() => setLoading(false));
     }
-  }, [examId]);
+  }, [examId, user, authLoading, router]);
 
-  if (loading) {
+  if (authLoading || !user || loading) {
     return (
       <div className="min-h-screen bg-[#0b0724] flex items-center justify-center text-cyan-400">
         <Loader2 className="animate-spin" size={48} />

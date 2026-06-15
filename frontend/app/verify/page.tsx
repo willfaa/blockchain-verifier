@@ -9,6 +9,7 @@ interface VerifyResult {
   source?: string;
   fabricError?: string;
   certId?: string;
+  studentId?: string;
   nim?: string;
   name?: string;
   majority?: string;
@@ -223,7 +224,7 @@ export default function VerifyPage() {
                         Student ID
                       </p>
                       <p className="text-[11px] font-bold text-white uppercase tracking-widest">
-                        {result.nim}
+                        {result.studentId || result.nim}
                       </p>
                     </div>
                     <div className="space-y-1">

@@ -109,24 +109,26 @@ export class CertificateController {
       // @ts-ignore
       const issuerRole = req.user?.role || "TEACHER";
 
-      let { certId, nisn, name, majority, program, issuedAt, nonce } = req.body;
+      let { certId, studentId, nisn, nim, name, majority, program, issuedAt, nonce } = req.body;
+
+      if (!studentId) studentId = nisn || nim;
 
       if (!certId) certId = uuidv4();
       if (!nonce) nonce = crypto.randomBytes(16).toString("hex");
 
-      if (!nisn || !name || !majority || !program) {
+      if (!studentId || !name || !majority || !program) {
         return res
           .status(400)
           .json({ error: "Missing required identity fields" });
       }
 
-      const dataString = `${nisn}|${name}|${program}|${majority}`;
+      const dataString = `${studentId}|${name}|${program}|${majority}`;
       const hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
       const imgBuffer = await generateCertificateImage({
         certId,
         name,
-        nisn,
+        studentId,
         program,
         majority,
         courseName: "General Verification",
@@ -141,7 +143,7 @@ export class CertificateController {
           id: certId,
           certId,
           studentName: name,
-          nisn,
+          studentId,
           program,
           majority,
           cid,
@@ -226,7 +228,7 @@ export class CertificateController {
       const hash = crypto
         .createHash("sha256")
         .update(
-          `${student.nisn}|${student.name}|${student.studyProgram}|${student.majority}`,
+          `${student.studentId}|${student.name}|${student.studyProgram}|${student.majority}`,
         )
         .digest("hex");
 
@@ -238,7 +240,7 @@ export class CertificateController {
         program: student.studyProgram || "N/A",
         issuedAt: new Date().toISOString(),
         issuerId: (course as any).user?.id || "SYSTEM",
-        nisn: student.nisn || "N/A",
+        studentId: student.studentId || "N/A",
       });
 
       const cid = await uploadToIpfs(imgBuffer, `/certs/claims/${certId}.png`);
@@ -249,7 +251,7 @@ export class CertificateController {
           certId,
           userId,
           studentName: student.name,
-          nisn: student.nisn || "N/A",
+          studentId: student.studentId || "N/A",
           program: student.studyProgram || "N/A",
           majority: student.majority || "N/A",
           courseId,

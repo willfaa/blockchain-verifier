@@ -6,7 +6,7 @@ const prisma = db;
 
 // --- REGISTER USER ---
 export const registerUser = async (data: any) => {
-  const { name, email, password, role, nisn, nip, majority, program } = data;
+  const { name, email, password, role, studentId, nip, majority, program } = data;
 
   // 1. Hash Password
   const saltRounds = 10;
@@ -17,10 +17,10 @@ export const registerUser = async (data: any) => {
   const existingEmail = await prisma.user.findUnique({ where: { email } });
   if (existingEmail) throw new Error(`Email ${email} already registered`);
 
-  // Cek NISN (Student)
-  if (role === "student" && nisn) {
-    const existingNisn = await prisma.user.findUnique({ where: { nisn } });
-    if (existingNisn) throw new Error(`NISN ${nisn} already registered`);
+  // Cek Student ID
+  if (role === "student" && studentId) {
+    const existingStudent = await prisma.user.findUnique({ where: { studentId } });
+    if (existingStudent) throw new Error(`Student ID ${studentId} already registered`);
   }
 
   // Cek NIP (Teacher)
@@ -39,7 +39,7 @@ export const registerUser = async (data: any) => {
         password: hashedPassword,
         role,
         // Field Nullable
-        nisn: role === "student" ? nisn : null,
+        studentId: role === "student" ? studentId : null,
         nip: role === "teacher" ? nip : null,
         majority,
         studyProgram: program || data.studyProgram,
@@ -63,11 +63,11 @@ export const loginUser = async (
   password: string,
   role: string,
 ) => {
-  // Logic Pintar: Cari user di mana Role cocok DAN (Email=ID ATAU NISN=ID ATAU NIP=ID)
+  // Logic Pintar: Cari user di mana Role cocok DAN (Email=ID ATAU StudentID=ID ATAU NIP=ID)
   const user = await prisma.user.findFirst({
     where: {
       role: role,
-      OR: [{ email: identifier }, { nisn: identifier }, { nip: identifier }],
+      OR: [{ email: identifier }, { studentId: identifier }, { nip: identifier }],
     },
   });
 
@@ -82,9 +82,9 @@ export const loginUser = async (
 
 // --- HELPER LAIN ---
 
-export const getUserByNisn = async (nisn: string) => {
+export const getUserByStudentId = async (studentId: string) => {
   return prisma.user.findUnique({
-    where: { nisn },
+    where: { studentId },
   });
 };
 

@@ -10,7 +10,7 @@ export type CertificateStatus =
 
 export interface CertificateRecord {
   certId: string;
-  nisn: string;
+  studentId: string;
   name: string;
   majority: string; // Jurusan
   program: string;
@@ -19,7 +19,7 @@ export interface CertificateRecord {
   status: CertificateStatus;
   issuedAt: string;
   nonce: string;
-  // nisn removed (merged)
+  // studentId (merged)
 
   // Field Opsional (Diisi saat Revoke/Supersede)
   supersededBy?: string | null;
@@ -46,7 +46,7 @@ export type UserRole = "student" | "teacher" | "admin";
 
 export interface UserBase {
   id?: number;
-  identifier: string; // PENTING: Username login (admin/nisn/nip)
+  identifier: string; // PENTING: Username login (admin/studentId/nip)
   name: string;
   email?: string; // Opsional
   role: UserRole;
@@ -55,10 +55,10 @@ export interface UserBase {
 
 export interface Student extends UserBase {
   role: "student";
-  nisn: string;
+  studentId: string;
   majority: string;
   program: string;
-  // nisn removed (merged)
+  // studentId (merged)
 }
 
 export interface Teacher extends UserBase {

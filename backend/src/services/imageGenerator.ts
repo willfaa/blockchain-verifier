@@ -10,7 +10,7 @@ export interface CertData {
   certId: string;
   issuedAt: string;
   issuerId: string;
-  nisn: string;
+  studentId: string;
   // Dynamic Instructor Details
   instructorName?: string;
   instructorNip?: string;
@@ -153,7 +153,7 @@ export const generateCertificateImage = async (
     690,
   );
   ctx.fillStyle = "#67e8f9"; // Cyan 300
-  ctx.fillText(`NISN : ${data.nisn}`, centerX, 725); // Slightly below
+  ctx.fillText(`Student ID : ${data.studentId}`, centerX, 725); // Slightly below
 
   // COURSE NAME (Added prominently below details)
   ctx.fillStyle = "#94a3b8"; // Slate 400

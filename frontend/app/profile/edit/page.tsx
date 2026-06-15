@@ -259,11 +259,11 @@ export default function EditProfilePage() {
               <div className="glass-panel p-6 rounded-2xl border-white/5 relative group">
                 <label className="text-[9px] font-black text-white/40 uppercase tracking-widest block mb-2">
                   {user.role === "student"
-                    ? "Student ID (NISN)"
+                    ? "Student ID"
                     : "Employee ID (NIP)"}
                 </label>
                 <div className="flex items-center text-white font-bold text-sm">
-                  {user.role === "student" ? user.nisn : user.nip}
+                  {user.role === "student" ? user.studentId : user.nip}
                   <Lock
                     size={12}
                     className="ml-auto text-white/10 group-hover:text-neon-purple transition-colors"

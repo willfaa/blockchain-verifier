@@ -18,7 +18,8 @@ export const dynamic = "force-dynamic";
 
 interface CertificateRecord {
   certId: string;
-  nim: string;
+  studentId: string;
+  nim?: string;
   name: string;
   majority: string;
   program: string;
@@ -258,7 +259,7 @@ export default async function VerificationPage({
                     Institutional ID
                   </p>
                   <p className="text-lg font-bold text-neon-blue tracking-widest">
-                    {cert.nim}
+                    {cert.studentId || cert.nim}
                   </p>
                 </div>
                 <div className="pt-6 border-t border-white/5">

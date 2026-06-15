@@ -30,7 +30,7 @@ export default function SmartIssueCertificatePage() {
   const [loadingIssue, setLoadingIssue] = useState(false);
 
   // Search State
-  const [searchNim, setSearchNim] = useState("");
+  const [searchStudentId, setSearchStudentId] = useState("");
   const [foundStudent, setFoundStudent] = useState<any>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -56,20 +56,17 @@ export default function SmartIssueCertificatePage() {
   // Handler: Cari Mahasiswa
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchNim) return;
+    if (!searchStudentId) return;
 
     setLoadingSearch(true);
     setSearchError(null);
     setFoundStudent(null);
 
     try {
-      // Panggil API Backend yang baru dibuat: /lms/students/:nim
-      // Note: Di backend route-nya tadi /students/:nim ada di lmsRoutes which is prefixed by /api/lms probably?
-      // Cek lmsRoutes definition di server.ts/index.ts. Biasanya app.use('/lms', lmsRoutes).
-      // Kita coba path: /lms/students/{nim}
-      const res = await api.get(`/lms/students/${searchNim}`);
+      // Panggil API Backend yang baru dibuat: /auth/student/:studentId
+      const res = await api.get(`/auth/student/${searchStudentId}`);
       if (res.data.ok) {
-        setFoundStudent(res.data.data);
+        setFoundStudent(res.data.student);
       }
     } catch (err: any) {
       console.error(err);
@@ -89,9 +86,8 @@ export default function SmartIssueCertificatePage() {
     try {
       const payload = {
         studentName: foundStudent.name,
-        nim: foundStudent.nim,
-        nisn: foundStudent.nisn || "", // Include NISN
-        program: foundStudent.program,
+        studentId: foundStudent.studentId,
+        program: foundStudent.studyProgram || foundStudent.program,
         majority: foundStudent.majority,
         courseId: courseId || null,
         // Backend akan handle creation date & unique Cert ID
@@ -104,7 +100,7 @@ export default function SmartIssueCertificatePage() {
       });
       // Reset
       setFoundStudent(null);
-      setSearchNim("");
+      setSearchStudentId("");
       setCourseId("");
     } catch (err: any) {
       toast.error(
@@ -139,14 +135,14 @@ export default function SmartIssueCertificatePage() {
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5 ml-1">
-                  Student NIM / NISN
+                  Student ID
                 </label>
                 <div className="relative">
                   <input
-                    value={searchNim}
-                    onChange={(e) => setSearchNim(e.target.value)}
+                    value={searchStudentId}
+                    onChange={(e) => setSearchStudentId(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-slate-950/50 pl-11 pr-4 py-3 text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-slate-600"
-                    placeholder="e.g. 1805097 or NISN..."
+                    placeholder="e.g. 1805097 or studentId..."
                     autoFocus
                   />
                   <Hash
@@ -158,7 +154,7 @@ export default function SmartIssueCertificatePage() {
 
               <button
                 type="submit"
-                disabled={loadingSearch || !searchNim}
+                disabled={loadingSearch || !searchStudentId}
                 className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center gap-2"
               >
                 {loadingSearch ? (
@@ -204,7 +200,7 @@ export default function SmartIssueCertificatePage() {
               {!foundStudent && !searchError && !loadingSearch && (
                 <div className="text-center py-8 opacity-40">
                   <div className="w-16 h-1 bg-white/10 rounded-full mx-auto mb-3"></div>
-                  <p className="text-xs text-white">Enter NIM to start</p>
+                  <p className="text-xs text-white">Enter Student ID to start</p>
                 </div>
               )}
             </div>
@@ -278,24 +274,12 @@ export default function SmartIssueCertificatePage() {
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  NIM
+                  Student ID
                 </label>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-white/5">
                   <Hash size={18} className="text-cyan-400" />
                   <span className="font-mono text-slate-300">
-                    {foundStudent?.nim || "..."}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  NISN
-                </label>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-white/5">
-                  <Hash size={18} className="text-purple-400" />
-                  <span className="font-mono text-slate-300">
-                    {foundStudent?.nisn || "..."}
+                    {foundStudent?.studentId || "..."}
                   </span>
                 </div>
               </div>
@@ -319,7 +303,7 @@ export default function SmartIssueCertificatePage() {
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-white/5">
                   <GraduationCap size={18} className="text-fuchsia-400" />
                   <span className="text-slate-300">
-                    {foundStudent?.program || "..."}
+                    {foundStudent?.studyProgram || foundStudent?.program || "..."}
                   </span>
                 </div>
               </div>

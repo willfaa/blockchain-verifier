@@ -7,7 +7,7 @@ const mapRowToCert = (row: any): CertificateRecord => {
   return {
     // Pastikan mapping ini sesuai dengan nama kolom di DB Anda
     certId: row.cert_id || row.id,
-    nisn: row.nisn,
+    studentId: row.studentId || row.nisn,
     name: row.name,
     majority: row.majority,
     program: row.program,
@@ -32,16 +32,16 @@ export const saveCertificate = async (cert: CertificateRecord) => {
 
   /*
    * CRITICAL: The Schema requires `userId`.
-   * I will assume we need to find the user by NISN.
+   * I will assume we need to find the user by Student ID.
    */
 
-  const user = await db.user.findFirst({ where: { nisn: cert.nisn } });
+  const user = await db.user.findFirst({ where: { studentId: cert.studentId } });
   if (!user) {
     console.warn(
-      `User with NISN ${cert.nisn} not found. Cannot link certificate to user.`,
+      `User with Student ID ${cert.studentId} not found. Cannot link certificate to user.`,
     );
     throw new Error(
-      `User with NISN ${cert.nisn} not found. Certificate requires a valid User.`,
+      `User with Student ID ${cert.studentId} not found. Certificate requires a valid User.`,
     );
   }
 
@@ -53,12 +53,12 @@ export const saveCertificate = async (cert: CertificateRecord) => {
       status: cert.status,
       hash: cert.hash,
       cid: cert.cid,
-      nisn: cert.nisn, // Persist NISN
+      studentId: cert.studentId, // Persist Student ID
     },
     create: {
       certId: cert.certId,
       studentName: cert.name,
-      nisn: cert.nisn,
+      studentId: cert.studentId,
       program: cert.program,
       majority: cert.majority,
       cid: cert.cid,
@@ -81,7 +81,7 @@ export const findCertificateById = async (
 
   return {
     certId: cert.certId,
-    nisn: cert.nisn,
+    studentId: cert.studentId,
     name: cert.studentName, // Mapped from studentName
     majority: cert.majority,
     program: cert.program,

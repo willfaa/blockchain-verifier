@@ -88,7 +88,7 @@ export default function StudentManagementPage() {
     const term = search.toLowerCase();
     const matchesSearch =
       s.user.name.toLowerCase().includes(term) ||
-      s.user.nim?.toLowerCase().includes(term) ||
+      s.user.studentId?.toLowerCase().includes(term) ||
       s.user.email.toLowerCase().includes(term);
 
     const matchesMajor =
@@ -234,7 +234,7 @@ export default function StudentManagementPage() {
                         </div>
                         <div className="text-[9px] font-mono text-slate-500 uppercase tracking-tighter mt-1">
                           {enrollment.user.email.toUpperCase()} •{" "}
-                          {enrollment.user.nim || "ID_PENDING"}
+                          {enrollment.user.studentId || "ID_PENDING"}
                         </div>
                       </div>
                     </div>

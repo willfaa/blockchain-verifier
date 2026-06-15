@@ -57,7 +57,7 @@ export default function ManageCoursePage({
       const searchLower = search.toLowerCase();
       const searchMatch =
         item.user.name.toLowerCase().includes(searchLower) ||
-        (item.user.nim && item.user.nim.includes(searchLower));
+        (item.user.studentId && item.user.studentId.includes(searchLower));
 
       // Filter by Program & Majority
       const programMatch = filterProgram
@@ -156,7 +156,7 @@ export default function ManageCoursePage({
         <div className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-lg border border-white/10 flex-1 min-w-[200px]">
           <Search size={16} className="text-slate-400" />
           <input
-            placeholder="Search name or NIM..."
+            placeholder="Search name or Student ID..."
             className="bg-transparent outline-none text-sm w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -266,7 +266,7 @@ export default function ManageCoursePage({
                         {item.user.name}
                       </div>
                       <div className="text-slate-500 text-xs">
-                        {item.user.nim}
+                        {item.user.studentId}
                       </div>
                     </td>
                     <td className="p-4">

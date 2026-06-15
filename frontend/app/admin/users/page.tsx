@@ -110,7 +110,7 @@ export default function UserManagementPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl border relative whitespace-nowrap ${
+                className={`px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-all rounded-xl border relative shrink-0 break-normal whitespace-nowrap ${
                   activeTab === tab.id
                     ? activeColors[idx % activeColors.length]
                     : "text-white/20 border-transparent hover:text-white/60 hover:bg-white/[0.02]"

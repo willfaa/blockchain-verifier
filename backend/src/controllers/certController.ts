@@ -14,7 +14,7 @@ import {
   findCertificateById,
   revokeCertificate as revokeCertificateRepo,
 } from "../repositories/certRepo";
-import { prisma, query } from "../config/db";
+import { prisma } from "../config/db";
 import { CertificateRecord } from "../types";
 import { generateCertificateImage } from "../services/imageGenerator";
 import { uploadToIpfs } from "../utils/ipfs";
@@ -33,26 +33,29 @@ export class CertController {
       console.log(`Processing Issue Request by: ${issuerId} (${issuerRole})`);
 
       // 2. Destructure Body
-      let { certId, nim, name, majority, program, cid, hash, issuedAt, nonce } =
+      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, nonce } =
         req.body ?? {};
+
+      // Fallback for compatibility
+      if (!studentId) studentId = nim || nisn;
 
       // 3. Generate ID & Nonce otomatis jika kosong
       if (!certId) certId = uuidv4();
       if (!nonce) nonce = crypto.randomBytes(16).toString("hex");
 
       // Validasi Field Wajib (Data-Driven)
-      if (!certId || !nim || !name || !majority || !program) {
+      if (!certId || !studentId || !name || !majority || !program) {
         return res.status(400).json({
           ok: false,
-          error: "Missing required fields (nim, name, majority, program)",
+          error: "Missing required fields (studentId, name, majority, program)",
         });
       }
 
       // 4. Generate Data Hash (Fingerprint)
       // Since we don't upload files anymore, the "File Hash" is now the "Data Hash".
-      // Formula: SHA256(nim + name + program + majority)
+      // Formula: SHA256(studentId + name + program + majority)
       // This ensures any tampering with the data changes the hash.
-      const dataString = `${nim}|${name}|${program}|${majority}`;
+      const dataString = `${studentId}|${name}|${program}|${majority}`;
       hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
       // No IPFS for Data-Driven Certificates
@@ -85,11 +88,11 @@ export class CertController {
       const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
 
       // --- IMAGE GENERATION & IPFS UPLOAD (PNG) ---
-      console.log("�️ Generating Certificate Image (PNG)...");
+      console.log("️ Generating Certificate Image (PNG)...");
       const imgBuffer = await generateCertificateImage({
         certId,
         name,
-        nim,
+        studentId,
         program,
         majority,
         courseName: "Program Completion", // Fallback for manual issue
@@ -105,7 +108,7 @@ export class CertController {
       // 7. Siapkan Object Record (Status: PENDING)
       const record: CertificateRecord = {
         certId,
-        nim,
+        studentId,
         name,
         majority,
         program,
@@ -146,7 +149,9 @@ export class CertController {
         );
 
         // ROLLBACK: Hapus data di DB agar konsisten jika blockchain gagal
-        await query("DELETE FROM certificates WHERE cert_id = $1", [certId]);
+        await prisma.certificate.delete({
+          where: { certId: certId },
+        });
 
         throw new Error(
           `Fabric submission failed: ${fabricErr.message}. DB Rolled back.`
@@ -224,7 +229,7 @@ export class CertController {
         },
         include: {
           course: {
-            select: { title: true, id: true, thumbnail: true },
+            select: { title: true, id: true, imageUrl: true },
           },
         },
       });
@@ -297,7 +302,7 @@ export class CertController {
           user: true,
           course: {
             include: {
-              teacher: true, // Fetch Teacher details (User relation)
+              user: true, // Fetch Teacher details (User relation)
               // @ts-ignore
               exams: true,
             },
@@ -371,11 +376,11 @@ export class CertController {
         program: student.studyProgram || "General",
         issuedAt,
         issuerId: "SYSTEM",
-        nim: student.nim || student.id?.substring(0, 8),
-        // Pass Dynamic Instructor Details (from Course -> Teacher)
-        instructorName: course.teacher?.name || "Head Instructor",
-        instructorNip: course.teacher?.nip || "-", // Fallback if empty
-        instructorMajor: course.teacher?.majority || "Department of Blockchain",
+        studentId: student.studentId || student.id?.substring(0, 8),
+        // Pass Dynamic Instructor Details (from Course -> Teacher/User)
+        instructorName: course.user?.name || "Head Instructor",
+        instructorNip: course.user?.nip || "-", // Fallback if empty
+        instructorMajor: course.user?.majority || "Department of Blockchain",
       };
 
       console.log("️ Generating PNG for Claim...");
@@ -402,7 +407,7 @@ export class CertController {
       console.log(`✅ IPFS Upload Success: ${cid} (MFS: ${mfsPath})`);
 
       // 6. Calculate Hash
-      const dataString = `${pdfData.nim}|${pdfData.name}|${pdfData.program}|${pdfData.majority}`;
+      const dataString = `${pdfData.studentId}|${pdfData.name}|${pdfData.program}|${pdfData.majority}`;
       const hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
       // 7. Save to DB (Prisma Native)
@@ -413,7 +418,7 @@ export class CertController {
           certId: certId, // Schema has both id and certId (unique)
           userId: userId,
           studentName: pdfData.name,
-          nim: pdfData.nim,
+          studentId: pdfData.studentId,
           program: pdfData.program,
           majority: pdfData.majority,
           courseId: course.id,
@@ -427,7 +432,7 @@ export class CertController {
       // Re-construct record object for Fabric (since we removed the earlier declaration)
       const record: CertificateRecord = {
         certId,
-        nim: pdfData.nim,
+        studentId: pdfData.studentId,
         name: pdfData.name,
         majority: pdfData.majority,
         program: pdfData.program,
@@ -438,7 +443,6 @@ export class CertController {
         nonce,
         // @ts-ignore
         courseId: course.id,
-        studentId: userId,
       };
 
       // 8. Submit to Fabric (As Admin/System)
@@ -495,7 +499,7 @@ export class CertController {
         orderBy: { issuedAt: "desc" }, // Sort by newest
         include: {
           course: {
-            select: { title: true, thumbnail: true, id: true },
+            select: { title: true, imageUrl: true, id: true },
           },
         },
       });

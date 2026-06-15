@@ -14,7 +14,7 @@ type SmartContract struct {
 type Certificate struct {
 	CertID           string `json:"cert_id"`
 	Name             string `json:"name"`
-	NISN             string `json:"nisn"`
+	StudentID        string `json:"student_id"`
 	Program          string `json:"program"`
 	Majority         string `json:"majority"`
 	IssuedAt         string `json:"issued_at"`
@@ -33,7 +33,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certId string, name string, nisn string, program string, majority string, issuedAt string, hash string, cid string, status string, nonce string, issuerId string, issuerRole string) error {
+func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certId string, name string, studentId string, program string, majority string, issuedAt string, hash string, cid string, status string, nonce string, issuerId string, issuerRole string) error {
 	exists, err := s.CertificateExists(ctx, certId)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInter
 	cert := Certificate{
 		CertID:           certId,
 		Name:             name,
-		NISN:             nisn,
+		StudentID:        studentId,
 		Program:          program,
 		Majority:         majority,
 		IssuedAt:         issuedAt,

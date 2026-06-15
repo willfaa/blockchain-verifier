@@ -6,7 +6,7 @@ import fs from "fs";
 interface PdfData {
   certId: string;
   name: string;
-  nisn: string;
+  studentId: string;
   program: string;
   majority: string;
   courseName: string;
@@ -89,12 +89,12 @@ export const generateCertificatePDF = async (
           { align: "center", width: pageWidth },
         );
 
-      // C. NISN
+      // C. Student ID
       doc
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor("#D32F2F")
-        .text(`NISN : ${data.nisn || "0000000"}`, 0, 325, {
+        .text(`Student ID : ${data.studentId || "0000000"}`, 0, 325, {
           align: "center",
           width: pageWidth,
         });

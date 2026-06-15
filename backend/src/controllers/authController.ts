@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import {
   registerUser,
   loginUser,
-  getUserByNisn,
+  getUserByStudentId,
 } from "../repositories/userRepo";
 import { Prisma } from "../generated/prisma";
 import bcrypt from "bcryptjs";
@@ -13,15 +13,17 @@ import { db } from "../config/db";
 const prisma = db;
 
 // 1. REGISTER
-// 1. REGISTER
 export const register = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
     console.log("Registering user:", payload.role, payload.name);
 
-    // MAPPING: If frontend sends 'nim', map it to 'nisn'
-    if (payload.nim && !payload.nisn) {
-      payload.nisn = payload.nim;
+    // MAPPING: If frontend sends 'nim' or 'nisn', map it to 'studentId'
+    if (payload.nim && !payload.studentId) {
+      payload.studentId = payload.nim;
+    }
+    if (payload.nisn && !payload.studentId) {
+      payload.studentId = payload.nisn;
     }
 
     // Front-end now generates the ID (payload.email) and sends recovery (payload.personalEmail)
@@ -70,10 +72,10 @@ export const login = async (req: Request, res: Response) => {
         .json({ error: "Identifier and password are required" });
     }
 
-    // Smart Search: Cek Email OR NISN OR NIP
+    // Smart Search: Cek Email OR Student ID OR NIP
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: identifier }, { nisn: identifier }, { nip: identifier }],
+        OR: [{ email: identifier }, { studentId: identifier }, { nip: identifier }],
       },
     });
 
@@ -112,7 +114,7 @@ export const login = async (req: Request, res: Response) => {
 
     // --- GENERATE TOKEN ---
     // Logika fallback: cari identifier unik
-    const uniqueId = user.email || user.nisn || user.nip;
+    const uniqueId = user.email || user.studentId || user.nip;
 
     const token = jwt.sign(
       {
@@ -138,11 +140,11 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// 3. GET STUDENT BY NISN (Untuk Autocomplete di Sertifikat)
-export const findStudentByNisn = async (req: Request, res: Response) => {
+// 3. GET STUDENT BY STUDENT ID (Untuk Autocomplete di Sertifikat)
+export const findStudentByStudentId = async (req: Request, res: Response) => {
   try {
-    const { nisn } = req.params;
-    const student = await getUserByNisn(nisn);
+    const { studentId } = req.params;
+    const student = await getUserByStudentId(studentId);
 
     if (!student) {
       return res.status(404).json({ error: "User is not found" });
@@ -175,6 +177,8 @@ export const getMe = async (req: Request, res: Response) => {
         role: true,
         avatar: true, // Needed for profile image
         bio: true,
+        studentId: true,
+        nip: true,
         majority: true,
         studyProgram: true,
         isVerified: true,

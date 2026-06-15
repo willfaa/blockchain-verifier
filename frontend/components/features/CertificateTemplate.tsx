@@ -13,7 +13,7 @@ interface CertificateProps {
   courseName?: string;
   completionDate?: string;
   certificateId?: string;
-  nim?: string;
+  studentId?: string;
   program?: string;
   majority?: string; // Explicitly added
   issuedAt?: string;
@@ -45,7 +45,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
   courseName = "Course Name",
   completionDate,
   certificateId,
-  nim = "NIM",
+  studentId = "Student ID",
   program = "Program",
   majority = "Majority",
   issuedAt,
@@ -132,7 +132,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
           <p>
             {majority} - {program}
           </p>
-          <p className="text-cyan-400 font-bold">NIM : {nim}</p>
+          <p className="text-cyan-400 font-bold">Student ID : {studentId}</p>
         </div>
 
         <div className="text-slate-400 text-base max-w-2xl leading-relaxed mt-4 font-light">

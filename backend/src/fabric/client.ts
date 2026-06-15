@@ -164,17 +164,16 @@ export async function issueCertificateOnFabric(
       FUNC_ISSUE,
       record.certId,
       record.name,
-      record.nisn, // Arg 3: NISN (formerly NIM)
-      "", // Arg 4: Empty (formerly NISN placeholder)
-      record.program,
-      record.majority,
-      record.issuedAt,
-      record.hash,
-      record.cid,
-      record.status,
-      record.nonce,
-      issuerId,
-      issuerRole,
+      record.studentId, // Arg 3: Student ID
+      record.program, // Arg 4
+      record.majority, // Arg 5
+      record.issuedAt, // Arg 6
+      record.hash, // Arg 7
+      record.cid, // Arg 8
+      record.status, // Arg 9
+      record.nonce, // Arg 10
+      issuerId, // Arg 11
+      issuerRole, // Arg 12
     );
     console.log("✅ Fabric Transaction Committed");
   } catch (err: any) {

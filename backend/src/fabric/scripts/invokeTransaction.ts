@@ -67,7 +67,7 @@ async function main() {
       const cert_id = uuidv4();
       const nonce = Math.random().toString(36).substring(7);
       const name = "Budi Santoso Manual";
-      const nim = "12345678";
+      const studentId = "12345678";
       const program = "Blockchain Developer Bootcamp";
       const majority = "Teknik Informatika";
       const issued_at = new Date().toISOString();
@@ -89,12 +89,12 @@ async function main() {
       });
 
       // 6. Submit Transaction (12 ARGUMEN)
-      // Urutan: certId, name, nim, program, majority, issuedAt, hash, cid, status, nonce, issuerId, issuerRole
+      // Urutan: certId, name, studentId, program, majority, issuedAt, hash, cid, status, nonce, issuerId, issuerRole
       await contract.submitTransaction(
         "IssueCertificate",
         cert_id,
         name,
-        nim,
+        studentId,
         program,
         majority,
         issued_at,

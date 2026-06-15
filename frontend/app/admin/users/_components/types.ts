@@ -13,7 +13,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
-  nim?: string;
+  studentId?: string;
   nip?: string;
   majority?: string;
   studyProgram?: string;

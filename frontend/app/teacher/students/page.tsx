@@ -93,13 +93,13 @@ export default function StudentListPage() {
       ),
     },
     {
-      key: "nim",
-      label: "NIM / ID",
+      key: "studentId",
+      label: "Student ID",
       sortable: true,
       render: (row: any) => (
         <div className="flex items-center gap-2 font-mono text-cyan-400">
           <Hash size={14} />
-          {row.nim || "-"}
+          {row.studentId || "-"}
         </div>
       ),
     },

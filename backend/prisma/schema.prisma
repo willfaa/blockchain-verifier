@@ -21,7 +21,7 @@ model User {
 
   bio      String? @db.Text
   avatar   String? 
-  nisn     String? @unique
+  studentId String? @unique
   nip      String? @unique 
    
   faculty  String?
@@ -226,7 +226,7 @@ model Certificate {
   id          String   @id @default(uuid())
   certId      String   @unique 
   studentName String
-  nisn        String
+  studentId   String
   program     String
   majority    String
    

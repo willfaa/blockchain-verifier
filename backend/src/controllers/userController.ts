@@ -8,10 +8,10 @@ export const getUsers = async (req: Request, res: Response) => {
   try {
     const {
       role, // "student" | "teacher"
-      search, // matches name, email, nisn, or nip
+      search, // matches name, email, studentId, or nip
       program, // exact match
       majority, // exact match
-      sortBy, // "name" | "nisn" | "majority" | "program" | "createdAt"
+      sortBy, // "name" | "studentId" | "majority" | "program" | "createdAt"
       sortOrder, // "asc" | "desc"
     } = req.query;
 
@@ -30,7 +30,7 @@ export const getUsers = async (req: Request, res: Response) => {
       whereClause.OR = [
         { name: { contains: searchStr, mode: "insensitive" } },
         { email: { contains: searchStr, mode: "insensitive" } },
-        { nisn: { contains: searchStr } }, // Case sensitive biasanya untuk ID/Code
+        { studentId: { contains: searchStr } }, // Case sensitive biasanya untuk ID/Code
         { nip: { contains: searchStr } },
       ];
     }
@@ -52,7 +52,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
       // Mapping sortBy ke field Prisma
       if (field === "name") orderBy = { name: order };
-      else if (field === "nisn") orderBy = { nisn: order };
+      else if (field === "nisn" || field === "studentId") orderBy = { studentId: order };
       else if (field === "majority") orderBy = { majority: order };
       else if (field === "program" || field === "studyProgram")
         orderBy = { studyProgram: order };
@@ -70,7 +70,7 @@ export const getUsers = async (req: Request, res: Response) => {
         name: true,
         email: true,
         role: true,
-        nisn: true,
+        studentId: true,
         nip: true,
         majority: true,
         studyProgram: true,
@@ -139,7 +139,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         bio: true,
         avatar: true,
         role: true,
-        nisn: true,
+        studentId: true,
         nip: true,
         majority: true,
         studyProgram: true,

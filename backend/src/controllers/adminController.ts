@@ -135,6 +135,8 @@ export const getActiveUsers = async (req: Request, res: Response) => {
       whereClause.OR = [
         { name: { contains: String(search), mode: "insensitive" } },
         { email: { contains: String(search), mode: "insensitive" } },
+        { studentId: { contains: String(search), mode: "insensitive" } },
+        { nip: { contains: String(search), mode: "insensitive" } },
       ];
     }
 
@@ -154,6 +156,8 @@ export const getActiveUsers = async (req: Request, res: Response) => {
       "isVerified",
       "majority",
       "studyProgram",
+      "studentId",
+      "nip",
     ];
 
     if (!allowedSortFields.includes(sortField)) {
@@ -181,7 +185,7 @@ export const getActiveUsers = async (req: Request, res: Response) => {
         majority: true,
         studyProgram: true,
         avatar: true,
-        nim: true,
+        studentId: true,
         nip: true,
       },
     });
@@ -215,7 +219,7 @@ export const getUserById = async (req: Request, res: Response) => {
         majority: true,
         studyProgram: true,
         avatar: true,
-        nim: true,
+        studentId: true,
         nip: true,
         personalEmail: true,
         isApproved: true,
@@ -336,14 +340,15 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
     const results = await Promise.all(
       users.map(async (u) => {
         try {
+          const { studentId, ...rest } = u;
           await db.user.create({
             data: {
-              ...u,
+              ...rest,
               password: hashedPassword,
               isApproved: true,
               isActive: true,
-              // Handle optional fields
-              nim: u.role === "STUDENT" ? u.nim : null,
+              // Handle optional fields mapping studentId
+              studentId: u.role === "STUDENT" ? (studentId || null) : null,
               nip: u.role === "TEACHER" ? u.nip : null,
             },
           });

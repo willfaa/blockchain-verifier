@@ -43,7 +43,7 @@ export default function AssignmentDetailPage() {
   const courseId = params?.courseId as string;
   const assignmentId = params?.assignmentId as string;
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [assignment, setAssignment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -91,9 +91,14 @@ export default function AssignmentDetailPage() {
   }, [assignment]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push(`/login?redirect=/courses/${courseId}/assignments/${assignmentId}`);
+      return;
+    }
     fetchAssignment();
     fetchCourseData();
-  }, [assignmentId, courseId]);
+  }, [assignmentId, courseId, user, authLoading, router]);
 
   const fetchCourseData = async () => {
     try {
@@ -406,7 +411,7 @@ export default function AssignmentDetailPage() {
     );
   };
 
-  if (loading) {
+  if (authLoading || !user || loading) {
     return (
       <div className="min-h-screen bg-[#0b0724] flex flex-col">
         <Navbar />

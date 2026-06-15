@@ -19,10 +19,10 @@ model User {
   isApproved    Boolean @default(false)
   isActive      Boolean @default(true)
 
-  bio    String? @db.Text
-  avatar String?
-  nisn   String? @unique
-  nip    String? @unique
+  bio       String? @db.Text
+  avatar    String?
+  studentId String? @unique
+  nip       String? @unique
 
   faculty      String?
   majority     String?
@@ -226,7 +226,7 @@ model Certificate {
   id          String @id @default(uuid())
   certId      String @unique
   studentName String
-  nisn        String
+  studentId   String
   program     String
   majority    String
 

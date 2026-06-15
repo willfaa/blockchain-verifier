@@ -7,7 +7,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { MAJORITIES, ACADEMIC_DATA } from "@/lib/constants/academics";
 import { generateEmailVariations } from "@/lib/emailGenerator";
-import { RefreshCw, ChevronDown, X } from "lucide-react";
+import { RefreshCw, ChevronDown, X, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 
@@ -29,7 +29,7 @@ export default function RegisterPage() {
   const [emailIndex, setEmailIndex] = useState(0);
 
   // Specific Fields
-  const [nim, setNim] = useState(""); // Student Only
+  const [studentId, setStudentId] = useState(""); // Student Only
   const [nip, setNip] = useState(""); // Teacher Only
 
   // Academic Fields
@@ -94,7 +94,7 @@ export default function RegisterPage() {
       };
 
       if (role === "student") {
-        payload.nim = nim;
+        payload.studentId = studentId;
       } else {
         payload.nip = nip;
       }
@@ -115,7 +115,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50 flex items-center justify-center py-10">
+    <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50 flex items-center justify-center py-10 relative overflow-hidden">
+      {/* Back Button */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 md:top-8 md:left-8 inline-flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors text-sm font-medium z-20"
+      >
+        <ArrowLeft size={16} />
+        Back to Home
+      </Link>
+
       <div className="w-full max-w-lg p-8 glass-card rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-white">Create Account</h2>
@@ -262,17 +271,17 @@ export default function RegisterPage() {
               {role === "student" ? "Student Details" : "Academic Details"}
             </h3>
 
-            {/* NIM or NIP */}
+            {/* Student ID or NIP */}
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1">
-                {role === "student" ? "NIM (Student ID)" : "NIP (Teacher ID)"}
+                {role === "student" ? "Student ID" : "NIP (Teacher ID)"}
               </label>
               <input
                 required
-                value={role === "student" ? nim : nip}
+                value={role === "student" ? studentId : nip}
                 onChange={(e) =>
                   role === "student"
-                    ? setNim(e.target.value)
+                    ? setStudentId(e.target.value)
                     : setNip(e.target.value)
                 }
                 className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none"

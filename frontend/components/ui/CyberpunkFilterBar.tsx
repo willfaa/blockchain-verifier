@@ -53,7 +53,7 @@ export default function CyberpunkFilterBar({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Name, NIM, or Email..."
+            placeholder="Search by Name, Student ID, or Email..."
             className="w-full bg-[#0d0b2f]/50 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-600"
           />
           <Search

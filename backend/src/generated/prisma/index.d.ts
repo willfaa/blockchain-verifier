@@ -2169,7 +2169,7 @@ export namespace Prisma {
     isActive: boolean | null
     bio: string | null
     avatar: string | null
-    nisn: string | null
+    studentId: string | null
     nip: string | null
     faculty: string | null
     majority: string | null
@@ -2190,7 +2190,7 @@ export namespace Prisma {
     isActive: boolean | null
     bio: string | null
     avatar: string | null
-    nisn: string | null
+    studentId: string | null
     nip: string | null
     faculty: string | null
     majority: string | null
@@ -2211,7 +2211,7 @@ export namespace Prisma {
     isActive: number
     bio: number
     avatar: number
-    nisn: number
+    studentId: number
     nip: number
     faculty: number
     majority: number
@@ -2234,7 +2234,7 @@ export namespace Prisma {
     isActive?: true
     bio?: true
     avatar?: true
-    nisn?: true
+    studentId?: true
     nip?: true
     faculty?: true
     majority?: true
@@ -2255,7 +2255,7 @@ export namespace Prisma {
     isActive?: true
     bio?: true
     avatar?: true
-    nisn?: true
+    studentId?: true
     nip?: true
     faculty?: true
     majority?: true
@@ -2276,7 +2276,7 @@ export namespace Prisma {
     isActive?: true
     bio?: true
     avatar?: true
-    nisn?: true
+    studentId?: true
     nip?: true
     faculty?: true
     majority?: true
@@ -2370,7 +2370,7 @@ export namespace Prisma {
     isActive: boolean
     bio: string | null
     avatar: string | null
-    nisn: string | null
+    studentId: string | null
     nip: string | null
     faculty: string | null
     majority: string | null
@@ -2408,7 +2408,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: boolean
     avatar?: boolean
-    nisn?: boolean
+    studentId?: boolean
     nip?: boolean
     faculty?: boolean
     majority?: boolean
@@ -2435,7 +2435,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: boolean
     avatar?: boolean
-    nisn?: boolean
+    studentId?: boolean
     nip?: boolean
     faculty?: boolean
     majority?: boolean
@@ -2456,7 +2456,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: boolean
     avatar?: boolean
-    nisn?: boolean
+    studentId?: boolean
     nip?: boolean
     faculty?: boolean
     majority?: boolean
@@ -2477,7 +2477,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: boolean
     avatar?: boolean
-    nisn?: boolean
+    studentId?: boolean
     nip?: boolean
     faculty?: boolean
     majority?: boolean
@@ -2486,7 +2486,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "personalEmail" | "password" | "name" | "role" | "isVerified" | "isApproved" | "isActive" | "bio" | "avatar" | "nisn" | "nip" | "faculty" | "majority" | "studyProgram" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "personalEmail" | "password" | "name" | "role" | "isVerified" | "isApproved" | "isActive" | "bio" | "avatar" | "studentId" | "nip" | "faculty" | "majority" | "studyProgram" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdCourses?: boolean | User$createdCoursesArgs<ExtArgs>
     enrollments?: boolean | User$enrollmentsArgs<ExtArgs>
@@ -2519,7 +2519,7 @@ export namespace Prisma {
       isActive: boolean
       bio: string | null
       avatar: string | null
-      nisn: string | null
+      studentId: string | null
       nip: string | null
       faculty: string | null
       majority: string | null
@@ -2965,7 +2965,7 @@ export namespace Prisma {
     readonly isActive: FieldRef<"User", 'Boolean'>
     readonly bio: FieldRef<"User", 'String'>
     readonly avatar: FieldRef<"User", 'String'>
-    readonly nisn: FieldRef<"User", 'String'>
+    readonly studentId: FieldRef<"User", 'String'>
     readonly nip: FieldRef<"User", 'String'>
     readonly faculty: FieldRef<"User", 'String'>
     readonly majority: FieldRef<"User", 'String'>
@@ -13991,7 +13991,7 @@ export namespace Prisma {
     id: string | null
     certId: string | null
     studentName: string | null
-    nisn: string | null
+    studentId: string | null
     program: string | null
     majority: string | null
     courseId: string | null
@@ -14006,7 +14006,7 @@ export namespace Prisma {
     id: string | null
     certId: string | null
     studentName: string | null
-    nisn: string | null
+    studentId: string | null
     program: string | null
     majority: string | null
     courseId: string | null
@@ -14021,7 +14021,7 @@ export namespace Prisma {
     id: number
     certId: number
     studentName: number
-    nisn: number
+    studentId: number
     program: number
     majority: number
     courseId: number
@@ -14038,7 +14038,7 @@ export namespace Prisma {
     id?: true
     certId?: true
     studentName?: true
-    nisn?: true
+    studentId?: true
     program?: true
     majority?: true
     courseId?: true
@@ -14053,7 +14053,7 @@ export namespace Prisma {
     id?: true
     certId?: true
     studentName?: true
-    nisn?: true
+    studentId?: true
     program?: true
     majority?: true
     courseId?: true
@@ -14068,7 +14068,7 @@ export namespace Prisma {
     id?: true
     certId?: true
     studentName?: true
-    nisn?: true
+    studentId?: true
     program?: true
     majority?: true
     courseId?: true
@@ -14156,7 +14156,7 @@ export namespace Prisma {
     id: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     courseId: string | null
@@ -14188,7 +14188,7 @@ export namespace Prisma {
     id?: boolean
     certId?: boolean
     studentName?: boolean
-    nisn?: boolean
+    studentId?: boolean
     program?: boolean
     majority?: boolean
     courseId?: boolean
@@ -14205,7 +14205,7 @@ export namespace Prisma {
     id?: boolean
     certId?: boolean
     studentName?: boolean
-    nisn?: boolean
+    studentId?: boolean
     program?: boolean
     majority?: boolean
     courseId?: boolean
@@ -14222,7 +14222,7 @@ export namespace Prisma {
     id?: boolean
     certId?: boolean
     studentName?: boolean
-    nisn?: boolean
+    studentId?: boolean
     program?: boolean
     majority?: boolean
     courseId?: boolean
@@ -14239,7 +14239,7 @@ export namespace Prisma {
     id?: boolean
     certId?: boolean
     studentName?: boolean
-    nisn?: boolean
+    studentId?: boolean
     program?: boolean
     majority?: boolean
     courseId?: boolean
@@ -14250,7 +14250,7 @@ export namespace Prisma {
     status?: boolean
   }
 
-  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "nisn" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status", ExtArgs["result"]["certificate"]>
+  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status", ExtArgs["result"]["certificate"]>
   export type CertificateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -14274,7 +14274,7 @@ export namespace Prisma {
       id: string
       certId: string
       studentName: string
-      nisn: string
+      studentId: string
       program: string
       majority: string
       courseId: string | null
@@ -14711,7 +14711,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Certificate", 'String'>
     readonly certId: FieldRef<"Certificate", 'String'>
     readonly studentName: FieldRef<"Certificate", 'String'>
-    readonly nisn: FieldRef<"Certificate", 'String'>
+    readonly studentId: FieldRef<"Certificate", 'String'>
     readonly program: FieldRef<"Certificate", 'String'>
     readonly majority: FieldRef<"Certificate", 'String'>
     readonly courseId: FieldRef<"Certificate", 'String'>
@@ -16305,7 +16305,7 @@ export namespace Prisma {
     isActive: 'isActive',
     bio: 'bio',
     avatar: 'avatar',
-    nisn: 'nisn',
+    studentId: 'studentId',
     nip: 'nip',
     faculty: 'faculty',
     majority: 'majority',
@@ -16454,7 +16454,7 @@ export namespace Prisma {
     id: 'id',
     certId: 'certId',
     studentName: 'studentName',
-    nisn: 'nisn',
+    studentId: 'studentId',
     program: 'program',
     majority: 'majority',
     courseId: 'courseId',
@@ -16643,7 +16643,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     bio?: StringNullableFilter<"User"> | string | null
     avatar?: StringNullableFilter<"User"> | string | null
-    nisn?: StringNullableFilter<"User"> | string | null
+    studentId?: StringNullableFilter<"User"> | string | null
     nip?: StringNullableFilter<"User"> | string | null
     faculty?: StringNullableFilter<"User"> | string | null
     majority?: StringNullableFilter<"User"> | string | null
@@ -16669,7 +16669,7 @@ export namespace Prisma {
     isActive?: SortOrder
     bio?: SortOrderInput | SortOrder
     avatar?: SortOrderInput | SortOrder
-    nisn?: SortOrderInput | SortOrder
+    studentId?: SortOrderInput | SortOrder
     nip?: SortOrderInput | SortOrder
     faculty?: SortOrderInput | SortOrder
     majority?: SortOrderInput | SortOrder
@@ -16687,7 +16687,7 @@ export namespace Prisma {
     id?: string
     email?: string
     personalEmail?: string
-    nisn?: string
+    studentId?: string
     nip?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
@@ -16710,7 +16710,7 @@ export namespace Prisma {
     certificates?: CertificateListRelationFilter
     examResults?: ExamResultListRelationFilter
     assignmentSubmissions?: AssignmentSubmissionListRelationFilter
-  }, "id" | "email" | "personalEmail" | "nisn" | "nip">
+  }, "id" | "email" | "personalEmail" | "studentId" | "nip">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16724,7 +16724,7 @@ export namespace Prisma {
     isActive?: SortOrder
     bio?: SortOrderInput | SortOrder
     avatar?: SortOrderInput | SortOrder
-    nisn?: SortOrderInput | SortOrder
+    studentId?: SortOrderInput | SortOrder
     nip?: SortOrderInput | SortOrder
     faculty?: SortOrderInput | SortOrder
     majority?: SortOrderInput | SortOrder
@@ -16751,7 +16751,7 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
     bio?: StringNullableWithAggregatesFilter<"User"> | string | null
     avatar?: StringNullableWithAggregatesFilter<"User"> | string | null
-    nisn?: StringNullableWithAggregatesFilter<"User"> | string | null
+    studentId?: StringNullableWithAggregatesFilter<"User"> | string | null
     nip?: StringNullableWithAggregatesFilter<"User"> | string | null
     faculty?: StringNullableWithAggregatesFilter<"User"> | string | null
     majority?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -17481,7 +17481,7 @@ export namespace Prisma {
     id?: StringFilter<"Certificate"> | string
     certId?: StringFilter<"Certificate"> | string
     studentName?: StringFilter<"Certificate"> | string
-    nisn?: StringFilter<"Certificate"> | string
+    studentId?: StringFilter<"Certificate"> | string
     program?: StringFilter<"Certificate"> | string
     majority?: StringFilter<"Certificate"> | string
     courseId?: StringNullableFilter<"Certificate"> | string | null
@@ -17498,7 +17498,7 @@ export namespace Prisma {
     id?: SortOrder
     certId?: SortOrder
     studentName?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     program?: SortOrder
     majority?: SortOrder
     courseId?: SortOrderInput | SortOrder
@@ -17518,7 +17518,7 @@ export namespace Prisma {
     OR?: CertificateWhereInput[]
     NOT?: CertificateWhereInput | CertificateWhereInput[]
     studentName?: StringFilter<"Certificate"> | string
-    nisn?: StringFilter<"Certificate"> | string
+    studentId?: StringFilter<"Certificate"> | string
     program?: StringFilter<"Certificate"> | string
     majority?: StringFilter<"Certificate"> | string
     courseId?: StringNullableFilter<"Certificate"> | string | null
@@ -17535,7 +17535,7 @@ export namespace Prisma {
     id?: SortOrder
     certId?: SortOrder
     studentName?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     program?: SortOrder
     majority?: SortOrder
     courseId?: SortOrderInput | SortOrder
@@ -17556,7 +17556,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Certificate"> | string
     certId?: StringWithAggregatesFilter<"Certificate"> | string
     studentName?: StringWithAggregatesFilter<"Certificate"> | string
-    nisn?: StringWithAggregatesFilter<"Certificate"> | string
+    studentId?: StringWithAggregatesFilter<"Certificate"> | string
     program?: StringWithAggregatesFilter<"Certificate"> | string
     majority?: StringWithAggregatesFilter<"Certificate"> | string
     courseId?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
@@ -17649,7 +17649,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -17675,7 +17675,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -17701,7 +17701,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17727,7 +17727,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17753,7 +17753,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -17774,7 +17774,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17795,7 +17795,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18579,7 +18579,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     issuedAt: string
@@ -18594,7 +18594,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     courseId?: string | null
@@ -18609,7 +18609,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     issuedAt?: StringFieldUpdateOperationsInput | string
@@ -18624,7 +18624,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     courseId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18639,7 +18639,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     courseId?: string | null
@@ -18654,7 +18654,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     issuedAt?: StringFieldUpdateOperationsInput | string
@@ -18667,7 +18667,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     courseId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18859,7 +18859,7 @@ export namespace Prisma {
     isActive?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     nip?: SortOrder
     faculty?: SortOrder
     majority?: SortOrder
@@ -18880,7 +18880,7 @@ export namespace Prisma {
     isActive?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     nip?: SortOrder
     faculty?: SortOrder
     majority?: SortOrder
@@ -18901,7 +18901,7 @@ export namespace Prisma {
     isActive?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     nip?: SortOrder
     faculty?: SortOrder
     majority?: SortOrder
@@ -19642,7 +19642,7 @@ export namespace Prisma {
     id?: SortOrder
     certId?: SortOrder
     studentName?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     program?: SortOrder
     majority?: SortOrder
     courseId?: SortOrder
@@ -19657,7 +19657,7 @@ export namespace Prisma {
     id?: SortOrder
     certId?: SortOrder
     studentName?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     program?: SortOrder
     majority?: SortOrder
     courseId?: SortOrder
@@ -19672,7 +19672,7 @@ export namespace Prisma {
     id?: SortOrder
     certId?: SortOrder
     studentName?: SortOrder
-    nisn?: SortOrder
+    studentId?: SortOrder
     program?: SortOrder
     majority?: SortOrder
     courseId?: SortOrder
@@ -21031,7 +21031,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     issuedAt: string
@@ -21045,7 +21045,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     courseId?: string | null
@@ -21223,7 +21223,7 @@ export namespace Prisma {
     id?: StringFilter<"Certificate"> | string
     certId?: StringFilter<"Certificate"> | string
     studentName?: StringFilter<"Certificate"> | string
-    nisn?: StringFilter<"Certificate"> | string
+    studentId?: StringFilter<"Certificate"> | string
     program?: StringFilter<"Certificate"> | string
     majority?: StringFilter<"Certificate"> | string
     courseId?: StringNullableFilter<"Certificate"> | string | null
@@ -21373,7 +21373,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -21398,7 +21398,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -21529,7 +21529,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     issuedAt: string
@@ -21543,7 +21543,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     userId: string
@@ -21586,7 +21586,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21611,7 +21611,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22344,7 +22344,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22369,7 +22369,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22447,7 +22447,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22472,7 +22472,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22609,7 +22609,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22634,7 +22634,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22716,7 +22716,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22741,7 +22741,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22854,7 +22854,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22879,7 +22879,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -22967,7 +22967,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22992,7 +22992,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23017,7 +23017,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -23042,7 +23042,7 @@ export namespace Prisma {
     isActive?: boolean
     bio?: string | null
     avatar?: string | null
-    nisn?: string | null
+    studentId?: string | null
     nip?: string | null
     faculty?: string | null
     majority?: string | null
@@ -23108,7 +23108,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23133,7 +23133,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    nisn?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
     nip?: NullableStringFieldUpdateOperationsInput | string | null
     faculty?: NullableStringFieldUpdateOperationsInput | string | null
     majority?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23206,7 +23206,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     courseId?: string | null
@@ -23328,7 +23328,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     issuedAt?: StringFieldUpdateOperationsInput | string
@@ -23342,7 +23342,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     courseId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23356,7 +23356,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     courseId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23538,7 +23538,7 @@ export namespace Prisma {
     id?: string
     certId: string
     studentName: string
-    nisn: string
+    studentId: string
     program: string
     majority: string
     userId: string
@@ -23645,7 +23645,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     issuedAt?: StringFieldUpdateOperationsInput | string
@@ -23659,7 +23659,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
@@ -23673,7 +23673,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     certId?: StringFieldUpdateOperationsInput | string
     studentName?: StringFieldUpdateOperationsInput | string
-    nisn?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
     program?: StringFieldUpdateOperationsInput | string
     majority?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string

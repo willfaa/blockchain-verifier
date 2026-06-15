@@ -97,17 +97,15 @@ const generatePDF = async (
           { align: "center", width: pageWidth },
         );
 
-      // C. NISN (Merah)
+      // C. Student ID
       doc
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor("#D32F2F")
-        .text(`NISN : ${data.nisn || "0000000"}`, 0, 325, {
+        .text(`Student ID : ${data.studentId || "0000000"}`, 0, 325, {
           align: "center",
           width: pageWidth,
         });
-
-      // C.2 REMOVED (Merged into above)
 
       // D. NAMA KURSUS / TOPIK (Pink, Besar)
       // Posisi di bawah teks statis "on the topic of:"
@@ -175,13 +173,13 @@ export const issueCertificate = async (req: Request, res: Response) => {
       issuerId,
       issuerRole,
       courseName,
-      nisn, // Extract NISN
+      studentId, // Extract Student ID
     } = req.body;
 
     const finalName = studentName || name;
 
     // Validation
-    if (!finalName || !nisn || !program || !majority) {
+    if (!finalName || !studentId || !program || !majority) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -204,7 +202,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
     // Create Hash
     const dataString = JSON.stringify({
       studentName: finalName,
-      nisn,
+      studentId,
       program,
       majority,
       course: finalCourse,
@@ -238,15 +236,15 @@ export const issueCertificate = async (req: Request, res: Response) => {
       fs.mkdirSync(dirPath, { recursive: true });
     }
 
-    // Define File Path: {NISN}-{CertID}.pdf
-    const fileName = `${nisn}-${certId}.pdf`;
+    // Define File Path: {StudentID}-{CertID}.pdf
+    const fileName = `${studentId}-${certId}.pdf`;
     const filePath = path.join(dirPath, fileName);
 
     // 4. GENERATE PDF (And Save to File)
     const pdfBuffer = await generatePDF(
       {
         name: finalName,
-        nisn,
+        studentId,
         program,
         majority,
         courseName: finalCourse,
@@ -275,8 +273,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
       "IssueCertificate",
       certId,
       finalName,
-      nisn || "", // New 13th Argument (placed after NIM)
-      "", // Placeholder for 13-arg support
+      studentId || "",
       program,
       majority,
       formattedDate,
@@ -301,7 +298,7 @@ export const issueCertificate = async (req: Request, res: Response) => {
       message: "Certificate issued successfully.",
       record: {
         certId,
-        nisn,
+        studentId,
         name: finalName,
         program,
         majority,
@@ -338,7 +335,7 @@ export const getCertificateFromChain = async (req: Request, res: Response) => {
       },
       include: {
         course: {
-          select: { title: true, id: true, thumbnail: true },
+          select: { title: true, id: true, imageUrl: true },
         },
       },
     });

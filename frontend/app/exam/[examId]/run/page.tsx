@@ -62,7 +62,7 @@ interface ExamData {
 
 export default function ExamRunnerPage() {
   const { examId } = useParams();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [exam, setExam] = useState<ExamData | null>(null);
@@ -84,6 +84,12 @@ export default function ExamRunnerPage() {
 
   // Load Exam
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push(`/login?redirect=/exam/${examId}/run`);
+      return;
+    }
+
     const fetchExam = async () => {
       try {
         const res = await api.get(`/lms/exams/${examId}/take`);
@@ -124,7 +130,7 @@ export default function ExamRunnerPage() {
     };
 
     if (examId) fetchExam();
-  }, [examId, router]);
+  }, [examId, router, user, authLoading]);
 
   // Timer Logic
   useEffect(() => {
@@ -200,7 +206,7 @@ export default function ExamRunnerPage() {
     }
   };
 
-  if (loading || !exam) {
+  if (authLoading || !user || loading || !exam) {
     return (
       <div className="min-h-screen bg-[#050510] flex items-center justify-center text-teal-500">
         Loading Exam Environment...

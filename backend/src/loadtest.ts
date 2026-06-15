@@ -7,7 +7,7 @@ import FormData from "form-data";
 const API_BASE = process.env.LOADTEST_API_BASE ?? "http://localhost:4000";
 
 interface SampleCert {
-  nisn: string;
+  studentId: string;
   name: string;
   majority: string;
   program: string;
@@ -17,7 +17,7 @@ interface SampleCert {
 const sampleCerts: SampleCert[] = [
   // kecil ~100 KB
   {
-    nisn: "21050974001",
+    studentId: "21050974001",
     name: "User Kecil 1",
     majority: "Informatics",
     program: "S1 PTI",
@@ -25,7 +25,7 @@ const sampleCerts: SampleCert[] = [
   },
   // sedang ~500 KB
   // {
-  //   nisn: "21050974002",
+  //   studentId: "21050974002",
   //   name: "User Sedang 1",
   //   majority: "Informatics",
   //   program: "S1 PTI",
@@ -33,7 +33,7 @@ const sampleCerts: SampleCert[] = [
   // },
   // besar ~2 MB
   // {
-  //   nisn: "21050974003",
+  //   studentId: "21050974003",
   //   name: "User Besar 1",
   //   majority: "Informatics",
   //   program: "S1 PTI",
@@ -54,7 +54,7 @@ async function issueOnce(sample: SampleCert, index: number): Promise<void> {
   const fileStream = fs.createReadStream(fileAbs);
   const form = new FormData();
 
-  form.append("nisn", sample.nisn);
+  form.append("studentId", sample.studentId);
   form.append("name", sample.name);
   form.append("majority", sample.majority);
   form.append("program", sample.program);

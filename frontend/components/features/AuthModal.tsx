@@ -24,7 +24,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [regName, setRegName] = useState("");
   const [regPass, setRegPass] = useState("");
   // Student
-  const [regNim, setRegNim] = useState("");
+  const [regStudentId, setRegStudentId] = useState("");
   const [regMajority, setRegMajority] = useState("");
   const [regProgram, setRegProgram] = useState("");
   // Teacher
@@ -80,7 +80,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       };
 
       if (role === "student") {
-        payload.nim = regNim;
+        payload.studentId = regStudentId;
         payload.majority = regMajority;
         payload.program = regProgram;
       } else {
@@ -225,7 +225,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-300">
-                Identifier (NIM/NIP)
+                Identifier (Student ID / NIP)
               </label>
               <input
                 type="text"
@@ -290,12 +290,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <>
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-xs font-medium text-slate-300">
-                      NIM
+                      Student ID
                     </label>
                     <input
                       required
-                      value={regNim}
-                      onChange={(e) => setRegNim(e.target.value)}
+                      value={regStudentId}
+                      onChange={(e) => setRegStudentId(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950/50 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none"
                     />
                   </div>

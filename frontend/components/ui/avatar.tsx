@@ -33,7 +33,7 @@ const AvatarImage = React.forwardRef<
       src={src}
       alt={alt}
       onError={() => setHasError(true)}
-      className={cn("aspect-square h-full w-full", className)}
+      className={cn("aspect-square h-full w-full object-cover", className)}
       {...props}
     />
   );

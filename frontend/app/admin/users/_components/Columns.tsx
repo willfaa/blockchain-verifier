@@ -68,12 +68,12 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
     return [
       ...commonColumns,
       {
-        key: "name",
+        key: "studentId",
         label: "Account Information",
         sortable: true,
         render: (row: any) => (
           <code className="text-teal-300 bg-teal-900/10 px-1 py-0.5 rounded text-[10px] border border-teal-500/20">
-            {row.nim || "N/A"}
+            {row.studentId || "N/A"}
           </code>
         ),
       },

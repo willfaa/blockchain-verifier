@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api"; // Import API helper
 import toast from "react-hot-toast";
+import { ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -73,6 +74,15 @@ export default function LoginPage() {
   return (
     // ... (KODE UI DI BAWAH INI SAMA PERSIS DENGAN FILE LAMA ANDA) ...
     <div className="min-h-screen bg-linear-to-b from-[#0b0724] via-[#0d0b2f] to-[#130f3d] text-slate-50 flex items-center justify-center relative overflow-hidden">
+      {/* Back Button */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 md:top-8 md:left-8 inline-flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors text-sm font-medium z-20"
+      >
+        <ArrowLeft size={16} />
+        Back to Home
+      </Link>
+
       <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-fuchsia-500/20 blur-[100px]" />
       <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[100px]" />
 
@@ -131,7 +141,7 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-slate-600"
-                placeholder="Enter your Email, NIP, or NIM"
+                placeholder="Enter your Email, NIP, or Student ID"
               />
             </div>
             <div>
