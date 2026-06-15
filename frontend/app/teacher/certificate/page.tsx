@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
+import { getInitials, getAvatarUrl } from "@/lib/utils";
 
 export default function SmartIssueCertificatePage() {
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -250,16 +250,7 @@ export default function SmartIssueCertificatePage() {
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-white/5">
                   <Avatar className="h-8 w-8 border border-white/10">
                     <AvatarImage
-                      src={
-                        foundStudent?.avatar
-                          ? foundStudent.avatar.startsWith("http")
-                            ? foundStudent.avatar
-                            : `${
-                                process.env.NEXT_PUBLIC_API_URL ||
-                                "http://localhost:4000"
-                              }${foundStudent.avatar}`
-                          : ""
-                      }
+                      src={getAvatarUrl(foundStudent?.avatar)}
                       alt={foundStudent?.name}
                     />
                     <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-xs font-bold">

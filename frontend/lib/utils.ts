@@ -12,10 +12,22 @@ export function getInitials(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+const getApiBase = () => {
+  return process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+};
+
 export const getAvatarUrl = (path: string | null | undefined) => {
   if (!path) return undefined;
   if (path.startsWith("http")) return path;
-  return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${getApiBase()}${normalizedPath}`;
+};
+
+export const getAssetUrl = (path: string | null | undefined) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${getApiBase()}${normalizedPath}`;
 };
 
 export const stripHtml = (html: string) => {

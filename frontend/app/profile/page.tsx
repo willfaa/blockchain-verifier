@@ -8,7 +8,7 @@ import { User, Edit, LogOut } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import toast from "react-hot-toast";
 
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);

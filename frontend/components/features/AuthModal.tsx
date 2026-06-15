@@ -6,6 +6,8 @@ import { useAuth, UserRole } from "@/context/AuthContext";
 
 type AuthMode = "login" | "register";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,7 +44,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setErrorV(null);
 
     try {
-      const res = await fetch("http://localhost:4000/auth/login", {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,7 +90,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         payload.lectureMajority = regLectureMajority;
       }
 
-      const res = await fetch("http://localhost:4000/auth/register", {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

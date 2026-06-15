@@ -26,7 +26,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
+import { getInitials, getAvatarUrl } from "@/lib/utils";
 
 // ... existing imports
 
@@ -282,14 +282,7 @@ export default function TeacherLayout({
                   </div>
                   <Avatar className="h-10 w-10 border-2 border-[#0b0724] shadow-lg">
                     <AvatarImage
-                      src={
-                        user?.avatar?.startsWith("http")
-                          ? user.avatar
-                          : `${
-                              process.env.NEXT_PUBLIC_API_URL ||
-                              "http://localhost:4000"
-                            }${user?.avatar}`
-                      }
+                      src={getAvatarUrl(user?.avatar)}
                       alt={user?.name || "User"}
                     />
                     <AvatarFallback className="bg-gradient-to-tr from-fuchsia-500 to-purple-600 text-white font-bold">

@@ -32,6 +32,7 @@ import CertificateClaimCard from "@/components/student/CertificateClaimCard";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
+import { getAssetUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
   FileSubmissionManager,
@@ -306,7 +307,7 @@ export default function AssignmentDetailPage() {
                 }
                 certificateUrl={
                   course.enrollment?.certificate?.cid
-                    ? `http://localhost:8080/ipfs/${course.enrollment.certificate.cid}`
+                    ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080"}/ipfs/${course.enrollment.certificate.cid}`
                     : null
                 }
                 onClaimSuccess={() => fetchCourseData()}
@@ -625,11 +626,7 @@ export default function AssignmentDetailPage() {
                               </div>
                             </div>
                             <a
-                              href={
-                                file.url.startsWith("http")
-                                  ? file.url
-                                  : `http://localhost:4000${file.url}`
-                              }
+                              href={getAssetUrl(file.url)}
                               target="_blank"
                               rel="noreferrer"
                               className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all"

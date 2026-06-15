@@ -13,6 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import api from "@/lib/api";
+import { getAssetUrl } from "@/lib/utils";
 import RichTextEditor from "@/components/features/RichTextEditor";
 import VideoPlayer from "@/components/features/VideoPlayer"; // Dynamic import wrapper
 
@@ -197,7 +198,7 @@ export default function CourseEditorPage() {
             {activeLesson?.videoPath && (
               <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 ring-1 ring-white/5">
                 <VideoPlayer
-                  url={`http://localhost:4000${activeLesson.videoPath}`}
+                  url={getAssetUrl(activeLesson.videoPath)}
                 />
               </div>
             )}

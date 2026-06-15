@@ -12,6 +12,8 @@ export default function HiddenAdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -19,7 +21,7 @@ export default function HiddenAdminLogin() {
 
     try {
       // Hardcode role: 'admin' agar backend memvalidasi tabel users dengan benar
-      const res = await fetch("http://localhost:4000/auth/login", {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password, role: "admin" }),

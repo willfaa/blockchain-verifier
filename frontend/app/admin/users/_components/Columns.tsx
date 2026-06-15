@@ -7,6 +7,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAvatarUrl } from "@/lib/utils";
 
 // Helper for Duration (Last Seen)
 const getLastSeen = (dateString: string) => {
@@ -41,14 +42,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border border-teal-500/30">
             <AvatarImage
-              src={
-                row.avatar?.startsWith("http")
-                  ? row.avatar
-                  : `${
-                      process.env.NEXT_PUBLIC_API_BASE ||
-                      "http://localhost:4000"
-                    }${row.avatar}`
-              }
+              src={getAvatarUrl(row.avatar)}
               alt={row.name}
             />
             <AvatarFallback className="bg-teal-900/50 text-teal-400 text-xs font-bold">

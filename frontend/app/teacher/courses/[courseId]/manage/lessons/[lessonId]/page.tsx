@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Save, Video, Globe, Eye } from "lucide-react";
 import RichTextEditor from "@/components/features/RichTextEditor";
 import { useParams } from "next/navigation";
+import { getAssetUrl } from "@/lib/utils";
 
 export default function LessonEditorPage() {
   const params = useParams();
@@ -159,7 +160,7 @@ export default function LessonEditorPage() {
               {currentVideo && !videoFile && (
                 <div className="aspect-video bg-black rounded overflow-hidden relative group">
                   <video
-                    src={`http://localhost:4000${currentVideo}`}
+                    src={getAssetUrl(currentVideo)}
                     controls
                     className="w-full h-full object-cover"
                   />

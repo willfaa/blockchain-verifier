@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
+import { getInitials, getAssetUrl } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import VideoPlayer from "@/components/features/VideoPlayer";
@@ -280,7 +281,7 @@ export default function CourseLearningPage() {
               }
               certificateUrl={
                 course.enrollment?.certificate?.cid
-                  ? `http://localhost:8080/ipfs/${course.enrollment.certificate.cid}`
+                  ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080"}/ipfs/${course.enrollment.certificate.cid}`
                   : null
               }
               onClaimSuccess={() => fetchCourseData()}
@@ -571,7 +572,7 @@ export default function CourseLearningPage() {
             {activeLesson.videoUrl && (
               <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-900/10 mb-8 bg-black">
                 <VideoPlayer
-                  url={`http://localhost:4000${activeLesson.videoUrl}`}
+                  url={getAssetUrl(activeLesson.videoUrl)}
                 />
               </div>
             )}

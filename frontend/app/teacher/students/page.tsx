@@ -18,7 +18,8 @@ export default function StudentListPage() {
     if (!path || path === "null" || path === "undefined") return "";
     if (path.startsWith("http")) return path;
     const normalized = path.startsWith("/") ? path : `/${path}`;
-    return `http://localhost:4000${normalized}`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    return `${baseUrl}${normalized}`;
   };
 
   // Filter State
