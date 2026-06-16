@@ -26,8 +26,9 @@ interface VerifyResult {
   [key: string]: any;
 }
 
-const BACKEND_URL = "http://127.0.0.1:4000/api/certificates";
-const IPFS_GATEWAY = "http://127.0.0.1:8080/ipfs";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const BACKEND_URL = `${API_BASE}/api/certificates`;
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080/ipfs";
 
 export default function VerifyPage() {
   const [certId, setCertId] = useState("");
@@ -60,7 +61,10 @@ export default function VerifyPage() {
       // Use GET instead of POST, and point to the correct verify endpoint
       const res = await fetch(`${BACKEND_URL}/${certId}/verify`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true"
+        },
       });
 
       const data = await res.json();

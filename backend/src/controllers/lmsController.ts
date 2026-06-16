@@ -1168,10 +1168,9 @@ export const uploadAssignmentArtifact = async (req: Request, res: Response) => {
     // Save locally instead of IPFS
     fs.renameSync(req.file.path, targetPath);
 
-    const baseUrl = process.env.BACKEND_URL || "http://localhost:4000";
     const metadata = {
       name: req.file.originalname,
-      url: `${baseUrl}/uploads/assignments/${filename}`,
+      url: `/uploads/assignments/${filename}`,
       size: req.file.size,
       type: req.file.mimetype,
       fileHash: req.body.fileHash,
@@ -1208,8 +1207,7 @@ export const submitAssignment = async (req: Request, res: Response) => {
         // Save locally
         fs.renameSync(req.file.path, targetPath);
 
-        const baseUrl = process.env.BACKEND_URL || "http://localhost:4000";
-        fileUrlFromReq = `${baseUrl}/uploads/assignments/${filename}`;
+        fileUrlFromReq = `/uploads/assignments/${filename}`;
       } catch (fileErr: any) {
         console.error("[LMS] Local Submission failed:", fileErr);
         throw fileErr;
@@ -1361,8 +1359,7 @@ export const updateAssignmentSubmission = async (
 
       fs.renameSync(req.file.path, targetPath);
 
-      const baseUrl = process.env.BACKEND_URL || "http://localhost:4000";
-      fileUrlFromReq = `${baseUrl}/uploads/assignments/${filename}`;
+      fileUrlFromReq = `/uploads/assignments/${filename}`;
     }
 
     const now = new Date();

@@ -31,6 +31,8 @@ interface Certificate {
   };
 }
 
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
+
 export default function MyCertificatesPage() {
   const [certs, setCerts] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,7 +170,7 @@ export default function MyCertificatesPage() {
                   <Image
                     src={
                       cert.cid
-                        ? `http://localhost:8081/ipfs/${cert.cid}`
+                        ? `${IPFS_GATEWAY}/ipfs/${cert.cid}`
                         : "/placeholder-cert.jpg"
                     }
                     alt="Certificate"
@@ -237,7 +239,7 @@ export default function MyCertificatesPage() {
                     <button
                       onClick={() =>
                         window.open(
-                          `http://localhost:8081/ipfs/${cert.cid}`,
+                          `${IPFS_GATEWAY}/ipfs/${cert.cid}`,
                           "_blank"
                         )
                       }

@@ -71,7 +71,8 @@ export default function CertificateDetailPage() {
     );
   }
 
-  const ipfsUrl = `http://localhost:8080/ipfs/${cert.cid}`; // Or gateway
+  const ipfsGateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
+  const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`; // Or gateway
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 p-6 md:p-12">

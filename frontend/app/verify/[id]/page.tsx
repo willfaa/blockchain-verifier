@@ -45,9 +45,13 @@ export default async function VerificationPage({
   let error: string | null = null;
   let qrCodeBase64 = "";
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   try {
-    const res = await fetch(`http://127.0.0.1:4000/api/certificates/${id}`, {
+    const res = await fetch(`${API_BASE}/api/certificates/${id}`, {
       cache: "no-store",
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+      },
     });
 
     if (!res.ok) {
@@ -65,9 +69,8 @@ export default async function VerificationPage({
           cert = data.record;
 
           // Generate QR Code server-side
-          const verificationUrl = `http://localhost:3000/verify/${
-            cert!.certId
-          }`;
+          const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000";
+          const verificationUrl = `${clientUrl}/verify/${cert!.certId}`;
           qrCodeBase64 = await QRCode.toDataURL(verificationUrl);
         } else {
           error = data.error || "Invalid response format";
