@@ -28,7 +28,8 @@ if (process.env.CLIENT_URL) {
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      const isVercelPreview = origin && /^https:\/\/blockchain-verifier-.*\.vercel\.app$/.test(origin);
+      if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
         callback(null, true);
       } else {
         console.warn(`[CORS] Blocked request from origin: ${origin}`);
