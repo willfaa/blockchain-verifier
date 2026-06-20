@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { MAJORITIES, getProgramsByMajor } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function StudentManagementPage() {
   const params = useParams();
@@ -214,11 +215,7 @@ export default function StudentManagementPage() {
                         <div className="w-12 h-12 rounded-2xl bg-linear-to-tr from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-white font-black text-sm overflow-hidden border border-white/10 group-hover:border-cyan-500/50 transition-colors">
                           {enrollment.user.avatar ? (
                             <img
-                              src={
-                                enrollment.user.avatar.startsWith("http")
-                                  ? enrollment.user.avatar
-                                  : `${API_BASE}${enrollment.user.avatar}`
-                              }
+                              src={getAvatarUrl(enrollment.user.avatar)}
                               alt={enrollment.user.name}
                               className="w-full h-full object-cover"
                             />

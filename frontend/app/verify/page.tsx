@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 
+import { getApiBase } from "@/lib/utils";
+
 interface VerifyResult {
   ok?: boolean;
   reason?: string;
@@ -26,8 +28,6 @@ interface VerifyResult {
   [key: string]: any;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const BACKEND_URL = `${API_BASE}/api/certificates`;
 const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
 
 export default function VerifyPage() {
@@ -58,8 +58,8 @@ export default function VerifyPage() {
     setResult(null);
 
     try {
-      // Use GET instead of POST, and point to the correct verify endpoint
-      const res = await fetch(`${BACKEND_URL}/${certId}/verify`, {
+      const backendUrl = `${getApiBase()}/api/certificates`;
+      const res = await fetch(`${backendUrl}/${certId}/verify`, {
         method: "GET",
         headers: { 
           "Content-Type": "application/json",

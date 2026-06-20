@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import clsx from "clsx";
+import { getApiBase } from "@/lib/utils";
 
 // Force dynamic rendering so we always fetch fresh data
 export const dynamic = "force-dynamic";
@@ -45,9 +46,10 @@ export default async function VerificationPage({
   let error: string | null = null;
   let qrCodeBase64 = "";
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const apiBase = getApiBase();
+  const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
   try {
-    const res = await fetch(`${API_BASE}/api/certificates/${id}`, {
+    const res = await fetch(`${apiBase}/api/certificates/${id}`, {
       cache: "no-store",
       headers: {
         "ngrok-skip-browser-warning": "true",
@@ -322,7 +324,7 @@ export default async function VerificationPage({
                       Digital Transcript Artifact
                     </p>
                     <a
-                      href={`http://127.0.0.1:8080/ipfs/${cert.cid}`}
+                      href={`${IPFS_GATEWAY}/ipfs/${cert.cid}`}
                       target="_blank"
                       rel="noreferrer"
                       className="block w-full text-center rounded-2xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neon-blue hover:text-white transition-all shadow-2xl overflow-hidden relative group/btn"

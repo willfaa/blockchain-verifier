@@ -1,20 +1,17 @@
 // frontend/lib/api.ts
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-const API_URL = `${API_BASE}/api`;
+import { getApiBase } from "./utils";
 
 const api = axios.create({
-  baseURL: API_URL,
   headers: {
     "ngrok-skip-browser-warning": "true",
   },
-  // Do NOT default Content-Type to application/json, as it breaks FormData.
-  // Axios automatically sets application/json for objects and multipart/form-data for FormData.
 });
 
 api.interceptors.request.use(
   (config) => {
+    config.baseURL = `${getApiBase()}/api`;
     if (typeof window !== "undefined") {
       // Logic menyesuaikan AuthContext Anda:
       // Token ada di dalam object JSON "chainnesa_user"

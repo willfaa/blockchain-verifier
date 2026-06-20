@@ -20,7 +20,20 @@ const normalizeLocalPath = (urlPath: string) => {
   return urlPath;
 };
 
-const getApiBase = () => {
+export const getApiBase = () => {
+  if (typeof window !== "undefined") {
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      return `${window.location.origin}/_/backend`;
+    }
+  } else {
+    // Server-side rendering (SSR) on Vercel
+    if (process.env.VERCEL_URL) {
+      return `https://${process.env.VERCEL_URL}/_/backend`;
+    }
+    if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+      return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/_/backend`;
+    }
+  }
   return process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 };
 

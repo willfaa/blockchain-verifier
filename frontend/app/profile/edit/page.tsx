@@ -8,6 +8,8 @@ import api from "@/lib/api";
 import { Lock, Camera, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { getApiBase } from "@/lib/utils";
+
 export default function EditProfilePage() {
   const router = useRouter();
   const { user, login } = useAuth(); // login used to update context
@@ -21,8 +23,6 @@ export default function EditProfilePage() {
   // Preview for avatar
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   useEffect(() => {
     if (user) {
@@ -38,7 +38,7 @@ export default function EditProfilePage() {
         if (cleanAvatar.startsWith("http") || cleanAvatar.startsWith("blob")) {
           setAvatarPreview(cleanAvatar);
         } else {
-          setAvatarPreview(`${API_BASE_URL}${cleanAvatar}`);
+          setAvatarPreview(`${getApiBase()}${cleanAvatar.startsWith("/") ? cleanAvatar : `/${cleanAvatar}`}`);
         }
       } else {
         setAvatarPreview(null);

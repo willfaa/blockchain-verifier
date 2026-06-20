@@ -8,7 +8,7 @@ import { User, Edit, LogOut } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import toast from "react-hot-toast";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { getApiBase } from "@/lib/utils";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -26,7 +26,7 @@ export default function ProfilePage() {
       cleanPath = cleanPath.replace(/^http:\/\/(localhost|127\.0\.0\.1):\d+/, "");
     }
     if (cleanPath.startsWith("http")) return cleanPath; // Already a full URL (e.g. Google Auth)
-    return `${API_BASE_URL}${cleanPath}`; // Append Backend Domain
+    return `${getApiBase()}${cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`}`; // Append Backend Domain
   };
 
   useEffect(() => {

@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { MAJORITIES, getProgramsByMajor } from "@/lib/constants/academics";
+import { getAvatarUrl } from "@/lib/utils";
 
 interface StudentResult {
   student: {
@@ -338,11 +339,8 @@ export default function ExamResultsPage() {
                       <div className="relative">
                         <img
                           src={
-                            row.student.avatar
-                              ? row.student.avatar.startsWith("http")
-                                ? row.student.avatar
-                                : `${API_BASE}${row.student.avatar}`
-                              : `https://ui-avatars.com/api/?name=${row.student.name}&background=random&color=fff`
+                            getAvatarUrl(row.student.avatar) ||
+                            `https://ui-avatars.com/api/?name=${row.student.name}&background=random&color=fff`
                           }
                           alt={row.student.name}
                           className="w-10 h-10 rounded-xl object-cover border border-white/10 group-hover:border-cyan-500/50 transition-all group-hover:scale-105"

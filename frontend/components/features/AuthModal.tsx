@@ -3,10 +3,9 @@
 
 import React, { useState } from "react";
 import { useAuth, UserRole } from "@/context/AuthContext";
+import { getApiBase } from "@/lib/utils";
 
 type AuthMode = "login" | "register";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -44,7 +43,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setErrorV(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`${getApiBase()}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +92,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         payload.lectureMajority = regLectureMajority;
       }
 
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
+      const res = await fetch(`${getApiBase()}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
