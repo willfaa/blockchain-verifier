@@ -28,7 +28,7 @@ interface VerifyResult {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const BACKEND_URL = `${API_BASE}/api/certificates`;
-const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080/ipfs";
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
 
 export default function VerifyPage() {
   const [certId, setCertId] = useState("");
@@ -91,7 +91,7 @@ export default function VerifyPage() {
     }
   }
 
-  const ipfsUrl = result && result.cid ? `${IPFS_GATEWAY}/${result.cid}` : null;
+  const ipfsUrl = result && result.cid ? `${IPFS_GATEWAY}/ipfs/${result.cid}` : null;
   const downloadName = result?.certId
     ? `${result.certId}.pdf`
     : "certificate.pdf";
