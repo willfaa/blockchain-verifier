@@ -31,10 +31,14 @@ export default function EditProfilePage() {
       setPersonalEmail(user.personalEmail || "");
 
       if (user.avatar) {
-        if (user.avatar.startsWith("http") || user.avatar.startsWith("blob")) {
-          setAvatarPreview(user.avatar);
+        let cleanAvatar = user.avatar;
+        if (cleanAvatar.startsWith("http://localhost:") || cleanAvatar.startsWith("http://127.0.0.1:")) {
+          cleanAvatar = cleanAvatar.replace(/^http:\/\/(localhost|127\.0\.0\.1):\d+/, "");
+        }
+        if (cleanAvatar.startsWith("http") || cleanAvatar.startsWith("blob")) {
+          setAvatarPreview(cleanAvatar);
         } else {
-          setAvatarPreview(`${API_BASE_URL}${user.avatar}`);
+          setAvatarPreview(`${API_BASE_URL}${cleanAvatar}`);
         }
       } else {
         setAvatarPreview(null);

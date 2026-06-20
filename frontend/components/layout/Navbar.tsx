@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { cn, getAvatarUrl } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
@@ -105,11 +106,7 @@ export function Navbar() {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-blue/20 flex items-center justify-center border border-white/10 group-hover:border-neon-purple/40">
                       {user.avatar ? (
                         <img
-                          src={
-                            user.avatar.startsWith("http")
-                              ? user.avatar
-                              : `${API_BASE}${user.avatar}`
-                          }
+                          src={getAvatarUrl(user.avatar)}
                           alt="Avatar"
                           className="w-full h-full object-cover rounded-xl"
                         />
@@ -256,11 +253,7 @@ export function Navbar() {
                         <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden border border-white/10">
                           {user.avatar ? (
                             <img
-                              src={
-                                user.avatar.startsWith("http")
-                                  ? user.avatar
-                                  : `${API_BASE}${user.avatar}`
-                              }
+                              src={getAvatarUrl(user.avatar)}
                               className="w-full h-full object-cover"
                             />
                           ) : (

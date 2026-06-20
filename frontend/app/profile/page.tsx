@@ -15,15 +15,18 @@ export default function ProfilePage() {
   const [errorDebug, setErrorDebug] = useState<string | null>(null);
   const router = useRouter();
 
-  // HELPER: Construct Full Image URL
   const getAvatarUrl = (path: string | null) => {
     if (!path) {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(
         user?.name || "User"
       )}&background=random`;
     }
-    if (path.startsWith("http")) return path; // Already a full URL (e.g. Google Auth)
-    return `${API_BASE_URL}${path}`; // Append Backend Domain
+    let cleanPath = path;
+    if (cleanPath.startsWith("http://localhost:") || cleanPath.startsWith("http://127.0.0.1:")) {
+      cleanPath = cleanPath.replace(/^http:\/\/(localhost|127\.0\.0\.1):\d+/, "");
+    }
+    if (cleanPath.startsWith("http")) return cleanPath; // Already a full URL (e.g. Google Auth)
+    return `${API_BASE_URL}${cleanPath}`; // Append Backend Domain
   };
 
   useEffect(() => {

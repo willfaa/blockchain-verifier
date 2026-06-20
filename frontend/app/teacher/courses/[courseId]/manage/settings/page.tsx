@@ -21,6 +21,7 @@ import {
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
+import { getAssetUrl } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -312,9 +313,7 @@ export default function CourseSettingsPage() {
                     src={
                       previewUrl.startsWith("blob:")
                         ? previewUrl
-                        : previewUrl.startsWith("http")
-                        ? previewUrl
-                        : `${API_BASE}${previewUrl}`
+                        : getAssetUrl(previewUrl)
                     }
                     alt="Preview"
                     className="w-full h-full object-cover opacity-40 group-hover:opacity-80 transition-all duration-500 group-hover:scale-110"

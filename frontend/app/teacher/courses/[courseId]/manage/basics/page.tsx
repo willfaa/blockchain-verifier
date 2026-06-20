@@ -15,6 +15,7 @@ import RichTextEditor from "@/components/features/RichTextEditor";
 import { useParams } from "next/navigation";
 import { ACADEMIC_DATA, MAJORITIES } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
+import { getAssetUrl } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
@@ -64,11 +65,7 @@ export default function CourseBasicsPage() {
         }
 
         if (course.imageUrl) {
-          setPreviewImage(
-            course.imageUrl.startsWith("http")
-              ? course.imageUrl
-              : `${API_BASE}${course.imageUrl}`
-          );
+          setPreviewImage(getAssetUrl(course.imageUrl));
         }
       }
     } catch (err) {

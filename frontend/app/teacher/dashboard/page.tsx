@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { stripHtml } from "@/lib/utils";
+import { stripHtml, getAssetUrl } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, BookOpen, Clock } from "lucide-react";
 
@@ -112,11 +112,7 @@ export default function Dashboard() {
                 <div className="aspect-[16/10] w-full bg-slate-900/50 relative overflow-hidden">
                   {course.imageUrl || course.thumbnail ? (
                     <img
-                      src={
-                        (course.imageUrl || course.thumbnail).startsWith("http")
-                          ? course.imageUrl || course.thumbnail
-                          : `${API_BASE}${course.imageUrl || course.thumbnail}`
-                      }
+                      src={getAssetUrl(course.imageUrl || course.thumbnail)}
                       alt={course.title}
                       className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                     />

@@ -7,21 +7,13 @@ import CyberpunkDataTable from "@/components/ui/CyberpunkDataTable";
 import CyberpunkFilterBar from "@/components/ui/CyberpunkFilterBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserCheck, ShieldCheck, Mail, BookOpen } from "lucide-react";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function TeacherListPage() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper local untuk memastikan URL avatar benar (seperti di ExamResultsPage)
-  // Helper local untuk memastikan URL avatar benar
-  const getAvatarUrl = (path: string | null | undefined) => {
-    // Return empty to allow AvatarFallback to render if no image
-    if (!path || path === "null" || path === "undefined") return "";
-    if (path.startsWith("http")) return path;
-    const normalized = path.startsWith("/") ? path : `/${path}`;
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    return `${baseUrl}${normalized}`;
-  };
+  // Helper resolved dynamically via global getAvatarUrl
 
   // Filter State
   const [search, setSearch] = useState("");

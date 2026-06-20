@@ -25,6 +25,7 @@ import {
 
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { getAssetUrl } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
@@ -92,9 +93,7 @@ export default function ManageCourseLayout({
                 <img
                   src={
                     course.imageUrl || course.thumbnail
-                      ? (course.imageUrl || course.thumbnail).startsWith("http")
-                        ? course.imageUrl || course.thumbnail
-                        : `${API_BASE}${course.imageUrl || course.thumbnail}`
+                      ? getAssetUrl(course.imageUrl || course.thumbnail)
                       : "/course/placeholder.svg"
                   }
                   alt="Thumbnail"
@@ -214,13 +213,7 @@ export default function ManageCourseLayout({
                       <img
                         src={
                           course.imageUrl || course.thumbnail
-                            ? (course.imageUrl || course.thumbnail).startsWith(
-                                "http"
-                              )
-                              ? course.imageUrl || course.thumbnail
-                              : `${API_BASE}${
-                                  course.imageUrl || course.thumbnail
-                                }`
+                            ? getAssetUrl(course.imageUrl || course.thumbnail)
                             : "/course/placeholder.svg"
                         }
                         alt="Thumb"

@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
 import CourseCard from "@/components/features/CourseCard";
 import { BookOpen, Loader2 } from "lucide-react";
+import { getAssetUrl } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
@@ -79,9 +80,7 @@ export default function CoursesPage() {
                   category={course.category || "General"}
                   image={
                     course.imageUrl || course.thumbnail
-                      ? (course.imageUrl || course.thumbnail).startsWith("http")
-                        ? course.imageUrl || course.thumbnail
-                        : `${API_BASE}${course.imageUrl || course.thumbnail}`
+                      ? getAssetUrl(course.imageUrl || course.thumbnail)
                       : ""
                   }
                   teacherName={course.teacher?.name}
