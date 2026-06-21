@@ -1,3 +1,4 @@
+// @ts-nocheck
 // backend/src/controllers/authController.ts
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";

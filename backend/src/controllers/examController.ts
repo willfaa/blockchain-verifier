@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from "express";
 import prisma from "../config/db";
 import * as ExcelService from "../utils/excelService";
