@@ -51,9 +51,16 @@ app.use((req, res, next) => {
 });
 
 // --- STATIC FILE SERVING ---
-const uploadsPath = path.join(process.cwd(), "uploads");
+const uploadsPath = process.env.VERCEL
+  ? path.join("/tmp", "uploads")
+  : path.join(process.cwd(), "uploads");
+
 const ensureDir = (dir: string) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch (err: any) {
+    console.warn(`[Warning] Failed to create directory ${dir}:`, err.message);
+  }
 };
 ensureDir(uploadsPath);
 ensureDir(path.join(uploadsPath, "avatars"));
