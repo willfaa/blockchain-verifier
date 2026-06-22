@@ -21,6 +21,16 @@ const normalizeLocalPath = (urlPath: string) => {
 };
 
 export const getApiBase = () => {
+  // Always use local API URL in development mode
+  if (process.env.NODE_ENV === "development") {
+    const base = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      // Replace localhost/127.0.0.1 with the active local IP address so it works on mobile devices testing locally
+      return base.replace("localhost", window.location.hostname).replace("127.0.0.1", window.location.hostname);
+    }
+    return base;
+  }
+
   if (typeof window !== "undefined") {
     if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       return `${window.location.origin}/_/backend`;
