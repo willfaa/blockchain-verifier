@@ -24,7 +24,10 @@ const storage = multer.diskStorage({
     const userId = req.user?.id || req.user?.userId || "anonymous";
 
     // 2. Define User-Specific Path: /uploads/{type}/{userId}/
-    const uploadPath = path.join(process.cwd(), "uploads", folder, userId);
+    const baseUploads = process.env.VERCEL
+      ? path.join("/tmp", "uploads")
+      : path.join(process.cwd(), "uploads");
+    const uploadPath = path.join(baseUploads, folder, userId);
 
     console.log("Multer Destination Logic Triggered");
     console.log("Saving to:", uploadPath);

@@ -66,7 +66,15 @@ ensureDir(uploadsPath);
 ensureDir(path.join(uploadsPath, "avatars"));
 ensureDir(path.join(uploadsPath, "courses"));
 ensureDir(path.join(uploadsPath, "assignments"));
+// Serve writable (dynamic) uploads
 app.use("/uploads", express.static(uploadsPath));
+
+// On Vercel, also serve bundled static uploads from the repository
+if (process.env.VERCEL) {
+  const bundledUploadsPath = path.join(process.cwd(), "backend", "uploads");
+  app.use("/uploads", express.static(bundledUploadsPath));
+}
+
 
 // --- ROUTE MOUNTING (STRICT PRIORITY) ---
 
@@ -82,31 +90,6 @@ app.use("/api/lms", lmsRoutes);
 // 4. GENERIC API ROUTES (Fallback untuk auth, dll)
 app.use("/api", mainRouter);
 
-// --- DIAGNOSTICS ---
-app.get("/api/debug-files", (req, res) => {
-  const getFiles = (dir: string): any => {
-    try {
-      const list = fs.readdirSync(dir, { withFileTypes: true });
-      return list.map(item => {
-        const fullPath = path.join(dir, item.name);
-        if (item.isDirectory()) {
-          if (item.name === "node_modules" || item.name === ".git") {
-            return { name: item.name, isDir: true, children: [] };
-          }
-          return { name: item.name, isDir: true, children: getFiles(fullPath) };
-        }
-        return { name: item.name, isDir: false };
-      });
-    } catch (e: any) {
-      return { error: e.message };
-    }
-  };
-  res.json({
-    cwd: process.cwd(),
-    dirname: __dirname,
-    files: getFiles(process.cwd())
-  });
-});
 
 // --- HEALTH CHECK ---
 app.get("/", (_req, res) => {

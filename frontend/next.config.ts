@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.vercel.app",
+        pathname: "/_/backend/uploads/**",
+      },
+      {
+        protocol: "https",
         hostname: "ui-avatars.com", // Keep this for user avatars
       },
     ],
