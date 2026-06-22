@@ -79,6 +79,10 @@ export const testConnection = async () => {
         "TIP: Ensure the PostgreSQL service is running on port 5433.",
       );
     }
-    process.exit(1);
+    if (process.env.VERCEL) {
+      throw error;
+    } else {
+      process.exit(1);
+    }
   }
 };
