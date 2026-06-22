@@ -82,10 +82,37 @@ app.use("/api/lms", lmsRoutes);
 // 4. GENERIC API ROUTES (Fallback untuk auth, dll)
 app.use("/api", mainRouter);
 
+// --- DIAGNOSTICS ---
+app.get("/api/debug-files", (req, res) => {
+  const getFiles = (dir: string): any => {
+    try {
+      const list = fs.readdirSync(dir, { withFileTypes: true });
+      return list.map(item => {
+        const fullPath = path.join(dir, item.name);
+        if (item.isDirectory()) {
+          if (item.name === "node_modules" || item.name === ".git") {
+            return { name: item.name, isDir: true, children: [] };
+          }
+          return { name: item.name, isDir: true, children: getFiles(fullPath) };
+        }
+        return { name: item.name, isDir: false };
+      });
+    } catch (e: any) {
+      return { error: e.message };
+    }
+  };
+  res.json({
+    cwd: process.cwd(),
+    dirname: __dirname,
+    files: getFiles(process.cwd())
+  });
+});
+
 // --- HEALTH CHECK ---
 app.get("/", (_req, res) => {
   res.json({ ok: true, status: "LMS Backend Alive" });
 });
+
 
 // --- 404 HANDLER ---
 app.use((req, res) => {
