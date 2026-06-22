@@ -103,7 +103,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/issuer"
+                href="/courses"
                 className="rounded-lg bg-linear-to-r from-blue-500 via-cyan-400 to-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:-translate-y-0.5 hover:shadow-cyan-500/35"
               >
                 Get Started

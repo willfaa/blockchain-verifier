@@ -55,22 +55,25 @@ export const testConnection = async () => {
     // Lightweight ping
     await db.$queryRaw`SELECT 1`;
 
-    // Embedded Auto-Migration (Hardening)
-    // This ensures missing columns exist regardless of Prisma sync state
-    const hardeningQueries = [
-      "ALTER TABLE users ADD COLUMN IF NOT EXISTS faculty TEXT;",
-      "ALTER TABLE users ADD COLUMN IF NOT EXISTS majority TEXT;",
-      'ALTER TABLE users ADD COLUMN IF NOT EXISTS "studyProgram" TEXT;',
-      "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS duration INTEGER;",
-      'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "startedAt" TIMESTAMP;',
-      'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "submittedAt" TIMESTAMP;',
-    ];
+    if (!process.env.VERCEL) {
+      // Embedded Auto-Migration (Hardening)
+      // This ensures missing columns exist regardless of Prisma sync state
+      const hardeningQueries = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS faculty TEXT;",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS majority TEXT;",
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS "studyProgram" TEXT;',
+        "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS duration INTEGER;",
+        'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "startedAt" TIMESTAMP;',
+        'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "submittedAt" TIMESTAMP;',
+      ];
 
-    for (const sql of hardeningQueries) {
-      await db.$executeRawUnsafe(sql);
+      for (const sql of hardeningQueries) {
+        await db.$executeRawUnsafe(sql);
+      }
+      console.log("✅ PostgreSQL Connected & Schema Hardened Successfully");
+    } else {
+      console.log("✅ PostgreSQL Connected (Hardening skipped on Vercel)");
     }
-
-    console.log("✅ PostgreSQL Connected & Schema Hardened Successfully");
   } catch (error: any) {
     console.error("❌ Database Connection Failed:", error.message);
     // Log helpful recovery tips
