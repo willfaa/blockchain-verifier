@@ -21,7 +21,11 @@ const getDatabaseUrl = () => {
 };
 
 const connectionString = getDatabaseUrl();
-const pool = new Pool({ connectionString });
+const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1") || connectionString.includes("5433");
+const pool = new Pool({ 
+  connectionString,
+  ssl: isLocal ? false : { rejectUnauthorized: false }
+});
 
 // 2. Create the Prisma Adapter
 const adapter = new PrismaPg(pool);
