@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { verifyToken } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
 import { db } from "../config/db";
+import { uploadFileToSupabase } from "../utils/supabaseStorage";
 import fs from "fs";
 import path from "path";
 
@@ -95,7 +96,25 @@ router.put(
 
         // Path matches: uploads/avatars/{userId}/{filename}
         const subfolder = "avatars";
-        updateData.avatar = `/uploads/${subfolder}/${userId}/${req.file.filename}`;
+        const localPath = req.file.path;
+        const remotePath = `${subfolder}/${userId}/${req.file.filename}`;
+
+        try {
+          const publicUrl = await uploadFileToSupabase(
+            localPath,
+            "lms",
+            remotePath,
+            req.file.mimetype
+          );
+          if (publicUrl) {
+            updateData.avatar = publicUrl;
+          } else {
+            updateData.avatar = `/uploads/${subfolder}/${userId}/${req.file.filename}`;
+          }
+        } catch (supabaseErr: any) {
+          console.error("[UserRouter] Supabase upload failed, falling back to local:", supabaseErr.message);
+          updateData.avatar = `/uploads/${subfolder}/${userId}/${req.file.filename}`;
+        }
       }
 
       // 3. Guard: If nothing to update

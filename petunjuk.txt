@@ -14,7 +14,7 @@ B. Hapus container & volume usang / legacy:
    docker rm -f ca_orderer ca_org1 ca_org2 peer0.org1.example.com peer0.org2.example.com orderer.example.com
    docker volume prune -f
 
-C. Bersihkan sisa sertifikat lama di folder network:
+C. Bersihkan sisa sertifikat lama di folder network (WSL):
    cd ~/fabric-samples/test-network
    ./network.sh down
    # Hapus manual jika masih tersisa:
@@ -74,8 +74,40 @@ B. Sinkronisasi Wallet (Jalankan di Windows CMD/PowerShell agar bisa membaca Pos
    npx ts-node src/fabric/scripts/syncWallet.ts
 
 -----------------------------------------------------------------------------
-6. PENANGANAN MASALAH PORT BLOCKED (Windows CMD Admin)
+6. PENANGANAN MASALAH PORT & CONTAINER CRASH / PAUSED / STOPPED
 -----------------------------------------------------------------------------
-Jika port backend (8081 / 4000) terpakai atau crash:
-   netstat -ano | findstr :8081
-   taskkill /PID <PID_BARIS_PALING_KANAN> /F
+
+A. Port 8081 Terpakai (Konflik IPFS vs Apache httpd.exe)
+   - Masalah: IPFS error bind port 8081 karena dipakai `httpd.exe` (Apache) bawaan system.
+   - Solusi: IPFS Gateway dipindahkan ke port 8082.
+     1. Ubah file konfigurasi IPFS di Windows (C:\Users\willfaa\.ipfs\config) pada bagian Gateway:
+        "Gateway": "/ip4/127.0.0.1/tcp/8082"
+     2. Edit file .env di backend:
+        IPFS_GATEWAY=http://127.0.0.1:8082
+     3. Jalankan ulang daemon IPFS.
+
+B. Container Docker Terjeda (Paused)
+   - Gejala: Transaksi blockchain gantung (timeout) dan console dashboard menunjukkan offline.
+   - Solusi (Jalankan di WSL atau CMD):
+     docker unpause $(docker ps -aq -f status=paused)
+
+C. Container Docker Mati (Exited / Stopped)
+   - Gejala: Error saat backend melakukan query ke channel/peer.
+   - Solusi: Nyalakan ulang semua container yang mati tanpa restart network total:
+     docker start $(docker ps -aq -f status=exited)
+   - Jika masih gagal, lakukan down-up bersih:
+     cd ~/fabric-samples/test-network && ./network.sh down && ./network.sh up createChannel -c mychannel -ca
+
+D. Daemon Docker Tidak Terdeteksi di WSL
+   - Gejala: `Cannot connect to the Docker daemon...`
+   - Solusi:
+     1. Pastikan Docker Desktop di Windows sudah berjalan.
+     2. Jika hang/macet, jalankan perintah reset di Windows PowerShell:
+        wsl --shutdown
+     3. Buka kembali Docker Desktop dan terminal WSL Anda.
+
+E. Pembersihan Port Terkunci (Windows PowerShell Admin)
+   - Cek PID yang memakai port backend (4000) atau HLF (7051):
+     netstat -ano | findstr :4000
+   - Matikan proses paksa:
+     taskkill /PID <PID_PROSES> /F

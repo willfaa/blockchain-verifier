@@ -2,6 +2,7 @@ import { createCanvas, loadImage } from "canvas";
 import path from "path";
 import * as QRCode from "qrcode";
 import fs from "fs";
+import axios from "axios";
 import { db } from "../config/db";
 
 export interface CertData {
@@ -113,14 +114,30 @@ export const generateCertificateImage = async (
   const centerX = width / 2;
 
   // --- 1. DRAW BACKGROUND (CUSTOM OR DEFAULT) ---
-  if (data.customTemplatePath && fs.existsSync(data.customTemplatePath)) {
+  let customImg = null;
+  if (data.customTemplatePath) {
     try {
-      const customImg = await loadImage(data.customTemplatePath);
-      ctx.drawImage(customImg, 0, 0, width, height);
-    } catch (err) {
-      console.warn("⚠️ Failed to load custom template, using dynamic fallback", err);
-      drawDefaultBackground(ctx, width, height, isVertical);
+      if (
+        data.customTemplatePath.startsWith("http://") ||
+        data.customTemplatePath.startsWith("https://")
+      ) {
+        console.log(`[imageGenerator] Fetching remote template image: ${data.customTemplatePath}`);
+        const response = await axios.get(data.customTemplatePath, {
+          responseType: "arraybuffer",
+          timeout: 10000,
+        });
+        const buffer = Buffer.from(response.data);
+        customImg = await loadImage(buffer);
+      } else if (fs.existsSync(data.customTemplatePath)) {
+        customImg = await loadImage(data.customTemplatePath);
+      }
+    } catch (err: any) {
+      console.warn("⚠️ Failed to load custom template:", err.message);
     }
+  }
+
+  if (customImg) {
+    ctx.drawImage(customImg, 0, 0, width, height);
   } else {
     drawDefaultBackground(ctx, width, height, isVertical);
   }

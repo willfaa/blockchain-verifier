@@ -6,6 +6,7 @@ import path from "path";
 import * as ExcelService from "../utils/excelService";
 import { randomUUID } from "crypto";
 import { uploadToIpfs } from "../utils/ipfs";
+import { uploadFileToSupabase } from "../utils/supabaseStorage";
 
 /**
  * LMS Controller - SOLID Implementation
@@ -32,10 +33,34 @@ export const createCourse = async (req: Request, res: Response) => {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     if (files) {
       if (files["thumbnail"] && files["thumbnail"][0]) {
-        imageUrl = `/uploads/courses/${userId}/${files["thumbnail"][0].filename}`;
+        const file = files["thumbnail"][0];
+        try {
+          const publicUrl = await uploadFileToSupabase(
+            file.path,
+            "lms",
+            `courses/${userId}/${file.filename}`,
+            file.mimetype
+          );
+          imageUrl = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+        } catch (err: any) {
+          console.error("[LMS] Thumbnail Supabase upload failed:", err.message);
+          imageUrl = `/uploads/courses/${userId}/${file.filename}`;
+        }
       }
       if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
-        certificateTemplate = `/uploads/courses/${userId}/${files["certificateTemplate"][0].filename}`;
+        const file = files["certificateTemplate"][0];
+        try {
+          const publicUrl = await uploadFileToSupabase(
+            file.path,
+            "lms",
+            `courses/${userId}/${file.filename}`,
+            file.mimetype
+          );
+          certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+        } catch (err: any) {
+          console.error("[LMS] Template Supabase upload failed:", err.message);
+          certificateTemplate = `/uploads/courses/${userId}/${file.filename}`;
+        }
       }
     }
 
@@ -89,18 +114,44 @@ export const updateCourse = async (req: Request, res: Response) => {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     if (files) {
       if (files["thumbnail"] && files["thumbnail"][0]) {
-        if (existingCourse.imageUrl) {
+        const file = files["thumbnail"][0];
+        // Clean up old local image if any
+        if (existingCourse.imageUrl && !existingCourse.imageUrl.startsWith("http")) {
           const oldPath = path.join(process.cwd(), existingCourse.imageUrl);
           if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
         }
-        updateData.imageUrl = `/uploads/courses/${userId}/${files["thumbnail"][0].filename}`;
+        try {
+          const publicUrl = await uploadFileToSupabase(
+            file.path,
+            "lms",
+            `courses/${userId}/${file.filename}`,
+            file.mimetype
+          );
+          updateData.imageUrl = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+        } catch (err: any) {
+          console.error("[LMS] Thumbnail Supabase upload failed:", err.message);
+          updateData.imageUrl = `/uploads/courses/${userId}/${file.filename}`;
+        }
       }
       if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
-        if (existingCourse.certificateTemplate) {
+        const file = files["certificateTemplate"][0];
+        // Clean up old local template if any
+        if (existingCourse.certificateTemplate && !existingCourse.certificateTemplate.startsWith("http")) {
           const oldPath = path.join(process.cwd(), existingCourse.certificateTemplate);
           if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
         }
-        updateData.certificateTemplate = `/uploads/courses/${userId}/${files["certificateTemplate"][0].filename}`;
+        try {
+          const publicUrl = await uploadFileToSupabase(
+            file.path,
+            "lms",
+            `courses/${userId}/${file.filename}`,
+            file.mimetype
+          );
+          updateData.certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+        } catch (err: any) {
+          console.error("[LMS] Template Supabase upload failed:", err.message);
+          updateData.certificateTemplate = `/uploads/courses/${userId}/${file.filename}`;
+        }
       }
     }
 
