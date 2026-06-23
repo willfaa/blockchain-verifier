@@ -30,6 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function ManageExamPage() {
   const params = useParams();
@@ -510,115 +517,107 @@ export default function ManageExamPage() {
       </div>
 
       {/* MANUAL ENTRY MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#0b0724]/90 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-[#0b0c24] border border-white/10 w-full max-w-2xl rounded-3xl shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-600"></div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-[#0b0c24] border border-white/10 w-full max-w-2xl rounded-3xl shadow-2xl relative overflow-hidden p-0 max-h-[90vh] flex flex-col">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-600"></div>
 
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
-                    New Question
-                  </h2>
-                  <p className="text-slate-500 text-[9px] font-mono uppercase tracking-widest mt-1">
-                    Direct Question Entry
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-white/30 hover:text-white transition-colors"
-                >
-                  <XCircle size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar font-mono">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-1">
-                    Question Text
-                  </label>
-                  <textarea
-                    autoFocus
-                    value={newQuestion.text}
-                    onChange={(e) =>
-                      setNewQuestion({ ...newQuestion, text: e.target.value })
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white focus:border-cyan-500/50 outline-none min-h-[120px] transition-all"
-                    placeholder="Enter the exam question here..."
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-1">
-                    Answers
-                  </label>
-                  {newQuestion.options.map((opt, idx) => (
-                    <div
-                      key={idx}
-                      className="group flex items-center gap-4 p-2 pl-4 bg-white/[0.02] border border-white/5 rounded-2xl transition-all hover:bg-white/[0.04]"
-                    >
-                      <div className="relative flex items-center">
-                        <input
-                          type="radio"
-                          name="correctIndex"
-                          checked={newQuestion.correctIndex === idx}
-                          onChange={() =>
-                            setNewQuestion({
-                              ...newQuestion,
-                              correctIndex: idx,
-                            })
-                          }
-                          className="w-5 h-5 bg-black border-2 border-white/10 rounded-full checked:bg-cyan-500 checked:border-cyan-500 transition-all cursor-pointer appearance-none"
-                        />
-                        {newQuestion.correctIndex === idx && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-black">
-                            <CheckCircle size={10} />
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                          const newOpts = [...newQuestion.options];
-                          newOpts[idx] = e.target.value;
-                          setNewQuestion({ ...newQuestion, options: newOpts });
-                        }}
-                        className="flex-1 bg-transparent border-none text-white text-sm outline-none placeholder:text-white/10"
-                        placeholder={`Option ${String.fromCharCode(
-                          65 + idx
-                        )}...`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-10 flex justify-end gap-4 pt-6 border-t border-white/5">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-3 text-slate-500 hover:text-white font-black uppercase text-[10px] tracking-widest transition-all"
-                >
-                  [ Cancel ]
-                </button>
-                <button
-                  onClick={handleAddQuestion}
-                  disabled={savingQuestion}
-                  className="px-8 py-3 bg-linear-to-r from-cyan-500 to-blue-600 hover:brightness-125 text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50 flex items-center gap-2"
-                >
-                  {savingQuestion ? (
-                    <CyberpunkLoader className="py-0" text="" />
-                  ) : (
-                    <Save size={16} />
-                  )}
-                  Save Question
-                </button>
+          <div className="p-8 flex flex-col h-full overflow-hidden">
+            <div className="flex items-center justify-between mb-8 shrink-0">
+              <div>
+                <DialogTitle className="text-2xl font-black text-white uppercase tracking-tighter">
+                  New Question
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 text-[9px] font-mono uppercase tracking-widest mt-1">
+                  Direct Question Entry
+                </DialogDescription>
               </div>
             </div>
+
+            <div className="space-y-6 overflow-y-auto pr-4 custom-scrollbar font-mono flex-1">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-1">
+                  Question Text
+                </label>
+                <textarea
+                  autoFocus
+                  value={newQuestion.text}
+                  onChange={(e) =>
+                    setNewQuestion({ ...newQuestion, text: e.target.value })
+                  }
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white focus:border-cyan-500/50 outline-none min-h-[120px] transition-all"
+                  placeholder="Enter the exam question here..."
+                />
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-1">
+                  Answers
+                </label>
+                {newQuestion.options.map((opt, idx) => (
+                  <div
+                    key={idx}
+                    className="group flex items-center gap-4 p-2 pl-4 bg-white/[0.02] border border-white/5 rounded-2xl transition-all hover:bg-white/[0.04]"
+                  >
+                    <div className="relative flex items-center">
+                      <input
+                        type="radio"
+                        name="correctIndex"
+                        checked={newQuestion.correctIndex === idx}
+                        onChange={() =>
+                          setNewQuestion({
+                            ...newQuestion,
+                            correctIndex: idx,
+                          })
+                        }
+                        className="w-5 h-5 bg-black border-2 border-white/10 rounded-full checked:bg-cyan-500 checked:border-cyan-500 transition-all cursor-pointer appearance-none"
+                      />
+                      {newQuestion.correctIndex === idx && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-black">
+                          <CheckCircle size={10} />
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => {
+                        const newOpts = [...newQuestion.options];
+                        newOpts[idx] = e.target.value;
+                        setNewQuestion({ ...newQuestion, options: newOpts });
+                      }}
+                      className="flex-1 bg-transparent border-none text-white text-sm outline-none placeholder:text-white/10"
+                      placeholder={`Option ${String.fromCharCode(
+                        65 + idx
+                      )}...`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-10 flex justify-end gap-4 pt-6 border-t border-white/5 shrink-0">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-6 py-3 text-slate-500 hover:text-white font-black uppercase text-[10px] tracking-widest transition-all"
+              >
+                [ Cancel ]
+              </button>
+              <button
+                onClick={handleAddQuestion}
+                disabled={savingQuestion}
+                className="px-8 py-3 bg-linear-to-r from-cyan-500 to-blue-600 hover:brightness-125 text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {savingQuestion ? (
+                  <CyberpunkLoader className="py-0" text="" />
+                ) : (
+                  <Save size={16} />
+                )}
+                Save Question
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* PURGE CONFIRMATION */}
       <AlertDialog
