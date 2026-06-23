@@ -51,7 +51,10 @@ router.post(
   "/courses",
   verifyToken,
   verifyTeacher,
-  upload.single("thumbnail"),
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "certificateTemplate", maxCount: 1 },
+  ]),
   lmsController.createCourse
 );
 
@@ -59,7 +62,10 @@ router.put(
   "/courses/:courseId",
   verifyToken,
   verifyTeacher,
-  upload.single("thumbnail"),
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "certificateTemplate", maxCount: 1 },
+  ]),
   lmsController.updateCourse
 );
 
@@ -304,6 +310,20 @@ router.put(
   verifyToken,
   verifyTeacher,
   lmsController.gradeSubmission
+);
+
+// Certificate Visual Guides & Previews
+router.get(
+  "/templates/guide/:orientation",
+  verifyToken,
+  lmsController.getCertificateGuide
+);
+
+router.get(
+  "/courses/:courseId/certificate-preview",
+  verifyToken,
+  verifyTeacher,
+  lmsController.getCourseCertificatePreview
 );
 
 export default router;

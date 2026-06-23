@@ -1,5 +1,5 @@
 //frontend/components/student/CertificateClaimCard.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Award, Lock, Download, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,6 +25,21 @@ export default function CertificateClaimCard({
   onClaimSuccess,
 }: CertificateClaimCardProps) {
   const [loading, setLoading] = useState(false);
+  const [blockchainOnline, setBlockchainOnline] = useState(true);
+
+  // Poll system status on mount
+  useEffect(() => {
+    api.get("/system/status")
+      .then((res) => {
+        if (res.data && res.data.blockchainOnline !== undefined) {
+          setBlockchainOnline(res.data.blockchainOnline);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to fetch system status:", err);
+        setBlockchainOnline(false); // Fallback to offline on error
+      });
+  }, []);
 
   const handleClaim = async () => {
     try {
@@ -54,12 +69,10 @@ export default function CertificateClaimCard({
     return (
       <Card className="p-4 bg-gradient-to-br from-green-900/40 to-emerald-900/10 border-emerald-500/30 relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('/assets/noise.png')] opacity-20 pointer-events-none" />
-        {/* Adjusted background icon to not be cut off and less intrusive */}
         <div className="absolute -top-2 -right-2 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <Award size={80} className="text-emerald-400 rotate-12" />
         </div>
 
-        {/* Changed to flex-col to be safe in sidebars */}
         <div className="relative z-10 flex flex-col gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -97,7 +110,6 @@ export default function CertificateClaimCard({
         <div className="bg-[#0b0c24] rounded-lg p-4 h-full relative z-10">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              {/* Smaller Icon Container */}
               <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-amber-500/20 to-orange-500/5 rounded-full border border-orange-500/20 shrink-0">
                 <Award className="text-amber-400 animate-pulse" size={24} />
               </div>
@@ -115,29 +127,46 @@ export default function CertificateClaimCard({
               </div>
             </div>
 
-            <Button
-              onClick={handleClaim}
-              disabled={loading}
-              size="sm"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold border-0 shadow-lg shadow-orange-500/20 transition-all transform hover:scale-105 active:scale-95"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Minting...
-                </>
-              ) : (
-                <>
-                  <Award className="mr-2 h-3.5 w-3.5" />
-                  Claim Now
-                </>
-              )}
-            </Button>
+            {!blockchainOnline ? (
+              <div className="space-y-2">
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2">
+                  <Lock size={12} />
+                  Blockchain Network Offline
+                </div>
+                <Button
+                  disabled
+                  size="sm"
+                  className="w-full bg-slate-800 text-slate-500 font-bold border border-white/5 cursor-not-allowed uppercase tracking-wider text-[10px] h-9"
+                >
+                  Claim Disabled
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={handleClaim}
+                disabled={loading}
+                size="sm"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold border-0 shadow-lg shadow-orange-500/20 transition-all transform hover:scale-105 active:scale-95"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Minting...
+                  </>
+                ) : (
+                  <>
+                    <Award className="mr-2 h-3.5 w-3.5" />
+                    Claim Now
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Shine Animation */}
-        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_2s_infinite] pointer-events-none z-20"></div>
+        {blockchainOnline && (
+          <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_2s_infinite] pointer-events-none z-20"></div>
+        )}
       </Card>
     );
   }
@@ -164,7 +193,7 @@ export default function CertificateClaimCard({
           disabled
           variant="outline"
           size="sm"
-          className="w-full border-white/10 text-slate-500 h-8 text-xs"
+          className="w-full border-white/10 text-slate-500 h-8 text-xs font-bold uppercase tracking-wider"
         >
           Locked
         </Button>

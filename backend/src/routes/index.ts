@@ -17,9 +17,30 @@ const certController = new CertificateController();
 // Gabungkan disini dengan prefix yang rapi
 router.use("/auth", authRoutes);
 
+// Public System Status Check (for health indicator)
+router.get("/system/status", async (req, res) => {
+  let isFabricOnline = false;
+  if (process.env.FABRIC_ENABLED === "true") {
+    try {
+      const { checkFabricReady } = require("../fabric/client");
+      await checkFabricReady("admin", "admin");
+      isFabricOnline = true;
+    } catch (e) {
+      // offline
+    }
+  }
+  return res.json({
+    ok: true,
+    blockchainOnline: isFabricOnline,
+  });
+});
+
 // Secured Certificate Routes
 router.get("/certificates/my-certificates", verifyToken, (req, res) =>
   certController.getMyCertificates(req, res)
+);
+router.get("/certificates/:id/pdf", (req, res) =>
+  certController.downloadCertificatePdf(req, res)
 );
 router.get("/certificates/:id", (req, res) =>
   certController.getCertificate(req, res)

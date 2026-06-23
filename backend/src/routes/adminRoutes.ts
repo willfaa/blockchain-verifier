@@ -11,6 +11,8 @@ import {
   unbanUser,
   deleteUser,
   bulkCreateUsers,
+  getSystemSettings,
+  updateSystemSettings,
 } from "../controllers/adminController";
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware";
 
@@ -25,6 +27,15 @@ router.use(verifyAdmin);
  * Endpoint: GET /api/admin/stats
  */
 router.get("/stats", getDashboardStats);
+
+/**
+ * SYSTEM SETTINGS
+ * Endpoints:
+ * GET /api/admin/settings
+ * POST /api/admin/settings
+ */
+router.get("/settings", getSystemSettings);
+router.post("/settings", updateSystemSettings);
 
 /**
  * USER MANAGEMENT

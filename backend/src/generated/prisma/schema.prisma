@@ -64,9 +64,10 @@ model Course {
   category   Category? @relation(fields: [categoryId], references: [id])
 
   // Added missing fields
-  studyProgram    String?
-  targetAudience  String?
-  allowedPrograms Json? // Using Json for array of strings compatibility
+  studyProgram        String?
+  targetAudience      String?
+  allowedPrograms     Json? // Using Json for array of strings compatibility
+  certificateTemplate String? // Path to custom certificate background image
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -262,4 +263,11 @@ model ExamResult {
   // answers    Json? 
 
   @@map("exam_results")
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+
+  @@map("system_settings")
 }

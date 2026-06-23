@@ -157,6 +157,7 @@ exports.Prisma.CourseScalarFieldEnum = {
   studyProgram: 'studyProgram',
   targetAudience: 'targetAudience',
   allowedPrograms: 'allowedPrograms',
+  certificateTemplate: 'certificateTemplate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -272,6 +273,11 @@ exports.Prisma.ExamResultScalarFieldEnum = {
   finishedAt: 'finishedAt'
 };
 
+exports.Prisma.SystemSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -319,7 +325,8 @@ exports.Prisma.ModelName = {
   Exam: 'Exam',
   Enrollment: 'Enrollment',
   Certificate: 'Certificate',
-  ExamResult: 'ExamResult'
+  ExamResult: 'ExamResult',
+  SystemSetting: 'SystemSetting'
 };
 
 /**

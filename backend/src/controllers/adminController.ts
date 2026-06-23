@@ -49,6 +49,40 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       }),
     ]);
 
+    // Perform live health checks
+    const axios = require("axios");
+    
+    // Check DB
+    let isDbOnline = false;
+    try {
+      await db.$queryRaw`SELECT 1`;
+      isDbOnline = true;
+    } catch (e: any) {
+      console.warn("DB Health check failed:", e.message);
+    }
+
+    // Check IPFS
+    let isIpfsOnline = false;
+    const ipfsApi = process.env.IPFS_API || "http://127.0.0.1:5001";
+    try {
+      const ipfsRes = await axios.get(`${ipfsApi}/api/v0/version`, { timeout: 1000 });
+      isIpfsOnline = ipfsRes.status === 200;
+    } catch (e) {
+      // Offline
+    }
+
+    // Check Fabric
+    let isFabricOnline = false;
+    if (process.env.FABRIC_ENABLED === "true") {
+      try {
+        const { checkFabricReady } = require("../fabric/client");
+        await checkFabricReady("admin", "admin");
+        isFabricOnline = true;
+      } catch (e) {
+        // Offline
+      }
+    }
+
     return safeResponse(res, 200, {
       ok: true,
       stats: {
@@ -63,6 +97,13 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         ipfsGateway: process.env.IPFS_GATEWAY || "http://127.0.0.1:8081",
         fabricEnabled: process.env.FABRIC_ENABLED === "true",
         uptime: Math.floor(process.uptime()),
+        health: {
+          database: isDbOnline ? "ONLINE" : "OFFLINE",
+          ipfs: isIpfsOnline ? "ONLINE" : "OFFLINE",
+          blockchain: isFabricOnline ? "ONLINE" : "OFFLINE",
+          backend: "ONLINE",
+          frontend: "ONLINE"
+        }
       },
       recentActivity,
     });
@@ -363,5 +404,48 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
     return safeResponse(res, 200, { ok: true, results });
   } catch (error: any) {
     return safeResponse(res, 500, { error: "Bulk import failed" });
+  }
+};
+
+export const getSystemSettings = async (req: Request, res: Response) => {
+  try {
+    const layoutSetting = await db.systemSetting.findUnique({
+      where: { key: "certificate_layout" },
+    });
+    return safeResponse(res, 200, {
+      ok: true,
+      settings: {
+        certificateLayout: layoutSetting?.value || "HORIZONTAL",
+      },
+    });
+  } catch (error: any) {
+    console.error("[GetSystemSettings Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to fetch settings" });
+  }
+};
+
+export const updateSystemSettings = async (req: Request, res: Response) => {
+  try {
+    const { certificateLayout } = req.body;
+    if (!certificateLayout || !["HORIZONTAL", "VERTICAL"].includes(certificateLayout)) {
+      return safeResponse(res, 400, { error: "Invalid layout value. Must be HORIZONTAL or VERTICAL" });
+    }
+
+    const updated = await db.systemSetting.upsert({
+      where: { key: "certificate_layout" },
+      update: { value: certificateLayout },
+      create: { key: "certificate_layout", value: certificateLayout },
+    });
+
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Settings updated successfully",
+      settings: {
+        certificateLayout: updated.value,
+      },
+    });
+  } catch (error: any) {
+    console.error("[UpdateSystemSettings Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to update settings" });
   }
 };

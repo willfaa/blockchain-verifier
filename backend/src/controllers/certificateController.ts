@@ -110,6 +110,19 @@ export class CertificateController {
       // @ts-ignore
       const issuerRole = req.user?.role || "TEACHER";
 
+      // Check HLF Health if enabled
+      if (process.env.FABRIC_ENABLED === "true") {
+        try {
+          const { checkFabricReady } = require("../fabric/client");
+          await checkFabricReady(issuerId, issuerRole);
+        } catch (err: any) {
+          console.error("[Issue] Fabric offline check failed:", err.message);
+          return res.status(503).json({
+            error: "Blockchain Network Offline. Please try again when the ledger service is active.",
+          });
+        }
+      }
+
       let { certId, studentId, nisn, nim, name, majority, program, issuedAt, nonce } = req.body;
 
       if (!studentId) studentId = nisn || nim;
@@ -123,13 +136,25 @@ export class CertificateController {
           .json({ error: "Missing required identity fields" });
       }
 
-      const dataString = `${studentId}|${name}|${program}|${majority}`;
+      // Map Student ID to DB User ID (UUID) if exists
+      const user = await db.user.findFirst({
+        where: {
+          OR: [
+            { id: studentId },
+            { studentId: studentId },
+            { email: studentId }
+          ]
+        }
+      });
+      const finalStudentId = user ? user.id : studentId;
+
+      const dataString = `${finalStudentId}|${name}|${program}|${majority}`;
       const hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
       const imgBuffer = await generateCertificateImage({
         certId,
         name,
-        studentId,
+        studentId: finalStudentId,
         program,
         majority,
         courseName: "General Verification",
@@ -144,14 +169,14 @@ export class CertificateController {
           id: certId,
           certId,
           studentName: name,
-          studentId,
+          studentId: finalStudentId,
           program,
           majority,
           cid,
           hash,
           status: "ISSUED",
           issuedAt: issuedAt || new Date().toISOString(),
-          userId: "SYSTEM_GEN", // Generic placeholder or actual link
+          userId: user ? user.id : "SYSTEM_GEN",
         },
       });
 
@@ -199,6 +224,19 @@ export class CertificateController {
       if (!userId || !courseId)
         return res.status(400).json({ error: "Context missing" });
 
+      // Check HLF Health if enabled
+      if (process.env.FABRIC_ENABLED === "true") {
+        try {
+          const { checkFabricReady } = require("../fabric/client");
+          await checkFabricReady("SYSTEM", "TEACHER");
+        } catch (err: any) {
+          console.error("[Claim] Fabric offline check failed:", err.message);
+          return res.status(503).json({
+            error: "Blockchain Network Offline. Please try again when the ledger service is active.",
+          });
+        }
+      }
+
       const enrollment = await db.enrollment.findUnique({
         where: { userId_courseId: { userId, courseId } },
         include: { user: true, course: { include: { user: true } } },
@@ -229,9 +267,16 @@ export class CertificateController {
       const hash = crypto
         .createHash("sha256")
         .update(
-          `${student.studentId}|${student.name}|${student.studyProgram}|${student.majority}`,
+          `${student.id}|${student.name}|${student.studyProgram}|${student.majority}`,
         )
         .digest("hex");
+
+      const path = require("path");
+      const issuedAtFormatted = new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date());
 
       const imgBuffer = await generateCertificateImage({
         certId,
@@ -239,9 +284,15 @@ export class CertificateController {
         courseName: course.title,
         majority: student.majority || "N/A",
         program: student.studyProgram || "N/A",
-        issuedAt: new Date().toISOString(),
+        issuedAt: issuedAtFormatted,
         issuerId: (course as any).user?.id || "SYSTEM",
-        studentId: student.studentId || "N/A",
+        studentId: student.id, // User ID mapped here!
+        instructorName: (course as any).user?.name || "Head Instructor",
+        instructorNip: (course as any).user?.nip || "-",
+        instructorMajor: (course as any).user?.majority || "Department of Informatics",
+        customTemplatePath: course.certificateTemplate
+          ? path.join(process.cwd(), course.certificateTemplate)
+          : undefined,
       });
 
       const cid = await uploadToIpfs(imgBuffer, `/certs/claims/${certId}.png`);
@@ -252,7 +303,7 @@ export class CertificateController {
           certId,
           userId,
           studentName: student.name,
-          studentId: student.studentId || "N/A",
+          studentId: student.id,
           program: student.studyProgram || "N/A",
           majority: student.majority || "N/A",
           courseId,
@@ -301,6 +352,84 @@ export class CertificateController {
         error.message,
       );
       return res.status(500).json({ error: "On-chain retrieval failed" });
+    }
+  }
+
+  public async downloadCertificatePdf(req: Request, res: Response) {
+    try {
+      const certId = req.params.id;
+      const certificate = await db.certificate.findFirst({
+        where: { OR: [{ id: certId }, { certId }] },
+        include: {
+          course: {
+            include: { user: true }
+          },
+          user: true
+        }
+      });
+
+      if (!certificate) {
+        return res.status(404).json({ error: "Certificate not found" });
+      }
+
+      const layoutSetting = await db.systemSetting.findUnique({
+        where: { key: "certificate_layout" },
+      });
+      const layout = (layoutSetting?.value as "HORIZONTAL" | "VERTICAL") || "HORIZONTAL";
+      const isVertical = layout === "VERTICAL";
+
+      const issuedAtFormatted = new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date(certificate.issuedAt));
+
+      const path = require("path");
+
+      // Generate the high-res PNG image first
+      const imgBuffer = await generateCertificateImage({
+        certId: certificate.certId,
+        name: certificate.studentName,
+        courseName: certificate.course?.title || "Program Completion",
+        majority: certificate.majority,
+        program: certificate.program,
+        issuedAt: issuedAtFormatted,
+        issuerId: certificate.course?.user?.id || "SYSTEM",
+        studentId: certificate.studentId, // Already mapped to User ID in db
+        instructorName: certificate.course?.user?.name || "Head Instructor",
+        instructorNip: certificate.course?.user?.nip || "-",
+        instructorMajor: certificate.course?.user?.majority || "Department of Informatics",
+        layout,
+        customTemplatePath: certificate.course?.certificateTemplate
+          ? path.join(process.cwd(), certificate.course.certificateTemplate)
+          : undefined,
+      });
+
+      const PDFDocument = require("pdfkit");
+      const doc = new PDFDocument({
+        size: "A4",
+        layout: isVertical ? "portrait" : "landscape",
+        margin: 0,
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="certificate-${certificate.certId}.pdf"`
+      );
+      doc.pipe(res);
+
+      doc.image(imgBuffer, 0, 0, {
+        width: isVertical ? 595.28 : 841.89,
+        height: isVertical ? 841.89 : 595.28,
+      });
+
+      doc.end();
+    } catch (err: any) {
+      console.error("[CertController] downloadCertificatePdf Error:", err.message);
+      if (!res.headersSent) {
+        return res.status(500).json({ error: "Failed to generate PDF document" });
+      }
     }
   }
 }

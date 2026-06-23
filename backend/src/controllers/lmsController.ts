@@ -27,8 +27,16 @@ export const createCourse = async (req: Request, res: Response) => {
     if (!title) return res.status(400).json({ error: "Title is required" });
 
     let imageUrl = null;
-    if (req.file) {
-      imageUrl = `/uploads/courses/${userId}/${req.file.filename}`;
+    let certificateTemplate = null;
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    if (files) {
+      if (files["thumbnail"] && files["thumbnail"][0]) {
+        imageUrl = `/uploads/courses/${userId}/${files["thumbnail"][0].filename}`;
+      }
+      if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
+        certificateTemplate = `/uploads/courses/${userId}/${files["certificateTemplate"][0].filename}`;
+      }
     }
 
     const course = await db.course.create({
@@ -37,6 +45,7 @@ export const createCourse = async (req: Request, res: Response) => {
         description,
         userId,
         imageUrl,
+        certificateTemplate,
         categoryId,
         isPublished: false,
       },
@@ -76,17 +85,23 @@ export const updateCourse = async (req: Request, res: Response) => {
       updateData.isPublished = isPublished === "true" || isPublished === true;
     }
 
-    // Handle New Image Upload & Cleanup
-    if (req.file) {
-      // 1. Delete old file if exists
-      if (existingCourse.imageUrl) {
-        const oldPath = path.join(process.cwd(), existingCourse.imageUrl);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
+    // Handle New File Uploads & Cleanup
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    if (files) {
+      if (files["thumbnail"] && files["thumbnail"][0]) {
+        if (existingCourse.imageUrl) {
+          const oldPath = path.join(process.cwd(), existingCourse.imageUrl);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
         }
+        updateData.imageUrl = `/uploads/courses/${userId}/${files["thumbnail"][0].filename}`;
       }
-      // 2. Set new path
-      updateData.imageUrl = `/uploads/courses/${userId}/${req.file.filename}`;
+      if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
+        if (existingCourse.certificateTemplate) {
+          const oldPath = path.join(process.cwd(), existingCourse.certificateTemplate);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+        updateData.certificateTemplate = `/uploads/courses/${userId}/${files["certificateTemplate"][0].filename}`;
+      }
     }
 
     const updated = await db.course.update({
@@ -127,6 +142,10 @@ export const deleteCourse = async (req: Request, res: Response) => {
     if (course.imageUrl) {
       const imgPath = path.join(process.cwd(), course.imageUrl);
       if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+    }
+    if (course.certificateTemplate) {
+      const tempPath = path.join(process.cwd(), course.certificateTemplate);
+      if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
     }
 
     await db.course.delete({ where: { id: courseId } });
@@ -1618,5 +1637,62 @@ export const teacherDeleteSubmission = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("[LMS] TeacherDeleteSubmission Error:", error);
     return res.status(500).json({ error: "Removal failed" });
+  }
+};
+
+export const getCertificateGuide = async (req: Request, res: Response) => {
+  try {
+    const { generateGuideImage } = require("../services/guideGenerator");
+    const orientation = String(req.params.orientation || "HORIZONTAL").toUpperCase() as "HORIZONTAL" | "VERTICAL";
+    const imgBuffer = generateGuideImage(orientation);
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Disposition", `inline; filename="guide-${orientation.toLowerCase()}.png"`);
+    return res.status(200).send(imgBuffer);
+  } catch (err: any) {
+    console.error("Guide Generation Error:", err);
+    return res.status(500).json({ error: "Failed to generate visual guide template" });
+  }
+};
+
+export const getCourseCertificatePreview = async (req: Request, res: Response) => {
+  try {
+    const { generateCertificateImage } = require("../services/imageGenerator");
+    const { courseId } = req.params;
+    const course = await db.course.findUnique({
+      where: { id: courseId },
+      include: { user: true },
+    });
+
+    if (!course) return res.status(404).json({ error: "Course not found" });
+
+    const issuedAt = new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+
+    const dummyData = {
+      name: "JOHN DOE",
+      studentId: "usr-9a8b7c6d-5e4f-3a2b",
+      courseName: course.title,
+      majority: course.user?.majority || "Department of Informatics",
+      program: course.user?.studyProgram || "Bachelor of Science",
+      certId: "cert-00000000-0000-0000-0000-000000000000",
+      issuedAt,
+      issuerId: course.user?.id || "SYSTEM",
+      instructorName: course.user?.name || "Head Instructor",
+      instructorNip: course.user?.nip || "-",
+      instructorMajor: course.user?.majority || "Department of Informatics",
+      customTemplatePath: course.certificateTemplate
+        ? path.join(process.cwd(), course.certificateTemplate)
+        : undefined,
+    };
+
+    const imgBuffer = await generateCertificateImage(dummyData);
+    res.setHeader("Content-Type", "image/png");
+    return res.status(200).send(imgBuffer);
+  } catch (err: any) {
+    console.error("Certificate Preview Error:", err);
+    return res.status(500).json({ error: "Failed to render certificate preview" });
   }
 };

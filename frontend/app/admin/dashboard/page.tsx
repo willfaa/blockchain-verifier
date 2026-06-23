@@ -8,23 +8,30 @@ import {
   BookOpen,
   UserCheck,
   Activity,
+  ActivitySquare,
   BarChart3,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [layout, setLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
+  const [updatingLayout, setUpdatingLayout] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [fetchedAt, setFetchedAt] = useState(Date.now());
-  const [sessionStart] = useState(Date.now());
 
   useEffect(() => {
-    // 1. Fetch Stats
-    api
-      .get("/admin/stats")
-      .then((res) => {
-        setStats(res.data);
-        setFetchedAt(Date.now());
+    // 1. Fetch Stats & Settings
+    Promise.all([
+      api.get("/admin/stats"),
+      api.get("/admin/settings")
+    ])
+      .then(([statsRes, settingsRes]) => {
+        setStats(statsRes.data);
+        if (settingsRes.data.ok && settingsRes.data.settings) {
+          setLayout(settingsRes.data.settings.certificateLayout);
+        }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -34,27 +41,18 @@ export default function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Calculate live uptime based on server snapshot + elapsed local time
-  const liveUptime = stats?.system?.uptime
-    ? stats.system.uptime + Math.floor((Date.now() - fetchedAt) / 1000)
-    : 0;
-
-  const sessionUptime = Math.floor(
-    (currentTime.getTime() - sessionStart) / 1000
-  );
-
-  const formatUptime = (seconds: number) => {
-    const d = Math.floor(seconds / (3600 * 24));
-    const h = Math.floor((seconds % (3600 * 24)) / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-
-    const parts = [];
-    if (d > 0) parts.push(`${d}d`);
-    parts.push(`${h.toString().padStart(2, "0")}h`);
-    parts.push(`${m.toString().padStart(2, "0")}m`);
-    parts.push(`${s.toString().padStart(2, "0")}s`);
-    return parts.join(" ");
+  const handleLayoutChange = async (newLayout: "HORIZONTAL" | "VERTICAL") => {
+    setUpdatingLayout(true);
+    try {
+      const res = await api.post("/admin/settings", { certificateLayout: newLayout });
+      if (res.data.ok) {
+        setLayout(newLayout);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingLayout(false);
+    }
   };
 
   if (loading)
@@ -69,57 +67,69 @@ export default function AdminDashboard() {
       title: "Active_Users",
       value: stats?.stats?.totalUsers || 0,
       icon: Users,
-      color: "text-teal-400",
-      border: "border-teal-500/20",
-      bg: "bg-teal-500/5",
     },
     {
       title: "Pending_Auth",
       value: stats?.stats?.pendingTeachers || 0,
       icon: UserCheck,
-      color: "text-orange-400",
-      border: "border-orange-500/20",
-      bg: "bg-orange-500/5",
     },
     {
       title: "Issued_Certs",
       value: stats?.stats?.totalCertificates || 0,
       icon: FileText,
-      color: "text-cyan-400",
-      border: "border-cyan-500/20",
-      bg: "bg-cyan-500/5",
     },
     {
       title: "Deployments",
       value: stats?.stats?.totalCourses || 0,
       icon: BookOpen,
-      color: "text-purple-400",
-      border: "border-purple-500/20",
-      bg: "bg-purple-500/5",
+    },
+  ];
+
+  // Services list for professional service monitoring
+  const services = [
+    {
+      name: "Frontend UI Client",
+      status: "ONLINE",
+      desc: "Static Web Host",
+    },
+    {
+      name: "Backend API Server",
+      status: "ONLINE",
+      desc: "Express Gateway",
+    },
+    {
+      name: "Database (Supabase)",
+      status: stats?.system?.health?.database || "OFFLINE",
+      desc: "Cloud Registry",
+    },
+    {
+      name: "IPFS Kubo Gateway",
+      status: stats?.system?.health?.ipfs || "OFFLINE",
+      desc: "Decentralized Files",
+    },
+    {
+      name: "Blockchain (Hyperledger Fabric)",
+      status: stats?.system?.health?.blockchain || "OFFLINE",
+      desc: "Consensus Ledger",
     },
   ];
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-sans">
+      
+      {/* Top Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 border-b border-white/5 pb-10">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Administrative <span className="text-neon-purple">Overview</span>
           </h1>
-          <div className="text-white/40 text-[11px] font-semibold tracking-widest mt-4 space-y-2 uppercase">
+          <div className="text-white/40 text-[11px] font-semibold tracking-widest mt-4 space-y-1 uppercase">
             <p className="flex items-center gap-4">
               <span className="text-neon-soft-blue">Server Time:</span>{" "}
               {currentTime.toLocaleTimeString()}
               <span className="opacity-20">|</span>
-              <span className="text-neon-blue">Region:</span>{" "}
+              <span className="text-neon-blue">Timezone:</span>{" "}
               {Intl.DateTimeFormat().resolvedOptions().timeZone}
-            </p>
-            <p className="flex items-center gap-4">
-              <span className="text-neon-purple">System Uptime:</span>{" "}
-              {formatUptime(liveUptime)}
-              <span className="opacity-20">|</span>
-              <span className="text-neon-pink">Session Trace:</span>{" "}
-              {formatUptime(sessionUptime)}
             </p>
           </div>
         </div>
@@ -130,7 +140,7 @@ export default function AdminDashboard() {
             </p>
             <p className="text-sm font-bold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-neon-blue animate-pulse"></span>
-              Production Stable
+              Secure Ledger V1
             </p>
           </div>
         </div>
@@ -161,12 +171,12 @@ export default function AdminDashboard() {
                   {card.title.replace("_", " ")}
                 </p>
                 <div className="flex items-end justify-between">
-                  <h3 className={`text-5xl font-bold tracking-tight`}>
+                  <h3 className={`text-5xl font-bold tracking-tight text-white`}>
                     {card.value}
                   </h3>
                   <card.icon
                     size={28}
-                    className="opacity-20 group-hover:opacity-100 transition-opacity"
+                    className="opacity-20 group-hover:opacity-100 transition-opacity text-white"
                   />
                 </div>
               </div>
@@ -175,8 +185,10 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Recent Activity Ledger */}
+      {/* Content Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left: Recent Activity Ledger */}
         <div className="lg:col-span-2 glass-panel p-10 rounded-3xl border-transparent shadow-2xl">
           <div className="flex items-center justify-between mb-10 border-b border-white/5 pb-8">
             <h3 className="font-bold text-white flex items-center gap-4 text-xs uppercase tracking-widest">
@@ -225,71 +237,97 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="glass-panel p-10 rounded-3xl border-transparent shadow-2xl">
-          <div className="flex items-center mb-10 gap-4 border-b border-white/5 pb-8">
-            <BarChart3 size={20} className="text-neon-blue" />
-            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-              System Environment
-            </h3>
-          </div>
-          <div className="text-[11px] font-semibold text-white/40 space-y-5 tracking-wide">
-            <p className="flex justify-between items-center group">
-              <span className="group-hover:text-white/80 transition-colors">
-                Registry Node:
-              </span>
-              <span className="text-white font-mono">
-                {stats?.system?.dbPort || "5432"}
-              </span>
-            </p>
-            <p className="flex justify-between items-center group">
-              <span className="group-hover:text-white/80 transition-colors">
-                Interface Service:
-              </span>
-              <span className="text-white font-mono">
-                {stats?.system?.ipfsApi?.split("//")[1] || "127.0.0.1:5001"}
-              </span>
-            </p>
-            <p className="flex justify-between items-center group border-b border-white/5 pb-6">
-              <span className="group-hover:text-white/80 transition-colors">
-                Gateway Anchor:
-              </span>
-              <span className="text-white font-mono">
-                {stats?.system?.ipfsGateway?.split("//")[1] || "127.0.0.1:8081"}
-              </span>
-            </p>
-
-            <div className="pt-2">
-              {stats?.system?.fabricEnabled ? (
-                <div className="p-5 bg-neon-blue/5 border border-neon-blue/20 rounded-2xl text-neon-blue flex items-center justify-between shadow-inner">
-                  <span className="font-bold">Protocol Active</span>
-                  <div className="w-2.5 h-2.5 rounded-full bg-neon-blue animate-pulse"></div>
-                </div>
-              ) : (
-                <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-white/30 flex items-center justify-between">
-                  <span className="font-bold">Offline Buffer</span>
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
-                </div>
-              )}
+        {/* Right: Health Check & System Settings */}
+        <div className="space-y-8">
+          
+          {/* Health Check Monitor */}
+          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-2xl">
+            <div className="flex items-center mb-8 gap-4 border-b border-white/5 pb-6">
+              <ActivitySquare size={20} className="text-neon-blue" />
+              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                Service Status
+              </h3>
             </div>
+            
+            <div className="space-y-4">
+              {services.map((srv, idx) => {
+                const isOnline = srv.status === "ONLINE";
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-4 bg-white/[0.01] border border-white/5 rounded-2xl"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-200">
+                        {srv.name}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        {srv.desc}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full ${
+                          isOnline
+                            ? "text-teal-400 bg-teal-500/10 border border-teal-500/20"
+                            : "text-rose-400 bg-rose-500/10 border border-rose-500/20"
+                        }`}
+                      >
+                        {srv.status}
+                      </span>
+                      {isOnline ? (
+                        <CheckCircle2 size={14} className="text-teal-400" />
+                      ) : (
+                        <XCircle size={14} className="text-rose-400" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-            <div className="pt-8 border-t border-white/5 space-y-4">
-              <p className="text-[10px] text-white/20 italic leading-relaxed">
-                Architecture Instance: STABLE_V18
+          {/* Certificate Orientation Switch */}
+          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-2xl">
+            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+              <FileText size={20} className="text-neon-pink" />
+              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                Print Orientation
+              </h3>
+            </div>
+            <div className="space-y-4 mt-6">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Global Certificate Layout (A4)
               </p>
-              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-neon-purple w-4/5 animate-pulse shadow-[0_0_10px_#b026ff]"></div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  disabled={updatingLayout}
+                  onClick={() => handleLayoutChange("HORIZONTAL")}
+                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                    layout === "HORIZONTAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  Horizontal
+                </button>
+                <button
+                  disabled={updatingLayout}
+                  onClick={() => handleLayoutChange("VERTICAL")}
+                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                    layout === "VERTICAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  Vertical
+                </button>
               </div>
             </div>
-
-            {stats?.stats?.pendingTeachers > 0 && (
-              <div className="mt-10 p-5 bg-neon-pink/10 border border-neon-pink/20 rounded-2xl shadow-xl">
-                <p className="text-neon-pink font-bold text-center">
-                  Notice: {stats?.stats?.pendingTeachers} Authorization Requests
-                </p>
-              </div>
-            )}
           </div>
+
         </div>
+
       </div>
     </div>
   );

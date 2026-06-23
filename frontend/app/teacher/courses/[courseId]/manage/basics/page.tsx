@@ -8,6 +8,7 @@ import {
   ImageIcon,
   CheckSquare,
   ChevronDown,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -35,6 +36,13 @@ export default function CourseBasicsPage() {
   const [allowedPrograms, setAllowedPrograms] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Certificate settings states
+  const [certPreview, setCertPreview] = useState<string | null>(null);
+  const [selectedCertFile, setSelectedCertFile] = useState<File | null>(null);
+  const [certPreviewModalOpen, setCertPreviewModalOpen] = useState(false);
+  const [certPreviewLoading, setCertPreviewLoading] = useState(false);
+  const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCourse();
@@ -66,6 +74,10 @@ export default function CourseBasicsPage() {
 
         if (course.imageUrl) {
           setPreviewImage(getAssetUrl(course.imageUrl));
+        }
+
+        if (course.certificateTemplate) {
+          setCertPreview(getAssetUrl(course.certificateTemplate));
         }
       }
     } catch (err) {
@@ -124,6 +136,33 @@ export default function CourseBasicsPage() {
     }
   };
 
+  const handleCertFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedCertFile(file);
+      setCertPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handlePreviewCertificate = async () => {
+    setCertPreviewLoading(true);
+    setCertPreviewModalOpen(true);
+    try {
+      // Securely fetch layout preview image as a blob to attach Auth Headers
+      const res = await api.get(`/lms/courses/${courseId}/certificate-preview`, {
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(res.data);
+      setCertPreviewUrl(url);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load layout preview");
+      setCertPreviewModalOpen(false);
+    } finally {
+      setCertPreviewLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -136,6 +175,10 @@ export default function CourseBasicsPage() {
 
       if (selectedFile) {
         data.append("thumbnail", selectedFile);
+      }
+
+      if (selectedCertFile) {
+        data.append("certificateTemplate", selectedCertFile);
       }
 
       await api.put(`/lms/courses/${courseId}`, data, {
@@ -303,7 +346,10 @@ export default function CourseBasicsPage() {
           </div>
         </div>
 
+        {/* Right Sidebar */}
         <div className="space-y-10 animate-in slide-in-from-right-6 duration-1000">
+          
+          {/* Banner Upload */}
           <div className="space-y-4">
             <label className="text-neon-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-neon-blue animate-pulse" />{" "}
@@ -344,6 +390,66 @@ export default function CourseBasicsPage() {
             </div>
           </div>
 
+          {/* Certificate Custom Template Upload */}
+          <div className="space-y-4">
+            <label className="text-neon-pink text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-neon-pink animate-pulse" />{" "}
+              Certificate Template
+            </label>
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-neon-pink to-neon-purple rounded-[2.5rem] blur opacity-10 group-hover:opacity-30 transition duration-1000"></div>
+              <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden shadow-2xl backdrop-blur-3xl group-hover:border-white/20 transition-all duration-700">
+                {certPreview ? (
+                  <Image
+                    src={certPreview}
+                    alt="Certificate Template"
+                    fill
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    unoptimized={true}
+                  />
+                ) : (
+                  <div className="text-white/5 flex flex-col items-center group-hover:text-white/10 transition-colors">
+                    <ImageIcon size={72} className="mb-6" />
+                    <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-center px-4">
+                      Upload Custom Background
+                    </span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-dark-bg/85 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col gap-4 items-center justify-center backdrop-blur-xl">
+                  <label className="cursor-pointer px-8 py-4 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-neon-pink hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
+                    <Upload size={18} className="inline mr-2" /> Upload Background
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleCertFileChange}
+                    />
+                  </label>
+                  {certPreview && (
+                    <button
+                      type="button"
+                      onClick={handlePreviewCertificate}
+                      className="px-8 py-4 bg-neon-pink text-white text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-white hover:text-black transition-all transform hover:scale-105 active:scale-95 shadow-2xl"
+                    >
+                      Preview Layout
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            {!certPreview && (
+              <button
+                type="button"
+                onClick={handlePreviewCertificate}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-[1.5rem] text-xs font-bold uppercase tracking-widest transition-all"
+              >
+                Preview Default Layout
+              </button>
+            )}
+          </div>
+
+          {/* Visual Guidelines */}
           <div className="p-8 glass-panel rounded-3xl border-white/5 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
               <ImageIcon size={80} />
@@ -354,14 +460,10 @@ export default function CourseBasicsPage() {
               </span>
               <span className="flex justify-between">
                 Aspect Ratio:{" "}
-                <span className="text-white/60">16:9 Standard</span>
+                <span className="text-white/60">A4 Standard</span>
               </span>
               <span className="flex justify-between">
-                Minimum Size:{" "}
-                <span className="text-white/60">1280 x 720 px</span>
-              </span>
-              <span className="flex justify-between">
-                Supported Formats:{" "}
+                Formats:{" "}
                 <span className="text-white/60">JPG, PNG, WEBP</span>
               </span>
               <span className="flex justify-between">
@@ -369,9 +471,94 @@ export default function CourseBasicsPage() {
                 <span className="text-white/60">5MB Capacity</span>
               </span>
             </p>
+
+            <div className="mt-8 pt-6 border-t border-white/5 space-y-3">
+              <span className="text-neon-pink text-[10px] font-extrabold uppercase tracking-widest block mb-2">
+                Download Layout Guides
+              </span>
+              <a
+                href={`${API_BASE}/api/lms/templates/guide/HORIZONTAL`}
+                target="_blank"
+                download="blueprint-horizontal.png"
+                className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
+              >
+                Download Landscape Map
+              </a>
+              <a
+                href={`${API_BASE}/api/lms/templates/guide/VERTICAL`}
+                target="_blank"
+                download="blueprint-vertical.png"
+                className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
+              >
+                Download Portrait Map
+              </a>
+            </div>
           </div>
+
         </div>
       </div>
+
+      {/* Certificate Preview Modal */}
+      {certPreviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="bg-[#0f0b29] border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest">
+                Certificate Preview (Dummy Layout)
+              </h3>
+              <button
+                onClick={() => {
+                  if (certPreviewUrl) URL.revokeObjectURL(certPreviewUrl);
+                  setCertPreviewUrl(null);
+                  setCertPreviewModalOpen(false);
+                }}
+                className="p-2 text-slate-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-8 flex items-center justify-center bg-black/45">
+              {certPreviewLoading ? (
+                <div className="text-teal-400 animate-pulse font-mono text-xs">
+                  RENDERING_LAYOUT_PREVIEW...
+                </div>
+              ) : certPreviewUrl ? (
+                <div className="relative w-full aspect-[1.78/1] max-h-[60vh] border border-white/10 rounded-xl overflow-hidden bg-slate-900 shadow-2xl">
+                  <Image
+                    src={certPreviewUrl}
+                    alt="Certificate Blueprint Preview"
+                    fill
+                    className="object-contain"
+                    unoptimized={true}
+                  />
+                </div>
+              ) : (
+                <div className="text-rose-400 text-xs font-semibold">
+                  Failed to render preview.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-white/5 flex justify-end">
+              <button
+                onClick={() => {
+                  if (certPreviewUrl) URL.revokeObjectURL(certPreviewUrl);
+                  setCertPreviewUrl(null);
+                  setCertPreviewModalOpen(false);
+                }}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold uppercase tracking-widest border border-white/10 transition-all"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

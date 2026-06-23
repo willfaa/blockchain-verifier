@@ -72,7 +72,10 @@ export default function CertificateDetailPage() {
   }
 
   const ipfsGateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
-  const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`; // Or gateway
+  const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`; 
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+  const pdfUrl = `${API_BASE}/api/certificates/${cert.certId}/pdf`;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 p-6 md:p-12">
@@ -92,17 +95,25 @@ export default function CertificateDetailPage() {
               href={ipfsUrl}
               download={`certificate-${cert.certId}.png`}
               target="_blank"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors border border-slate-700"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700"
             >
-              <Download size={16} />
-              Download
+              <Download size={14} />
+              PNG (Share)
+            </a>
+            <a
+              href={pdfUrl}
+              download={`certificate-${cert.certId}.pdf`}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700"
+            >
+              <Download size={14} />
+              PDF (Print)
             </a>
             <Link
               href={`/verify/${cert.certId}`}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-teal-900/20"
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors shadow-lg shadow-teal-900/20"
             >
-              <ShieldCheck size={16} />
-              Verify on Blockchain
+              <ShieldCheck size={14} />
+              Verify
             </Link>
           </div>
         </div>

@@ -13,6 +13,7 @@ const storage = multer.diskStorage({
       folder = "avatars";
     } else if (
       file.fieldname === "thumbnail" ||
+      file.fieldname === "certificateTemplate" ||
       file.fieldname === "image" ||
       file.fieldname === "video" ||
       file.fieldname === "assignment_file"
@@ -62,8 +63,11 @@ const fileFilter = (req: any, file: any, cb: any) => {
     console.error("Multer Rejected: Video mime mismatch");
     return cb(new Error("Only video files are allowed!"), false);
   }
-  if (file.fieldname === "thumbnail" && !file.mimetype.startsWith("image/")) {
-    console.error("Multer Rejected: Thumbnail mime mismatch");
+  if (
+    (file.fieldname === "thumbnail" || file.fieldname === "certificateTemplate") &&
+    !file.mimetype.startsWith("image/")
+  ) {
+    console.error("Multer Rejected: Image mime mismatch");
     return cb(new Error("Only image files are allowed!"), false);
   }
   // Allow avatar (no strict check here aside from default match or if we added one)
