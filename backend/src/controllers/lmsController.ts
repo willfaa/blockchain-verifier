@@ -27,6 +27,9 @@ export const createCourse = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
     if (!title) return res.status(400).json({ error: "Title is required" });
 
+    // Generate course ID in advance to use in the folder path
+    const courseId = randomUUID();
+
     let imageUrl = null;
     let certificateTemplate = null;
 
@@ -38,7 +41,7 @@ export const createCourse = async (req: Request, res: Response) => {
           const publicUrl = await uploadFileToSupabase(
             file.path,
             "lms",
-            `courses/${userId}/${file.filename}`,
+            `courses/${courseId}/thumbnail/${file.filename}`,
             file.mimetype
           );
           imageUrl = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
@@ -53,7 +56,7 @@ export const createCourse = async (req: Request, res: Response) => {
           const publicUrl = await uploadFileToSupabase(
             file.path,
             "lms",
-            `courses/${userId}/${file.filename}`,
+            `courses/${courseId}/template/${file.filename}`,
             file.mimetype
           );
           certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
@@ -66,6 +69,7 @@ export const createCourse = async (req: Request, res: Response) => {
 
     const course = await db.course.create({
       data: {
+        id: courseId,
         title,
         description,
         userId,
@@ -124,7 +128,7 @@ export const updateCourse = async (req: Request, res: Response) => {
           const publicUrl = await uploadFileToSupabase(
             file.path,
             "lms",
-            `courses/${userId}/${file.filename}`,
+            `courses/${courseId}/thumbnail/${file.filename}`,
             file.mimetype
           );
           updateData.imageUrl = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
@@ -144,7 +148,7 @@ export const updateCourse = async (req: Request, res: Response) => {
           const publicUrl = await uploadFileToSupabase(
             file.path,
             "lms",
-            `courses/${userId}/${file.filename}`,
+            `courses/${courseId}/template/${file.filename}`,
             file.mimetype
           );
           updateData.certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
