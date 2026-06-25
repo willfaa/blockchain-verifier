@@ -1739,7 +1739,9 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
       instructorNip: course.user?.nip || "-",
       instructorMajor: course.user?.majority || "Department of Informatics",
       customTemplatePath: course.certificateTemplate
-        ? path.join(process.cwd(), course.certificateTemplate)
+        ? (course.certificateTemplate.startsWith("http")
+            ? course.certificateTemplate
+            : path.join(process.cwd(), course.certificateTemplate))
         : undefined,
     };
 

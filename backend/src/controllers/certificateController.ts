@@ -291,7 +291,9 @@ export class CertificateController {
         instructorNip: (course as any).user?.nip || "-",
         instructorMajor: (course as any).user?.majority || "Department of Informatics",
         customTemplatePath: course.certificateTemplate
-          ? path.join(process.cwd(), course.certificateTemplate)
+          ? (course.certificateTemplate.startsWith("http")
+              ? course.certificateTemplate
+              : path.join(process.cwd(), course.certificateTemplate))
           : undefined,
       });
 
@@ -401,7 +403,9 @@ export class CertificateController {
         instructorMajor: certificate.course?.user?.majority || "Department of Informatics",
         layout,
         customTemplatePath: certificate.course?.certificateTemplate
-          ? path.join(process.cwd(), certificate.course.certificateTemplate)
+          ? (certificate.course.certificateTemplate.startsWith("http")
+              ? certificate.course.certificateTemplate
+              : path.join(process.cwd(), certificate.course.certificateTemplate))
           : undefined,
       });
 
