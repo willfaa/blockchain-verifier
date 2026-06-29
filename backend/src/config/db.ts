@@ -59,6 +59,7 @@ export const testConnection = async () => {
       // Embedded Auto-Migration (Hardening)
       // This ensures missing columns exist regardless of Prisma sync state
       const hardeningQueries = [
+        "CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS faculty TEXT;",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS majority TEXT;",
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS "studyProgram" TEXT;',

@@ -37,13 +37,56 @@ export async function uploadFileToSupabase(
     console.log(`[Supabase] Uploading to bucket '${bucket}', path '${cleanedRemotePath}'...`);
 
     // Perform upload via Supabase storage REST API
-    await axios.post(uploadUrl, fileBuffer, {
-      headers: {
-        Authorization: `Bearer ${serviceKey}`,
-        "Content-Type": mimeType,
-        "x-upsert": "true", // Overwrite if file exists
-      },
-    });
+    try {
+      await axios.post(uploadUrl, fileBuffer, {
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": mimeType,
+          "x-upsert": "true", // Overwrite if file exists
+        },
+      });
+    } catch (postErr: any) {
+      const isBucketNotFound =
+        postErr.response?.status === 400 &&
+        (postErr.response?.data?.error === "Bucket not found" ||
+          postErr.response?.data?.message === "Bucket not found");
+
+      if (isBucketNotFound) {
+        console.log(`[Supabase] Bucket '${bucket}' not found. Attempting to auto-create it...`);
+        try {
+          // Attempt to create the bucket via the REST API
+          await axios.post(
+            `${apiUrl}/storage/v1/bucket`,
+            {
+              id: bucket,
+              name: bucket,
+              public: true,
+              file_size_limit: 52428800, // 50MB
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          console.log(`[Supabase] Bucket '${bucket}' created successfully. Retrying upload...`);
+          // Retry the upload after successful bucket creation
+          await axios.post(uploadUrl, fileBuffer, {
+            headers: {
+              Authorization: `Bearer ${serviceKey}`,
+              "Content-Type": mimeType,
+              "x-upsert": "true",
+            },
+          });
+        } catch (createErr: any) {
+          console.error(`[Supabase] Failed to auto-create bucket or retry upload:`, createErr.response?.data || createErr.message);
+          throw postErr; // rethrow the original upload error if auto-create/retry fails
+        }
+      } else {
+        throw postErr;
+      }
+    }
 
     // Clean up local temp file after successful upload
     try {
