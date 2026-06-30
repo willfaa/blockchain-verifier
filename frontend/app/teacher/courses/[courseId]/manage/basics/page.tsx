@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "@/lib/api";
 import {
   Save,
@@ -44,10 +45,12 @@ export default function CourseBasicsPage() {
   const [certPreviewLoading, setCertPreviewLoading] = useState(false);
   const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
   const [systemLayout, setSystemLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     fetchCourse();
     fetchSystemLayout();
+    setMounted(true);
   }, [courseId]);
 
   const fetchSystemLayout = async () => {
@@ -517,8 +520,8 @@ export default function CourseBasicsPage() {
     </div>
 
       {/* Certificate Preview Modal */}
-      {certPreviewModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      {certPreviewModalOpen && mounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="bg-[#0f0b29] border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/5">
@@ -574,7 +577,8 @@ export default function CourseBasicsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
