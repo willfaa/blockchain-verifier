@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 export type UserRole = "student" | "teacher" | "admin" | null;
 
@@ -38,6 +39,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setRole(parsedUser.role);
+
+        // Fetch fresh user data from database to auto-heal stale avatar/name/profile URLs
+        api
+          .get("/auth/me")
+          .then((res) => {
+            if (res.data.ok && res.data.data) {
+              const freshUser = {
+                ...parsedUser,
+                ...res.data.data,
+              };
+              setUser(freshUser);
+              localStorage.setItem("chainnesa_user", JSON.stringify(freshUser));
+            }
+          })
+          .catch((err) => {
+            console.warn("Failed to sync user session on mount:", err.message);
+          });
       } catch (e) {
         console.error("Failed to parse user session", e);
         localStorage.removeItem("chainnesa_user");
