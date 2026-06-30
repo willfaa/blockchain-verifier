@@ -316,7 +316,6 @@ router.put(
 // Certificate Visual Guides & Previews
 router.get(
   "/templates/guide/:orientation",
-  verifyToken,
   lmsController.getCertificateGuide
 );
 

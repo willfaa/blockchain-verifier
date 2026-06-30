@@ -17,7 +17,7 @@ import RichTextEditor from "@/components/features/RichTextEditor";
 import { useParams } from "next/navigation";
 import { ACADEMIC_DATA, MAJORITIES } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
-import { getAssetUrl, compressAndResizeImage } from "@/lib/utils";
+import { getAssetUrl, compressAndResizeImage, getApiBase } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
@@ -524,7 +524,7 @@ export default function CourseBasicsPage() {
               </span>
               {systemLayout === "HORIZONTAL" ? (
                 <a
-                  href={`${API_BASE}/api/lms/templates/guide/HORIZONTAL`}
+                  href={`${getApiBase()}/api/lms/templates/guide/HORIZONTAL`}
                   target="_blank"
                   download="blueprint-horizontal.png"
                   className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
@@ -533,7 +533,7 @@ export default function CourseBasicsPage() {
                 </a>
               ) : (
                 <a
-                  href={`${API_BASE}/api/lms/templates/guide/VERTICAL`}
+                  href={`${getApiBase()}/api/lms/templates/guide/VERTICAL`}
                   target="_blank"
                   download="blueprint-vertical.png"
                   className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
