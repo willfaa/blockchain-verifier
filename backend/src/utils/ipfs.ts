@@ -48,8 +48,22 @@ export async function uploadToIpfs(
 ): Promise<string> {
   let localCid = "";
   let pinataCid = "";
+  const errors: string[] = [];
 
-  // 1. Upload to local Kubo node
+  // 1. Upload/Pin to Pinata Cloud (Remote Gateway Persistence - Primary)
+  if (process.env.PINATA_JWT) {
+    try {
+      const filename = mfsPath ? mfsPath.split("/").pop() || "certificate.png" : "certificate.png";
+      pinataCid = await uploadToPinata(buffer, filename);
+      console.log(`[IPFS] Successfully pinned to Pinata (Primary). CID: ${pinataCid}`);
+    } catch (err: any) {
+      const msg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+      console.error("[IPFS] Pinata upload failed:", msg);
+      errors.push(`Pinata: ${msg}`);
+    }
+  }
+
+  // 2. Upload to local Kubo node (Backup)
   try {
     const added = await ipfs.add(buffer);
     localCid = added.cid.toString();
@@ -65,28 +79,21 @@ export async function uploadToIpfs(
       await ipfs.files.cp(`/ipfs/${localCid}`, targetPath, { parents: true });
     }
     console.log(`[IPFS] Successfully uploaded to local Kubo node. CID: ${localCid}`);
+
+    // Warning if CID mismatch occurs
+    if (pinataCid && localCid !== pinataCid) {
+      console.warn(`[IPFS] Warning: CID mismatch! Pinata: ${pinataCid}, Local: ${localCid}`);
+    }
   } catch (err: any) {
     console.error("[IPFS] Local Kubo node upload failed:", err.message);
-    throw new Error(`Failed to upload to local IPFS node: ${err.message}`);
+    errors.push(`Kubo: ${err.message}`);
   }
 
-  // 2. Upload/Pin to Pinata Cloud (Remote Gateway Persistence)
-  if (process.env.PINATA_JWT) {
-    try {
-      const filename = mfsPath ? mfsPath.split("/").pop() || "certificate.png" : "certificate.png";
-      pinataCid = await uploadToPinata(buffer, filename);
-      console.log(`[IPFS] Successfully pinned to Pinata. CID: ${pinataCid}`);
+  const finalCid = pinataCid || localCid;
 
-      // Warning if CID mismatch occurs
-      if (localCid && localCid !== pinataCid) {
-        console.warn(`[IPFS] Warning: CID mismatch! Local: ${localCid}, Pinata: ${pinataCid}`);
-      }
-    } catch (err: any) {
-      console.error("[IPFS] Pinata upload failed (using local CID fallback):", err.response?.data || err.message);
-      // We do not throw the error here so that development continues even if offline
-    }
+  if (!finalCid) {
+    throw new Error(`IPFS upload failed: ${errors.join(" | ")}`);
   }
 
-  // Return local CID, fall back to Pinata CID if local failed (though local error would have thrown above)
-  return localCid || pinataCid;
+  return finalCid;
 }

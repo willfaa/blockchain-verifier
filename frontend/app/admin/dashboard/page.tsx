@@ -103,7 +103,7 @@ export default function AdminDashboard() {
       desc: "Cloud Registry",
     },
     {
-      name: "IPFS Kubo Gateway",
+      name: "IPFS Storage (Pinata/Kubo)",
       status: stats?.system?.health?.ipfs || "OFFLINE",
       desc: "Decentralized Files",
     },

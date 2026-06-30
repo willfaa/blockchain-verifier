@@ -61,14 +61,32 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       console.warn("DB Health check failed:", e.message);
     }
 
-    // Check IPFS
+    // Check IPFS (Kubo Local or Pinata Remote Gateway Backup)
     let isIpfsOnline = false;
     const ipfsApi = process.env.IPFS_API || "http://127.0.0.1:5001";
     try {
       const ipfsRes = await axios.get(`${ipfsApi}/api/v0/version`, { timeout: 1000 });
-      isIpfsOnline = ipfsRes.status === 200;
+      if (ipfsRes.status === 200) {
+        isIpfsOnline = true;
+      }
     } catch (e) {
-      // Offline
+      // Local Kubo Offline
+    }
+
+    if (!isIpfsOnline && process.env.PINATA_JWT) {
+      try {
+        const pinataRes = await axios.get("https://api.pinata.cloud/data/testAuthentication", {
+          headers: {
+            Authorization: `Bearer ${process.env.PINATA_JWT}`,
+          },
+          timeout: 2000,
+        });
+        if (pinataRes.status === 200) {
+          isIpfsOnline = true;
+        }
+      } catch (e) {
+        // Pinata Offline
+      }
     }
 
     // Check Fabric
