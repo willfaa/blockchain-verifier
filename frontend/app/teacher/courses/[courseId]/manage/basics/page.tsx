@@ -215,7 +215,8 @@ export default function CourseBasicsPage() {
     : [];
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-sans">
+    <>
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-sans">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-10 border-b border-white/5 pb-10">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
@@ -513,10 +514,11 @@ export default function CourseBasicsPage() {
 
         </div>
       </div>
+    </div>
 
       {/* Certificate Preview Modal */}
       {certPreviewModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="bg-[#0f0b29] border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/5">
@@ -574,7 +576,6 @@ export default function CourseBasicsPage() {
           </div>
         </div>
       )}
-
-    </div>
+    </>
   );
 }
