@@ -23,6 +23,7 @@ router.get(
   optionalVerifyToken,
   lmsController.getCourseById
 );
+router.get("/settings", lmsController.getSystemSettingsPublic);
 router.post("/enroll", verifyToken, lmsController.enrollCourse);
 
 // Certificates (Student)

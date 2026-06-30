@@ -1771,3 +1771,20 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
     return res.status(500).json({ error: "Failed to render certificate preview" });
   }
 };
+
+export const getSystemSettingsPublic = async (req: Request, res: Response) => {
+  try {
+    const layoutSetting = await db.systemSetting.findUnique({
+      where: { key: "certificate_layout" },
+    });
+    return res.json({
+      ok: true,
+      settings: {
+        certificateLayout: layoutSetting?.value || "HORIZONTAL",
+      },
+    });
+  } catch (error: any) {
+    console.error("[LMS] Public settings fetch failed:", error.message);
+    return res.status(500).json({ error: "Failed to fetch settings" });
+  }
+};

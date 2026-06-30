@@ -43,10 +43,23 @@ export default function CourseBasicsPage() {
   const [certPreviewModalOpen, setCertPreviewModalOpen] = useState(false);
   const [certPreviewLoading, setCertPreviewLoading] = useState(false);
   const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
+  const [systemLayout, setSystemLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
 
   useEffect(() => {
     fetchCourse();
+    fetchSystemLayout();
   }, [courseId]);
+
+  const fetchSystemLayout = async () => {
+    try {
+      const res = await api.get("/lms/settings");
+      if (res.data.ok && res.data.settings) {
+        setSystemLayout(res.data.settings.certificateLayout || "HORIZONTAL");
+      }
+    } catch (err) {
+      console.error("Failed to fetch system layout:", err);
+    }
+  };
 
   const fetchCourse = async () => {
     try {
@@ -476,22 +489,25 @@ export default function CourseBasicsPage() {
               <span className="text-neon-pink text-[10px] font-extrabold uppercase tracking-widest block mb-2">
                 Download Layout Guides
               </span>
-              <a
-                href={`${API_BASE}/api/lms/templates/guide/HORIZONTAL`}
-                target="_blank"
-                download="blueprint-horizontal.png"
-                className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
-              >
-                Download Landscape (Horizontal) Guide
-              </a>
-              <a
-                href={`${API_BASE}/api/lms/templates/guide/VERTICAL`}
-                target="_blank"
-                download="blueprint-vertical.png"
-                className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
-              >
-                Download Portrait (Vertical) Guide
-              </a>
+              {systemLayout === "HORIZONTAL" ? (
+                <a
+                  href={`${API_BASE}/api/lms/templates/guide/HORIZONTAL`}
+                  target="_blank"
+                  download="blueprint-horizontal.png"
+                  className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
+                >
+                  Download Landscape (Horizontal) Guide
+                </a>
+              ) : (
+                <a
+                  href={`${API_BASE}/api/lms/templates/guide/VERTICAL`}
+                  target="_blank"
+                  download="blueprint-vertical.png"
+                  className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
+                >
+                  Download Portrait (Vertical) Guide
+                </a>
+              )}
             </div>
           </div>
 
