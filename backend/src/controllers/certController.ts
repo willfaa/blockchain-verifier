@@ -34,7 +34,7 @@ export class CertController {
       console.log(`Processing Issue Request by: ${issuerId} (${issuerRole})`);
 
       // 2. Destructure Body
-      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, nonce } =
+      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, nonce, courseId } =
         req.body ?? {};
 
       // Fallback for compatibility
@@ -88,6 +88,39 @@ export class CertController {
       const verificationUrl = `${CLIENT_URL}/verify/${certId}`;
       const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
 
+      // --- RESOLVE DYNAMIC COURSE & INSTRUCTOR CONTEXT ---
+      let courseName = "Program Completion";
+      let customTemplatePath = undefined;
+      let instructorName = undefined;
+      let instructorNip = undefined;
+      let instructorMajor = undefined;
+
+      if (courseId) {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId },
+          include: { user: true },
+        });
+        if (course) {
+          courseName = course.title;
+          customTemplatePath = course.certificateTemplate || undefined;
+          instructorName = course.user?.name || undefined;
+          instructorNip = course.user?.nip || undefined;
+          instructorMajor = course.user?.studyProgram || course.user?.majority || undefined;
+        }
+      }
+
+      // Fallback: Query logged-in user if course teacher details are missing
+      if (!instructorName && req.user?.id) {
+        const issuerUser = await prisma.user.findUnique({
+          where: { id: req.user.id },
+        });
+        if (issuerUser) {
+          instructorName = issuerUser.name;
+          instructorNip = issuerUser.nip || "-";
+          instructorMajor = issuerUser.studyProgram || issuerUser.majority || "Department of Blockchain";
+        }
+      }
+
       // --- IMAGE GENERATION & IPFS UPLOAD (PNG) ---
       console.log("️ Generating Certificate Image (PNG)...");
       const imgBuffer = await generateCertificateImage({
@@ -96,9 +129,17 @@ export class CertController {
         studentId,
         program,
         majority,
-        courseName: "Program Completion", // Fallback for manual issue
-        issuedAt: issuedAt || new Date().toISOString(),
+        courseName,
+        issuedAt: issuedAt || new Intl.DateTimeFormat("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date()),
         issuerId,
+        instructorName,
+        instructorNip,
+        instructorMajor,
+        customTemplatePath,
       });
 
       console.log("☁️ Uploading PNG to IPFS...");
@@ -116,8 +157,13 @@ export class CertController {
         cid: cid, // Populated from IPFS upload
         hash, // Data Hash
         status: "PENDING", // Atomic Step 1
-        issuedAt: issuedAt || new Date().toISOString(),
+        issuedAt: issuedAt || new Intl.DateTimeFormat("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date()),
         nonce,
+        courseId: courseId || null,
       };
 
       console.log(

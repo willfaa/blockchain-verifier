@@ -37,6 +37,8 @@ export default function CertificateDetailPage() {
   const [cert, setCert] = useState<CertificateDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [aspectRatio, setAspectRatio] = useState<string>("aspect-[1.414/1]");
+
   useEffect(() => {
     if (id) {
       api
@@ -48,6 +50,22 @@ export default function CertificateDetailPage() {
         .finally(() => setLoading(false));
     }
   }, [id]);
+
+  useEffect(() => {
+    if (cert && cert.cid) {
+      const ipfsGateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
+      const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`;
+      const img = new window.Image();
+      img.onload = () => {
+        if (img.height > img.width) {
+          setAspectRatio("aspect-[0.707/1]"); // Portrait
+        } else {
+          setAspectRatio("aspect-[1.414/1]"); // Landscape
+        }
+      };
+      img.src = ipfsUrl;
+    }
+  }, [cert]);
 
   if (loading) {
     return (
@@ -121,7 +139,7 @@ export default function CertificateDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Preview */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="relative aspect-[1.414/1] bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+            <div className={`relative ${aspectRatio} bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl`}>
               <Image
                 src={ipfsUrl}
                 alt="Certificate Preview"

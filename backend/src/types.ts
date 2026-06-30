@@ -25,6 +25,7 @@ export interface CertificateRecord {
   supersededBy?: string | null;
   revokedAt?: string; // Tambahan: Waktu pencabutan
   revocationReason?: string; // Tambahan: Alasan pencabutan
+  courseId?: string | null; // Tambahan: ID Kursus opsional
 }
 
 export interface HistoryEvent {

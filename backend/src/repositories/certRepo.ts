@@ -19,6 +19,7 @@ const mapRowToCert = (row: any): CertificateRecord => {
     revokedAt: row.revoked_at,
     revocationReason: row.revocation_reason,
     supersededBy: row.superseded_by,
+    courseId: row.courseId,
   };
 };
 
@@ -54,6 +55,7 @@ export const saveCertificate = async (cert: CertificateRecord) => {
       hash: cert.hash,
       cid: cert.cid,
       studentId: cert.studentId, // Persist Student ID
+      courseId: cert.courseId,
     },
     create: {
       certId: cert.certId,
@@ -66,6 +68,7 @@ export const saveCertificate = async (cert: CertificateRecord) => {
       status: cert.status,
       issuedAt: cert.issuedAt,
       userId: user.id,
+      courseId: cert.courseId,
     },
   });
 };
@@ -90,6 +93,7 @@ export const findCertificateById = async (
     status: cert.status,
     issuedAt: cert.issuedAt,
     nonce: "0", // Default string "0" as nonce is missing in DB but required in type
+    courseId: cert.courseId,
     revokedAt: undefined,
     revocationReason: undefined,
     supersededBy: undefined,
