@@ -17,7 +17,7 @@ import RichTextEditor from "@/components/features/RichTextEditor";
 import { useParams } from "next/navigation";
 import { ACADEMIC_DATA, MAJORITIES } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
-import { getAssetUrl } from "@/lib/utils";
+import { getAssetUrl, compressAndResizeImage } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
@@ -144,19 +144,48 @@ export default function CourseBasicsPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedFile(file);
-      setPreviewImage(URL.createObjectURL(file));
+      try {
+        // Compress & crop course cover (16:10 aspect ratio), maximum 800x500 pixels, quality 0.8
+        const compressed = await compressAndResizeImage(file, {
+          maxWidth: 800,
+          maxHeight: 500,
+          aspectRatio: 1.6,
+          quality: 0.8
+        });
+        setSelectedFile(compressed);
+        setPreviewImage(URL.createObjectURL(compressed));
+      } catch (err: any) {
+        console.error("Failed to compress course image:", err.message);
+        toast.error("Failed to process image. Using original file.", { id: "course-image-warning" });
+        setSelectedFile(file);
+        setPreviewImage(URL.createObjectURL(file));
+      }
     }
   };
 
-  const handleCertFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCertFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedCertFile(file);
-      setCertPreview(URL.createObjectURL(file));
+      try {
+        const isHorizontal = systemLayout === "HORIZONTAL";
+        // Compress & crop certificate template (A4 standard: 1.414 for Landscape, 0.707 for Portrait)
+        const compressed = await compressAndResizeImage(file, {
+          maxWidth: isHorizontal ? 1920 : 1358,
+          maxHeight: isHorizontal ? 1358 : 1920,
+          aspectRatio: isHorizontal ? 1.414 : 0.707,
+          quality: 0.9 // Higher quality for certificates
+        });
+        setSelectedCertFile(compressed);
+        setCertPreview(URL.createObjectURL(compressed));
+      } catch (err: any) {
+        console.error("Failed to compress certificate template:", err.message);
+        toast.error("Failed to process template. Using original file.", { id: "cert-image-warning" });
+        setSelectedCertFile(file);
+        setCertPreview(URL.createObjectURL(file));
+      }
     }
   };
 

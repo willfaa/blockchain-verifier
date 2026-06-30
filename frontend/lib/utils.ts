@@ -75,3 +75,94 @@ export const stripHtml = (html: string) => {
   if (!html) return "";
   return html.replace(/<[^>]*>?/gm, "") || "";
 };
+
+/**
+ * Compresses, resizes, and crops an image file to the specified dimensions and aspect ratio.
+ * Runs entirely on the client-side using Canvas.
+ */
+export function compressAndResizeImage(
+  file: File,
+  options: {
+    maxWidth?: number;
+    maxHeight?: number;
+    aspectRatio?: number;
+    quality?: number;
+  }
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+          return resolve(file);
+        }
+
+        const originalWidth = img.width;
+        const originalHeight = img.height;
+
+        const targetWidth = options.maxWidth || originalWidth;
+        const targetHeight = options.maxHeight || originalHeight;
+
+        let sourceX = 0;
+        let sourceY = 0;
+        let sourceWidth = originalWidth;
+        let sourceHeight = originalHeight;
+
+        if (options.aspectRatio) {
+          const currentAspectRatio = originalWidth / originalHeight;
+          if (currentAspectRatio > options.aspectRatio) {
+            sourceWidth = originalHeight * options.aspectRatio;
+            sourceX = (originalWidth - sourceWidth) / 2;
+          } else if (currentAspectRatio < options.aspectRatio) {
+            sourceHeight = originalWidth / options.aspectRatio;
+            sourceY = (originalHeight - sourceHeight) / 2;
+          }
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          sourceWidth,
+          sourceHeight,
+          0,
+          0,
+          targetWidth,
+          targetHeight
+        );
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              return resolve(file);
+            }
+            const newFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(newFile);
+          },
+          "image/jpeg",
+          options.quality || 0.8
+        );
+      };
+      img.onerror = () => reject(new Error("Failed to load image for compression"));
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.readAsDataURL(file);
+  });
+}

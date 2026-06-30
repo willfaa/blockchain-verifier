@@ -8,7 +8,7 @@ import api from "@/lib/api";
 import { Lock, Camera, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { getApiBase } from "@/lib/utils";
+import { getApiBase, compressAndResizeImage } from "@/lib/utils";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -46,12 +46,27 @@ export default function EditProfilePage() {
     }
   }, [user]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAvatarFile(file);
-      const objectUrl = URL.createObjectURL(file);
-      setAvatarPreview(objectUrl);
+      try {
+        // Compress & crop to square (1:1 aspect ratio), maximum 300x300 pixels, quality 0.85
+        const compressed = await compressAndResizeImage(file, {
+          maxWidth: 300,
+          maxHeight: 300,
+          aspectRatio: 1,
+          quality: 0.85
+        });
+        setAvatarFile(compressed);
+        const objectUrl = URL.createObjectURL(compressed);
+        setAvatarPreview(objectUrl);
+      } catch (err: any) {
+        console.error("Failed to process avatar:", err.message);
+        toast.error("Failed to process image. Using original file.", { icon: "⚠️" });
+        setAvatarFile(file);
+        const objectUrl = URL.createObjectURL(file);
+        setAvatarPreview(objectUrl);
+      }
     }
   };
 
@@ -101,10 +116,9 @@ export default function EditProfilePage() {
       toast.success("Profile updated successfully!");
     } catch (err: any) {
       console.error("Failed to update profile", err);
-      toast.error(
-        "Failed to update profile: " +
-          (err.response?.data?.error || err.message),
-      );
+      const errMsg = err.response?.data?.error;
+      const errorText = typeof errMsg === "object" ? (errMsg.message || JSON.stringify(errMsg)) : (errMsg || err.message);
+      toast.error("Failed to update profile: " + errorText);
     } finally {
       setLoading(false);
     }
