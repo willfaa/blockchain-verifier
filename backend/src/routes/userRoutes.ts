@@ -143,6 +143,12 @@ router.put(
       res.json({ ok: true, data: updatedUser });
     } catch (error: any) {
       console.error("Inline Controller Error:", error);
+      if (error.code === "P2002") {
+        const target = error.meta?.target || [];
+        if (target.includes("personalEmail")) {
+          return res.status(400).json({ error: "Personal Email is already registered with another account." });
+        }
+      }
       res
         .status(500)
         .json({ error: "Internal Processing Error", details: error.message });
