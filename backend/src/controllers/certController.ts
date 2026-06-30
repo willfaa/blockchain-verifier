@@ -382,6 +382,7 @@ export class CertController {
         instructorName: course.user?.name || "Head Instructor",
         instructorNip: course.user?.nip || "-", // Fallback if empty
         instructorMajor: course.user?.majority || "Department of Blockchain",
+        customTemplatePath: course.certificateTemplate || undefined,
       };
 
       console.log("️ Generating PNG for Claim...");

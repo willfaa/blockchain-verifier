@@ -290,11 +290,7 @@ export class CertificateController {
         instructorName: (course as any).user?.name || "Head Instructor",
         instructorNip: (course as any).user?.nip || "-",
         instructorMajor: (course as any).user?.majority || "Department of Informatics",
-        customTemplatePath: course.certificateTemplate
-          ? (course.certificateTemplate.startsWith("http")
-              ? course.certificateTemplate
-              : path.join(process.cwd(), course.certificateTemplate))
-          : undefined,
+        customTemplatePath: course.certificateTemplate || undefined,
       });
 
       const cid = await uploadToIpfs(imgBuffer, `/certs/claims/${certId}.png`);
@@ -402,11 +398,7 @@ export class CertificateController {
         instructorNip: certificate.course?.user?.nip || "-",
         instructorMajor: certificate.course?.user?.majority || "Department of Informatics",
         layout,
-        customTemplatePath: certificate.course?.certificateTemplate
-          ? (certificate.course.certificateTemplate.startsWith("http")
-              ? certificate.course.certificateTemplate
-              : path.join(process.cwd(), certificate.course.certificateTemplate))
-          : undefined,
+        customTemplatePath: certificate.course?.certificateTemplate || undefined,
       });
 
       const PDFDocument = require("pdfkit");

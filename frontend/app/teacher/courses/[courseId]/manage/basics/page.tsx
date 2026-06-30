@@ -206,10 +206,10 @@ export default function CourseBasicsPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-10 border-b border-white/5 pb-10">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
-            Course <span className="text-neon-purple">Identity</span>
+            Course <span className="text-neon-purple">Settings</span>
           </h1>
           <p className="text-white/40 text-[11px] font-semibold uppercase tracking-widest mt-4">
-            Curriculum Configuration Settings
+            Course Info & Certificate Template Settings
           </p>
         </div>
         <button
@@ -218,11 +218,11 @@ export default function CourseBasicsPage() {
           className="group relative flex items-center gap-3 bg-neon-purple text-white px-10 py-5 rounded-3xl font-bold uppercase tracking-widest text-xs shadow-[0_0_30px_rgba(176,38,255,0.2)] hover:shadow-[0_0_50px_rgba(176,38,255,0.4)] transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50"
         >
           {saving ? (
-            <span className="animate-pulse">Saving Changes...</span>
+            <span className="animate-pulse">Saving...</span>
           ) : (
             <>
               <Save size={18} className="group-hover:animate-float" />
-              Save Identity Changes
+              Save Settings
             </>
           )}
         </button>
@@ -233,7 +233,7 @@ export default function CourseBasicsPage() {
           <div className="space-y-4">
             <label className="text-neon-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-neon-blue animate-pulse" />{" "}
-              Descriptive Title
+              Course Title
             </label>
             <input
               type="text"
@@ -248,7 +248,7 @@ export default function CourseBasicsPage() {
           <div className="space-y-4">
             <label className="text-neon-purple text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-neon-purple animate-pulse" />{" "}
-              Educational Overview
+              Course Description
             </label>
             <div className="glass-panel rounded-2xl overflow-hidden focus-within:border-neon-purple/50 transition-all border border-white/5 shadow-inner">
               <RichTextEditor
@@ -264,7 +264,7 @@ export default function CourseBasicsPage() {
             <div className="space-y-4">
               <label className="text-neon-soft-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-neon-soft-blue animate-pulse" />{" "}
-                Academic Majority / Category
+                Course Department / Category
               </label>
               <div className="relative">
                 <select
@@ -274,7 +274,7 @@ export default function CourseBasicsPage() {
                   className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white text-md font-bold focus:outline-none focus:border-neon-blue/50 focus:bg-white/[0.05] transition-all appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-dark-bg">
-                    -- Select Educational Track --
+                    -- Select Course Department --
                   </option>
                   {MAJORITIES.map((m) => (
                     <option key={m} value={m} className="bg-dark-bg">
@@ -293,7 +293,7 @@ export default function CourseBasicsPage() {
               <div className="space-y-8 glass-panel p-10 rounded-[2.5rem] border-transparent shadow-2xl animate-in fade-in duration-700">
                 <div className="flex items-center justify-between gap-6 pb-6 border-b border-white/5">
                   <label className="text-neon-pink text-[10px] uppercase font-bold tracking-widest">
-                    Authorized Academic Programs
+                    Allowed Study Programs
                   </label>
                   <button
                     type="button"
@@ -302,7 +302,7 @@ export default function CourseBasicsPage() {
                   >
                     {currentPrograms.every((p) => allowedPrograms.includes(p))
                       ? "Clear All Selections"
-                      : "Authorize Entire Department"}
+                      : "Allow All Programs"}
                   </button>
                 </div>
 
@@ -353,7 +353,7 @@ export default function CourseBasicsPage() {
           <div className="space-y-4">
             <label className="text-neon-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-neon-blue animate-pulse" />{" "}
-              Academic Banner
+              Course Cover Image
             </label>
             <div className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-neon-purple to-neon-blue rounded-[2.5rem] blur opacity-10 group-hover:opacity-30 transition duration-1000"></div>
@@ -370,14 +370,14 @@ export default function CourseBasicsPage() {
                   <div className="text-white/5 flex flex-col items-center group-hover:text-white/10 transition-colors">
                     <ImageIcon size={72} className="mb-6" />
                     <span className="text-[10px] uppercase font-bold tracking-[0.4em]">
-                      Empty Thumbnail Slot
+                      No Image Uploaded
                     </span>
                   </div>
                 )}
 
                 <div className="absolute inset-0 bg-dark-bg/85 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-xl">
                   <label className="cursor-pointer px-10 py-5 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-neon-purple hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
-                    <Upload size={20} className="inline mr-3" /> Update Visual
+                    <Upload size={20} className="inline mr-3" /> Upload Course Image
                     <input
                       type="file"
                       className="hidden"
@@ -411,14 +411,14 @@ export default function CourseBasicsPage() {
                   <div className="text-white/5 flex flex-col items-center group-hover:text-white/10 transition-colors">
                     <ImageIcon size={72} className="mb-6" />
                     <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-center px-4">
-                      Upload Custom Background
+                      Upload Custom Certificate Background
                     </span>
                   </div>
                 )}
 
                 <div className="absolute inset-0 bg-dark-bg/85 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col gap-4 items-center justify-center backdrop-blur-xl">
                   <label className="cursor-pointer px-8 py-4 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-neon-pink hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
-                    <Upload size={18} className="inline mr-2" /> Upload Background
+                    <Upload size={18} className="inline mr-2" /> Upload Background Template
                     <input
                       type="file"
                       className="hidden"
@@ -432,7 +432,7 @@ export default function CourseBasicsPage() {
                       onClick={handlePreviewCertificate}
                       className="px-8 py-4 bg-neon-pink text-white text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-white hover:text-black transition-all transform hover:scale-105 active:scale-95 shadow-2xl"
                     >
-                      Preview Layout
+                      Preview Custom Certificate
                     </button>
                   )}
                 </div>
@@ -444,7 +444,7 @@ export default function CourseBasicsPage() {
                 onClick={handlePreviewCertificate}
                 className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-[1.5rem] text-xs font-bold uppercase tracking-widest transition-all"
               >
-                Preview Default Layout
+                Preview Default Certificate
               </button>
             )}
           </div>
@@ -456,19 +456,19 @@ export default function CourseBasicsPage() {
             </div>
             <p className="text-[10px] text-white/20 leading-relaxed font-bold uppercase tracking-widest space-y-4">
               <span className="text-neon-blue opacity-100 font-extrabold pb-4 block border-b border-white/5 mb-4">
-                Visual Guidelines
+                Certificate Upload Guide
               </span>
               <span className="flex justify-between">
-                Aspect Ratio:{" "}
+                Paper Size:{" "}
                 <span className="text-white/60">A4 Standard</span>
               </span>
               <span className="flex justify-between">
-                Formats:{" "}
+                Supported File Types:{" "}
                 <span className="text-white/60">JPG, PNG, WEBP</span>
               </span>
               <span className="flex justify-between">
-                Maximum File:{" "}
-                <span className="text-white/60">5MB Capacity</span>
+                Maximum File Size:{" "}
+                <span className="text-white/60">5MB</span>
               </span>
             </p>
 
@@ -482,7 +482,7 @@ export default function CourseBasicsPage() {
                 download="blueprint-horizontal.png"
                 className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
               >
-                Download Landscape Map
+                Download Landscape (Horizontal) Guide
               </a>
               <a
                 href={`${API_BASE}/api/lms/templates/guide/VERTICAL`}
@@ -490,7 +490,7 @@ export default function CourseBasicsPage() {
                 download="blueprint-vertical.png"
                 className="block text-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-all"
               >
-                Download Portrait Map
+                Download Portrait (Vertical) Guide
               </a>
             </div>
           </div>
@@ -505,7 +505,7 @@ export default function CourseBasicsPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <h3 className="text-sm font-bold text-white uppercase tracking-widest">
-                Certificate Preview (Dummy Layout)
+                Certificate Preview Example
               </h3>
               <button
                 onClick={() => {
@@ -523,13 +523,13 @@ export default function CourseBasicsPage() {
             <div className="flex-1 overflow-y-auto p-8 flex items-center justify-center bg-black/45">
               {certPreviewLoading ? (
                 <div className="text-teal-400 animate-pulse font-mono text-xs">
-                  RENDERING_LAYOUT_PREVIEW...
+                  LOADING CERTIFICATE PREVIEW...
                 </div>
               ) : certPreviewUrl ? (
                 <div className="relative w-full aspect-[1.78/1] max-h-[60vh] border border-white/10 rounded-xl overflow-hidden bg-slate-900 shadow-2xl">
                   <Image
                     src={certPreviewUrl}
-                    alt="Certificate Blueprint Preview"
+                    alt="Certificate Template Preview"
                     fill
                     className="object-contain"
                     unoptimized={true}

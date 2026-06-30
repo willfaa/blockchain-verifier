@@ -53,15 +53,17 @@ export const createCourse = async (req: Request, res: Response) => {
       if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
         const file = files["certificateTemplate"][0];
         try {
-          const publicUrl = await uploadFileToSupabase(
-            file.path,
-            "lms",
-            `courses/${courseId}/template/${file.filename}`,
-            file.mimetype
-          );
-          certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+          const fileBuffer = fs.readFileSync(file.path);
+          const cleanFilename = file.filename.replace(/\s+/g, "_");
+          const mfsPath = `/templates/courses/${courseId}/${cleanFilename}`;
+          const cid = await uploadToIpfs(fileBuffer, mfsPath);
+          try {
+            fs.unlinkSync(file.path);
+          } catch (e) {}
+          certificateTemplate = cid;
+          console.log(`[LMS] Template uploaded to IPFS. CID: ${cid} (Path: ${mfsPath})`);
         } catch (err: any) {
-          console.error("[LMS] Template Supabase upload failed:", err.message);
+          console.error("[LMS] Template IPFS upload failed, falling back to local:", err.message);
           certificateTemplate = `/uploads/courses/${userId}/${file.filename}`;
         }
       }
@@ -140,20 +142,22 @@ export const updateCourse = async (req: Request, res: Response) => {
       if (files["certificateTemplate"] && files["certificateTemplate"][0]) {
         const file = files["certificateTemplate"][0];
         // Clean up old local template if any
-        if (existingCourse.certificateTemplate && !existingCourse.certificateTemplate.startsWith("http")) {
+        if (existingCourse.certificateTemplate && !existingCourse.certificateTemplate.startsWith("http") && !existingCourse.certificateTemplate.startsWith("Qm")) {
           const oldPath = path.join(process.cwd(), existingCourse.certificateTemplate);
           if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
         }
         try {
-          const publicUrl = await uploadFileToSupabase(
-            file.path,
-            "lms",
-            `courses/${courseId}/template/${file.filename}`,
-            file.mimetype
-          );
-          updateData.certificateTemplate = publicUrl || `/uploads/courses/${userId}/${file.filename}`;
+          const fileBuffer = fs.readFileSync(file.path);
+          const cleanFilename = file.filename.replace(/\s+/g, "_");
+          const mfsPath = `/templates/courses/${courseId}/${cleanFilename}`;
+          const cid = await uploadToIpfs(fileBuffer, mfsPath);
+          try {
+            fs.unlinkSync(file.path);
+          } catch (e) {}
+          updateData.certificateTemplate = cid;
+          console.log(`[LMS] Template updated on IPFS. CID: ${cid} (Path: ${mfsPath})`);
         } catch (err: any) {
-          console.error("[LMS] Template Supabase upload failed:", err.message);
+          console.error("[LMS] Template IPFS update failed, falling back to local:", err.message);
           updateData.certificateTemplate = `/uploads/courses/${userId}/${file.filename}`;
         }
       }
@@ -1233,24 +1237,34 @@ export const uploadAssignmentArtifact = async (req: Request, res: Response) => {
     const userId = req.user?.id || req.user?.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    const filename = `${Date.now()}-${req.file.originalname.replace(
-      /\s+/g,
-      "_",
-    )}`;
-    const uploadsPath = path.join(process.cwd(), "uploads", "assignments");
-    const targetPath = path.join(uploadsPath, filename);
-
-    // Save locally instead of IPFS
-    fs.renameSync(req.file.path, targetPath);
+    let fileUrl = "";
+    let isLocal = false;
+    try {
+      const remotePath = `assignments/artifacts/${userId}/${filename}`;
+      fileUrl = await uploadFileToSupabase(
+        req.file.path,
+        "lms",
+        remotePath,
+        req.file.mimetype
+      );
+    } catch (fileErr: any) {
+      console.error("[LMS] Supabase Artifact upload failed, saving locally:", fileErr);
+      const uploadsPath = path.join(process.cwd(), "uploads", "assignments");
+      if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
+      const targetPath = path.join(uploadsPath, filename);
+      fs.renameSync(req.file.path, targetPath);
+      fileUrl = `/uploads/assignments/${filename}`;
+      isLocal = true;
+    }
 
     const metadata = {
       name: req.file.originalname,
-      url: `/uploads/assignments/${filename}`,
+      url: fileUrl,
       size: req.file.size,
       type: req.file.mimetype,
       fileHash: req.body.fileHash,
       createdAt: new Date().toISOString(),
-      isLocal: true, // Mark as staged on backend
+      isLocal,
     };
 
     return res.json({ ok: true, data: metadata });
@@ -1276,16 +1290,24 @@ export const submitAssignment = async (req: Request, res: Response) => {
           /\s+/g,
           "_",
         )}`;
-        const uploadsPath = path.join(process.cwd(), "uploads", "assignments");
-        const targetPath = path.join(uploadsPath, filename);
-
-        // Save locally
-        fs.renameSync(req.file.path, targetPath);
-
-        fileUrlFromReq = `/uploads/assignments/${filename}`;
+        const remotePath = `assignments/${assignmentId}/${userId}/${filename}`;
+        fileUrlFromReq = await uploadFileToSupabase(
+          req.file.path,
+          "lms",
+          remotePath,
+          req.file.mimetype
+        );
       } catch (fileErr: any) {
-        console.error("[LMS] Local Submission failed:", fileErr);
-        throw fileErr;
+        console.error("[LMS] Supabase Submission failed, saving locally:", fileErr);
+        const filename = `${Date.now()}-${req.file.originalname.replace(
+          /\s+/g,
+          "_",
+        )}`;
+        const uploadsPath = path.join(process.cwd(), "uploads", "assignments");
+        if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
+        const targetPath = path.join(uploadsPath, filename);
+        fs.renameSync(req.file.path, targetPath);
+        fileUrlFromReq = `/uploads/assignments/${filename}`;
       }
     }
 
@@ -1738,11 +1760,7 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
       instructorName: course.user?.name || "Head Instructor",
       instructorNip: course.user?.nip || "-",
       instructorMajor: course.user?.majority || "Department of Informatics",
-      customTemplatePath: course.certificateTemplate
-        ? (course.certificateTemplate.startsWith("http")
-            ? course.certificateTemplate
-            : path.join(process.cwd(), course.certificateTemplate))
-        : undefined,
+      customTemplatePath: course.certificateTemplate || undefined,
     };
 
     const imgBuffer = await generateCertificateImage(dummyData);

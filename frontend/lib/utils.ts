@@ -51,6 +51,10 @@ export const getAvatarUrl = (path: string | null | undefined) => {
   if (!path) return undefined;
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
+  if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
+    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
+    return `${gateway}/ipfs/${cleanPath}`;
+  }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
   return `${getApiBase()}${normalizedPath}`;
 };
@@ -59,6 +63,10 @@ export const getAssetUrl = (path: string | null | undefined) => {
   if (!path) return "";
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
+  if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
+    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
+    return `${gateway}/ipfs/${cleanPath}`;
+  }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
   return `${getApiBase()}${normalizedPath}`;
 };

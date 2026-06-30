@@ -117,19 +117,28 @@ export const generateCertificateImage = async (
   let customImg = null;
   if (data.customTemplatePath) {
     try {
+      let templatePath = data.customTemplatePath;
+      const isCid = templatePath.startsWith("Qm") && templatePath.length >= 46;
+      if (isCid) {
+        // Resolve using local/remote IPFS gateway
+        const gateway = process.env.IPFS_GATEWAY || "http://127.0.0.1:8082";
+        templatePath = `${gateway}/ipfs/${templatePath}`;
+        console.log(`[imageGenerator] Resolved IPFS CID custom template: ${templatePath}`);
+      }
+
       if (
-        data.customTemplatePath.startsWith("http://") ||
-        data.customTemplatePath.startsWith("https://")
+        templatePath.startsWith("http://") ||
+        templatePath.startsWith("https://")
       ) {
-        console.log(`[imageGenerator] Fetching remote template image: ${data.customTemplatePath}`);
-        const response = await axios.get(data.customTemplatePath, {
+        console.log(`[imageGenerator] Fetching remote template image: ${templatePath}`);
+        const response = await axios.get(templatePath, {
           responseType: "arraybuffer",
           timeout: 10000,
         });
         const buffer = Buffer.from(response.data);
         customImg = await loadImage(buffer);
-      } else if (fs.existsSync(data.customTemplatePath)) {
-        customImg = await loadImage(data.customTemplatePath);
+      } else if (fs.existsSync(templatePath)) {
+        customImg = await loadImage(templatePath);
       }
     } catch (err: any) {
       console.warn("⚠️ Failed to load custom template:", err.message);

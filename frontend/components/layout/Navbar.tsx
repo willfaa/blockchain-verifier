@@ -42,7 +42,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="fixed top-0 w-full z-[100] bg-dark-bg/60 backdrop-blur-xl border-b border-white/5 h-20 flex items-center">
+    <nav className="fixed top-0 w-full z-40 bg-dark-bg/60 backdrop-blur-xl border-b border-white/5 h-20 flex items-center">
       <div className="max-w-[1400px] mx-auto w-full px-6 flex items-center justify-between">
         {/* Brand */}
         <Link
