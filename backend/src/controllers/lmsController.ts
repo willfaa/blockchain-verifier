@@ -1788,3 +1788,26 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to fetch settings" });
   }
 };
+
+export const getDepartments = async (req: Request, res: Response) => {
+  try {
+    const bidangList = await db.bidangKeahlian.findMany({
+      include: {
+        programKeahlian: {
+          include: {
+            konsentrasiKeahlian: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return res.status(200).json({
+      ok: true,
+      data: bidangList,
+    });
+  } catch (error: any) {
+    console.error("[getDepartments Error]", error.message);
+    return res.status(500).json({ error: "Failed to fetch departments structure" });
+  }
+};

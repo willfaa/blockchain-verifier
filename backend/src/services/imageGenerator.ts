@@ -113,11 +113,54 @@ export const generateCertificateImage = async (
 
   const centerX = width / 2;
 
+  // Resolve dynamic instructor details
+  let finalInstructorName = data.instructorName;
+  let finalInstructorNip = data.instructorNip;
+  let finalInstructorMajor = data.instructorMajor || "Teknologi Informasi";
+
+  if (!finalInstructorName || finalInstructorName === "Head Instructor" || finalInstructorName === "Instructor Name") {
+    try {
+      const setting = await db.systemSetting.findUnique({
+        where: { key: "default_certificate_instructor_name" }
+      });
+      finalInstructorName = setting?.value || "Budi Headmaster, M.T.";
+    } catch (e) {
+      finalInstructorName = "Budi Headmaster, M.T.";
+    }
+  }
+
+  if (!finalInstructorNip || finalInstructorNip === "-") {
+    try {
+      const setting = await db.systemSetting.findUnique({
+        where: { key: "default_certificate_instructor_nip" }
+      });
+      finalInstructorNip = setting?.value || "198706152010121002";
+    } catch (e) {
+      finalInstructorNip = "198706152010121002";
+    }
+  }
+
   // --- 1. DRAW BACKGROUND (CUSTOM OR DEFAULT) ---
   let customImg = null;
-  if (data.customTemplatePath) {
+  let activeTemplatePath = data.customTemplatePath;
+  if (!activeTemplatePath) {
     try {
-      let templatePath = data.customTemplatePath;
+      const setting = await db.systemSetting.findUnique({
+        where: { key: "default_certificate_template" },
+      });
+      if (setting?.value) {
+        activeTemplatePath = path.isAbsolute(setting.value)
+          ? setting.value
+          : path.join(process.cwd(), setting.value);
+      }
+    } catch (err) {
+      console.error("[imageGenerator] Failed to fetch default template path:", err);
+    }
+  }
+
+  if (activeTemplatePath) {
+    try {
+      let templatePath = activeTemplatePath;
       const isCid = templatePath.startsWith("Qm") && templatePath.length >= 46;
       if (isCid) {
         // Resolve using local/remote IPFS gateway
@@ -236,7 +279,7 @@ export const generateCertificateImage = async (
     const leftX = 280;
     ctx.fillStyle = "#f8fafc";
     ctx.font = "bold italic 24px Arial";
-    ctx.fillText(data.instructorName || "Instructor Name", leftX, footerY - 50);
+    ctx.fillText(finalInstructorName, leftX, footerY - 50);
 
     ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
@@ -247,10 +290,10 @@ export const generateCertificateImage = async (
 
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "bold 14px Arial";
-    ctx.fillText((data.instructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
+    ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
     ctx.fillStyle = "#38bdf8";
     ctx.font = "14px Courier New";
-    ctx.fillText(`NIP: ${data.instructorNip || "-"}`, leftX, footerY + 15);
+    ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
 
     // Footer - QR Code (Y=1450, Right)
     const rightX = width - 280;
@@ -333,7 +376,7 @@ export const generateCertificateImage = async (
     const leftX = 350;
     ctx.fillStyle = "#f8fafc";
     ctx.font = "bold italic 28px Arial";
-    ctx.fillText(data.instructorName || "Instructor Name", leftX, footerY - 50);
+    ctx.fillText(finalInstructorName, leftX, footerY - 50);
 
     ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
@@ -344,10 +387,10 @@ export const generateCertificateImage = async (
 
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "bold 16px Arial";
-    ctx.fillText((data.instructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
+    ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
     ctx.fillStyle = "#38bdf8";
     ctx.font = "14px Courier New";
-    ctx.fillText(`NIP: ${data.instructorNip || "-"}`, leftX, footerY + 15);
+    ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
 
     // Middle Info (ID and Date)
     ctx.fillStyle = "#64748b";

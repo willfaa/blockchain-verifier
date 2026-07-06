@@ -10,7 +10,10 @@ import {
   ChevronLeft,
   ShieldAlert,
   LogOut,
-  Globe, // Added Globe Icon
+  Globe,
+  BookOpen,
+  Layers,
+  Palette,
 } from "lucide-react";
 import api from "@/lib/api";
 
@@ -64,6 +67,21 @@ export default function AdminLayout({
       href: "/admin/dashboard",
     },
     { label: "Users & Roles", icon: Users, href: "/admin/users" },
+    {
+      label: "All Courses",
+      icon: BookOpen,
+      href: "/admin/courses",
+    },
+    {
+      label: "Expertise Fields",
+      icon: Layers,
+      href: "/admin/expertise",
+    },
+    {
+      label: "Certificate Template",
+      icon: Palette,
+      href: "/admin/template",
+    },
     {
       label: "Transaction Logs",
       icon: FileText,

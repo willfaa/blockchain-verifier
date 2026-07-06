@@ -121,6 +121,23 @@ export class CertController {
         }
       }
 
+      // Fallback to system settings if still missing
+      if (!instructorName) {
+        try {
+          const [nameSetting, nipSetting] = await Promise.all([
+            prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
+            prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
+          ]);
+          instructorName = nameSetting?.value || "Budi Headmaster, M.T.";
+          instructorNip = nipSetting?.value || "198706152010121002";
+          instructorMajor = "Teknologi Informasi";
+        } catch (e) {
+          instructorName = "Budi Headmaster, M.T.";
+          instructorNip = "198706152010121002";
+          instructorMajor = "Teknologi Informasi";
+        }
+      }
+
       // --- IMAGE GENERATION & IPFS UPLOAD (PNG) ---
       console.log("️ Generating Certificate Image (PNG)...");
       const imgBuffer = await generateCertificateImage({

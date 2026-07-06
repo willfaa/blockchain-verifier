@@ -78,6 +78,21 @@ export type ExamResult = $Result.DefaultSelection<Prisma.$ExamResultPayload>
  * 
  */
 export type SystemSetting = $Result.DefaultSelection<Prisma.$SystemSettingPayload>
+/**
+ * Model BidangKeahlian
+ * 
+ */
+export type BidangKeahlian = $Result.DefaultSelection<Prisma.$BidangKeahlianPayload>
+/**
+ * Model ProgramKeahlian
+ * 
+ */
+export type ProgramKeahlian = $Result.DefaultSelection<Prisma.$ProgramKeahlianPayload>
+/**
+ * Model KonsentrasiKeahlian
+ * 
+ */
+export type KonsentrasiKeahlian = $Result.DefaultSelection<Prisma.$KonsentrasiKeahlianPayload>
 
 /**
  * Enums
@@ -347,6 +362,36 @@ export class PrismaClient<
     * ```
     */
   get systemSetting(): Prisma.SystemSettingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.bidangKeahlian`: Exposes CRUD operations for the **BidangKeahlian** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BidangKeahlians
+    * const bidangKeahlians = await prisma.bidangKeahlian.findMany()
+    * ```
+    */
+  get bidangKeahlian(): Prisma.BidangKeahlianDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.programKeahlian`: Exposes CRUD operations for the **ProgramKeahlian** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProgramKeahlians
+    * const programKeahlians = await prisma.programKeahlian.findMany()
+    * ```
+    */
+  get programKeahlian(): Prisma.ProgramKeahlianDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.konsentrasiKeahlian`: Exposes CRUD operations for the **KonsentrasiKeahlian** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KonsentrasiKeahlians
+    * const konsentrasiKeahlians = await prisma.konsentrasiKeahlian.findMany()
+    * ```
+    */
+  get konsentrasiKeahlian(): Prisma.KonsentrasiKeahlianDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -793,7 +838,10 @@ export namespace Prisma {
     Enrollment: 'Enrollment',
     Certificate: 'Certificate',
     ExamResult: 'ExamResult',
-    SystemSetting: 'SystemSetting'
+    SystemSetting: 'SystemSetting',
+    BidangKeahlian: 'BidangKeahlian',
+    ProgramKeahlian: 'ProgramKeahlian',
+    KonsentrasiKeahlian: 'KonsentrasiKeahlian'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -809,7 +857,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "examResult" | "systemSetting"
+      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1775,6 +1823,228 @@ export namespace Prisma {
           }
         }
       }
+      BidangKeahlian: {
+        payload: Prisma.$BidangKeahlianPayload<ExtArgs>
+        fields: Prisma.BidangKeahlianFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BidangKeahlianFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BidangKeahlianFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          findFirst: {
+            args: Prisma.BidangKeahlianFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BidangKeahlianFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          findMany: {
+            args: Prisma.BidangKeahlianFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>[]
+          }
+          create: {
+            args: Prisma.BidangKeahlianCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          createMany: {
+            args: Prisma.BidangKeahlianCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BidangKeahlianCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>[]
+          }
+          delete: {
+            args: Prisma.BidangKeahlianDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          update: {
+            args: Prisma.BidangKeahlianUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          deleteMany: {
+            args: Prisma.BidangKeahlianDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BidangKeahlianUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BidangKeahlianUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>[]
+          }
+          upsert: {
+            args: Prisma.BidangKeahlianUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BidangKeahlianPayload>
+          }
+          aggregate: {
+            args: Prisma.BidangKeahlianAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBidangKeahlian>
+          }
+          groupBy: {
+            args: Prisma.BidangKeahlianGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BidangKeahlianGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BidangKeahlianCountArgs<ExtArgs>
+            result: $Utils.Optional<BidangKeahlianCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProgramKeahlian: {
+        payload: Prisma.$ProgramKeahlianPayload<ExtArgs>
+        fields: Prisma.ProgramKeahlianFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProgramKeahlianFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProgramKeahlianFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          findFirst: {
+            args: Prisma.ProgramKeahlianFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProgramKeahlianFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          findMany: {
+            args: Prisma.ProgramKeahlianFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>[]
+          }
+          create: {
+            args: Prisma.ProgramKeahlianCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          createMany: {
+            args: Prisma.ProgramKeahlianCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProgramKeahlianCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>[]
+          }
+          delete: {
+            args: Prisma.ProgramKeahlianDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          update: {
+            args: Prisma.ProgramKeahlianUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProgramKeahlianDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProgramKeahlianUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProgramKeahlianUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>[]
+          }
+          upsert: {
+            args: Prisma.ProgramKeahlianUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProgramKeahlianPayload>
+          }
+          aggregate: {
+            args: Prisma.ProgramKeahlianAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProgramKeahlian>
+          }
+          groupBy: {
+            args: Prisma.ProgramKeahlianGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProgramKeahlianGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProgramKeahlianCountArgs<ExtArgs>
+            result: $Utils.Optional<ProgramKeahlianCountAggregateOutputType> | number
+          }
+        }
+      }
+      KonsentrasiKeahlian: {
+        payload: Prisma.$KonsentrasiKeahlianPayload<ExtArgs>
+        fields: Prisma.KonsentrasiKeahlianFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KonsentrasiKeahlianFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KonsentrasiKeahlianFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          findFirst: {
+            args: Prisma.KonsentrasiKeahlianFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KonsentrasiKeahlianFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          findMany: {
+            args: Prisma.KonsentrasiKeahlianFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>[]
+          }
+          create: {
+            args: Prisma.KonsentrasiKeahlianCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          createMany: {
+            args: Prisma.KonsentrasiKeahlianCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KonsentrasiKeahlianCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>[]
+          }
+          delete: {
+            args: Prisma.KonsentrasiKeahlianDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          update: {
+            args: Prisma.KonsentrasiKeahlianUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          deleteMany: {
+            args: Prisma.KonsentrasiKeahlianDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KonsentrasiKeahlianUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.KonsentrasiKeahlianUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>[]
+          }
+          upsert: {
+            args: Prisma.KonsentrasiKeahlianUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KonsentrasiKeahlianPayload>
+          }
+          aggregate: {
+            args: Prisma.KonsentrasiKeahlianAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKonsentrasiKeahlian>
+          }
+          groupBy: {
+            args: Prisma.KonsentrasiKeahlianGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KonsentrasiKeahlianGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KonsentrasiKeahlianCountArgs<ExtArgs>
+            result: $Utils.Optional<KonsentrasiKeahlianCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1896,6 +2166,9 @@ export namespace Prisma {
     certificate?: CertificateOmit
     examResult?: ExamResultOmit
     systemSetting?: SystemSettingOmit
+    bidangKeahlian?: BidangKeahlianOmit
+    programKeahlian?: ProgramKeahlianOmit
+    konsentrasiKeahlian?: KonsentrasiKeahlianOmit
   }
 
   /* Types for Logging */
@@ -2235,6 +2508,68 @@ export namespace Prisma {
    */
   export type ExamCountOutputTypeCountResultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ExamResultWhereInput
+  }
+
+
+  /**
+   * Count Type BidangKeahlianCountOutputType
+   */
+
+  export type BidangKeahlianCountOutputType = {
+    programKeahlian: number
+  }
+
+  export type BidangKeahlianCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    programKeahlian?: boolean | BidangKeahlianCountOutputTypeCountProgramKeahlianArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * BidangKeahlianCountOutputType without action
+   */
+  export type BidangKeahlianCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlianCountOutputType
+     */
+    select?: BidangKeahlianCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * BidangKeahlianCountOutputType without action
+   */
+  export type BidangKeahlianCountOutputTypeCountProgramKeahlianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProgramKeahlianWhereInput
+  }
+
+
+  /**
+   * Count Type ProgramKeahlianCountOutputType
+   */
+
+  export type ProgramKeahlianCountOutputType = {
+    konsentrasiKeahlian: number
+  }
+
+  export type ProgramKeahlianCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    konsentrasiKeahlian?: boolean | ProgramKeahlianCountOutputTypeCountKonsentrasiKeahlianArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ProgramKeahlianCountOutputType without action
+   */
+  export type ProgramKeahlianCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlianCountOutputType
+     */
+    select?: ProgramKeahlianCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ProgramKeahlianCountOutputType without action
+   */
+  export type ProgramKeahlianCountOutputTypeCountKonsentrasiKeahlianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KonsentrasiKeahlianWhereInput
   }
 
 
@@ -17409,6 +17744,3146 @@ export namespace Prisma {
 
 
   /**
+   * Model BidangKeahlian
+   */
+
+  export type AggregateBidangKeahlian = {
+    _count: BidangKeahlianCountAggregateOutputType | null
+    _min: BidangKeahlianMinAggregateOutputType | null
+    _max: BidangKeahlianMaxAggregateOutputType | null
+  }
+
+  export type BidangKeahlianMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+  }
+
+  export type BidangKeahlianMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+  }
+
+  export type BidangKeahlianCountAggregateOutputType = {
+    id: number
+    name: number
+    _all: number
+  }
+
+
+  export type BidangKeahlianMinAggregateInputType = {
+    id?: true
+    name?: true
+  }
+
+  export type BidangKeahlianMaxAggregateInputType = {
+    id?: true
+    name?: true
+  }
+
+  export type BidangKeahlianCountAggregateInputType = {
+    id?: true
+    name?: true
+    _all?: true
+  }
+
+  export type BidangKeahlianAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BidangKeahlian to aggregate.
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BidangKeahlians to fetch.
+     */
+    orderBy?: BidangKeahlianOrderByWithRelationInput | BidangKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BidangKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BidangKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BidangKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BidangKeahlians
+    **/
+    _count?: true | BidangKeahlianCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BidangKeahlianMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BidangKeahlianMaxAggregateInputType
+  }
+
+  export type GetBidangKeahlianAggregateType<T extends BidangKeahlianAggregateArgs> = {
+        [P in keyof T & keyof AggregateBidangKeahlian]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBidangKeahlian[P]>
+      : GetScalarType<T[P], AggregateBidangKeahlian[P]>
+  }
+
+
+
+
+  export type BidangKeahlianGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BidangKeahlianWhereInput
+    orderBy?: BidangKeahlianOrderByWithAggregationInput | BidangKeahlianOrderByWithAggregationInput[]
+    by: BidangKeahlianScalarFieldEnum[] | BidangKeahlianScalarFieldEnum
+    having?: BidangKeahlianScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BidangKeahlianCountAggregateInputType | true
+    _min?: BidangKeahlianMinAggregateInputType
+    _max?: BidangKeahlianMaxAggregateInputType
+  }
+
+  export type BidangKeahlianGroupByOutputType = {
+    id: string
+    name: string
+    _count: BidangKeahlianCountAggregateOutputType | null
+    _min: BidangKeahlianMinAggregateOutputType | null
+    _max: BidangKeahlianMaxAggregateOutputType | null
+  }
+
+  type GetBidangKeahlianGroupByPayload<T extends BidangKeahlianGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BidangKeahlianGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BidangKeahlianGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BidangKeahlianGroupByOutputType[P]>
+            : GetScalarType<T[P], BidangKeahlianGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BidangKeahlianSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    programKeahlian?: boolean | BidangKeahlian$programKeahlianArgs<ExtArgs>
+    _count?: boolean | BidangKeahlianCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bidangKeahlian"]>
+
+  export type BidangKeahlianSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["bidangKeahlian"]>
+
+  export type BidangKeahlianSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["bidangKeahlian"]>
+
+  export type BidangKeahlianSelectScalar = {
+    id?: boolean
+    name?: boolean
+  }
+
+  export type BidangKeahlianOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name", ExtArgs["result"]["bidangKeahlian"]>
+  export type BidangKeahlianInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    programKeahlian?: boolean | BidangKeahlian$programKeahlianArgs<ExtArgs>
+    _count?: boolean | BidangKeahlianCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type BidangKeahlianIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type BidangKeahlianIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $BidangKeahlianPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BidangKeahlian"
+    objects: {
+      programKeahlian: Prisma.$ProgramKeahlianPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+    }, ExtArgs["result"]["bidangKeahlian"]>
+    composites: {}
+  }
+
+  type BidangKeahlianGetPayload<S extends boolean | null | undefined | BidangKeahlianDefaultArgs> = $Result.GetResult<Prisma.$BidangKeahlianPayload, S>
+
+  type BidangKeahlianCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BidangKeahlianFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BidangKeahlianCountAggregateInputType | true
+    }
+
+  export interface BidangKeahlianDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BidangKeahlian'], meta: { name: 'BidangKeahlian' } }
+    /**
+     * Find zero or one BidangKeahlian that matches the filter.
+     * @param {BidangKeahlianFindUniqueArgs} args - Arguments to find a BidangKeahlian
+     * @example
+     * // Get one BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BidangKeahlianFindUniqueArgs>(args: SelectSubset<T, BidangKeahlianFindUniqueArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BidangKeahlian that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BidangKeahlianFindUniqueOrThrowArgs} args - Arguments to find a BidangKeahlian
+     * @example
+     * // Get one BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BidangKeahlianFindUniqueOrThrowArgs>(args: SelectSubset<T, BidangKeahlianFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BidangKeahlian that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianFindFirstArgs} args - Arguments to find a BidangKeahlian
+     * @example
+     * // Get one BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BidangKeahlianFindFirstArgs>(args?: SelectSubset<T, BidangKeahlianFindFirstArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BidangKeahlian that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianFindFirstOrThrowArgs} args - Arguments to find a BidangKeahlian
+     * @example
+     * // Get one BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BidangKeahlianFindFirstOrThrowArgs>(args?: SelectSubset<T, BidangKeahlianFindFirstOrThrowArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BidangKeahlians that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BidangKeahlians
+     * const bidangKeahlians = await prisma.bidangKeahlian.findMany()
+     * 
+     * // Get first 10 BidangKeahlians
+     * const bidangKeahlians = await prisma.bidangKeahlian.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const bidangKeahlianWithIdOnly = await prisma.bidangKeahlian.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BidangKeahlianFindManyArgs>(args?: SelectSubset<T, BidangKeahlianFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BidangKeahlian.
+     * @param {BidangKeahlianCreateArgs} args - Arguments to create a BidangKeahlian.
+     * @example
+     * // Create one BidangKeahlian
+     * const BidangKeahlian = await prisma.bidangKeahlian.create({
+     *   data: {
+     *     // ... data to create a BidangKeahlian
+     *   }
+     * })
+     * 
+     */
+    create<T extends BidangKeahlianCreateArgs>(args: SelectSubset<T, BidangKeahlianCreateArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BidangKeahlians.
+     * @param {BidangKeahlianCreateManyArgs} args - Arguments to create many BidangKeahlians.
+     * @example
+     * // Create many BidangKeahlians
+     * const bidangKeahlian = await prisma.bidangKeahlian.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BidangKeahlianCreateManyArgs>(args?: SelectSubset<T, BidangKeahlianCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BidangKeahlians and returns the data saved in the database.
+     * @param {BidangKeahlianCreateManyAndReturnArgs} args - Arguments to create many BidangKeahlians.
+     * @example
+     * // Create many BidangKeahlians
+     * const bidangKeahlian = await prisma.bidangKeahlian.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BidangKeahlians and only return the `id`
+     * const bidangKeahlianWithIdOnly = await prisma.bidangKeahlian.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BidangKeahlianCreateManyAndReturnArgs>(args?: SelectSubset<T, BidangKeahlianCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BidangKeahlian.
+     * @param {BidangKeahlianDeleteArgs} args - Arguments to delete one BidangKeahlian.
+     * @example
+     * // Delete one BidangKeahlian
+     * const BidangKeahlian = await prisma.bidangKeahlian.delete({
+     *   where: {
+     *     // ... filter to delete one BidangKeahlian
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BidangKeahlianDeleteArgs>(args: SelectSubset<T, BidangKeahlianDeleteArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BidangKeahlian.
+     * @param {BidangKeahlianUpdateArgs} args - Arguments to update one BidangKeahlian.
+     * @example
+     * // Update one BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BidangKeahlianUpdateArgs>(args: SelectSubset<T, BidangKeahlianUpdateArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BidangKeahlians.
+     * @param {BidangKeahlianDeleteManyArgs} args - Arguments to filter BidangKeahlians to delete.
+     * @example
+     * // Delete a few BidangKeahlians
+     * const { count } = await prisma.bidangKeahlian.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BidangKeahlianDeleteManyArgs>(args?: SelectSubset<T, BidangKeahlianDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BidangKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BidangKeahlians
+     * const bidangKeahlian = await prisma.bidangKeahlian.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BidangKeahlianUpdateManyArgs>(args: SelectSubset<T, BidangKeahlianUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BidangKeahlians and returns the data updated in the database.
+     * @param {BidangKeahlianUpdateManyAndReturnArgs} args - Arguments to update many BidangKeahlians.
+     * @example
+     * // Update many BidangKeahlians
+     * const bidangKeahlian = await prisma.bidangKeahlian.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BidangKeahlians and only return the `id`
+     * const bidangKeahlianWithIdOnly = await prisma.bidangKeahlian.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BidangKeahlianUpdateManyAndReturnArgs>(args: SelectSubset<T, BidangKeahlianUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BidangKeahlian.
+     * @param {BidangKeahlianUpsertArgs} args - Arguments to update or create a BidangKeahlian.
+     * @example
+     * // Update or create a BidangKeahlian
+     * const bidangKeahlian = await prisma.bidangKeahlian.upsert({
+     *   create: {
+     *     // ... data to create a BidangKeahlian
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BidangKeahlian we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BidangKeahlianUpsertArgs>(args: SelectSubset<T, BidangKeahlianUpsertArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BidangKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianCountArgs} args - Arguments to filter BidangKeahlians to count.
+     * @example
+     * // Count the number of BidangKeahlians
+     * const count = await prisma.bidangKeahlian.count({
+     *   where: {
+     *     // ... the filter for the BidangKeahlians we want to count
+     *   }
+     * })
+    **/
+    count<T extends BidangKeahlianCountArgs>(
+      args?: Subset<T, BidangKeahlianCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BidangKeahlianCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BidangKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BidangKeahlianAggregateArgs>(args: Subset<T, BidangKeahlianAggregateArgs>): Prisma.PrismaPromise<GetBidangKeahlianAggregateType<T>>
+
+    /**
+     * Group by BidangKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BidangKeahlianGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BidangKeahlianGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BidangKeahlianGroupByArgs['orderBy'] }
+        : { orderBy?: BidangKeahlianGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BidangKeahlianGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBidangKeahlianGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BidangKeahlian model
+   */
+  readonly fields: BidangKeahlianFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BidangKeahlian.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BidangKeahlianClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    programKeahlian<T extends BidangKeahlian$programKeahlianArgs<ExtArgs> = {}>(args?: Subset<T, BidangKeahlian$programKeahlianArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BidangKeahlian model
+   */
+  interface BidangKeahlianFieldRefs {
+    readonly id: FieldRef<"BidangKeahlian", 'String'>
+    readonly name: FieldRef<"BidangKeahlian", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BidangKeahlian findUnique
+   */
+  export type BidangKeahlianFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which BidangKeahlian to fetch.
+     */
+    where: BidangKeahlianWhereUniqueInput
+  }
+
+  /**
+   * BidangKeahlian findUniqueOrThrow
+   */
+  export type BidangKeahlianFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which BidangKeahlian to fetch.
+     */
+    where: BidangKeahlianWhereUniqueInput
+  }
+
+  /**
+   * BidangKeahlian findFirst
+   */
+  export type BidangKeahlianFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which BidangKeahlian to fetch.
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BidangKeahlians to fetch.
+     */
+    orderBy?: BidangKeahlianOrderByWithRelationInput | BidangKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BidangKeahlians.
+     */
+    cursor?: BidangKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BidangKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BidangKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BidangKeahlians.
+     */
+    distinct?: BidangKeahlianScalarFieldEnum | BidangKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * BidangKeahlian findFirstOrThrow
+   */
+  export type BidangKeahlianFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which BidangKeahlian to fetch.
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BidangKeahlians to fetch.
+     */
+    orderBy?: BidangKeahlianOrderByWithRelationInput | BidangKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BidangKeahlians.
+     */
+    cursor?: BidangKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BidangKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BidangKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BidangKeahlians.
+     */
+    distinct?: BidangKeahlianScalarFieldEnum | BidangKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * BidangKeahlian findMany
+   */
+  export type BidangKeahlianFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which BidangKeahlians to fetch.
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BidangKeahlians to fetch.
+     */
+    orderBy?: BidangKeahlianOrderByWithRelationInput | BidangKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BidangKeahlians.
+     */
+    cursor?: BidangKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BidangKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BidangKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BidangKeahlians.
+     */
+    distinct?: BidangKeahlianScalarFieldEnum | BidangKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * BidangKeahlian create
+   */
+  export type BidangKeahlianCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BidangKeahlian.
+     */
+    data: XOR<BidangKeahlianCreateInput, BidangKeahlianUncheckedCreateInput>
+  }
+
+  /**
+   * BidangKeahlian createMany
+   */
+  export type BidangKeahlianCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BidangKeahlians.
+     */
+    data: BidangKeahlianCreateManyInput | BidangKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BidangKeahlian createManyAndReturn
+   */
+  export type BidangKeahlianCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to create many BidangKeahlians.
+     */
+    data: BidangKeahlianCreateManyInput | BidangKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BidangKeahlian update
+   */
+  export type BidangKeahlianUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BidangKeahlian.
+     */
+    data: XOR<BidangKeahlianUpdateInput, BidangKeahlianUncheckedUpdateInput>
+    /**
+     * Choose, which BidangKeahlian to update.
+     */
+    where: BidangKeahlianWhereUniqueInput
+  }
+
+  /**
+   * BidangKeahlian updateMany
+   */
+  export type BidangKeahlianUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BidangKeahlians.
+     */
+    data: XOR<BidangKeahlianUpdateManyMutationInput, BidangKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which BidangKeahlians to update
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * Limit how many BidangKeahlians to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BidangKeahlian updateManyAndReturn
+   */
+  export type BidangKeahlianUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to update BidangKeahlians.
+     */
+    data: XOR<BidangKeahlianUpdateManyMutationInput, BidangKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which BidangKeahlians to update
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * Limit how many BidangKeahlians to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BidangKeahlian upsert
+   */
+  export type BidangKeahlianUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BidangKeahlian to update in case it exists.
+     */
+    where: BidangKeahlianWhereUniqueInput
+    /**
+     * In case the BidangKeahlian found by the `where` argument doesn't exist, create a new BidangKeahlian with this data.
+     */
+    create: XOR<BidangKeahlianCreateInput, BidangKeahlianUncheckedCreateInput>
+    /**
+     * In case the BidangKeahlian was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BidangKeahlianUpdateInput, BidangKeahlianUncheckedUpdateInput>
+  }
+
+  /**
+   * BidangKeahlian delete
+   */
+  export type BidangKeahlianDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter which BidangKeahlian to delete.
+     */
+    where: BidangKeahlianWhereUniqueInput
+  }
+
+  /**
+   * BidangKeahlian deleteMany
+   */
+  export type BidangKeahlianDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BidangKeahlians to delete
+     */
+    where?: BidangKeahlianWhereInput
+    /**
+     * Limit how many BidangKeahlians to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BidangKeahlian.programKeahlian
+   */
+  export type BidangKeahlian$programKeahlianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    where?: ProgramKeahlianWhereInput
+    orderBy?: ProgramKeahlianOrderByWithRelationInput | ProgramKeahlianOrderByWithRelationInput[]
+    cursor?: ProgramKeahlianWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProgramKeahlianScalarFieldEnum | ProgramKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * BidangKeahlian without action
+   */
+  export type BidangKeahlianDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BidangKeahlian
+     */
+    select?: BidangKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BidangKeahlian
+     */
+    omit?: BidangKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BidangKeahlianInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProgramKeahlian
+   */
+
+  export type AggregateProgramKeahlian = {
+    _count: ProgramKeahlianCountAggregateOutputType | null
+    _min: ProgramKeahlianMinAggregateOutputType | null
+    _max: ProgramKeahlianMaxAggregateOutputType | null
+  }
+
+  export type ProgramKeahlianMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    bidangKeahlianId: string | null
+  }
+
+  export type ProgramKeahlianMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    bidangKeahlianId: string | null
+  }
+
+  export type ProgramKeahlianCountAggregateOutputType = {
+    id: number
+    name: number
+    bidangKeahlianId: number
+    _all: number
+  }
+
+
+  export type ProgramKeahlianMinAggregateInputType = {
+    id?: true
+    name?: true
+    bidangKeahlianId?: true
+  }
+
+  export type ProgramKeahlianMaxAggregateInputType = {
+    id?: true
+    name?: true
+    bidangKeahlianId?: true
+  }
+
+  export type ProgramKeahlianCountAggregateInputType = {
+    id?: true
+    name?: true
+    bidangKeahlianId?: true
+    _all?: true
+  }
+
+  export type ProgramKeahlianAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProgramKeahlian to aggregate.
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProgramKeahlians to fetch.
+     */
+    orderBy?: ProgramKeahlianOrderByWithRelationInput | ProgramKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProgramKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProgramKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProgramKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProgramKeahlians
+    **/
+    _count?: true | ProgramKeahlianCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProgramKeahlianMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProgramKeahlianMaxAggregateInputType
+  }
+
+  export type GetProgramKeahlianAggregateType<T extends ProgramKeahlianAggregateArgs> = {
+        [P in keyof T & keyof AggregateProgramKeahlian]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProgramKeahlian[P]>
+      : GetScalarType<T[P], AggregateProgramKeahlian[P]>
+  }
+
+
+
+
+  export type ProgramKeahlianGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProgramKeahlianWhereInput
+    orderBy?: ProgramKeahlianOrderByWithAggregationInput | ProgramKeahlianOrderByWithAggregationInput[]
+    by: ProgramKeahlianScalarFieldEnum[] | ProgramKeahlianScalarFieldEnum
+    having?: ProgramKeahlianScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProgramKeahlianCountAggregateInputType | true
+    _min?: ProgramKeahlianMinAggregateInputType
+    _max?: ProgramKeahlianMaxAggregateInputType
+  }
+
+  export type ProgramKeahlianGroupByOutputType = {
+    id: string
+    name: string
+    bidangKeahlianId: string
+    _count: ProgramKeahlianCountAggregateOutputType | null
+    _min: ProgramKeahlianMinAggregateOutputType | null
+    _max: ProgramKeahlianMaxAggregateOutputType | null
+  }
+
+  type GetProgramKeahlianGroupByPayload<T extends ProgramKeahlianGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProgramKeahlianGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProgramKeahlianGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProgramKeahlianGroupByOutputType[P]>
+            : GetScalarType<T[P], ProgramKeahlianGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProgramKeahlianSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    bidangKeahlianId?: boolean
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+    konsentrasiKeahlian?: boolean | ProgramKeahlian$konsentrasiKeahlianArgs<ExtArgs>
+    _count?: boolean | ProgramKeahlianCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["programKeahlian"]>
+
+  export type ProgramKeahlianSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    bidangKeahlianId?: boolean
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["programKeahlian"]>
+
+  export type ProgramKeahlianSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    bidangKeahlianId?: boolean
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["programKeahlian"]>
+
+  export type ProgramKeahlianSelectScalar = {
+    id?: boolean
+    name?: boolean
+    bidangKeahlianId?: boolean
+  }
+
+  export type ProgramKeahlianOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "bidangKeahlianId", ExtArgs["result"]["programKeahlian"]>
+  export type ProgramKeahlianInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+    konsentrasiKeahlian?: boolean | ProgramKeahlian$konsentrasiKeahlianArgs<ExtArgs>
+    _count?: boolean | ProgramKeahlianCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ProgramKeahlianIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+  }
+  export type ProgramKeahlianIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bidangKeahlian?: boolean | BidangKeahlianDefaultArgs<ExtArgs>
+  }
+
+  export type $ProgramKeahlianPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProgramKeahlian"
+    objects: {
+      bidangKeahlian: Prisma.$BidangKeahlianPayload<ExtArgs>
+      konsentrasiKeahlian: Prisma.$KonsentrasiKeahlianPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      bidangKeahlianId: string
+    }, ExtArgs["result"]["programKeahlian"]>
+    composites: {}
+  }
+
+  type ProgramKeahlianGetPayload<S extends boolean | null | undefined | ProgramKeahlianDefaultArgs> = $Result.GetResult<Prisma.$ProgramKeahlianPayload, S>
+
+  type ProgramKeahlianCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProgramKeahlianFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProgramKeahlianCountAggregateInputType | true
+    }
+
+  export interface ProgramKeahlianDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProgramKeahlian'], meta: { name: 'ProgramKeahlian' } }
+    /**
+     * Find zero or one ProgramKeahlian that matches the filter.
+     * @param {ProgramKeahlianFindUniqueArgs} args - Arguments to find a ProgramKeahlian
+     * @example
+     * // Get one ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProgramKeahlianFindUniqueArgs>(args: SelectSubset<T, ProgramKeahlianFindUniqueArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProgramKeahlian that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProgramKeahlianFindUniqueOrThrowArgs} args - Arguments to find a ProgramKeahlian
+     * @example
+     * // Get one ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProgramKeahlianFindUniqueOrThrowArgs>(args: SelectSubset<T, ProgramKeahlianFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProgramKeahlian that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianFindFirstArgs} args - Arguments to find a ProgramKeahlian
+     * @example
+     * // Get one ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProgramKeahlianFindFirstArgs>(args?: SelectSubset<T, ProgramKeahlianFindFirstArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProgramKeahlian that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianFindFirstOrThrowArgs} args - Arguments to find a ProgramKeahlian
+     * @example
+     * // Get one ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProgramKeahlianFindFirstOrThrowArgs>(args?: SelectSubset<T, ProgramKeahlianFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProgramKeahlians that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProgramKeahlians
+     * const programKeahlians = await prisma.programKeahlian.findMany()
+     * 
+     * // Get first 10 ProgramKeahlians
+     * const programKeahlians = await prisma.programKeahlian.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const programKeahlianWithIdOnly = await prisma.programKeahlian.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProgramKeahlianFindManyArgs>(args?: SelectSubset<T, ProgramKeahlianFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProgramKeahlian.
+     * @param {ProgramKeahlianCreateArgs} args - Arguments to create a ProgramKeahlian.
+     * @example
+     * // Create one ProgramKeahlian
+     * const ProgramKeahlian = await prisma.programKeahlian.create({
+     *   data: {
+     *     // ... data to create a ProgramKeahlian
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProgramKeahlianCreateArgs>(args: SelectSubset<T, ProgramKeahlianCreateArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProgramKeahlians.
+     * @param {ProgramKeahlianCreateManyArgs} args - Arguments to create many ProgramKeahlians.
+     * @example
+     * // Create many ProgramKeahlians
+     * const programKeahlian = await prisma.programKeahlian.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProgramKeahlianCreateManyArgs>(args?: SelectSubset<T, ProgramKeahlianCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProgramKeahlians and returns the data saved in the database.
+     * @param {ProgramKeahlianCreateManyAndReturnArgs} args - Arguments to create many ProgramKeahlians.
+     * @example
+     * // Create many ProgramKeahlians
+     * const programKeahlian = await prisma.programKeahlian.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProgramKeahlians and only return the `id`
+     * const programKeahlianWithIdOnly = await prisma.programKeahlian.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProgramKeahlianCreateManyAndReturnArgs>(args?: SelectSubset<T, ProgramKeahlianCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProgramKeahlian.
+     * @param {ProgramKeahlianDeleteArgs} args - Arguments to delete one ProgramKeahlian.
+     * @example
+     * // Delete one ProgramKeahlian
+     * const ProgramKeahlian = await prisma.programKeahlian.delete({
+     *   where: {
+     *     // ... filter to delete one ProgramKeahlian
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProgramKeahlianDeleteArgs>(args: SelectSubset<T, ProgramKeahlianDeleteArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProgramKeahlian.
+     * @param {ProgramKeahlianUpdateArgs} args - Arguments to update one ProgramKeahlian.
+     * @example
+     * // Update one ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProgramKeahlianUpdateArgs>(args: SelectSubset<T, ProgramKeahlianUpdateArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProgramKeahlians.
+     * @param {ProgramKeahlianDeleteManyArgs} args - Arguments to filter ProgramKeahlians to delete.
+     * @example
+     * // Delete a few ProgramKeahlians
+     * const { count } = await prisma.programKeahlian.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProgramKeahlianDeleteManyArgs>(args?: SelectSubset<T, ProgramKeahlianDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProgramKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProgramKeahlians
+     * const programKeahlian = await prisma.programKeahlian.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProgramKeahlianUpdateManyArgs>(args: SelectSubset<T, ProgramKeahlianUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProgramKeahlians and returns the data updated in the database.
+     * @param {ProgramKeahlianUpdateManyAndReturnArgs} args - Arguments to update many ProgramKeahlians.
+     * @example
+     * // Update many ProgramKeahlians
+     * const programKeahlian = await prisma.programKeahlian.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProgramKeahlians and only return the `id`
+     * const programKeahlianWithIdOnly = await prisma.programKeahlian.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProgramKeahlianUpdateManyAndReturnArgs>(args: SelectSubset<T, ProgramKeahlianUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProgramKeahlian.
+     * @param {ProgramKeahlianUpsertArgs} args - Arguments to update or create a ProgramKeahlian.
+     * @example
+     * // Update or create a ProgramKeahlian
+     * const programKeahlian = await prisma.programKeahlian.upsert({
+     *   create: {
+     *     // ... data to create a ProgramKeahlian
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProgramKeahlian we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProgramKeahlianUpsertArgs>(args: SelectSubset<T, ProgramKeahlianUpsertArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProgramKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianCountArgs} args - Arguments to filter ProgramKeahlians to count.
+     * @example
+     * // Count the number of ProgramKeahlians
+     * const count = await prisma.programKeahlian.count({
+     *   where: {
+     *     // ... the filter for the ProgramKeahlians we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProgramKeahlianCountArgs>(
+      args?: Subset<T, ProgramKeahlianCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProgramKeahlianCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProgramKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProgramKeahlianAggregateArgs>(args: Subset<T, ProgramKeahlianAggregateArgs>): Prisma.PrismaPromise<GetProgramKeahlianAggregateType<T>>
+
+    /**
+     * Group by ProgramKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProgramKeahlianGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProgramKeahlianGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProgramKeahlianGroupByArgs['orderBy'] }
+        : { orderBy?: ProgramKeahlianGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProgramKeahlianGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProgramKeahlianGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProgramKeahlian model
+   */
+  readonly fields: ProgramKeahlianFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProgramKeahlian.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProgramKeahlianClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    bidangKeahlian<T extends BidangKeahlianDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BidangKeahlianDefaultArgs<ExtArgs>>): Prisma__BidangKeahlianClient<$Result.GetResult<Prisma.$BidangKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    konsentrasiKeahlian<T extends ProgramKeahlian$konsentrasiKeahlianArgs<ExtArgs> = {}>(args?: Subset<T, ProgramKeahlian$konsentrasiKeahlianArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProgramKeahlian model
+   */
+  interface ProgramKeahlianFieldRefs {
+    readonly id: FieldRef<"ProgramKeahlian", 'String'>
+    readonly name: FieldRef<"ProgramKeahlian", 'String'>
+    readonly bidangKeahlianId: FieldRef<"ProgramKeahlian", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProgramKeahlian findUnique
+   */
+  export type ProgramKeahlianFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which ProgramKeahlian to fetch.
+     */
+    where: ProgramKeahlianWhereUniqueInput
+  }
+
+  /**
+   * ProgramKeahlian findUniqueOrThrow
+   */
+  export type ProgramKeahlianFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which ProgramKeahlian to fetch.
+     */
+    where: ProgramKeahlianWhereUniqueInput
+  }
+
+  /**
+   * ProgramKeahlian findFirst
+   */
+  export type ProgramKeahlianFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which ProgramKeahlian to fetch.
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProgramKeahlians to fetch.
+     */
+    orderBy?: ProgramKeahlianOrderByWithRelationInput | ProgramKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProgramKeahlians.
+     */
+    cursor?: ProgramKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProgramKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProgramKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProgramKeahlians.
+     */
+    distinct?: ProgramKeahlianScalarFieldEnum | ProgramKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * ProgramKeahlian findFirstOrThrow
+   */
+  export type ProgramKeahlianFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which ProgramKeahlian to fetch.
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProgramKeahlians to fetch.
+     */
+    orderBy?: ProgramKeahlianOrderByWithRelationInput | ProgramKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProgramKeahlians.
+     */
+    cursor?: ProgramKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProgramKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProgramKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProgramKeahlians.
+     */
+    distinct?: ProgramKeahlianScalarFieldEnum | ProgramKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * ProgramKeahlian findMany
+   */
+  export type ProgramKeahlianFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which ProgramKeahlians to fetch.
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProgramKeahlians to fetch.
+     */
+    orderBy?: ProgramKeahlianOrderByWithRelationInput | ProgramKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProgramKeahlians.
+     */
+    cursor?: ProgramKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProgramKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProgramKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProgramKeahlians.
+     */
+    distinct?: ProgramKeahlianScalarFieldEnum | ProgramKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * ProgramKeahlian create
+   */
+  export type ProgramKeahlianCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProgramKeahlian.
+     */
+    data: XOR<ProgramKeahlianCreateInput, ProgramKeahlianUncheckedCreateInput>
+  }
+
+  /**
+   * ProgramKeahlian createMany
+   */
+  export type ProgramKeahlianCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProgramKeahlians.
+     */
+    data: ProgramKeahlianCreateManyInput | ProgramKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProgramKeahlian createManyAndReturn
+   */
+  export type ProgramKeahlianCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProgramKeahlians.
+     */
+    data: ProgramKeahlianCreateManyInput | ProgramKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProgramKeahlian update
+   */
+  export type ProgramKeahlianUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProgramKeahlian.
+     */
+    data: XOR<ProgramKeahlianUpdateInput, ProgramKeahlianUncheckedUpdateInput>
+    /**
+     * Choose, which ProgramKeahlian to update.
+     */
+    where: ProgramKeahlianWhereUniqueInput
+  }
+
+  /**
+   * ProgramKeahlian updateMany
+   */
+  export type ProgramKeahlianUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProgramKeahlians.
+     */
+    data: XOR<ProgramKeahlianUpdateManyMutationInput, ProgramKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which ProgramKeahlians to update
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * Limit how many ProgramKeahlians to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProgramKeahlian updateManyAndReturn
+   */
+  export type ProgramKeahlianUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to update ProgramKeahlians.
+     */
+    data: XOR<ProgramKeahlianUpdateManyMutationInput, ProgramKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which ProgramKeahlians to update
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * Limit how many ProgramKeahlians to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProgramKeahlian upsert
+   */
+  export type ProgramKeahlianUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProgramKeahlian to update in case it exists.
+     */
+    where: ProgramKeahlianWhereUniqueInput
+    /**
+     * In case the ProgramKeahlian found by the `where` argument doesn't exist, create a new ProgramKeahlian with this data.
+     */
+    create: XOR<ProgramKeahlianCreateInput, ProgramKeahlianUncheckedCreateInput>
+    /**
+     * In case the ProgramKeahlian was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProgramKeahlianUpdateInput, ProgramKeahlianUncheckedUpdateInput>
+  }
+
+  /**
+   * ProgramKeahlian delete
+   */
+  export type ProgramKeahlianDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter which ProgramKeahlian to delete.
+     */
+    where: ProgramKeahlianWhereUniqueInput
+  }
+
+  /**
+   * ProgramKeahlian deleteMany
+   */
+  export type ProgramKeahlianDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProgramKeahlians to delete
+     */
+    where?: ProgramKeahlianWhereInput
+    /**
+     * Limit how many ProgramKeahlians to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProgramKeahlian.konsentrasiKeahlian
+   */
+  export type ProgramKeahlian$konsentrasiKeahlianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    where?: KonsentrasiKeahlianWhereInput
+    orderBy?: KonsentrasiKeahlianOrderByWithRelationInput | KonsentrasiKeahlianOrderByWithRelationInput[]
+    cursor?: KonsentrasiKeahlianWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KonsentrasiKeahlianScalarFieldEnum | KonsentrasiKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * ProgramKeahlian without action
+   */
+  export type ProgramKeahlianDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProgramKeahlian
+     */
+    select?: ProgramKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProgramKeahlian
+     */
+    omit?: ProgramKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProgramKeahlianInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model KonsentrasiKeahlian
+   */
+
+  export type AggregateKonsentrasiKeahlian = {
+    _count: KonsentrasiKeahlianCountAggregateOutputType | null
+    _min: KonsentrasiKeahlianMinAggregateOutputType | null
+    _max: KonsentrasiKeahlianMaxAggregateOutputType | null
+  }
+
+  export type KonsentrasiKeahlianMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    programKeahlianId: string | null
+  }
+
+  export type KonsentrasiKeahlianMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    programKeahlianId: string | null
+  }
+
+  export type KonsentrasiKeahlianCountAggregateOutputType = {
+    id: number
+    name: number
+    programKeahlianId: number
+    _all: number
+  }
+
+
+  export type KonsentrasiKeahlianMinAggregateInputType = {
+    id?: true
+    name?: true
+    programKeahlianId?: true
+  }
+
+  export type KonsentrasiKeahlianMaxAggregateInputType = {
+    id?: true
+    name?: true
+    programKeahlianId?: true
+  }
+
+  export type KonsentrasiKeahlianCountAggregateInputType = {
+    id?: true
+    name?: true
+    programKeahlianId?: true
+    _all?: true
+  }
+
+  export type KonsentrasiKeahlianAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KonsentrasiKeahlian to aggregate.
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KonsentrasiKeahlians to fetch.
+     */
+    orderBy?: KonsentrasiKeahlianOrderByWithRelationInput | KonsentrasiKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KonsentrasiKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KonsentrasiKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KonsentrasiKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KonsentrasiKeahlians
+    **/
+    _count?: true | KonsentrasiKeahlianCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KonsentrasiKeahlianMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KonsentrasiKeahlianMaxAggregateInputType
+  }
+
+  export type GetKonsentrasiKeahlianAggregateType<T extends KonsentrasiKeahlianAggregateArgs> = {
+        [P in keyof T & keyof AggregateKonsentrasiKeahlian]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKonsentrasiKeahlian[P]>
+      : GetScalarType<T[P], AggregateKonsentrasiKeahlian[P]>
+  }
+
+
+
+
+  export type KonsentrasiKeahlianGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KonsentrasiKeahlianWhereInput
+    orderBy?: KonsentrasiKeahlianOrderByWithAggregationInput | KonsentrasiKeahlianOrderByWithAggregationInput[]
+    by: KonsentrasiKeahlianScalarFieldEnum[] | KonsentrasiKeahlianScalarFieldEnum
+    having?: KonsentrasiKeahlianScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KonsentrasiKeahlianCountAggregateInputType | true
+    _min?: KonsentrasiKeahlianMinAggregateInputType
+    _max?: KonsentrasiKeahlianMaxAggregateInputType
+  }
+
+  export type KonsentrasiKeahlianGroupByOutputType = {
+    id: string
+    name: string
+    programKeahlianId: string
+    _count: KonsentrasiKeahlianCountAggregateOutputType | null
+    _min: KonsentrasiKeahlianMinAggregateOutputType | null
+    _max: KonsentrasiKeahlianMaxAggregateOutputType | null
+  }
+
+  type GetKonsentrasiKeahlianGroupByPayload<T extends KonsentrasiKeahlianGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KonsentrasiKeahlianGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KonsentrasiKeahlianGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KonsentrasiKeahlianGroupByOutputType[P]>
+            : GetScalarType<T[P], KonsentrasiKeahlianGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KonsentrasiKeahlianSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    programKeahlianId?: boolean
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["konsentrasiKeahlian"]>
+
+  export type KonsentrasiKeahlianSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    programKeahlianId?: boolean
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["konsentrasiKeahlian"]>
+
+  export type KonsentrasiKeahlianSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    programKeahlianId?: boolean
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["konsentrasiKeahlian"]>
+
+  export type KonsentrasiKeahlianSelectScalar = {
+    id?: boolean
+    name?: boolean
+    programKeahlianId?: boolean
+  }
+
+  export type KonsentrasiKeahlianOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "programKeahlianId", ExtArgs["result"]["konsentrasiKeahlian"]>
+  export type KonsentrasiKeahlianInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }
+  export type KonsentrasiKeahlianIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }
+  export type KonsentrasiKeahlianIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+  }
+
+  export type $KonsentrasiKeahlianPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KonsentrasiKeahlian"
+    objects: {
+      programKeahlian: Prisma.$ProgramKeahlianPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      programKeahlianId: string
+    }, ExtArgs["result"]["konsentrasiKeahlian"]>
+    composites: {}
+  }
+
+  type KonsentrasiKeahlianGetPayload<S extends boolean | null | undefined | KonsentrasiKeahlianDefaultArgs> = $Result.GetResult<Prisma.$KonsentrasiKeahlianPayload, S>
+
+  type KonsentrasiKeahlianCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<KonsentrasiKeahlianFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: KonsentrasiKeahlianCountAggregateInputType | true
+    }
+
+  export interface KonsentrasiKeahlianDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KonsentrasiKeahlian'], meta: { name: 'KonsentrasiKeahlian' } }
+    /**
+     * Find zero or one KonsentrasiKeahlian that matches the filter.
+     * @param {KonsentrasiKeahlianFindUniqueArgs} args - Arguments to find a KonsentrasiKeahlian
+     * @example
+     * // Get one KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KonsentrasiKeahlianFindUniqueArgs>(args: SelectSubset<T, KonsentrasiKeahlianFindUniqueArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one KonsentrasiKeahlian that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {KonsentrasiKeahlianFindUniqueOrThrowArgs} args - Arguments to find a KonsentrasiKeahlian
+     * @example
+     * // Get one KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KonsentrasiKeahlianFindUniqueOrThrowArgs>(args: SelectSubset<T, KonsentrasiKeahlianFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first KonsentrasiKeahlian that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianFindFirstArgs} args - Arguments to find a KonsentrasiKeahlian
+     * @example
+     * // Get one KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KonsentrasiKeahlianFindFirstArgs>(args?: SelectSubset<T, KonsentrasiKeahlianFindFirstArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first KonsentrasiKeahlian that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianFindFirstOrThrowArgs} args - Arguments to find a KonsentrasiKeahlian
+     * @example
+     * // Get one KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KonsentrasiKeahlianFindFirstOrThrowArgs>(args?: SelectSubset<T, KonsentrasiKeahlianFindFirstOrThrowArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more KonsentrasiKeahlians that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KonsentrasiKeahlians
+     * const konsentrasiKeahlians = await prisma.konsentrasiKeahlian.findMany()
+     * 
+     * // Get first 10 KonsentrasiKeahlians
+     * const konsentrasiKeahlians = await prisma.konsentrasiKeahlian.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const konsentrasiKeahlianWithIdOnly = await prisma.konsentrasiKeahlian.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KonsentrasiKeahlianFindManyArgs>(args?: SelectSubset<T, KonsentrasiKeahlianFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a KonsentrasiKeahlian.
+     * @param {KonsentrasiKeahlianCreateArgs} args - Arguments to create a KonsentrasiKeahlian.
+     * @example
+     * // Create one KonsentrasiKeahlian
+     * const KonsentrasiKeahlian = await prisma.konsentrasiKeahlian.create({
+     *   data: {
+     *     // ... data to create a KonsentrasiKeahlian
+     *   }
+     * })
+     * 
+     */
+    create<T extends KonsentrasiKeahlianCreateArgs>(args: SelectSubset<T, KonsentrasiKeahlianCreateArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many KonsentrasiKeahlians.
+     * @param {KonsentrasiKeahlianCreateManyArgs} args - Arguments to create many KonsentrasiKeahlians.
+     * @example
+     * // Create many KonsentrasiKeahlians
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KonsentrasiKeahlianCreateManyArgs>(args?: SelectSubset<T, KonsentrasiKeahlianCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KonsentrasiKeahlians and returns the data saved in the database.
+     * @param {KonsentrasiKeahlianCreateManyAndReturnArgs} args - Arguments to create many KonsentrasiKeahlians.
+     * @example
+     * // Create many KonsentrasiKeahlians
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KonsentrasiKeahlians and only return the `id`
+     * const konsentrasiKeahlianWithIdOnly = await prisma.konsentrasiKeahlian.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KonsentrasiKeahlianCreateManyAndReturnArgs>(args?: SelectSubset<T, KonsentrasiKeahlianCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a KonsentrasiKeahlian.
+     * @param {KonsentrasiKeahlianDeleteArgs} args - Arguments to delete one KonsentrasiKeahlian.
+     * @example
+     * // Delete one KonsentrasiKeahlian
+     * const KonsentrasiKeahlian = await prisma.konsentrasiKeahlian.delete({
+     *   where: {
+     *     // ... filter to delete one KonsentrasiKeahlian
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KonsentrasiKeahlianDeleteArgs>(args: SelectSubset<T, KonsentrasiKeahlianDeleteArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one KonsentrasiKeahlian.
+     * @param {KonsentrasiKeahlianUpdateArgs} args - Arguments to update one KonsentrasiKeahlian.
+     * @example
+     * // Update one KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KonsentrasiKeahlianUpdateArgs>(args: SelectSubset<T, KonsentrasiKeahlianUpdateArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more KonsentrasiKeahlians.
+     * @param {KonsentrasiKeahlianDeleteManyArgs} args - Arguments to filter KonsentrasiKeahlians to delete.
+     * @example
+     * // Delete a few KonsentrasiKeahlians
+     * const { count } = await prisma.konsentrasiKeahlian.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KonsentrasiKeahlianDeleteManyArgs>(args?: SelectSubset<T, KonsentrasiKeahlianDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KonsentrasiKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KonsentrasiKeahlians
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KonsentrasiKeahlianUpdateManyArgs>(args: SelectSubset<T, KonsentrasiKeahlianUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KonsentrasiKeahlians and returns the data updated in the database.
+     * @param {KonsentrasiKeahlianUpdateManyAndReturnArgs} args - Arguments to update many KonsentrasiKeahlians.
+     * @example
+     * // Update many KonsentrasiKeahlians
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more KonsentrasiKeahlians and only return the `id`
+     * const konsentrasiKeahlianWithIdOnly = await prisma.konsentrasiKeahlian.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends KonsentrasiKeahlianUpdateManyAndReturnArgs>(args: SelectSubset<T, KonsentrasiKeahlianUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one KonsentrasiKeahlian.
+     * @param {KonsentrasiKeahlianUpsertArgs} args - Arguments to update or create a KonsentrasiKeahlian.
+     * @example
+     * // Update or create a KonsentrasiKeahlian
+     * const konsentrasiKeahlian = await prisma.konsentrasiKeahlian.upsert({
+     *   create: {
+     *     // ... data to create a KonsentrasiKeahlian
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KonsentrasiKeahlian we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KonsentrasiKeahlianUpsertArgs>(args: SelectSubset<T, KonsentrasiKeahlianUpsertArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of KonsentrasiKeahlians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianCountArgs} args - Arguments to filter KonsentrasiKeahlians to count.
+     * @example
+     * // Count the number of KonsentrasiKeahlians
+     * const count = await prisma.konsentrasiKeahlian.count({
+     *   where: {
+     *     // ... the filter for the KonsentrasiKeahlians we want to count
+     *   }
+     * })
+    **/
+    count<T extends KonsentrasiKeahlianCountArgs>(
+      args?: Subset<T, KonsentrasiKeahlianCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KonsentrasiKeahlianCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KonsentrasiKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KonsentrasiKeahlianAggregateArgs>(args: Subset<T, KonsentrasiKeahlianAggregateArgs>): Prisma.PrismaPromise<GetKonsentrasiKeahlianAggregateType<T>>
+
+    /**
+     * Group by KonsentrasiKeahlian.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KonsentrasiKeahlianGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KonsentrasiKeahlianGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KonsentrasiKeahlianGroupByArgs['orderBy'] }
+        : { orderBy?: KonsentrasiKeahlianGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KonsentrasiKeahlianGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKonsentrasiKeahlianGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KonsentrasiKeahlian model
+   */
+  readonly fields: KonsentrasiKeahlianFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KonsentrasiKeahlian.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KonsentrasiKeahlianClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    programKeahlian<T extends ProgramKeahlianDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProgramKeahlianDefaultArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KonsentrasiKeahlian model
+   */
+  interface KonsentrasiKeahlianFieldRefs {
+    readonly id: FieldRef<"KonsentrasiKeahlian", 'String'>
+    readonly name: FieldRef<"KonsentrasiKeahlian", 'String'>
+    readonly programKeahlianId: FieldRef<"KonsentrasiKeahlian", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KonsentrasiKeahlian findUnique
+   */
+  export type KonsentrasiKeahlianFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which KonsentrasiKeahlian to fetch.
+     */
+    where: KonsentrasiKeahlianWhereUniqueInput
+  }
+
+  /**
+   * KonsentrasiKeahlian findUniqueOrThrow
+   */
+  export type KonsentrasiKeahlianFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which KonsentrasiKeahlian to fetch.
+     */
+    where: KonsentrasiKeahlianWhereUniqueInput
+  }
+
+  /**
+   * KonsentrasiKeahlian findFirst
+   */
+  export type KonsentrasiKeahlianFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which KonsentrasiKeahlian to fetch.
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KonsentrasiKeahlians to fetch.
+     */
+    orderBy?: KonsentrasiKeahlianOrderByWithRelationInput | KonsentrasiKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KonsentrasiKeahlians.
+     */
+    cursor?: KonsentrasiKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KonsentrasiKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KonsentrasiKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KonsentrasiKeahlians.
+     */
+    distinct?: KonsentrasiKeahlianScalarFieldEnum | KonsentrasiKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * KonsentrasiKeahlian findFirstOrThrow
+   */
+  export type KonsentrasiKeahlianFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which KonsentrasiKeahlian to fetch.
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KonsentrasiKeahlians to fetch.
+     */
+    orderBy?: KonsentrasiKeahlianOrderByWithRelationInput | KonsentrasiKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KonsentrasiKeahlians.
+     */
+    cursor?: KonsentrasiKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KonsentrasiKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KonsentrasiKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KonsentrasiKeahlians.
+     */
+    distinct?: KonsentrasiKeahlianScalarFieldEnum | KonsentrasiKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * KonsentrasiKeahlian findMany
+   */
+  export type KonsentrasiKeahlianFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter, which KonsentrasiKeahlians to fetch.
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KonsentrasiKeahlians to fetch.
+     */
+    orderBy?: KonsentrasiKeahlianOrderByWithRelationInput | KonsentrasiKeahlianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KonsentrasiKeahlians.
+     */
+    cursor?: KonsentrasiKeahlianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KonsentrasiKeahlians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KonsentrasiKeahlians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KonsentrasiKeahlians.
+     */
+    distinct?: KonsentrasiKeahlianScalarFieldEnum | KonsentrasiKeahlianScalarFieldEnum[]
+  }
+
+  /**
+   * KonsentrasiKeahlian create
+   */
+  export type KonsentrasiKeahlianCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to create a KonsentrasiKeahlian.
+     */
+    data: XOR<KonsentrasiKeahlianCreateInput, KonsentrasiKeahlianUncheckedCreateInput>
+  }
+
+  /**
+   * KonsentrasiKeahlian createMany
+   */
+  export type KonsentrasiKeahlianCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KonsentrasiKeahlians.
+     */
+    data: KonsentrasiKeahlianCreateManyInput | KonsentrasiKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KonsentrasiKeahlian createManyAndReturn
+   */
+  export type KonsentrasiKeahlianCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to create many KonsentrasiKeahlians.
+     */
+    data: KonsentrasiKeahlianCreateManyInput | KonsentrasiKeahlianCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * KonsentrasiKeahlian update
+   */
+  export type KonsentrasiKeahlianUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * The data needed to update a KonsentrasiKeahlian.
+     */
+    data: XOR<KonsentrasiKeahlianUpdateInput, KonsentrasiKeahlianUncheckedUpdateInput>
+    /**
+     * Choose, which KonsentrasiKeahlian to update.
+     */
+    where: KonsentrasiKeahlianWhereUniqueInput
+  }
+
+  /**
+   * KonsentrasiKeahlian updateMany
+   */
+  export type KonsentrasiKeahlianUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KonsentrasiKeahlians.
+     */
+    data: XOR<KonsentrasiKeahlianUpdateManyMutationInput, KonsentrasiKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which KonsentrasiKeahlians to update
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * Limit how many KonsentrasiKeahlians to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * KonsentrasiKeahlian updateManyAndReturn
+   */
+  export type KonsentrasiKeahlianUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * The data used to update KonsentrasiKeahlians.
+     */
+    data: XOR<KonsentrasiKeahlianUpdateManyMutationInput, KonsentrasiKeahlianUncheckedUpdateManyInput>
+    /**
+     * Filter which KonsentrasiKeahlians to update
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * Limit how many KonsentrasiKeahlians to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * KonsentrasiKeahlian upsert
+   */
+  export type KonsentrasiKeahlianUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * The filter to search for the KonsentrasiKeahlian to update in case it exists.
+     */
+    where: KonsentrasiKeahlianWhereUniqueInput
+    /**
+     * In case the KonsentrasiKeahlian found by the `where` argument doesn't exist, create a new KonsentrasiKeahlian with this data.
+     */
+    create: XOR<KonsentrasiKeahlianCreateInput, KonsentrasiKeahlianUncheckedCreateInput>
+    /**
+     * In case the KonsentrasiKeahlian was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KonsentrasiKeahlianUpdateInput, KonsentrasiKeahlianUncheckedUpdateInput>
+  }
+
+  /**
+   * KonsentrasiKeahlian delete
+   */
+  export type KonsentrasiKeahlianDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+    /**
+     * Filter which KonsentrasiKeahlian to delete.
+     */
+    where: KonsentrasiKeahlianWhereUniqueInput
+  }
+
+  /**
+   * KonsentrasiKeahlian deleteMany
+   */
+  export type KonsentrasiKeahlianDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KonsentrasiKeahlians to delete
+     */
+    where?: KonsentrasiKeahlianWhereInput
+    /**
+     * Limit how many KonsentrasiKeahlians to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * KonsentrasiKeahlian without action
+   */
+  export type KonsentrasiKeahlianDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlian
+     */
+    select?: KonsentrasiKeahlianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KonsentrasiKeahlian
+     */
+    omit?: KonsentrasiKeahlianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -17617,6 +21092,32 @@ export namespace Prisma {
   };
 
   export type SystemSettingScalarFieldEnum = (typeof SystemSettingScalarFieldEnum)[keyof typeof SystemSettingScalarFieldEnum]
+
+
+  export const BidangKeahlianScalarFieldEnum: {
+    id: 'id',
+    name: 'name'
+  };
+
+  export type BidangKeahlianScalarFieldEnum = (typeof BidangKeahlianScalarFieldEnum)[keyof typeof BidangKeahlianScalarFieldEnum]
+
+
+  export const ProgramKeahlianScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    bidangKeahlianId: 'bidangKeahlianId'
+  };
+
+  export type ProgramKeahlianScalarFieldEnum = (typeof ProgramKeahlianScalarFieldEnum)[keyof typeof ProgramKeahlianScalarFieldEnum]
+
+
+  export const KonsentrasiKeahlianScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    programKeahlianId: 'programKeahlianId'
+  };
+
+  export type KonsentrasiKeahlianScalarFieldEnum = (typeof KonsentrasiKeahlianScalarFieldEnum)[keyof typeof KonsentrasiKeahlianScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -18817,6 +22318,139 @@ export namespace Prisma {
     value?: StringWithAggregatesFilter<"SystemSetting"> | string
   }
 
+  export type BidangKeahlianWhereInput = {
+    AND?: BidangKeahlianWhereInput | BidangKeahlianWhereInput[]
+    OR?: BidangKeahlianWhereInput[]
+    NOT?: BidangKeahlianWhereInput | BidangKeahlianWhereInput[]
+    id?: StringFilter<"BidangKeahlian"> | string
+    name?: StringFilter<"BidangKeahlian"> | string
+    programKeahlian?: ProgramKeahlianListRelationFilter
+  }
+
+  export type BidangKeahlianOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlian?: ProgramKeahlianOrderByRelationAggregateInput
+  }
+
+  export type BidangKeahlianWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: BidangKeahlianWhereInput | BidangKeahlianWhereInput[]
+    OR?: BidangKeahlianWhereInput[]
+    NOT?: BidangKeahlianWhereInput | BidangKeahlianWhereInput[]
+    programKeahlian?: ProgramKeahlianListRelationFilter
+  }, "id" | "name">
+
+  export type BidangKeahlianOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    _count?: BidangKeahlianCountOrderByAggregateInput
+    _max?: BidangKeahlianMaxOrderByAggregateInput
+    _min?: BidangKeahlianMinOrderByAggregateInput
+  }
+
+  export type BidangKeahlianScalarWhereWithAggregatesInput = {
+    AND?: BidangKeahlianScalarWhereWithAggregatesInput | BidangKeahlianScalarWhereWithAggregatesInput[]
+    OR?: BidangKeahlianScalarWhereWithAggregatesInput[]
+    NOT?: BidangKeahlianScalarWhereWithAggregatesInput | BidangKeahlianScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BidangKeahlian"> | string
+    name?: StringWithAggregatesFilter<"BidangKeahlian"> | string
+  }
+
+  export type ProgramKeahlianWhereInput = {
+    AND?: ProgramKeahlianWhereInput | ProgramKeahlianWhereInput[]
+    OR?: ProgramKeahlianWhereInput[]
+    NOT?: ProgramKeahlianWhereInput | ProgramKeahlianWhereInput[]
+    id?: StringFilter<"ProgramKeahlian"> | string
+    name?: StringFilter<"ProgramKeahlian"> | string
+    bidangKeahlianId?: StringFilter<"ProgramKeahlian"> | string
+    bidangKeahlian?: XOR<BidangKeahlianScalarRelationFilter, BidangKeahlianWhereInput>
+    konsentrasiKeahlian?: KonsentrasiKeahlianListRelationFilter
+  }
+
+  export type ProgramKeahlianOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    bidangKeahlianId?: SortOrder
+    bidangKeahlian?: BidangKeahlianOrderByWithRelationInput
+    konsentrasiKeahlian?: KonsentrasiKeahlianOrderByRelationAggregateInput
+  }
+
+  export type ProgramKeahlianWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: ProgramKeahlianWhereInput | ProgramKeahlianWhereInput[]
+    OR?: ProgramKeahlianWhereInput[]
+    NOT?: ProgramKeahlianWhereInput | ProgramKeahlianWhereInput[]
+    bidangKeahlianId?: StringFilter<"ProgramKeahlian"> | string
+    bidangKeahlian?: XOR<BidangKeahlianScalarRelationFilter, BidangKeahlianWhereInput>
+    konsentrasiKeahlian?: KonsentrasiKeahlianListRelationFilter
+  }, "id" | "name">
+
+  export type ProgramKeahlianOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    bidangKeahlianId?: SortOrder
+    _count?: ProgramKeahlianCountOrderByAggregateInput
+    _max?: ProgramKeahlianMaxOrderByAggregateInput
+    _min?: ProgramKeahlianMinOrderByAggregateInput
+  }
+
+  export type ProgramKeahlianScalarWhereWithAggregatesInput = {
+    AND?: ProgramKeahlianScalarWhereWithAggregatesInput | ProgramKeahlianScalarWhereWithAggregatesInput[]
+    OR?: ProgramKeahlianScalarWhereWithAggregatesInput[]
+    NOT?: ProgramKeahlianScalarWhereWithAggregatesInput | ProgramKeahlianScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProgramKeahlian"> | string
+    name?: StringWithAggregatesFilter<"ProgramKeahlian"> | string
+    bidangKeahlianId?: StringWithAggregatesFilter<"ProgramKeahlian"> | string
+  }
+
+  export type KonsentrasiKeahlianWhereInput = {
+    AND?: KonsentrasiKeahlianWhereInput | KonsentrasiKeahlianWhereInput[]
+    OR?: KonsentrasiKeahlianWhereInput[]
+    NOT?: KonsentrasiKeahlianWhereInput | KonsentrasiKeahlianWhereInput[]
+    id?: StringFilter<"KonsentrasiKeahlian"> | string
+    name?: StringFilter<"KonsentrasiKeahlian"> | string
+    programKeahlianId?: StringFilter<"KonsentrasiKeahlian"> | string
+    programKeahlian?: XOR<ProgramKeahlianScalarRelationFilter, ProgramKeahlianWhereInput>
+  }
+
+  export type KonsentrasiKeahlianOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlianId?: SortOrder
+    programKeahlian?: ProgramKeahlianOrderByWithRelationInput
+  }
+
+  export type KonsentrasiKeahlianWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: KonsentrasiKeahlianWhereInput | KonsentrasiKeahlianWhereInput[]
+    OR?: KonsentrasiKeahlianWhereInput[]
+    NOT?: KonsentrasiKeahlianWhereInput | KonsentrasiKeahlianWhereInput[]
+    programKeahlianId?: StringFilter<"KonsentrasiKeahlian"> | string
+    programKeahlian?: XOR<ProgramKeahlianScalarRelationFilter, ProgramKeahlianWhereInput>
+  }, "id" | "name">
+
+  export type KonsentrasiKeahlianOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlianId?: SortOrder
+    _count?: KonsentrasiKeahlianCountOrderByAggregateInput
+    _max?: KonsentrasiKeahlianMaxOrderByAggregateInput
+    _min?: KonsentrasiKeahlianMinOrderByAggregateInput
+  }
+
+  export type KonsentrasiKeahlianScalarWhereWithAggregatesInput = {
+    AND?: KonsentrasiKeahlianScalarWhereWithAggregatesInput | KonsentrasiKeahlianScalarWhereWithAggregatesInput[]
+    OR?: KonsentrasiKeahlianScalarWhereWithAggregatesInput[]
+    NOT?: KonsentrasiKeahlianScalarWhereWithAggregatesInput | KonsentrasiKeahlianScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
+    name?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
+    programKeahlianId?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -19968,6 +23602,131 @@ export namespace Prisma {
     value?: StringFieldUpdateOperationsInput | string
   }
 
+  export type BidangKeahlianCreateInput = {
+    id?: string
+    name: string
+    programKeahlian?: ProgramKeahlianCreateNestedManyWithoutBidangKeahlianInput
+  }
+
+  export type BidangKeahlianUncheckedCreateInput = {
+    id?: string
+    name: string
+    programKeahlian?: ProgramKeahlianUncheckedCreateNestedManyWithoutBidangKeahlianInput
+  }
+
+  export type BidangKeahlianUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlian?: ProgramKeahlianUpdateManyWithoutBidangKeahlianNestedInput
+  }
+
+  export type BidangKeahlianUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlian?: ProgramKeahlianUncheckedUpdateManyWithoutBidangKeahlianNestedInput
+  }
+
+  export type BidangKeahlianCreateManyInput = {
+    id?: string
+    name: string
+  }
+
+  export type BidangKeahlianUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type BidangKeahlianUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ProgramKeahlianCreateInput = {
+    id?: string
+    name: string
+    bidangKeahlian: BidangKeahlianCreateNestedOneWithoutProgramKeahlianInput
+    konsentrasiKeahlian?: KonsentrasiKeahlianCreateNestedManyWithoutProgramKeahlianInput
+  }
+
+  export type ProgramKeahlianUncheckedCreateInput = {
+    id?: string
+    name: string
+    bidangKeahlianId: string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUncheckedCreateNestedManyWithoutProgramKeahlianInput
+  }
+
+  export type ProgramKeahlianUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    bidangKeahlian?: BidangKeahlianUpdateOneRequiredWithoutProgramKeahlianNestedInput
+    konsentrasiKeahlian?: KonsentrasiKeahlianUpdateManyWithoutProgramKeahlianNestedInput
+  }
+
+  export type ProgramKeahlianUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    bidangKeahlianId?: StringFieldUpdateOperationsInput | string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianNestedInput
+  }
+
+  export type ProgramKeahlianCreateManyInput = {
+    id?: string
+    name: string
+    bidangKeahlianId: string
+  }
+
+  export type ProgramKeahlianUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ProgramKeahlianUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    bidangKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianCreateInput = {
+    id?: string
+    name: string
+    programKeahlian: ProgramKeahlianCreateNestedOneWithoutKonsentrasiKeahlianInput
+  }
+
+  export type KonsentrasiKeahlianUncheckedCreateInput = {
+    id?: string
+    name: string
+    programKeahlianId: string
+  }
+
+  export type KonsentrasiKeahlianUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlian?: ProgramKeahlianUpdateOneRequiredWithoutKonsentrasiKeahlianNestedInput
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianCreateManyInput = {
+    id?: string
+    name: string
+    programKeahlianId: string
+  }
+
+  export type KonsentrasiKeahlianUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -20993,6 +24752,87 @@ export namespace Prisma {
     value?: SortOrder
   }
 
+  export type ProgramKeahlianListRelationFilter = {
+    every?: ProgramKeahlianWhereInput
+    some?: ProgramKeahlianWhereInput
+    none?: ProgramKeahlianWhereInput
+  }
+
+  export type ProgramKeahlianOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BidangKeahlianCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type BidangKeahlianMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type BidangKeahlianMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type BidangKeahlianScalarRelationFilter = {
+    is?: BidangKeahlianWhereInput
+    isNot?: BidangKeahlianWhereInput
+  }
+
+  export type KonsentrasiKeahlianListRelationFilter = {
+    every?: KonsentrasiKeahlianWhereInput
+    some?: KonsentrasiKeahlianWhereInput
+    none?: KonsentrasiKeahlianWhereInput
+  }
+
+  export type KonsentrasiKeahlianOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProgramKeahlianCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    bidangKeahlianId?: SortOrder
+  }
+
+  export type ProgramKeahlianMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    bidangKeahlianId?: SortOrder
+  }
+
+  export type ProgramKeahlianMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    bidangKeahlianId?: SortOrder
+  }
+
+  export type ProgramKeahlianScalarRelationFilter = {
+    is?: ProgramKeahlianWhereInput
+    isNot?: ProgramKeahlianWhereInput
+  }
+
+  export type KonsentrasiKeahlianCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlianId?: SortOrder
+  }
+
+  export type KonsentrasiKeahlianMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlianId?: SortOrder
+  }
+
+  export type KonsentrasiKeahlianMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    programKeahlianId?: SortOrder
+  }
+
   export type CourseCreateNestedManyWithoutUserInput = {
     create?: XOR<CourseCreateWithoutUserInput, CourseUncheckedCreateWithoutUserInput> | CourseCreateWithoutUserInput[] | CourseUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CourseCreateOrConnectWithoutUserInput | CourseCreateOrConnectWithoutUserInput[]
@@ -21891,6 +25731,118 @@ export namespace Prisma {
     upsert?: ExamUpsertWithoutResultsInput
     connect?: ExamWhereUniqueInput
     update?: XOR<XOR<ExamUpdateToOneWithWhereWithoutResultsInput, ExamUpdateWithoutResultsInput>, ExamUncheckedUpdateWithoutResultsInput>
+  }
+
+  export type ProgramKeahlianCreateNestedManyWithoutBidangKeahlianInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput> | ProgramKeahlianCreateWithoutBidangKeahlianInput[] | ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput[]
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput | ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput[]
+    createMany?: ProgramKeahlianCreateManyBidangKeahlianInputEnvelope
+    connect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+  }
+
+  export type ProgramKeahlianUncheckedCreateNestedManyWithoutBidangKeahlianInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput> | ProgramKeahlianCreateWithoutBidangKeahlianInput[] | ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput[]
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput | ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput[]
+    createMany?: ProgramKeahlianCreateManyBidangKeahlianInputEnvelope
+    connect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+  }
+
+  export type ProgramKeahlianUpdateManyWithoutBidangKeahlianNestedInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput> | ProgramKeahlianCreateWithoutBidangKeahlianInput[] | ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput[]
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput | ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput[]
+    upsert?: ProgramKeahlianUpsertWithWhereUniqueWithoutBidangKeahlianInput | ProgramKeahlianUpsertWithWhereUniqueWithoutBidangKeahlianInput[]
+    createMany?: ProgramKeahlianCreateManyBidangKeahlianInputEnvelope
+    set?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    disconnect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    delete?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    connect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    update?: ProgramKeahlianUpdateWithWhereUniqueWithoutBidangKeahlianInput | ProgramKeahlianUpdateWithWhereUniqueWithoutBidangKeahlianInput[]
+    updateMany?: ProgramKeahlianUpdateManyWithWhereWithoutBidangKeahlianInput | ProgramKeahlianUpdateManyWithWhereWithoutBidangKeahlianInput[]
+    deleteMany?: ProgramKeahlianScalarWhereInput | ProgramKeahlianScalarWhereInput[]
+  }
+
+  export type ProgramKeahlianUncheckedUpdateManyWithoutBidangKeahlianNestedInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput> | ProgramKeahlianCreateWithoutBidangKeahlianInput[] | ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput[]
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput | ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput[]
+    upsert?: ProgramKeahlianUpsertWithWhereUniqueWithoutBidangKeahlianInput | ProgramKeahlianUpsertWithWhereUniqueWithoutBidangKeahlianInput[]
+    createMany?: ProgramKeahlianCreateManyBidangKeahlianInputEnvelope
+    set?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    disconnect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    delete?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    connect?: ProgramKeahlianWhereUniqueInput | ProgramKeahlianWhereUniqueInput[]
+    update?: ProgramKeahlianUpdateWithWhereUniqueWithoutBidangKeahlianInput | ProgramKeahlianUpdateWithWhereUniqueWithoutBidangKeahlianInput[]
+    updateMany?: ProgramKeahlianUpdateManyWithWhereWithoutBidangKeahlianInput | ProgramKeahlianUpdateManyWithWhereWithoutBidangKeahlianInput[]
+    deleteMany?: ProgramKeahlianScalarWhereInput | ProgramKeahlianScalarWhereInput[]
+  }
+
+  export type BidangKeahlianCreateNestedOneWithoutProgramKeahlianInput = {
+    create?: XOR<BidangKeahlianCreateWithoutProgramKeahlianInput, BidangKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+    connectOrCreate?: BidangKeahlianCreateOrConnectWithoutProgramKeahlianInput
+    connect?: BidangKeahlianWhereUniqueInput
+  }
+
+  export type KonsentrasiKeahlianCreateNestedManyWithoutProgramKeahlianInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput> | KonsentrasiKeahlianCreateWithoutProgramKeahlianInput[] | KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput[]
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput | KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput[]
+    createMany?: KonsentrasiKeahlianCreateManyProgramKeahlianInputEnvelope
+    connect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+  }
+
+  export type KonsentrasiKeahlianUncheckedCreateNestedManyWithoutProgramKeahlianInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput> | KonsentrasiKeahlianCreateWithoutProgramKeahlianInput[] | KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput[]
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput | KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput[]
+    createMany?: KonsentrasiKeahlianCreateManyProgramKeahlianInputEnvelope
+    connect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+  }
+
+  export type BidangKeahlianUpdateOneRequiredWithoutProgramKeahlianNestedInput = {
+    create?: XOR<BidangKeahlianCreateWithoutProgramKeahlianInput, BidangKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+    connectOrCreate?: BidangKeahlianCreateOrConnectWithoutProgramKeahlianInput
+    upsert?: BidangKeahlianUpsertWithoutProgramKeahlianInput
+    connect?: BidangKeahlianWhereUniqueInput
+    update?: XOR<XOR<BidangKeahlianUpdateToOneWithWhereWithoutProgramKeahlianInput, BidangKeahlianUpdateWithoutProgramKeahlianInput>, BidangKeahlianUncheckedUpdateWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianUpdateManyWithoutProgramKeahlianNestedInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput> | KonsentrasiKeahlianCreateWithoutProgramKeahlianInput[] | KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput[]
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput | KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput[]
+    upsert?: KonsentrasiKeahlianUpsertWithWhereUniqueWithoutProgramKeahlianInput | KonsentrasiKeahlianUpsertWithWhereUniqueWithoutProgramKeahlianInput[]
+    createMany?: KonsentrasiKeahlianCreateManyProgramKeahlianInputEnvelope
+    set?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    disconnect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    delete?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    connect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    update?: KonsentrasiKeahlianUpdateWithWhereUniqueWithoutProgramKeahlianInput | KonsentrasiKeahlianUpdateWithWhereUniqueWithoutProgramKeahlianInput[]
+    updateMany?: KonsentrasiKeahlianUpdateManyWithWhereWithoutProgramKeahlianInput | KonsentrasiKeahlianUpdateManyWithWhereWithoutProgramKeahlianInput[]
+    deleteMany?: KonsentrasiKeahlianScalarWhereInput | KonsentrasiKeahlianScalarWhereInput[]
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianNestedInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput> | KonsentrasiKeahlianCreateWithoutProgramKeahlianInput[] | KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput[]
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput | KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput[]
+    upsert?: KonsentrasiKeahlianUpsertWithWhereUniqueWithoutProgramKeahlianInput | KonsentrasiKeahlianUpsertWithWhereUniqueWithoutProgramKeahlianInput[]
+    createMany?: KonsentrasiKeahlianCreateManyProgramKeahlianInputEnvelope
+    set?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    disconnect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    delete?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    connect?: KonsentrasiKeahlianWhereUniqueInput | KonsentrasiKeahlianWhereUniqueInput[]
+    update?: KonsentrasiKeahlianUpdateWithWhereUniqueWithoutProgramKeahlianInput | KonsentrasiKeahlianUpdateWithWhereUniqueWithoutProgramKeahlianInput[]
+    updateMany?: KonsentrasiKeahlianUpdateManyWithWhereWithoutProgramKeahlianInput | KonsentrasiKeahlianUpdateManyWithWhereWithoutProgramKeahlianInput[]
+    deleteMany?: KonsentrasiKeahlianScalarWhereInput | KonsentrasiKeahlianScalarWhereInput[]
+  }
+
+  export type ProgramKeahlianCreateNestedOneWithoutKonsentrasiKeahlianInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutKonsentrasiKeahlianInput
+    connect?: ProgramKeahlianWhereUniqueInput
+  }
+
+  export type ProgramKeahlianUpdateOneRequiredWithoutKonsentrasiKeahlianNestedInput = {
+    create?: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
+    connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutKonsentrasiKeahlianInput
+    upsert?: ProgramKeahlianUpsertWithoutKonsentrasiKeahlianInput
+    connect?: ProgramKeahlianWhereUniqueInput
+    update?: XOR<XOR<ProgramKeahlianUpdateToOneWithWhereWithoutKonsentrasiKeahlianInput, ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput>, ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -24438,6 +28390,174 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ProgramKeahlianCreateWithoutBidangKeahlianInput = {
+    id?: string
+    name: string
+    konsentrasiKeahlian?: KonsentrasiKeahlianCreateNestedManyWithoutProgramKeahlianInput
+  }
+
+  export type ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput = {
+    id?: string
+    name: string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUncheckedCreateNestedManyWithoutProgramKeahlianInput
+  }
+
+  export type ProgramKeahlianCreateOrConnectWithoutBidangKeahlianInput = {
+    where: ProgramKeahlianWhereUniqueInput
+    create: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput>
+  }
+
+  export type ProgramKeahlianCreateManyBidangKeahlianInputEnvelope = {
+    data: ProgramKeahlianCreateManyBidangKeahlianInput | ProgramKeahlianCreateManyBidangKeahlianInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ProgramKeahlianUpsertWithWhereUniqueWithoutBidangKeahlianInput = {
+    where: ProgramKeahlianWhereUniqueInput
+    update: XOR<ProgramKeahlianUpdateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedUpdateWithoutBidangKeahlianInput>
+    create: XOR<ProgramKeahlianCreateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedCreateWithoutBidangKeahlianInput>
+  }
+
+  export type ProgramKeahlianUpdateWithWhereUniqueWithoutBidangKeahlianInput = {
+    where: ProgramKeahlianWhereUniqueInput
+    data: XOR<ProgramKeahlianUpdateWithoutBidangKeahlianInput, ProgramKeahlianUncheckedUpdateWithoutBidangKeahlianInput>
+  }
+
+  export type ProgramKeahlianUpdateManyWithWhereWithoutBidangKeahlianInput = {
+    where: ProgramKeahlianScalarWhereInput
+    data: XOR<ProgramKeahlianUpdateManyMutationInput, ProgramKeahlianUncheckedUpdateManyWithoutBidangKeahlianInput>
+  }
+
+  export type ProgramKeahlianScalarWhereInput = {
+    AND?: ProgramKeahlianScalarWhereInput | ProgramKeahlianScalarWhereInput[]
+    OR?: ProgramKeahlianScalarWhereInput[]
+    NOT?: ProgramKeahlianScalarWhereInput | ProgramKeahlianScalarWhereInput[]
+    id?: StringFilter<"ProgramKeahlian"> | string
+    name?: StringFilter<"ProgramKeahlian"> | string
+    bidangKeahlianId?: StringFilter<"ProgramKeahlian"> | string
+  }
+
+  export type BidangKeahlianCreateWithoutProgramKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type BidangKeahlianUncheckedCreateWithoutProgramKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type BidangKeahlianCreateOrConnectWithoutProgramKeahlianInput = {
+    where: BidangKeahlianWhereUniqueInput
+    create: XOR<BidangKeahlianCreateWithoutProgramKeahlianInput, BidangKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianCreateWithoutProgramKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput = {
+    where: KonsentrasiKeahlianWhereUniqueInput
+    create: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianCreateManyProgramKeahlianInputEnvelope = {
+    data: KonsentrasiKeahlianCreateManyProgramKeahlianInput | KonsentrasiKeahlianCreateManyProgramKeahlianInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BidangKeahlianUpsertWithoutProgramKeahlianInput = {
+    update: XOR<BidangKeahlianUpdateWithoutProgramKeahlianInput, BidangKeahlianUncheckedUpdateWithoutProgramKeahlianInput>
+    create: XOR<BidangKeahlianCreateWithoutProgramKeahlianInput, BidangKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+    where?: BidangKeahlianWhereInput
+  }
+
+  export type BidangKeahlianUpdateToOneWithWhereWithoutProgramKeahlianInput = {
+    where?: BidangKeahlianWhereInput
+    data: XOR<BidangKeahlianUpdateWithoutProgramKeahlianInput, BidangKeahlianUncheckedUpdateWithoutProgramKeahlianInput>
+  }
+
+  export type BidangKeahlianUpdateWithoutProgramKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type BidangKeahlianUncheckedUpdateWithoutProgramKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianUpsertWithWhereUniqueWithoutProgramKeahlianInput = {
+    where: KonsentrasiKeahlianWhereUniqueInput
+    update: XOR<KonsentrasiKeahlianUpdateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedUpdateWithoutProgramKeahlianInput>
+    create: XOR<KonsentrasiKeahlianCreateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianUpdateWithWhereUniqueWithoutProgramKeahlianInput = {
+    where: KonsentrasiKeahlianWhereUniqueInput
+    data: XOR<KonsentrasiKeahlianUpdateWithoutProgramKeahlianInput, KonsentrasiKeahlianUncheckedUpdateWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianUpdateManyWithWhereWithoutProgramKeahlianInput = {
+    where: KonsentrasiKeahlianScalarWhereInput
+    data: XOR<KonsentrasiKeahlianUpdateManyMutationInput, KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianInput>
+  }
+
+  export type KonsentrasiKeahlianScalarWhereInput = {
+    AND?: KonsentrasiKeahlianScalarWhereInput | KonsentrasiKeahlianScalarWhereInput[]
+    OR?: KonsentrasiKeahlianScalarWhereInput[]
+    NOT?: KonsentrasiKeahlianScalarWhereInput | KonsentrasiKeahlianScalarWhereInput[]
+    id?: StringFilter<"KonsentrasiKeahlian"> | string
+    name?: StringFilter<"KonsentrasiKeahlian"> | string
+    programKeahlianId?: StringFilter<"KonsentrasiKeahlian"> | string
+  }
+
+  export type ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput = {
+    id?: string
+    name: string
+    bidangKeahlian: BidangKeahlianCreateNestedOneWithoutProgramKeahlianInput
+  }
+
+  export type ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput = {
+    id?: string
+    name: string
+    bidangKeahlianId: string
+  }
+
+  export type ProgramKeahlianCreateOrConnectWithoutKonsentrasiKeahlianInput = {
+    where: ProgramKeahlianWhereUniqueInput
+    create: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type ProgramKeahlianUpsertWithoutKonsentrasiKeahlianInput = {
+    update: XOR<ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput>
+    create: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
+    where?: ProgramKeahlianWhereInput
+  }
+
+  export type ProgramKeahlianUpdateToOneWithWhereWithoutKonsentrasiKeahlianInput = {
+    where?: ProgramKeahlianWhereInput
+    data: XOR<ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    bidangKeahlian?: BidangKeahlianUpdateOneRequiredWithoutProgramKeahlianNestedInput
+  }
+
+  export type ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    bidangKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
   export type CourseCreateManyUserInput = {
     id?: string
     title: string
@@ -25190,6 +29310,48 @@ export namespace Prisma {
     studentId?: StringFieldUpdateOperationsInput | string
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProgramKeahlianCreateManyBidangKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type ProgramKeahlianUpdateWithoutBidangKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUpdateManyWithoutProgramKeahlianNestedInput
+  }
+
+  export type ProgramKeahlianUncheckedUpdateWithoutBidangKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianNestedInput
+  }
+
+  export type ProgramKeahlianUncheckedUpdateManyWithoutBidangKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianCreateManyProgramKeahlianInput = {
+    id?: string
+    name: string
+  }
+
+  export type KonsentrasiKeahlianUpdateWithoutProgramKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateWithoutProgramKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
   }
 
 

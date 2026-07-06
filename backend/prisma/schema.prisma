@@ -271,3 +271,30 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+
+model BidangKeahlian {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  programKeahlian  ProgramKeahlian[]
+
+  @@map("bidang_keahlian")
+}
+
+model ProgramKeahlian {
+  id                  String                @id @default(uuid())
+  name                String                @unique
+  bidangKeahlianId    String
+  bidangKeahlian      BidangKeahlian        @relation(fields: [bidangKeahlianId], references: [id], onDelete: Cascade)
+  konsentrasiKeahlian KonsentrasiKeahlian[]
+
+  @@map("program_keahlian")
+}
+
+model KonsentrasiKeahlian {
+  id                String          @id @default(uuid())
+  name              String          @unique
+  programKeahlianId String
+  programKeahlian   ProgramKeahlian @relation(fields: [programKeahlianId], references: [id], onDelete: Cascade)
+
+  @@map("konsentrasi_keahlian")
+}

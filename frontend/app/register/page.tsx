@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { MAJORITIES, ACADEMIC_DATA } from "@/lib/constants/academics";
 import { generateEmailVariations } from "@/lib/emailGenerator";
 import { RefreshCw, ChevronDown, X, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
-import SearchableSelect from "@/components/ui/SearchableSelect";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,9 +30,22 @@ export default function RegisterPage() {
   const [studentId, setStudentId] = useState(""); // Student Only
   const [nip, setNip] = useState(""); // Teacher Only
 
-  // Academic Fields
-  const [majority, setMajority] = useState(""); // Jurusan / Dept
-  const [program, setProgram] = useState(""); // Prodi / Keahlian
+  // Dynamic Academic Fields
+  const [departmentsData, setDepartmentsData] = useState<any[]>([]);
+  const [selectedBidang, setSelectedBidang] = useState("");
+  const [majority, setMajority] = useState(""); // Program Keahlian
+  const [program, setProgram] = useState(""); // Konsentrasi Keahlian
+
+  // Fetch departments dynamic hierarchy on mount
+  useEffect(() => {
+    api.get("/lms/departments")
+      .then((res) => {
+        if (res.data.ok) {
+          setDepartmentsData(res.data.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load departments:", err));
+  }, []);
 
   // --- Auto-Generate Email Logic ---
   useEffect(() => {
@@ -62,22 +73,15 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    // --- STRICT VALIDATION START ---
-    if (!MAJORITIES.includes(majority)) {
-      toast.error("Please select a valid Department from the list.", {
+    // --- DYNAMIC VALIDATION START ---
+    if (!selectedBidang || !majority || !program) {
+      toast.error("Please select all expertise fields from the list.", {
         icon: "🧐",
       });
       setLoading(false);
       return;
     }
-
-    const validPrograms = ACADEMIC_DATA[majority] || [];
-    if (!validPrograms.includes(program)) {
-      toast.error("Please select a valid Study Program.", { icon: "🧐" });
-      setLoading(false);
-      return;
-    }
-    // --- STRICT VALIDATION END ---
+    // --- DYNAMIC VALIDATION END ---
 
     const fullInstitutionalEmail = `${emailUsername}@chainnesa.com`;
 
@@ -91,6 +95,7 @@ export default function RegisterPage() {
         role,
         majority,
         studyProgram: program,
+        faculty: selectedBidang,
       };
 
       if (role === "student") {
@@ -291,47 +296,81 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Academic Info (Shared) */}
+            {/* Dynamic Academic Info (Shared) */}
             <div className="space-y-4">
-              {/* Majority Combobox */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
-                  {role === "student" ? "Major (Jurusan)" : "Department"}{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <SearchableSelect
-                  value={majority}
-                  onChange={(val) => {
-                    setMajority(val);
-                    setProgram(""); // Reset program when majority changes
-                  }}
-                  options={MAJORITIES}
-                  placeholder="Select Department..."
-                  emptyMessage="No major found."
-                />
-              </div>
-
-              {/* Study Program Dropdown */}
+              {/* Bidang Keahlian */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1">
-                  {role === "student"
-                    ? "Study Program (Prodi)"
-                    : "Homebase / Expertise"}
+                  Bidang Keahlian (Expertise Field) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  value={selectedBidang}
+                  onChange={(e) => {
+                    setSelectedBidang(e.target.value);
+                    setMajority(""); // Reset child program
+                    setProgram(""); // Reset child concentration
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">-- Select Bidang Keahlian --</option>
+                  {departmentsData.map((bidang: any) => (
+                    <option key={bidang.id} value={bidang.name}>
+                      {bidang.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Program Keahlian */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  Program Keahlian (Expertise Program) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  value={majority}
+                  disabled={!selectedBidang}
+                  onChange={(e) => {
+                    setMajority(e.target.value);
+                    setProgram(""); // Reset child concentration
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer"
+                >
+                  <option value="">-- Select Program Keahlian --</option>
+                  {selectedBidang &&
+                    departmentsData
+                      .find((b: any) => b.name === selectedBidang)
+                      ?.programKeahlian?.map((prog: any) => (
+                        <option key={prog.id} value={prog.name}>
+                          {prog.name}
+                        </option>
+                      ))}
+                </select>
+              </div>
+
+              {/* Konsentrasi Keahlian */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  Konsentrasi Keahlian (Concentration) <span className="text-red-500">*</span>
                 </label>
                 <select
                   required
                   value={program}
+                  disabled={!majority}
                   onChange={(e) => setProgram(e.target.value)}
-                  disabled={!majority || !ACADEMIC_DATA[majority]}
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer"
                 >
-                  <option value="">-- Select Program --</option>
+                  <option value="">-- Select Konsentrasi Keahlian --</option>
                   {majority &&
-                    ACADEMIC_DATA[majority]?.map((prog) => (
-                      <option key={prog} value={prog}>
-                        {prog}
-                      </option>
-                    ))}
+                    departmentsData
+                      .find((b: any) => b.name === selectedBidang)
+                      ?.programKeahlian?.find((p: any) => p.name === majority)
+                      ?.konsentrasiKeahlian?.map((conc: any) => (
+                        <option key={conc.id} value={conc.name}>
+                          {conc.name}
+                        </option>
+                      ))}
                 </select>
               </div>
             </div>

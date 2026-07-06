@@ -436,51 +436,43 @@ export default function CourseBasicsPage() {
             </div>
           </div>
 
-          {/* Certificate Custom Template Upload */}
+          {/* Certificate Custom Template (Read Only for Teacher) */}
           <div className="space-y-4">
             <label className="text-neon-pink text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-neon-pink animate-pulse" />{" "}
-              Certificate Template
+              Certificate Style
             </label>
             <div className="group relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-neon-pink to-neon-purple rounded-[2.5rem] blur opacity-10 group-hover:opacity-30 transition duration-1000"></div>
-              <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden shadow-2xl backdrop-blur-3xl group-hover:border-white/20 transition-all duration-700">
+              <div className="absolute -inset-1 bg-gradient-to-r from-neon-pink to-neon-purple rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+              <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden shadow-2xl backdrop-blur-3xl transition-all duration-700">
                 {certPreview ? (
                   <Image
                     src={certPreview}
                     alt="Certificate Template"
                     fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="object-cover opacity-60"
                     unoptimized={true}
                   />
                 ) : (
-                  <div className="text-white/5 flex flex-col items-center group-hover:text-white/10 transition-colors">
-                    <ImageIcon size={72} className="mb-6" />
-                    <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-center px-4">
-                      Upload Custom Certificate Background
+                  <div className="text-white/20 flex flex-col items-center p-6 text-center">
+                    <ImageIcon size={48} className="mb-4" />
+                    <span className="text-[10px] uppercase font-bold tracking-widest">
+                      Using System Default Template
                     </span>
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-dark-bg/85 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col gap-4 items-center justify-center backdrop-blur-xl">
-                  <label className="cursor-pointer px-8 py-4 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-neon-pink hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
-                    <Upload size={18} className="inline mr-2" /> Upload Background Template
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleCertFileChange}
-                    />
-                  </label>
-                  {certPreview && (
-                    <button
-                      type="button"
-                      onClick={handlePreviewCertificate}
-                      className="px-8 py-4 bg-neon-pink text-white text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-white hover:text-black transition-all transform hover:scale-105 active:scale-95 shadow-2xl"
-                    >
-                      Preview Custom Certificate
-                    </button>
-                  )}
+                <div className="absolute inset-0 bg-dark-bg/90 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col gap-4 items-center justify-center backdrop-blur-xl p-6 text-center">
+                  <p className="text-xs text-white/60 font-semibold max-w-[200px]">
+                    Style changes must be updated by the system administrator.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handlePreviewCertificate}
+                    className="px-8 py-4 bg-neon-pink text-white text-xs font-bold uppercase tracking-widest rounded-[1.5rem] hover:bg-white hover:text-black transition-all transform hover:scale-105 active:scale-95 shadow-2xl"
+                  >
+                    Preview Certificate
+                  </button>
                 </div>
               </div>
             </div>
@@ -490,7 +482,7 @@ export default function CourseBasicsPage() {
                 onClick={handlePreviewCertificate}
                 className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-[1.5rem] text-xs font-bold uppercase tracking-widest transition-all"
               >
-                Preview Default Certificate
+                Preview Active Layout
               </button>
             )}
           </div>

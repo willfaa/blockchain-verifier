@@ -278,6 +278,23 @@ exports.Prisma.SystemSettingScalarFieldEnum = {
   value: 'value'
 };
 
+exports.Prisma.BidangKeahlianScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.ProgramKeahlianScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  bidangKeahlianId: 'bidangKeahlianId'
+};
+
+exports.Prisma.KonsentrasiKeahlianScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  programKeahlianId: 'programKeahlianId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -326,7 +343,10 @@ exports.Prisma.ModelName = {
   Enrollment: 'Enrollment',
   Certificate: 'Certificate',
   ExamResult: 'ExamResult',
-  SystemSetting: 'SystemSetting'
+  SystemSetting: 'SystemSetting',
+  BidangKeahlian: 'BidangKeahlian',
+  ProgramKeahlian: 'ProgramKeahlian',
+  KonsentrasiKeahlian: 'KonsentrasiKeahlian'
 };
 
 /**
