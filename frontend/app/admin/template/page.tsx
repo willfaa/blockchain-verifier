@@ -16,9 +16,44 @@ export default function CertificateTemplatePage() {
   const [bgPath, setBgPath] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState(Date.now());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState(false);
+
+  const loadPreview = async () => {
+    setPreviewError(false);
+    try {
+      const res = await api.get("/admin/settings/template-preview", {
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(res.data);
+      setPreviewBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch (err) {
+      console.error("Failed to load certificate template preview:", err);
+      setPreviewError(true);
+      toast.error("Failed to load certificate preview image from API");
+    }
+  };
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      loadPreview();
+    }
+  }, [previewKey]);
+
+  useEffect(() => {
+    return () => {
+      setPreviewBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
   }, []);
 
   const fetchData = async () => {
@@ -38,6 +73,7 @@ export default function CertificateTemplatePage() {
         setInstructorNip(detailsRes.data.data.instructorNip);
         setBgPath(detailsRes.data.data.certificateTemplate);
       }
+      await loadPreview();
     } catch (err) {
       console.error(err);
       toast.error("Failed to load certificate template configurations");
@@ -117,9 +153,7 @@ export default function CertificateTemplatePage() {
     );
   }
 
-  // Get preview url using dynamic API base
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-  const previewUrl = `${apiBase}/api/admin/settings/template-preview?t=${previewKey}`;
+
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-sans">
@@ -293,14 +327,21 @@ export default function CertificateTemplatePage() {
             
             {/* The Image Preview Container */}
             <div className="group relative w-full aspect-[16/11] border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl">
-              <img
-                src={previewUrl}
-                alt="Certificate Render Preview"
-                className="max-h-full max-w-full object-contain"
-                onError={(e) => {
-                  toast.error("Failed to load certificate preview image from API");
-                }}
-              />
+              {previewBlobUrl ? (
+                <img
+                  src={previewBlobUrl}
+                  alt="Certificate Render Preview"
+                  className="max-h-full max-w-full object-contain animate-in fade-in duration-300"
+                />
+              ) : previewError ? (
+                <div className="text-red-500 text-xs font-mono">
+                  FAILED_TO_LOAD_PREVIEW
+                </div>
+              ) : (
+                <div className="text-white/20 animate-pulse text-xs font-mono uppercase tracking-widest">
+                  GENERATING_PREVIEW...
+                </div>
+              )}
             </div>
             
             <p className="text-white/30 text-[10px] font-semibold uppercase tracking-widest mt-6 text-center">
