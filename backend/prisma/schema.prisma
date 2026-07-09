@@ -18,6 +18,7 @@ model User {
   isVerified Boolean @default(false)
   isApproved Boolean @default(false)
   isActive   Boolean @default(true)
+  currentSessionId String?
 
   bio      String? @db.Text
   avatar   String? 

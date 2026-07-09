@@ -2597,6 +2597,7 @@ export namespace Prisma {
     isVerified: boolean | null
     isApproved: boolean | null
     isActive: boolean | null
+    currentSessionId: string | null
     bio: string | null
     avatar: string | null
     studentId: string | null
@@ -2618,6 +2619,7 @@ export namespace Prisma {
     isVerified: boolean | null
     isApproved: boolean | null
     isActive: boolean | null
+    currentSessionId: string | null
     bio: string | null
     avatar: string | null
     studentId: string | null
@@ -2639,6 +2641,7 @@ export namespace Prisma {
     isVerified: number
     isApproved: number
     isActive: number
+    currentSessionId: number
     bio: number
     avatar: number
     studentId: number
@@ -2662,6 +2665,7 @@ export namespace Prisma {
     isVerified?: true
     isApproved?: true
     isActive?: true
+    currentSessionId?: true
     bio?: true
     avatar?: true
     studentId?: true
@@ -2683,6 +2687,7 @@ export namespace Prisma {
     isVerified?: true
     isApproved?: true
     isActive?: true
+    currentSessionId?: true
     bio?: true
     avatar?: true
     studentId?: true
@@ -2704,6 +2709,7 @@ export namespace Prisma {
     isVerified?: true
     isApproved?: true
     isActive?: true
+    currentSessionId?: true
     bio?: true
     avatar?: true
     studentId?: true
@@ -2798,6 +2804,7 @@ export namespace Prisma {
     isVerified: boolean
     isApproved: boolean
     isActive: boolean
+    currentSessionId: string | null
     bio: string | null
     avatar: string | null
     studentId: string | null
@@ -2836,6 +2843,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: boolean
     bio?: boolean
     avatar?: boolean
     studentId?: boolean
@@ -2863,6 +2871,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: boolean
     bio?: boolean
     avatar?: boolean
     studentId?: boolean
@@ -2884,6 +2893,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: boolean
     bio?: boolean
     avatar?: boolean
     studentId?: boolean
@@ -2905,6 +2915,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: boolean
     bio?: boolean
     avatar?: boolean
     studentId?: boolean
@@ -2916,7 +2927,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "personalEmail" | "password" | "name" | "role" | "isVerified" | "isApproved" | "isActive" | "bio" | "avatar" | "studentId" | "nip" | "faculty" | "majority" | "studyProgram" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "personalEmail" | "password" | "name" | "role" | "isVerified" | "isApproved" | "isActive" | "currentSessionId" | "bio" | "avatar" | "studentId" | "nip" | "faculty" | "majority" | "studyProgram" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdCourses?: boolean | User$createdCoursesArgs<ExtArgs>
     enrollments?: boolean | User$enrollmentsArgs<ExtArgs>
@@ -2947,6 +2958,7 @@ export namespace Prisma {
       isVerified: boolean
       isApproved: boolean
       isActive: boolean
+      currentSessionId: string | null
       bio: string | null
       avatar: string | null
       studentId: string | null
@@ -3393,6 +3405,7 @@ export namespace Prisma {
     readonly isVerified: FieldRef<"User", 'Boolean'>
     readonly isApproved: FieldRef<"User", 'Boolean'>
     readonly isActive: FieldRef<"User", 'Boolean'>
+    readonly currentSessionId: FieldRef<"User", 'String'>
     readonly bio: FieldRef<"User", 'String'>
     readonly avatar: FieldRef<"User", 'String'>
     readonly studentId: FieldRef<"User", 'String'>
@@ -20907,6 +20920,7 @@ export namespace Prisma {
     isVerified: 'isVerified',
     isApproved: 'isApproved',
     isActive: 'isActive',
+    currentSessionId: 'currentSessionId',
     bio: 'bio',
     avatar: 'avatar',
     studentId: 'studentId',
@@ -21280,6 +21294,7 @@ export namespace Prisma {
     isVerified?: BoolFilter<"User"> | boolean
     isApproved?: BoolFilter<"User"> | boolean
     isActive?: BoolFilter<"User"> | boolean
+    currentSessionId?: StringNullableFilter<"User"> | string | null
     bio?: StringNullableFilter<"User"> | string | null
     avatar?: StringNullableFilter<"User"> | string | null
     studentId?: StringNullableFilter<"User"> | string | null
@@ -21306,6 +21321,7 @@ export namespace Prisma {
     isVerified?: SortOrder
     isApproved?: SortOrder
     isActive?: SortOrder
+    currentSessionId?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     avatar?: SortOrderInput | SortOrder
     studentId?: SortOrderInput | SortOrder
@@ -21337,6 +21353,7 @@ export namespace Prisma {
     isVerified?: BoolFilter<"User"> | boolean
     isApproved?: BoolFilter<"User"> | boolean
     isActive?: BoolFilter<"User"> | boolean
+    currentSessionId?: StringNullableFilter<"User"> | string | null
     bio?: StringNullableFilter<"User"> | string | null
     avatar?: StringNullableFilter<"User"> | string | null
     faculty?: StringNullableFilter<"User"> | string | null
@@ -21361,6 +21378,7 @@ export namespace Prisma {
     isVerified?: SortOrder
     isApproved?: SortOrder
     isActive?: SortOrder
+    currentSessionId?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     avatar?: SortOrderInput | SortOrder
     studentId?: SortOrderInput | SortOrder
@@ -21388,6 +21406,7 @@ export namespace Prisma {
     isVerified?: BoolWithAggregatesFilter<"User"> | boolean
     isApproved?: BoolWithAggregatesFilter<"User"> | boolean
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
+    currentSessionId?: StringNullableWithAggregatesFilter<"User"> | string | null
     bio?: StringNullableWithAggregatesFilter<"User"> | string | null
     avatar?: StringNullableWithAggregatesFilter<"User"> | string | null
     studentId?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -22461,6 +22480,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -22487,6 +22507,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -22513,6 +22534,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22539,6 +22561,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22565,6 +22588,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -22586,6 +22610,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22607,6 +22632,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23838,6 +23864,7 @@ export namespace Prisma {
     isVerified?: SortOrder
     isApproved?: SortOrder
     isActive?: SortOrder
+    currentSessionId?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
     studentId?: SortOrder
@@ -23859,6 +23886,7 @@ export namespace Prisma {
     isVerified?: SortOrder
     isApproved?: SortOrder
     isActive?: SortOrder
+    currentSessionId?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
     studentId?: SortOrder
@@ -23880,6 +23908,7 @@ export namespace Prisma {
     isVerified?: SortOrder
     isApproved?: SortOrder
     isActive?: SortOrder
+    currentSessionId?: SortOrder
     bio?: SortOrder
     avatar?: SortOrder
     studentId?: SortOrder
@@ -26568,6 +26597,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -26593,6 +26623,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -26781,6 +26812,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26806,6 +26838,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27547,6 +27580,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -27572,6 +27606,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -27650,6 +27685,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27675,6 +27711,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27812,6 +27849,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -27837,6 +27875,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -27921,6 +27960,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27946,6 +27986,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28063,6 +28104,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -28088,6 +28130,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -28178,6 +28221,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28203,6 +28247,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28228,6 +28273,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -28253,6 +28299,7 @@ export namespace Prisma {
     isVerified?: boolean
     isApproved?: boolean
     isActive?: boolean
+    currentSessionId?: string | null
     bio?: string | null
     avatar?: string | null
     studentId?: string | null
@@ -28319,6 +28366,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28344,6 +28392,7 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null

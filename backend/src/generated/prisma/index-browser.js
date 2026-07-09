@@ -130,6 +130,7 @@ exports.Prisma.UserScalarFieldEnum = {
   isVerified: 'isVerified',
   isApproved: 'isApproved',
   isActive: 'isActive',
+  currentSessionId: 'currentSessionId',
   bio: 'bio',
   avatar: 'avatar',
   studentId: 'studentId',

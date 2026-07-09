@@ -10,6 +10,7 @@ import {
 import { Prisma } from "../generated/prisma";
 import bcrypt from "bcryptjs";
 import { db } from "../config/db";
+import { v4 as uuidv4 } from "uuid";
 
 const prisma = db;
 
@@ -113,6 +114,13 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    // --- GENERATE SESSION ID ---
+    const currentSessionId = uuidv4();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { currentSessionId },
+    });
+
     // --- GENERATE TOKEN ---
     // Logika fallback: cari identifier unik
     const uniqueId = user.email || user.studentId || user.nip;
@@ -122,6 +130,7 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         role: user.role,
         identifier: uniqueId,
+        sessionId: currentSessionId,
       },
       process.env.JWT_SECRET || "rahasia_default",
       { expiresIn: "24h" },
@@ -132,6 +141,7 @@ export const login = async (req: Request, res: Response) => {
       ok: true,
       user: {
         ...user,
+        currentSessionId,
         token: token,
       },
     });

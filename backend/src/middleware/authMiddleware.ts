@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { db } from "../config/db";
+
+const prisma = db;
 
 interface UserPayload {
   id: string;
   identifier: string;
   role: string;
+  sessionId?: string;
 }
 
 declare global {
@@ -15,7 +19,7 @@ declare global {
   }
 }
 
-export const verifyToken = (
+export const verifyToken = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -32,6 +36,28 @@ export const verifyToken = (
     const secret =
       process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
     const decoded = jwt.verify(token, secret) as UserPayload;
+
+    // Validate active session
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { currentSessionId: true, isActive: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "User not found." });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: "Your account has been deactivated. Contact Admin." });
+    }
+
+    if (decoded.sessionId !== user.currentSessionId) {
+      return res.status(401).json({
+        error: "You have been logged out because another login session was started.",
+        code: "SESSION_OVERWRITTEN",
+      });
+    }
+
     req.user = decoded;
     next();
   } catch (error) {
@@ -40,7 +66,7 @@ export const verifyToken = (
   }
 };
 
-export const optionalVerifyToken = (
+export const optionalVerifyToken = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -56,7 +82,15 @@ export const optionalVerifyToken = (
     const secret =
       process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
     const decoded = jwt.verify(token, secret) as UserPayload;
-    req.user = decoded;
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { currentSessionId: true, isActive: true },
+    });
+
+    if (user && user.isActive && decoded.sessionId === user.currentSessionId) {
+      req.user = decoded;
+    }
     next();
   } catch (error) {
     // If token is invalid, we just proceed without req.user

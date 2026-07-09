@@ -9,15 +9,16 @@ datasource db {
 
 // --- USER MANAGEMENT ---
 model User {
-  id            String  @id @default(uuid())
-  email         String  @unique
-  personalEmail String? @unique
-  password      String
-  name          String
-  role          String // "admin", "teacher", "student"
-  isVerified    Boolean @default(false)
-  isApproved    Boolean @default(false)
-  isActive      Boolean @default(true)
+  id               String  @id @default(uuid())
+  email            String  @unique
+  personalEmail    String? @unique
+  password         String
+  name             String
+  role             String // "admin", "teacher", "student"
+  isVerified       Boolean @default(false)
+  isApproved       Boolean @default(false)
+  isActive         Boolean @default(true)
+  currentSessionId String?
 
   bio       String? @db.Text
   avatar    String?

@@ -49,7 +49,9 @@ api.interceptors.response.use(
         // Prevent infinite loop if login page itself throws 401 (unlikely for login)
         if (!window.location.pathname.includes("/login")) {
           localStorage.removeItem("chainnesa_user");
-          window.location.href = "/login?error=session_expired";
+          const isOverwrite = error.response.data?.code === "SESSION_OVERWRITTEN";
+          const errorParam = isOverwrite ? "session_overwritten" : "session_expired";
+          window.location.href = `/login?error=${errorParam}`;
         }
       }
     }
