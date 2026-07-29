@@ -164,14 +164,14 @@ export async function issueCertificateOnFabric(
       FUNC_ISSUE,
       record.certId,
       record.name,
-      record.studentId, // Arg 3: Student ID
-      record.program, // Arg 4
-      record.majority, // Arg 5
-      record.issuedAt, // Arg 6
-      record.hash, // Arg 7
-      record.cid, // Arg 8
-      record.status, // Arg 9
-      record.nonce, // Arg 10
+      record.studentId, // Arg 3: Student ID (NISN)
+      record.program, // Arg 4: Konsentrasi Keahlian
+      record.majority, // Arg 5: Bidang Keahlian
+      record.score || "", // Arg 6: UKK Score
+      record.issuedAt, // Arg 7
+      record.hash, // Arg 8
+      record.cid, // Arg 9
+      record.status, // Arg 10
       issuerId, // Arg 11
       issuerRole, // Arg 12
     );

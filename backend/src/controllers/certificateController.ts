@@ -123,12 +123,11 @@ export class CertificateController {
         }
       }
 
-      let { certId, studentId, nisn, nim, name, majority, program, issuedAt, nonce } = req.body;
+      let { certId, studentId, nisn, nim, name, majority, program, issuedAt, score } = req.body;
 
       if (!studentId) studentId = nisn || nim;
 
       if (!certId) certId = uuidv4();
-      if (!nonce) nonce = crypto.randomBytes(16).toString("hex");
 
       if (!studentId || !name || !majority || !program) {
         return res
@@ -182,7 +181,7 @@ export class CertificateController {
 
       // Fabric sync in background to prevent request timeout
       issueCertificateOnFabric(
-        { ...record, nonce } as any,
+        { ...record, score: score || "" } as any,
         issuerId,
         issuerRole,
       ).catch((err) => console.error("[Fabric] Background Issue Error:", err));
@@ -324,7 +323,7 @@ export class CertificateController {
 
       // Fabric sync
       issueCertificateOnFabric(
-        { ...cert, nonce: crypto.randomBytes(8).toString("hex") } as any,
+        { ...cert, score: String((result as any).score || "") } as any,
         "SYSTEM",
         "TEACHER",
       ).catch((err) => console.error("[Fabric] Claim Sync Error:", err));

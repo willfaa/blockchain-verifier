@@ -14,26 +14,26 @@ type SmartContract struct {
 type Certificate struct {
 	CertID           string `json:"cert_id"`
 	Name             string `json:"name"`
-	StudentID        string `json:"student_id"`
-	Program          string `json:"program"`
-	Majority         string `json:"majority"`
+	StudentID        string `json:"student_id"`       // Stores NISN (Nomor Induk Siswa Nasional)
+	Program          string `json:"program"`           // Stores Konsentrasi Keahlian
+	Majority         string `json:"majority"`          // Stores Bidang Keahlian
+	Score            string `json:"score"`             // UKK (Uji Kompetensi Keahlian) score
 	IssuedAt         string `json:"issued_at"`
 	Hash             string `json:"hash"`
 	CID              string `json:"cid"`
-	Status           string `json:"status"`            
-	Nonce            string `json:"nonce"`             
-	RevokedAt        string `json:"revoked_at"`        
-	RevocationReason string `json:"revocation_reason"` 
-	SupersededBy     string `json:"superseded_by"`     
-	IssuerID         string `json:"issuer_id"`         
-	IssuerRole       string `json:"issuer_role"`       
+	Status           string `json:"status"`
+	RevokedAt        string `json:"revoked_at"`
+	RevocationReason string `json:"revocation_reason"`
+	SupersededBy     string `json:"superseded_by"`
+	IssuerID         string `json:"issuer_id"`
+	IssuerRole       string `json:"issuer_role"`
 }
 
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	return nil
 }
 
-func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certId string, name string, studentId string, program string, majority string, issuedAt string, hash string, cid string, status string, nonce string, issuerId string, issuerRole string) error {
+func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certId string, name string, studentId string, program string, majority string, score string, issuedAt string, hash string, cid string, status string, issuerId string, issuerRole string) error {
 	exists, err := s.CertificateExists(ctx, certId)
 	if err != nil {
 		return err
@@ -48,11 +48,11 @@ func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInter
 		StudentID:        studentId,
 		Program:          program,
 		Majority:         majority,
+		Score:            score,
 		IssuedAt:         issuedAt,
 		Hash:             hash,
 		CID:              cid,
 		Status:           status,
-		Nonce:            nonce,
 		RevokedAt:        "",
 		RevocationReason: "",
 		SupersededBy:     "",

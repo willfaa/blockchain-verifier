@@ -186,7 +186,6 @@ export const issueCertificate = async (req: Request, res: Response) => {
 
     // Prepare Blockchain Data
     const certId = uuidv4();
-    const nonce = crypto.randomBytes(16).toString("hex");
     const status = "ISSUED";
     const finalIssuerId = issuerId || "admin";
     const finalIssuerRole = issuerRole || "admin";
@@ -208,7 +207,6 @@ export const issueCertificate = async (req: Request, res: Response) => {
       majority,
       course: finalCourse,
       issuedAt: formattedDate,
-      nonce,
     });
     const dataHash = crypto
       .createHash("sha256")
@@ -277,11 +275,11 @@ export const issueCertificate = async (req: Request, res: Response) => {
       studentId || "",
       program,
       majority,
+      "", // score — not available in legacy issue flow
       formattedDate,
       dataHash,
       cid,
       status,
-      nonce,
       finalIssuerId,
       finalIssuerRole,
     );

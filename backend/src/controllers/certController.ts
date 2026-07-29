@@ -34,15 +34,14 @@ export class CertController {
       console.log(`Processing Issue Request by: ${issuerId} (${issuerRole})`);
 
       // 2. Destructure Body
-      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, nonce, courseId } =
+      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, score, courseId } =
         req.body ?? {};
 
       // Fallback for compatibility
       if (!studentId) studentId = nim || nisn;
 
-      // 3. Generate ID & Nonce otomatis jika kosong
+      // 3. Generate ID otomatis jika kosong
       if (!certId) certId = uuidv4();
-      if (!nonce) nonce = crypto.randomBytes(16).toString("hex");
 
       // Validasi Field Wajib (Data-Driven)
       if (!certId || !studentId || !name || !majority || !program) {
@@ -171,6 +170,7 @@ export class CertController {
         name,
         majority,
         program,
+        score: score || "",
         cid: cid, // Populated from IPFS upload
         hash, // Data Hash
         status: "PENDING", // Atomic Step 1
@@ -179,7 +179,6 @@ export class CertController {
           month: "long",
           year: "numeric",
         }).format(new Date()),
-        nonce,
         courseId: courseId || null,
       };
 
@@ -423,7 +422,6 @@ export class CertController {
 
       // 4. Prepare Data for Issuance
       const certId = uuidv4();
-      const nonce = crypto.randomBytes(16).toString("hex");
 
       // FIX: Use consistent English date format  (e.g., 25 December 2025)
       const issuedAt = new Intl.DateTimeFormat("en-GB", {
@@ -501,11 +499,11 @@ export class CertController {
         name: pdfData.name,
         majority: pdfData.majority,
         program: pdfData.program,
+        score: bestResult ? String((bestResult as any).score || "") : "",
         cid,
         hash,
         status: "PENDING",
         issuedAt: new Date().toISOString(),
-        nonce,
         // @ts-ignore
         courseId: course.id,
       };

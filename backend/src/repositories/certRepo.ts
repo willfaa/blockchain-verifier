@@ -9,13 +9,13 @@ const mapRowToCert = (row: any): CertificateRecord => {
     certId: row.cert_id || row.id,
     studentId: row.studentId || row.nisn,
     name: row.name,
-    majority: row.majority,
-    program: row.program,
+    majority: row.majority, // Bidang Keahlian
+    program: row.program, // Konsentrasi Keahlian
+    score: row.score || "",
     cid: row.cid,
     hash: row.hash,
     status: row.status,
     issuedAt: row.issued_at,
-    nonce: row.nonce,
     revokedAt: row.revoked_at,
     revocationReason: row.revocation_reason,
     supersededBy: row.superseded_by,
@@ -86,13 +86,13 @@ export const findCertificateById = async (
     certId: cert.certId,
     studentId: cert.studentId,
     name: cert.studentName, // Mapped from studentName
-    majority: cert.majority,
-    program: cert.program,
+    majority: cert.majority, // Bidang Keahlian
+    program: cert.program, // Konsentrasi Keahlian
+    score: (cert as any).score || "",
     cid: cert.cid,
     hash: cert.hash,
     status: cert.status,
     issuedAt: cert.issuedAt,
-    nonce: "0", // Default string "0" as nonce is missing in DB but required in type
     courseId: cert.courseId,
     revokedAt: undefined,
     revocationReason: undefined,

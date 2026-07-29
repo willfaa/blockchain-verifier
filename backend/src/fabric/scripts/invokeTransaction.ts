@@ -65,11 +65,11 @@ async function main() {
       // --- DATA SERTIFIKAT DUMMY ---
 
       const cert_id = uuidv4();
-      const nonce = Math.random().toString(36).substring(7);
       const name = "Budi Santoso Manual";
       const studentId = "12345678";
-      const program = "Blockchain Developer Bootcamp";
-      const majority = "Teknik Informatika";
+      const program = "Pengembangan Perangkat Lunak dan Gim"; // Konsentrasi Keahlian
+      const majority = "Teknologi Informasi"; // Bidang Keahlian
+      const score = "85.50"; // UKK Score
       const issued_at = new Date().toISOString();
       const hash =
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -89,7 +89,7 @@ async function main() {
       });
 
       // 6. Submit Transaction (12 ARGUMEN)
-      // Urutan: certId, name, studentId, program, majority, issuedAt, hash, cid, status, nonce, issuerId, issuerRole
+      // Urutan: certId, name, studentId, program, majority, score, issuedAt, hash, cid, status, issuerId, issuerRole
       await contract.submitTransaction(
         "IssueCertificate",
         cert_id,
@@ -97,11 +97,11 @@ async function main() {
         studentId,
         program,
         majority,
+        score, // Arg 6: UKK Score
         issued_at,
         hash,
         cid,
         status,
-        nonce,
         issuerId, // Arg 11
         issuerRole // Arg 12
       );

@@ -12,13 +12,13 @@ export interface CertificateRecord {
   certId: string;
   studentId: string;
   name: string;
-  majority: string; // Jurusan
-  program: string;
+  majority: string; // Bidang Keahlian
+  program: string; // Konsentrasi Keahlian
+  score?: string; // UKK (Uji Kompetensi Keahlian) score
   cid: string; // IPFS Content ID
   hash: string; // IPFS Hash / File Hash
   status: CertificateStatus;
   issuedAt: string;
-  nonce: string;
   // studentId (merged)
 
   // Field Opsional (Diisi saat Revoke/Supersede)
