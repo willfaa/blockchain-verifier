@@ -189,25 +189,6 @@ export default function AdminLayout({
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-8 border-t border-white/5">
-          <button
-            onClick={logout}
-            className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 group hover:bg-red-500/10 border border-transparent hover:border-red-500/30 ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-          >
-            <LogOut
-              size={20}
-              className="text-red-500 group-hover:animate-pulse"
-            />
-            {!isCollapsed && (
-              <span className="text-xs font-bold text-red-500 tracking-tight">
-                Logout Session
-              </span>
-            )}
-          </button>
-        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -229,6 +210,18 @@ export default function AdminLayout({
                 Live Status
               </span>
             </div>
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 group hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+            >
+              <LogOut
+                size={16}
+                className="text-red-500 group-hover:animate-pulse"
+              />
+              <span className="text-xs font-bold text-red-500 tracking-tight">
+                Logout
+              </span>
+            </button>
           </div>
         </header>
 

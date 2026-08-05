@@ -67,6 +67,7 @@ export const testConnection = async () => {
         'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "startedAt" TIMESTAMP;',
         'ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS "submittedAt" TIMESTAMP;',
         'ALTER TABLE courses ADD COLUMN IF NOT EXISTS "certificateTemplate" TEXT;',
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS "currentSessionId" TEXT;',
       ];
 
       for (const sql of hardeningQueries) {

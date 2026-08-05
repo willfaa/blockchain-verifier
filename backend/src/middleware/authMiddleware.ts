@@ -22,7 +22,7 @@ declare global {
 export const verifyToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
@@ -48,12 +48,15 @@ export const verifyToken = async (
     }
 
     if (!user.isActive) {
-      return res.status(403).json({ error: "Your account has been deactivated. Contact Admin." });
+      return res
+        .status(403)
+        .json({ error: "Your account has been deactivated. Contact Admin." });
     }
 
     if (decoded.sessionId !== user.currentSessionId) {
       return res.status(401).json({
-        error: "You have been logged out because another login session was started.",
+        error:
+          "You have been logged out because another login session was started.",
         code: "SESSION_OVERWRITTEN",
       });
     }
@@ -69,7 +72,7 @@ export const verifyToken = async (
 export const optionalVerifyToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
@@ -101,7 +104,7 @@ export const optionalVerifyToken = async (
 export const verifyAdmin = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const role = req.user?.role?.toLowerCase();
   if (role !== "admin") {
@@ -114,7 +117,7 @@ export const verifyAdmin = (
 export const verifyTeacher = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const role = req.user?.role?.toLowerCase();
   if (role !== "teacher" && role !== "admin") {
@@ -126,7 +129,7 @@ export const verifyTeacher = (
 export const verifyStudent = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const role = req.user?.role?.toLowerCase();
   if (role !== "student" && role !== "admin") {
@@ -138,7 +141,7 @@ export const verifyStudent = (
 export const verifyIssuer = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const role = req.user?.role?.toLowerCase();
   // Cek apakah role adalah teacher ATAU admin
