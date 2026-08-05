@@ -19,6 +19,8 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "http://localhost:4000",
   "https://blockchain-verifier-eight.vercel.app",
+  "https://www.willfaa.web.id",
+  "https://willfaa.web.id",
 ];
 
 if (process.env.CLIENT_URL) {
