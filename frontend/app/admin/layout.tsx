@@ -100,7 +100,7 @@ export default function AdminLayout({
       <aside
         className={`${
           isCollapsed ? "w-20" : "w-72"
-        } relative hidden md:flex flex-col border-r border-white/5 bg-dark-bg/40 backdrop-blur-2xl transition-all duration-300 z-30`}
+        } sticky top-0 h-screen hidden md:flex flex-col border-r border-white/5 bg-dark-bg/40 backdrop-blur-2xl transition-all duration-300 z-30 overflow-y-auto`}
       >
         {/* Brand */}
         <div
