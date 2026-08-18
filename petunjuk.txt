@@ -111,3 +111,16 @@ E. Pembersihan Port Terkunci (Windows PowerShell Admin)
      netstat -ano | findstr :4000
    - Matikan proses paksa:
      taskkill /PID <PID_PROSES> /F
+
+
+Metode 1: Stop & Start (Paling Direkomendasikan)
+Metode ini akan mematikan container secara aman (langkah graceful shutdown). RAM dan CPU akan dibebaskan sepenuhnya, dan data ledger Anda tetap aman di dalam Docker Volume. Ini adalah pilihan terbaik jika Anda ingin mematikan komputer/WSL dan melanjutkan pekerjaan besok.
+cd ~/fabric-samples/test-network
+docker stop $(docker ps -aq)
+docker start $(docker ps -aq)
+
+Metode 2: Pause & Unpause (Freeze Proses)
+Metode ini menggunakan fitur cgroups Linux untuk membekukan (freeze) proses container. Container tidak dimatikan, melainkan hanya dihentikan eksekusinya. CPU tidak akan digunakan, tetapi RAM tetap teralokasi.
+cd ~/fabric-samples/test-network
+docker pause $(docker ps -q)
+docker unpause $(docker ps -q)
