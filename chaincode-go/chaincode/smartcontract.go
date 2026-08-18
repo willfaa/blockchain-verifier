@@ -14,10 +14,10 @@ type SmartContract struct {
 type Certificate struct {
 	CertID           string `json:"cert_id"`
 	Name             string `json:"name"`
-	StudentID        string `json:"student_id"`       // Stores NISN (Nomor Induk Siswa Nasional)
-	Program          string `json:"program"`           // Stores Konsentrasi Keahlian
-	Majority         string `json:"majority"`          // Stores Bidang Keahlian
-	Score            string `json:"score"`             // UKK (Uji Kompetensi Keahlian) score
+	StudentID        string `json:"student_id"`       
+	Program          string `json:"program"`           
+	Majority         string `json:"majority"`          
+	Score            string `json:"score"`             
 	IssuedAt         string `json:"issued_at"`
 	Hash             string `json:"hash"`
 	CID              string `json:"cid"`
