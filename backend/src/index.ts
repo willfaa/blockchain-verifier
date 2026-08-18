@@ -38,7 +38,9 @@ if (process.env.ALLOWED_ORIGINS) {
 app.use(
   cors({
     origin: function (origin, callback) {
-      const isVercelPreview = origin && /^https:\/\/blockchain-verifier-.*\.vercel\.app$/.test(origin);
+      const isVercelPreview =
+        origin &&
+        /^https:\/\/blockchain-verifier-.*\.vercel\.app$/.test(origin);
       if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
         callback(null, true);
       } else {
@@ -85,7 +87,6 @@ if (process.env.VERCEL) {
   app.use("/uploads", express.static(bundledUploadsPath));
 }
 
-
 // --- ROUTE MOUNTING (STRICT PRIORITY) ---
 
 // 1. ADMIN ROUTES
@@ -100,12 +101,10 @@ app.use("/api/lms", lmsRoutes);
 // 4. GENERIC API ROUTES (Fallback untuk auth, dll)
 app.use("/api", mainRouter);
 
-
 // --- HEALTH CHECK ---
 app.get("/", (_req, res) => {
   res.json({ ok: true, status: "LMS Backend Alive" });
 });
-
 
 // --- 404 HANDLER ---
 app.use((req, res) => {
