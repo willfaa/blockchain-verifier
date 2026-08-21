@@ -28,6 +28,9 @@ import { getInitials, getAvatarUrl } from "@/lib/utils";
 export default function SmartIssueCertificatePage() {
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [loadingIssue, setLoadingIssue] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Search State
   const [searchStudentId, setSearchStudentId] = useState("");
@@ -102,12 +105,44 @@ export default function SmartIssueCertificatePage() {
       setFoundStudent(null);
       setSearchStudentId("");
       setCourseId("");
+      setShowModal(false);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
     } catch (err: any) {
       toast.error(
         "Issue Failed: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setLoadingIssue(false);
+    }
+  };
+
+  const handlePreview = async () => {
+    if (!foundStudent) return;
+    setLoadingPreview(true);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    
+    try {
+      const payload = {
+        name: foundStudent.name,
+        studentId: foundStudent.studentId,
+        program: foundStudent.studyProgram || foundStudent.program,
+        majority: foundStudent.majority,
+        courseId: courseId || null,
+      };
+
+      const res = await api.post("/certificates/preview", payload, {
+        responseType: "blob",
+      });
+
+      const url = URL.createObjectURL(res.data);
+      setPreviewUrl(url);
+      setShowModal(true);
+    } catch (err: any) {
+      toast.error("Preview Failed: " + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPreview(false);
     }
   };
 
@@ -330,19 +365,19 @@ export default function SmartIssueCertificatePage() {
 
               <div className="w-full md:w-auto">
                 <button
-                  onClick={handleIssue}
-                  disabled={!foundStudent || loadingIssue}
+                  onClick={handlePreview}
+                  disabled={!foundStudent || loadingPreview}
                   className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-fuchsia-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loadingIssue ? (
+                  {loadingPreview ? (
                     <>
                       <Loader2 className="animate-spin" size={18} />
-                      Signing & Minting...
+                      Generating Preview...
                     </>
                   ) : (
                     <>
                       <Award size={18} />
-                      Issue Certificate
+                      Preview & Issue
                     </>
                   )}
                 </button>
@@ -351,6 +386,62 @@ export default function SmartIssueCertificatePage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white">Confirm Certificate Issuance</h3>
+                <p className="text-sm text-slate-400 mt-1">Please review the visual layout before permanently minting to the blockchain.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(false)}
+                disabled={loadingIssue}
+                className="text-slate-400 hover:text-white p-2"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-6 bg-slate-950 flex items-center justify-center">
+              {previewUrl ? (
+                <img src={previewUrl} alt="Certificate Preview" className="max-h-[60vh] max-w-full object-contain rounded-lg border border-white/5 shadow-2xl" />
+              ) : (
+                <Loader2 className="animate-spin text-cyan-500" size={32} />
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-white/10 bg-slate-900 flex justify-end gap-4">
+              <button
+                onClick={() => setShowModal(false)}
+                disabled={loadingIssue}
+                className="px-6 py-2.5 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleIssue}
+                disabled={loadingIssue}
+                className="px-8 py-2.5 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-fuchsia-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingIssue ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Signing & Minting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={18} />
+                    Confirm & Mint
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

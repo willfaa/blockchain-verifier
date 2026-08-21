@@ -429,13 +429,15 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
 
 export const getSystemSettings = async (req: Request, res: Response) => {
   try {
-    const layoutSetting = await db.systemSetting.findUnique({
-      where: { key: "certificate_layout" },
-    });
+    const [layoutSetting, paperSizeSetting] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+    ]);
     return safeResponse(res, 200, {
       ok: true,
       settings: {
         certificateLayout: layoutSetting?.value || "HORIZONTAL",
+        certificatePaperSize: paperSizeSetting?.value || "A4",
       },
     });
   } catch (error: any) {
@@ -446,22 +448,41 @@ export const getSystemSettings = async (req: Request, res: Response) => {
 
 export const updateSystemSettings = async (req: Request, res: Response) => {
   try {
-    const { certificateLayout } = req.body;
-    if (!certificateLayout || !["HORIZONTAL", "VERTICAL"].includes(certificateLayout)) {
-      return safeResponse(res, 400, { error: "Invalid layout value. Must be HORIZONTAL or VERTICAL" });
+    const { certificateLayout, certificatePaperSize } = req.body;
+
+    if (certificateLayout) {
+      if (!["HORIZONTAL", "VERTICAL"].includes(certificateLayout)) {
+        return safeResponse(res, 400, { error: "Invalid layout value. Must be HORIZONTAL or VERTICAL" });
+      }
+      await db.systemSetting.upsert({
+        where: { key: "certificate_layout" },
+        update: { value: certificateLayout },
+        create: { key: "certificate_layout", value: certificateLayout },
+      });
     }
 
-    const updated = await db.systemSetting.upsert({
-      where: { key: "certificate_layout" },
-      update: { value: certificateLayout },
-      create: { key: "certificate_layout", value: certificateLayout },
-    });
+    if (certificatePaperSize) {
+      if (!["A4", "F4"].includes(certificatePaperSize)) {
+        return safeResponse(res, 400, { error: "Invalid paper size value. Must be A4 or F4" });
+      }
+      await db.systemSetting.upsert({
+        where: { key: "certificate_paper_size" },
+        update: { value: certificatePaperSize },
+        create: { key: "certificate_paper_size", value: certificatePaperSize },
+      });
+    }
+
+    const [updatedLayout, updatedPaperSize] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+    ]);
 
     return safeResponse(res, 200, {
       ok: true,
       message: "Settings updated successfully",
       settings: {
-        certificateLayout: updated.value,
+        certificateLayout: updatedLayout?.value || "HORIZONTAL",
+        certificatePaperSize: updatedPaperSize?.value || "A4",
       },
     });
   } catch (error: any) {
@@ -627,16 +648,39 @@ export const updateCertificateTemplateBackground = async (req: Request, res: Res
   }
 };
 
+export const deleteCertificateTemplateBackground = async (req: Request, res: Response) => {
+  try {
+    await db.systemSetting.deleteMany({
+      where: { key: "default_certificate_template" },
+    });
+
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Template background removed. Reverted to procedural theme.",
+    });
+  } catch (error: any) {
+    console.error("[deleteCertificateTemplateBackground Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to remove template background" });
+  }
+};
+
 export const getCertificateTemplatePreview = async (req: Request, res: Response) => {
   try {
-    const layoutSetting = await db.systemSetting.findUnique({
-      where: { key: "certificate_layout" },
-    });
-    const layout = (layoutSetting?.value as "HORIZONTAL" | "VERTICAL") || "HORIZONTAL";
+    const [layoutSetting, paperSizeSetting, nameSetting, nipSetting, templateSetting, layoutConfigSetting] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_template" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_layout_config" } }),
+    ]);
 
-    const nameSetting = await db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } });
-    const nipSetting = await db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } });
-    const templateSetting = await db.systemSetting.findUnique({ where: { key: "default_certificate_template" } });
+    const layout = (layoutSetting?.value as "HORIZONTAL" | "VERTICAL") || "HORIZONTAL";
+    const paperSize = (paperSizeSetting?.value as "A4" | "F4") || "A4";
+    let layoutConfig = undefined;
+    if (layoutConfigSetting?.value) {
+      try { layoutConfig = JSON.parse(layoutConfigSetting.value); } catch (e) { /* ignore */ }
+    }
 
     const issuedAt = new Intl.DateTimeFormat("en-GB", {
       day: "numeric",
@@ -644,19 +688,24 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
       year: "numeric",
     }).format(new Date());
 
+    const instructorName = nameSetting?.value || "Dr. Budi Santoso, M.T.";
+    const instructorNip = nipSetting?.value || "198706152010121002";
+
     const previewData = {
-      name: "STUDENT NAME",
-      studentId: "usr-9a8b7c6d-5e4f-3a2b",
-      courseName: "DEMO COURSE TITLE",
-      majority: "Teknologi Informasi",
+      name: "John Doe",
+      studentId: "2024150042",
+      courseName: "Blockchain & Distributed Systems",
+      majority: "Teknik Informatika",
       program: "Rekayasa Perangkat Lunak",
-      certId: "cert-00000000-0000-0000-0000-000000000000",
+      certId: "CERT-2024-0001",
       issuedAt,
       issuerId: req.user?.id || "ADMIN",
-      instructorName: nameSetting?.value || "Budi Headmaster, M.T.",
-      instructorNip: nipSetting?.value || "198706152010121002",
-      instructorMajor: "Teknologi Informasi",
+      instructorName,
+      instructorNip,
+      instructorMajor: "Teknik Informatika",
       layout,
+      paperSize,
+      layoutConfig,
       customTemplatePath: templateSetting?.value ? path.join(process.cwd(), templateSetting.value) : undefined
     };
 
@@ -666,6 +715,54 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
   } catch (error: any) {
     console.error("[getCertificateTemplatePreview Error]", error.message);
     return res.status(500).json({ error: "Failed to render certificate preview" });
+  }
+};
+
+// --- Certificate Layout Config (Visual Editor) ---
+export const getCertificateLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    const setting = await db.systemSetting.findUnique({
+      where: { key: "certificate_layout_config" },
+    });
+    let config = null;
+    if (setting?.value) {
+      try { config = JSON.parse(setting.value); } catch (e) { /* ignore */ }
+    }
+    return safeResponse(res, 200, { ok: true, config });
+  } catch (error: any) {
+    console.error("[getCertificateLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to fetch layout config" });
+  }
+};
+
+export const updateCertificateLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    const { config } = req.body;
+    if (!config || typeof config !== "object") {
+      return safeResponse(res, 400, { error: "Invalid config object" });
+    }
+    const jsonStr = JSON.stringify(config);
+    await db.systemSetting.upsert({
+      where: { key: "certificate_layout_config" },
+      update: { value: jsonStr },
+      create: { key: "certificate_layout_config", value: jsonStr },
+    });
+    return safeResponse(res, 200, { ok: true, message: "Layout config saved successfully" });
+  } catch (error: any) {
+    console.error("[updateCertificateLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to save layout config" });
+  }
+};
+
+export const resetCertificateLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    await db.systemSetting.deleteMany({
+      where: { key: "certificate_layout_config" },
+    });
+    return safeResponse(res, 200, { ok: true, message: "Layout config reset to default" });
+  } catch (error: any) {
+    console.error("[resetCertificateLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to reset layout config" });
   }
 };
 

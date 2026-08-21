@@ -20,7 +20,11 @@ import {
   getCertificateDetails,
   updateCertificateDetails,
   updateCertificateTemplateBackground,
+  deleteCertificateTemplateBackground,
   getCertificateTemplatePreview,
+  getCertificateLayoutConfig,
+  updateCertificateLayoutConfig,
+  resetCertificateLayoutConfig,
   getBidangList,
   createBidang,
   updateBidang,
@@ -108,7 +112,11 @@ router.post(
   upload.fields([{ name: "certificateTemplate", maxCount: 1 }]),
   updateCertificateTemplateBackground
 );
+router.delete("/settings/template", deleteCertificateTemplateBackground);
 router.get("/settings/template-preview", getCertificateTemplatePreview);
+router.get("/settings/layout-config", getCertificateLayoutConfig);
+router.post("/settings/layout-config", updateCertificateLayoutConfig);
+router.delete("/settings/layout-config", resetCertificateLayoutConfig);
 
 /**
  * EXPERTISE FIELDS CRUD (BIDANG, PROGRAM, KONSENTRASI KEAHLIAN)

@@ -18,7 +18,9 @@ export interface CertData {
   instructorNip?: string;
   instructorMajor?: string;
   layout?: "HORIZONTAL" | "VERTICAL";
+  paperSize?: "A4" | "F4";
   customTemplatePath?: string;
+  layoutConfig?: Record<string, any>;
 }
 
 // Fetch layout setting from database
@@ -31,6 +33,26 @@ const getLayoutSetting = async (): Promise<"HORIZONTAL" | "VERTICAL"> => {
   } catch (err) {
     return "HORIZONTAL";
   }
+};
+
+// Fetch paper size setting from database
+const getPaperSizeSetting = async (): Promise<"A4" | "F4"> => {
+  try {
+    const setting = await db.systemSetting.findUnique({
+      where: { key: "certificate_paper_size" },
+    });
+    return (setting?.value as "A4" | "F4") || "A4";
+  } catch (err) {
+    return "A4";
+  }
+};
+
+// Paper size dimensions at 150 DPI (landscape width x height)
+// A4: 210mm × 297mm → landscape: 1754 x 1240, portrait: 1240 x 1754
+// F4: 215mm × 330mm → landscape: 1953 x 1272, portrait: 1272 x 1953
+const PAPER_DIMENSIONS: Record<string, { landscape: [number, number]; portrait: [number, number] }> = {
+  A4: { landscape: [1754, 1240], portrait: [1240, 1754] },
+  F4: { landscape: [1953, 1272], portrait: [1272, 1953] },
 };
 
 // Helper to draw the procedural grid, borders, and neon corner accents
@@ -102,12 +124,13 @@ const drawDefaultBackground = (
 export const generateCertificateImage = async (
   data: CertData
 ): Promise<Buffer> => {
-  // Resolve layout setting
+  // Resolve layout and paper size settings
   const activeLayout = data.layout || (await getLayoutSetting());
+  const activePaperSize = data.paperSize || (await getPaperSizeSetting());
   const isVertical = activeLayout === "VERTICAL";
 
-  const width = isVertical ? 1080 : 1920;
-  const height = isVertical ? 1920 : 1080;
+  const dims = PAPER_DIMENSIONS[activePaperSize] || PAPER_DIMENSIONS["A4"];
+  const [width, height] = isVertical ? dims.portrait : dims.landscape;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
@@ -218,200 +241,263 @@ export const generateCertificateImage = async (
   ctx.fillText("UNIVERSITAS NEGERI SURABAYA", centerX, logoY + logoSize + 40);
 
   // --- 3. DYNAMIC METADATA OVERLAYS ---
-  if (isVertical) {
-    // Vertical Layout Placement
-    // Certificate Title
-    ctx.shadowColor = "#38bdf8";
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = "#f0f9ff"; // Sky 50
-    ctx.font = "bold 56px Arial";
-    ctx.fillText("CERTIFICATE OF", centerX, 480);
-    ctx.fillText("COMPLETION", centerX, 550);
-    ctx.shadowBlur = 0;
+  if (data.layoutConfig && Object.keys(data.layoutConfig).length > 0) {
+    // --- 3A. CUSTOM LAYOUT OVERLAYS ---
+    const config = data.layoutConfig;
+    ctx.textAlign = "center"; // default, config can override if we add align
 
-    // "Proudly Presented To"
-    ctx.fillStyle = "#94a3b8"; // Slate 400
-    ctx.font = "italic 24px Arial";
-    ctx.fillText("Proudly Presented To", centerX, 680);
+    // Helper to draw text element
+    const drawTextConfig = (key: string, text: string) => {
+      const el = config[key];
+      if (!el || !el.visible) return;
+      ctx.textAlign = el.align || "left";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = el.color || "#ffffff";
+      const style = `${el.italic ? "italic " : ""}${el.bold ? "bold " : ""}${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
+      ctx.font = style;
+      ctx.fillText(text, el.x, el.y);
+    };
 
-    // Student Name
-    ctx.shadowColor = "#e879f9"; // Fuchsia glow
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = "#fae8ff"; // Fuchsia 50
-    ctx.font = "bold 64px Arial";
-    ctx.fillText(data.name, centerX, 780);
-    ctx.shadowBlur = 0;
+    drawTextConfig("universityTitle", "UNIVERSITAS NEGERI SURABAYA");
+    drawTextConfig("certificateTitle", "CERTIFICATE OF");
+    drawTextConfig("certificateSubtitle", "COMPLETION");
+    drawTextConfig("presentedTo", "Proudly Presented To");
+    drawTextConfig("studentName", data.name);
+    drawTextConfig("majorProgram", `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`);
+    drawTextConfig("studentId", `Student ID : ${data.studentId}`);
+    drawTextConfig("courseSubtitle", "For successfully completing the course:");
+    drawTextConfig("courseTitle", data.courseName || "Blockchain Course");
+    drawTextConfig("instructorName", finalInstructorName);
+    drawTextConfig("instructorTitle", (finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase());
+    drawTextConfig("instructorNip", `NIP: ${finalInstructorNip}`);
+    drawTextConfig("certIdLabel", `Certificate ID: ${data.certId}`);
+    drawTextConfig("issuedDateLabel", `Issued: ${data.issuedAt}`);
+    drawTextConfig("scanToVerifyLabel", "SCAN TO VERIFY");
 
-    // Divider Line
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(centerX - 250, 820);
-    ctx.lineTo(centerX + 250, 820);
-    ctx.stroke();
+    // Lines & Images
+    const drawDividerConfig = (key: string, width: number) => {
+      const el = config[key];
+      if (!el || !el.visible) return;
+      ctx.strokeStyle = el.color || "#334155";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Assuming x, y is center and width is the line width
+      ctx.moveTo(el.x - width / 2, el.y);
+      ctx.lineTo(el.x + width / 2, el.y);
+      ctx.stroke();
+    };
+    drawDividerConfig("dividerLine", 600);
+    drawDividerConfig("instructorLine", 240);
 
-    // Major / Program
-    ctx.fillStyle = "#e2e8f0"; // Slate 200
-    ctx.font = "bold 20px Arial";
-    ctx.fillText(
-      `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
-      centerX,
-      860
-    );
-
-    // Student User ID
-    ctx.fillStyle = "#67e8f9"; // Cyan 300
-    ctx.font = "bold 20px Arial";
-    ctx.fillText(`Student ID : ${data.studentId}`, centerX, 900);
-
-    // "For successfully completing..."
-    ctx.fillStyle = "#94a3b8"; // Slate 400
-    ctx.font = "italic 20px Arial";
-    ctx.fillText("For successfully completing the course:", centerX, 1020);
-
-    // Course Title
-    ctx.fillStyle = "#e0f2fe"; // Sky 100
-    ctx.font = "bold 44px Arial";
-    ctx.fillText(data.courseName || "Blockchain Course", centerX, 1090);
-
-    // Footer - Instructor (Y=1450)
-    const footerY = 1450;
-    const leftX = 280;
-    ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold italic 24px Arial";
-    ctx.fillText(finalInstructorName, leftX, footerY - 50);
-
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(leftX - 120, footerY - 40);
-    ctx.lineTo(leftX + 120, footerY - 40);
-    ctx.stroke();
-
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 14px Arial";
-    ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "14px Courier New";
-    ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
-
-    // Footer - QR Code (Y=1450, Right)
-    const rightX = width - 280;
-    const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
-    const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-      width: 140,
-      margin: 1,
-      color: { dark: "#ffffff", light: "#00000000" },
-    });
-    const qrImage = await loadImage(qrDataUrl);
-    ctx.drawImage(qrImage, rightX - 70, footerY - 100, 140, 140);
-
-    ctx.fillStyle = "#0ea5e9";
-    ctx.font = "bold 12px Arial";
-    ctx.fillText("SCAN TO VERIFY", rightX, footerY + 60);
-
-    // Dynamic Hash / Details
-    ctx.fillStyle = "#64748b";
-    ctx.font = "14px Arial";
-    ctx.fillText(`Certificate ID: ${data.certId}`, centerX, height - 120);
-    ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 90);
-
+    // QR Code
+    const qrEl = config["qrCode"];
+    if (qrEl && qrEl.visible) {
+      const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
+      const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        width: qrEl.width || 150,
+        margin: 1,
+        color: { dark: "#ffffff", light: "#00000000" },
+      });
+      const qrImage = await loadImage(qrDataUrl);
+      ctx.drawImage(qrImage, qrEl.x - (qrEl.width || 150) / 2, qrEl.y - (qrEl.height || 150) / 2, qrEl.width || 150, qrEl.height || 150);
+    }
   } else {
-    // Horizontal Layout Placement (Original)
-    // Certificate Title
-    ctx.shadowColor = "#38bdf8";
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = "#f0f9ff"; // Sky 50
-    ctx.font = "bold 80px Arial";
-    ctx.fillText("CERTIFICATE OF", centerX, 360);
-    ctx.fillText("COMPLETION", centerX, 450);
-    ctx.shadowBlur = 0;
+    // --- 3B. DYNAMIC METADATA OVERLAYS (FALLBACK HARDCODED) ---
+    if (isVertical) {
+      // Vertical Layout Placement
+      // Certificate Title
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = "#f0f9ff"; // Sky 50
+      ctx.font = "bold 56px Arial";
+      ctx.fillText("CERTIFICATE OF", centerX, 480);
+      ctx.fillText("COMPLETION", centerX, 550);
+      ctx.shadowBlur = 0;
 
-    // "Proudly Presented To"
-    ctx.fillStyle = "#94a3b8"; // Slate 400
-    ctx.font = "italic 24px Arial";
-    ctx.fillText("Proudly Presented To", centerX, 520);
+      // "Proudly Presented To"
+      ctx.fillStyle = "#94a3b8"; // Slate 400
+      ctx.font = "italic 24px Arial";
+      ctx.fillText("Proudly Presented To", centerX, 680);
 
-    // Student Name
-    ctx.shadowColor = "#e879f9";
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = "#fae8ff";
-    ctx.font = "bold 90px Arial";
-    ctx.fillText(data.name, centerX, 620);
-    ctx.shadowBlur = 0;
+      // Student Name
+      ctx.shadowColor = "#e879f9"; // Fuchsia glow
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#fae8ff"; // Fuchsia 50
+      ctx.font = "bold 64px Arial";
+      ctx.fillText(data.name, centerX, 780);
+      ctx.shadowBlur = 0;
 
-    // Divider Line
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(centerX - 300, 650);
-    ctx.lineTo(centerX + 300, 650);
-    ctx.stroke();
+      // Divider Line
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(centerX - 250, 820);
+      ctx.lineTo(centerX + 250, 820);
+      ctx.stroke();
 
-    // Major / Program
-    ctx.fillStyle = "#e2e8f0";
-    ctx.font = "bold 22px Arial";
-    ctx.fillText(
-      `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
-      centerX,
-      690
-    );
+      // Major / Program
+      ctx.fillStyle = "#e2e8f0"; // Slate 200
+      ctx.font = "bold 20px Arial";
+      ctx.fillText(
+        `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
+        centerX,
+        860
+      );
 
-    // Student User ID
-    ctx.fillStyle = "#67e8f9";
-    ctx.fillText(`Student ID : ${data.studentId}`, centerX, 725);
+      // Student User ID
+      ctx.fillStyle = "#67e8f9"; // Cyan 300
+      ctx.font = "bold 20px Arial";
+      ctx.fillText(`Student ID : ${data.studentId}`, centerX, 900);
 
-    // "For successfully completing..."
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "italic 20px Arial";
-    ctx.fillText("For successfully completing the course:", centerX, 780);
+      // "For successfully completing..."
+      ctx.fillStyle = "#94a3b8"; // Slate 400
+      ctx.font = "italic 20px Arial";
+      ctx.fillText("For successfully completing the course:", centerX, 1020);
 
-    // Course Title
-    ctx.fillStyle = "#e0f2fe";
-    ctx.font = "bold 50px Arial";
-    ctx.fillText(data.courseName || "Blockchain Course", centerX, 820);
+      // Course Title
+      ctx.fillStyle = "#e0f2fe"; // Sky 100
+      ctx.font = "bold 44px Arial";
+      ctx.fillText(data.courseName || "Blockchain Course", centerX, 1090);
 
-    // Footer - Instructor (Left)
-    const footerY = height - 120;
-    const leftX = 350;
-    ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold italic 28px Arial";
-    ctx.fillText(finalInstructorName, leftX, footerY - 50);
+      // Footer - Instructor (Y=1450)
+      const footerY = 1450;
+      const leftX = 280;
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold italic 24px Arial";
+      ctx.fillText(finalInstructorName, leftX, footerY - 50);
 
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(leftX - 120, footerY - 40);
-    ctx.lineTo(leftX + 120, footerY - 40);
-    ctx.stroke();
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(leftX - 120, footerY - 40);
+      ctx.lineTo(leftX + 120, footerY - 40);
+      ctx.stroke();
 
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "14px Courier New";
-    ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "14px Courier New";
+      ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
 
-    // Middle Info (ID and Date)
-    ctx.fillStyle = "#64748b";
-    ctx.font = "14px Arial";
-    ctx.fillText(`ID: ${data.certId}`, centerX, height - 60);
-    ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 40);
+      // Footer - QR Code (Y=1450, Right)
+      const rightX = width - 280;
+      const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
+      const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        width: 140,
+        margin: 1,
+        color: { dark: "#ffffff", light: "#00000000" },
+      });
+      const qrImage = await loadImage(qrDataUrl);
+      ctx.drawImage(qrImage, rightX - 70, footerY - 100, 140, 140);
 
-    // Footer - QR Code (Right)
-    const rightX = width - 350;
-    const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
-    const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-      width: 150,
-      margin: 1,
-      color: { dark: "#ffffff", light: "#00000000" },
-    });
-    const qrImage = await loadImage(qrDataUrl);
-    ctx.drawImage(qrImage, rightX - 75, footerY - 100, 150, 150);
+      ctx.fillStyle = "#0ea5e9";
+      ctx.font = "bold 12px Arial";
+      ctx.fillText("SCAN TO VERIFY", rightX, footerY + 60);
 
-    ctx.fillStyle = "#0ea5e9";
-    ctx.font = "bold 12px Arial";
-    ctx.fillText("SCAN TO VERIFY", rightX, footerY + 70);
+      // Dynamic Hash / Details
+      ctx.fillStyle = "#64748b";
+      ctx.font = "14px Arial";
+      ctx.fillText(`Certificate ID: ${data.certId}`, centerX, height - 120);
+      ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 90);
+
+    } else {
+      // Horizontal Layout Placement (Original)
+      // Certificate Title
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = "#f0f9ff"; // Sky 50
+      ctx.font = "bold 80px Arial";
+      ctx.fillText("CERTIFICATE OF", centerX, 360);
+      ctx.fillText("COMPLETION", centerX, 450);
+      ctx.shadowBlur = 0;
+
+      // "Proudly Presented To"
+      ctx.fillStyle = "#94a3b8"; // Slate 400
+      ctx.font = "italic 24px Arial";
+      ctx.fillText("Proudly Presented To", centerX, 520);
+
+      // Student Name
+      ctx.shadowColor = "#e879f9";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#fae8ff";
+      ctx.font = "bold 90px Arial";
+      ctx.fillText(data.name, centerX, 620);
+      ctx.shadowBlur = 0;
+
+      // Divider Line
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(centerX - 300, 650);
+      ctx.lineTo(centerX + 300, 650);
+      ctx.stroke();
+
+      // Major / Program
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 22px Arial";
+      ctx.fillText(
+        `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
+        centerX,
+        690
+      );
+
+      // Student User ID
+      ctx.fillStyle = "#67e8f9";
+      ctx.fillText(`Student ID : ${data.studentId}`, centerX, 725);
+
+      // "For successfully completing..."
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "italic 20px Arial";
+      ctx.fillText("For successfully completing the course:", centerX, 780);
+
+      // Course Title
+      ctx.fillStyle = "#e0f2fe";
+      ctx.font = "bold 50px Arial";
+      ctx.fillText(data.courseName || "Blockchain Course", centerX, 820);
+
+      // Footer - Instructor (Left)
+      const footerY = height - 120;
+      const leftX = 350;
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold italic 28px Arial";
+      ctx.fillText(finalInstructorName, leftX, footerY - 50);
+
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(leftX - 120, footerY - 40);
+      ctx.lineTo(leftX + 120, footerY - 40);
+      ctx.stroke();
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "14px Courier New";
+      ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
+
+      // Middle Info (ID and Date)
+      ctx.fillStyle = "#64748b";
+      ctx.font = "14px Arial";
+      ctx.fillText(`ID: ${data.certId}`, centerX, height - 60);
+      ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 40);
+
+      // Footer - QR Code (Right)
+      const rightX = width - 350;
+      const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
+      const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        width: 150,
+        margin: 1,
+        color: { dark: "#ffffff", light: "#00000000" },
+      });
+      const qrImage = await loadImage(qrDataUrl);
+      ctx.drawImage(qrImage, rightX - 75, footerY - 100, 150, 150);
+
+      ctx.fillStyle = "#0ea5e9";
+      ctx.font = "bold 12px Arial";
+      ctx.fillText("SCAN TO VERIFY", rightX, footerY + 70);
+    }
   }
 
   return canvas.toBuffer("image/png");

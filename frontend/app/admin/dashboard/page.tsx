@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [layout, setLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
+  const [paperSize, setPaperSize] = useState<"A4" | "F4">("A4");
   const [updatingLayout, setUpdatingLayout] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
         setStats(statsRes.data);
         if (settingsRes.data.ok && settingsRes.data.settings) {
           setLayout(settingsRes.data.settings.certificateLayout);
+          setPaperSize(settingsRes.data.settings.certificatePaperSize || "A4");
         }
       })
       .catch((err) => console.error(err))
@@ -297,7 +299,7 @@ export default function AdminDashboard() {
             </div>
             <div className="space-y-4 mt-6">
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Global Certificate Layout (A4)
+                Global Certificate Layout ({paperSize})
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button

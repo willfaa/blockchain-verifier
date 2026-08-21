@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Save, Upload, ImageIcon, RefreshCw, FileText } from "lucide-react";
+import { Save, Upload, ImageIcon, RefreshCw, FileText, X, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
+import CertificateEditor, { LayoutElement } from "@/components/features/CertificateEditor";
 
 export default function CertificateTemplatePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [removingTemplate, setRemovingTemplate] = useState(false);
   
   const [layout, setLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
+  const [paperSize, setPaperSize] = useState<"A4" | "F4">("A4");
   const [instructorName, setInstructorName] = useState("");
   const [instructorNip, setInstructorNip] = useState("");
   const [bgPath, setBgPath] = useState<string | null>(null);
@@ -18,6 +21,8 @@ export default function CertificateTemplatePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const [layoutConfig, setLayoutConfig] = useState<Record<string, LayoutElement> | null>(null);
+  const [savingConfig, setSavingConfig] = useState(false);
 
   const loadPreview = async () => {
     setPreviewError(false);
@@ -59,19 +64,24 @@ export default function CertificateTemplatePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [settingsRes, detailsRes] = await Promise.all([
+      const [settingsRes, detailsRes, configRes] = await Promise.all([
         api.get("/admin/settings"),
         api.get("/admin/settings/details"),
+        api.get("/admin/settings/layout-config")
       ]);
 
       if (settingsRes.data.ok && settingsRes.data.settings) {
         setLayout(settingsRes.data.settings.certificateLayout);
+        setPaperSize(settingsRes.data.settings.certificatePaperSize || "A4");
       }
 
       if (detailsRes.data.ok && detailsRes.data.data) {
         setInstructorName(detailsRes.data.data.instructorName);
         setInstructorNip(detailsRes.data.data.instructorNip);
         setBgPath(detailsRes.data.data.certificateTemplate);
+      }
+      if (configRes.data.ok && configRes.data.config) {
+        setLayoutConfig(configRes.data.config);
       }
       await loadPreview();
     } catch (err) {
@@ -116,6 +126,20 @@ export default function CertificateTemplatePage() {
     }
   };
 
+  const handlePaperSizeChange = async (newSize: "A4" | "F4") => {
+    try {
+      const res = await api.post("/admin/settings", { certificatePaperSize: newSize });
+      if (res.data.ok) {
+        setPaperSize(newSize);
+        toast.success(`Paper size updated to ${newSize}`);
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update paper size");
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -134,6 +158,7 @@ export default function CertificateTemplatePage() {
         if (res.data.ok) {
           toast.success("Template background updated");
           setBgPath(res.data.path);
+          // Synchronize real-time layout preview after upload
           setPreviewKey(Date.now());
         }
       } catch (err) {
@@ -143,6 +168,69 @@ export default function CertificateTemplatePage() {
         setUploading(false);
       }
     }
+  };
+
+  const handleRemoveTemplate = async () => {
+    setRemovingTemplate(true);
+    try {
+      const res = await api.delete("/admin/settings/template");
+      if (res.data.ok) {
+        toast.success("Template removed. Reverted to procedural theme.");
+        setBgPath(null);
+        setSelectedFile(null);
+        // Synchronize real-time layout preview after removal
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to remove template background");
+    } finally {
+      setRemovingTemplate(false);
+    }
+  };
+
+  const handleSaveConfig = async (config: Record<string, LayoutElement>) => {
+    setSavingConfig(true);
+    try {
+      const res = await api.post("/admin/settings/layout-config", { config });
+      if (res.data.ok) {
+        toast.success("Layout configuration saved");
+        setLayoutConfig(config);
+        setPreviewKey(Date.now()); // Update actual preview image
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save layout configuration");
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
+  const handleResetConfig = async () => {
+    if (!window.confirm("Are you sure you want to reset the layout to defaults? All custom positions will be lost.")) return;
+    setSavingConfig(true);
+    try {
+      const res = await api.delete("/admin/settings/layout-config");
+      if (res.data.ok) {
+        toast.success("Layout reset to defaults");
+        setLayoutConfig(null);
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reset layout configuration");
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
+  // Compute the preview container aspect ratio based on paper size and orientation
+  const getPreviewAspect = () => {
+    if (paperSize === "F4") {
+      return layout === "HORIZONTAL" ? "aspect-[1953/1272]" : "aspect-[1272/1953]";
+    }
+    // A4
+    return layout === "HORIZONTAL" ? "aspect-[1754/1240]" : "aspect-[1240/1754]";
   };
 
   if (loading) {
@@ -182,6 +270,45 @@ export default function CertificateTemplatePage() {
         {/* Left Columns - Form Configurations */}
         <div className="xl:col-span-1 space-y-8">
           
+          {/* Paper Size Switch */}
+          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
+            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+              <Maximize2 size={20} className="text-neon-blue" />
+              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                Paper Size
+              </h3>
+            </div>
+            <div className="space-y-4 mt-6">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Certificate Paper Size Format
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => handlePaperSizeChange("A4")}
+                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                    paperSize === "A4"
+                      ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  A4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">210 × 297 mm</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePaperSizeChange("F4")}
+                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                    paperSize === "F4"
+                      ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  F4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">215 × 330 mm</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Orientation switch */}
           <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
             <div className="flex items-center gap-4 border-b border-white/5 pb-6">
@@ -192,7 +319,7 @@ export default function CertificateTemplatePage() {
             </div>
             <div className="space-y-4 mt-6">
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                System Default certificate Layout (A4)
+                Certificate Layout ({paperSize})
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -231,12 +358,21 @@ export default function CertificateTemplatePage() {
             </div>
             <div className="mt-6 space-y-4">
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Upload Default Certificate Background (1920x1080 horizontal or 1080x1920 vertical)
+                Upload Default Certificate Background
               </p>
               
               <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-white/20 transition-all">
                 {bgPath ? (
                   <div className="text-center p-4">
+                    {/* Close/Cancel button - top right */}
+                    <button
+                      onClick={handleRemoveTemplate}
+                      disabled={removingTemplate}
+                      className="absolute top-3 right-3 z-20 p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-xl border border-red-400/30 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 group"
+                      title="Remove uploaded template and revert to mock data"
+                    >
+                      <X size={16} className="group-hover:rotate-90 transition-transform duration-200" />
+                    </button>
                     <p className="text-xs text-white/60 font-semibold break-all mb-2">
                       Template Loaded:
                     </p>
@@ -317,39 +453,63 @@ export default function CertificateTemplatePage() {
           </div>
 
         </div>
-
-        {/* Right Columns - Visual Layout Preview (A4) */}
-        <div className="xl:col-span-2 space-y-6">
-          <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
-            <h3 className="font-bold text-white/60 text-xs uppercase tracking-widest self-start mb-6">
-              Real-time Layout preview (A4 Mock Data)
+      </div>
+      
+      {/* Visual Editor Section */}
+      <div className="mt-12 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Interactive Layout Editor</h2>
+          <p className="text-white/40 text-xs mt-2">Drag and drop elements, resize boxes, and customize typography.</p>
+        </div>
+        
+        <div className="w-full">
+          <CertificateEditor 
+            initialConfig={layoutConfig}
+            paperSize={paperSize}
+            layout={layout}
+            bgPath={bgPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads/${bgPath.split('/').pop()}` : null}
+            onSave={handleSaveConfig}
+            onReset={handleResetConfig}
+            isSaving={savingConfig}
+          />
+        </div>
+      </div>
+      
+      {/* Final Preview Section */}
+      <div className="mt-12 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Final Output Preview</h2>
+          <p className="text-white/40 text-xs mt-2">This is the exact image that will be rendered by the server.</p>
+        </div>
+        
+        <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
+          <div className="flex items-center justify-between w-full mb-6">
+            <h3 className="font-bold text-white/60 text-xs uppercase tracking-widest">
+              Server Rendered Image
             </h3>
-            
-            {/* The Image Preview Container */}
-            <div className="group relative w-full aspect-[16/11] border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl">
-              {previewBlobUrl ? (
-                <img
-                  src={previewBlobUrl}
-                  alt="Certificate Render Preview"
-                  className="max-h-full max-w-full object-contain animate-in fade-in duration-300"
-                />
-              ) : previewError ? (
-                <div className="text-red-500 text-xs font-mono">
-                  FAILED_TO_LOAD_PREVIEW
-                </div>
-              ) : (
-                <div className="text-white/20 animate-pulse text-xs font-mono uppercase tracking-widest">
-                  GENERATING_PREVIEW...
-                </div>
-              )}
-            </div>
-            
-            <p className="text-white/30 text-[10px] font-semibold uppercase tracking-widest mt-6 text-center">
-              The preview above displays visual overlays including mockup data text (Student Name, Program, NIP, QR code) to inspect print readability.
-            </p>
+            <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider px-3 py-1.5 bg-white/[0.03] rounded-lg border border-white/5">
+              {paperSize} · {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
+            </span>
+          </div>
+          
+          <div className={`group relative w-full ${getPreviewAspect()} border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl transition-all duration-500`}>
+            {previewBlobUrl ? (
+              <img
+                src={previewBlobUrl}
+                alt="Certificate Render Preview"
+                className="max-h-full max-w-full object-contain animate-in fade-in duration-300"
+              />
+            ) : previewError ? (
+              <div className="text-red-500 text-xs font-mono">
+                FAILED_TO_LOAD_PREVIEW
+              </div>
+            ) : (
+              <div className="text-white/20 animate-pulse text-xs font-mono uppercase tracking-widest">
+                GENERATING_PREVIEW...
+              </div>
+            )}
           </div>
         </div>
-
       </div>
 
     </div>

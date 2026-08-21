@@ -121,19 +121,28 @@ export class CertController {
       }
 
       // Fallback to system settings if still missing
-      if (!instructorName) {
+      let layoutConfig = undefined;
+      if (!instructorName || true) { // we also want layout config
         try {
-          const [nameSetting, nipSetting] = await Promise.all([
+          const [nameSetting, nipSetting, layoutConfigSetting] = await Promise.all([
             prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
             prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
+            prisma.systemSetting.findUnique({ where: { key: "certificate_layout_config" } }),
           ]);
-          instructorName = nameSetting?.value || "Budi Headmaster, M.T.";
-          instructorNip = nipSetting?.value || "198706152010121002";
-          instructorMajor = "Teknologi Informasi";
+          if (!instructorName) {
+            instructorName = nameSetting?.value || "Budi Headmaster, M.T.";
+            instructorNip = nipSetting?.value || "198706152010121002";
+            instructorMajor = "Teknologi Informasi";
+          }
+          if (layoutConfigSetting?.value) {
+            try { layoutConfig = JSON.parse(layoutConfigSetting.value); } catch(e){}
+          }
         } catch (e) {
-          instructorName = "Budi Headmaster, M.T.";
-          instructorNip = "198706152010121002";
-          instructorMajor = "Teknologi Informasi";
+          if (!instructorName) {
+            instructorName = "Budi Headmaster, M.T.";
+            instructorNip = "198706152010121002";
+            instructorMajor = "Teknologi Informasi";
+          }
         }
       }
 
@@ -156,6 +165,7 @@ export class CertController {
         instructorNip,
         instructorMajor,
         customTemplatePath,
+        layoutConfig,
       });
 
       console.log("☁️ Uploading PNG to IPFS...");
@@ -314,6 +324,98 @@ export class CertController {
         error: "Failed to retrieve certificate",
         detail: err.message,
       });
+    }
+  }
+
+  // --- PREVIEW CERTIFICATE ---
+  // Generates the certificate PNG without saving or minting it
+  public async previewCertificate(req: Request, res: Response) {
+    try {
+      const issuerId = req.user?.identifier || "SYSTEM";
+      let { certId, studentId, nim, nisn, name, majority, program, courseId, issuedAt } = req.body ?? {};
+
+      if (!studentId) studentId = nim || nisn;
+      if (!certId) certId = "PREV-0000-0000-0000";
+
+      if (!studentId || !name || !majority || !program) {
+        return res.status(400).json({ ok: false, error: "Missing required fields" });
+      }
+
+      let courseName = "Program Completion";
+      let customTemplatePath = undefined;
+      let instructorName = undefined;
+      let instructorNip = undefined;
+      let instructorMajor = undefined;
+
+      if (courseId) {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId },
+          include: { user: true },
+        });
+        if (course) {
+          courseName = course.title;
+          customTemplatePath = course.certificateTemplate || undefined;
+          instructorName = course.user?.name || undefined;
+          instructorNip = course.user?.nip || undefined;
+          instructorMajor = course.user?.studyProgram || course.user?.majority || undefined;
+        }
+      }
+
+      if (!instructorName && req.user?.id) {
+        const issuerUser = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (issuerUser) {
+          instructorName = issuerUser.name;
+          instructorNip = issuerUser.nip || "-";
+          instructorMajor = issuerUser.studyProgram || issuerUser.majority || "Department of Blockchain";
+        }
+      }
+
+      let layoutConfig = undefined;
+      try {
+        const [nameSetting, nipSetting, layoutConfigSetting] = await Promise.all([
+          prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
+          prisma.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
+          prisma.systemSetting.findUnique({ where: { key: "certificate_layout_config" } }),
+        ]);
+        if (!instructorName) {
+          instructorName = nameSetting?.value || "Budi Headmaster, M.T.";
+          instructorNip = nipSetting?.value || "198706152010121002";
+          instructorMajor = "Teknologi Informasi";
+        }
+        if (layoutConfigSetting?.value) {
+          try { layoutConfig = JSON.parse(layoutConfigSetting.value); } catch (e) {}
+        }
+      } catch (e) {
+        if (!instructorName) {
+          instructorName = "Budi Headmaster, M.T.";
+          instructorNip = "198706152010121002";
+          instructorMajor = "Teknologi Informasi";
+        }
+      }
+
+      const imgBuffer = await generateCertificateImage({
+        certId,
+        name,
+        studentId,
+        program,
+        majority,
+        courseName,
+        issuedAt: issuedAt || new Intl.DateTimeFormat("en-GB", {
+          day: "numeric", month: "long", year: "numeric",
+        }).format(new Date()),
+        issuerId,
+        instructorName,
+        instructorNip,
+        instructorMajor,
+        customTemplatePath,
+        layoutConfig,
+      });
+
+      res.setHeader("Content-Type", "image/png");
+      return res.status(200).send(imgBuffer);
+    } catch (error: any) {
+      console.error("Preview Certificate Error:", error);
+      return res.status(500).json({ ok: false, error: "Failed to generate preview", detail: error.message });
     }
   }
 

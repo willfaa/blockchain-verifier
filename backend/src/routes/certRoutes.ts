@@ -23,6 +23,11 @@ router.post("/issue", verifyToken, verifyIssuer, (req, res) =>
   certController.issueCertificate(req, res)
 );
 
+// B1. Preview Certificate
+router.post("/preview", verifyToken, verifyIssuer, (req, res) =>
+  certController.previewCertificate(req, res)
+);
+
 // B2. Claim Certificate (Student)
 router.post("/claim", verifyToken, (req, res) =>
   certController.claimCertificate(req, res)
