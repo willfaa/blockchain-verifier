@@ -255,13 +255,83 @@ export const generateCertificateImage = async (
       ctx.fillStyle = el.color || "#ffffff";
       const style = `${el.italic ? "italic " : ""}${el.bold ? "bold " : ""}${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
       ctx.font = style;
+
+      // Special background pill for presentedTo
+      if (key === "presentedTo") {
+        const textWidth = ctx.measureText(text).width;
+        const paddingX = 24;
+        const paddingY = 12;
+        const height = el.fontSize + (paddingY * 2);
+        const width = textWidth + (paddingX * 2);
+        
+        let x = el.x;
+        if (el.align === "center") x = el.x - width / 2;
+        if (el.align === "right") x = el.x - width;
+        
+        const y = el.y - paddingY;
+
+        ctx.fillStyle = "#0f172a"; // slate-900
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, height / 2);
+        ctx.fill();
+        ctx.strokeStyle = "#164e63"; // cyan-900 border
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = el.color || "#ffffff";
+      }
+
+      // Special background box for issuedDateBox
+      if (key === "issuedDateBox") {
+        const textWidth = ctx.measureText(text).width;
+        const paddingX = 24;
+        const paddingY = 16;
+        const height = el.fontSize + (paddingY * 2);
+        const width = textWidth + (paddingX * 2);
+        
+        let x = el.x;
+        if (el.align === "center") x = el.x - width / 2;
+        if (el.align === "right") x = el.x - width;
+        
+        const y = el.y - paddingY;
+
+        ctx.fillStyle = "#0f172a";
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, 12);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = el.color || "#ffffff";
+      }
+
+      // Special glows/gradients
+      if (key === "certificateTitle") {
+        ctx.shadowColor = "#0891b2";
+        ctx.shadowBlur = 30;
+      }
+      
+      if (key === "courseTitle") {
+        ctx.shadowColor = "#0891b2";
+        ctx.shadowBlur = 25;
+      }
+
+      if (key === "studentName") {
+        // Gradient from cyan to pink
+        const gradient = ctx.createLinearGradient(el.x - 200, 0, el.x + 200, 0);
+        gradient.addColorStop(0, "#06b6d4"); // cyan
+        gradient.addColorStop(1, "#f472b6"); // pink
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "#f472b6";
+        ctx.shadowBlur = 20;
+      }
+
       ctx.fillText(text, el.x, el.y);
+      ctx.shadowBlur = 0; // reset shadow
     };
 
     drawTextConfig("universityTitle", "UNIVERSITAS NEGERI SURABAYA");
-    drawTextConfig("certificateTitle", "CERTIFICATE OF");
-    drawTextConfig("certificateSubtitle", "COMPLETION");
-    drawTextConfig("presentedTo", "Proudly Presented To");
+    drawTextConfig("certificateTitle", "CERTIFICATE OF COMPLETION");
+    drawTextConfig("presentedTo", "PROUDLY PRESENTED TO");
     drawTextConfig("studentName", data.name);
     drawTextConfig("majorProgram", `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`);
     drawTextConfig("studentId", `Student ID : ${data.studentId}`);
@@ -269,9 +339,10 @@ export const generateCertificateImage = async (
     drawTextConfig("courseTitle", data.courseName || "Blockchain Course");
     drawTextConfig("instructorName", finalInstructorName);
     drawTextConfig("instructorTitle", (finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase());
-    drawTextConfig("instructorNip", `NIP: ${finalInstructorNip}`);
-    drawTextConfig("certIdLabel", `Certificate ID: ${data.certId}`);
-    drawTextConfig("issuedDateLabel", `Issued: ${data.issuedAt}`);
+    drawTextConfig("instructorNip", `Instructor ID: ${finalInstructorNip}`);
+    drawTextConfig("issuedDateTitle", "DATE ISSUED");
+    drawTextConfig("issuedDateBox", data.issuedAt);
+    drawTextConfig("certIdLabel", `ID: ${data.certId}`);
     drawTextConfig("scanToVerifyLabel", "SCAN TO VERIFY");
 
     // Lines & Images
@@ -299,7 +370,17 @@ export const generateCertificateImage = async (
         color: { dark: "#ffffff", light: "#00000000" },
       });
       const qrImage = await loadImage(qrDataUrl);
-      ctx.drawImage(qrImage, qrEl.x - (qrEl.width || 150) / 2, qrEl.y - (qrEl.height || 150) / 2, qrEl.width || 150, qrEl.height || 150);
+      const qx = qrEl.x - (qrEl.width || 150) / 2;
+      const qy = qrEl.y - (qrEl.height || 150) / 2;
+      
+      // Neon glow behind QR code
+      ctx.shadowColor = "#c026d3"; // fuchsia-600
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = "#000000"; // dark background to make qr readable
+      ctx.fillRect(qx, qy, qrEl.width || 150, qrEl.height || 150);
+      ctx.shadowBlur = 0;
+
+      ctx.drawImage(qrImage, qx, qy, qrEl.width || 150, qrEl.height || 150);
     }
   } else {
     // --- 3B. DYNAMIC METADATA OVERLAYS (FALLBACK HARDCODED) ---
@@ -378,7 +459,7 @@ export const generateCertificateImage = async (
       ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
       ctx.fillStyle = "#38bdf8";
       ctx.font = "14px Courier New";
-      ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
+      ctx.fillText(`Instructor ID: ${finalInstructorNip}`, leftX, footerY + 15);
 
       // Footer - QR Code (Y=1450, Right)
       const rightX = width - 280;
@@ -475,7 +556,7 @@ export const generateCertificateImage = async (
       ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
       ctx.fillStyle = "#38bdf8";
       ctx.font = "14px Courier New";
-      ctx.fillText(`NIP: ${finalInstructorNip}`, leftX, footerY + 15);
+      ctx.fillText(`Instructor ID: ${finalInstructorNip}`, leftX, footerY + 15);
 
       // Middle Info (ID and Date)
       ctx.fillStyle = "#64748b";

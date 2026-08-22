@@ -430,7 +430,7 @@ export default function CertificateTemplatePage() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
-                    NIP / Instructor Registration ID
+                    Instructor ID / Registration ID
                   </label>
                   <input
                     type="text"
