@@ -262,8 +262,8 @@ export default function AdminCoursesPage() {
 
       {/* Edit Course Modal */}
       {selectedCourse && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 z-50 overflow-y-auto animate-in fade-in duration-300">
-          <div className="w-full max-w-3xl bg-slate-900 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative my-10 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-start justify-center pt-24 p-6 z-50 overflow-y-auto animate-in fade-in duration-300">
+          <div className="w-full max-w-3xl bg-slate-900 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative mb-10 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <button
               onClick={() => setSelectedCourse(null)}
               className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-full transition-colors"

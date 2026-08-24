@@ -9,7 +9,6 @@ import {
   UserCheck,
   Activity,
   ActivitySquare,
-  BarChart3,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
@@ -17,23 +16,14 @@ import {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [layout, setLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
-  const [paperSize, setPaperSize] = useState<"A4" | "F4">("A4");
-  const [updatingLayout, setUpdatingLayout] = useState(false);
+
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // 1. Fetch Stats & Settings
-    Promise.all([
-      api.get("/admin/stats"),
-      api.get("/admin/settings")
-    ])
-      .then(([statsRes, settingsRes]) => {
+    api.get("/admin/stats")
+      .then((statsRes) => {
         setStats(statsRes.data);
-        if (settingsRes.data.ok && settingsRes.data.settings) {
-          setLayout(settingsRes.data.settings.certificateLayout);
-          setPaperSize(settingsRes.data.settings.certificatePaperSize || "A4");
-        }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -43,19 +33,7 @@ export default function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleLayoutChange = async (newLayout: "HORIZONTAL" | "VERTICAL") => {
-    setUpdatingLayout(true);
-    try {
-      const res = await api.post("/admin/settings", { certificateLayout: newLayout });
-      if (res.data.ok) {
-        setLayout(newLayout);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUpdatingLayout(false);
-    }
-  };
+
 
   if (loading)
     return (
@@ -289,44 +267,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Certificate Orientation Switch */}
-          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-2xl">
-            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-              <FileText size={20} className="text-neon-pink" />
-              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Print Orientation
-              </h3>
-            </div>
-            <div className="space-y-4 mt-6">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Global Certificate Layout ({paperSize})
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  disabled={updatingLayout}
-                  onClick={() => handleLayoutChange("HORIZONTAL")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    layout === "HORIZONTAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  Horizontal
-                </button>
-                <button
-                  disabled={updatingLayout}
-                  onClick={() => handleLayoutChange("VERTICAL")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    layout === "VERTICAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  Vertical
-                </button>
-              </div>
-            </div>
-          </div>
+
 
         </div>
 

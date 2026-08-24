@@ -189,6 +189,26 @@ export default function AdminLayout({
           })}
         </nav>
 
+        {/* Collapse Toggle */}
+        <div className="border-t border-white/5 p-4 flex justify-center">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="group flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/5 hover:border-white/20 hover:bg-white/5 text-white/40 hover:text-white transition-all duration-300"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <ChevronLeft
+              size={18}
+              className={`transition-transform duration-300 ${
+                isCollapsed ? "rotate-180" : ""
+              }`}
+            />
+            {!isCollapsed && (
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                Collapse
+              </span>
+            )}
+          </button>
+        </div>
       </aside>
 
       {/* Main Content Area */}

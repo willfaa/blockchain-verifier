@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Plus, Edit2, Trash2, Layers, BookOpen, Briefcase, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Layers,
+  BookOpen,
+  Briefcase,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function ExpertiseFieldsPage() {
-  const [activeTab, setActiveTab] = useState<"bidang" | "program" | "konsentrasi">("bidang");
+  const [activeTab, setActiveTab] = useState<
+    "bidang" | "program" | "konsentrasi"
+  >("bidang");
   const [loading, setLoading] = useState(true);
 
   // Data lists
@@ -68,7 +78,12 @@ export default function ExpertiseFieldsPage() {
   };
 
   const handleDelete = async (id: string, tab: string) => {
-    if (!confirm("Are you sure you want to delete this item? This action might affect courses or users linked to it.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this item? This action might affect courses or users linked to it.",
+      )
+    )
+      return;
 
     try {
       const res = await api.delete(`/admin/departments/${tab}/${id}`);
@@ -93,26 +108,37 @@ export default function ExpertiseFieldsPage() {
       if (editingItem) {
         // Edit Mode
         const payload: any = { name: formData.name };
-        if (activeTab === "program") payload.bidangKeahlianId = formData.bidangKeahlianId;
-        if (activeTab === "konsentrasi") payload.programKeahlianId = formData.programKeahlianId;
+        if (activeTab === "program")
+          payload.bidangKeahlianId = formData.bidangKeahlianId;
+        if (activeTab === "konsentrasi")
+          payload.programKeahlianId = formData.programKeahlianId;
 
-        res = await api.put(`/admin/departments/${activeTab}/${editingItem.id}`, payload);
+        res = await api.put(
+          `/admin/departments/${activeTab}/${editingItem.id}`,
+          payload,
+        );
       } else {
         // Add Mode
         const payload: any = { name: formData.name };
-        if (activeTab === "program") payload.bidangKeahlianId = formData.bidangKeahlianId;
-        if (activeTab === "konsentrasi") payload.programKeahlianId = formData.programKeahlianId;
+        if (activeTab === "program")
+          payload.bidangKeahlianId = formData.bidangKeahlianId;
+        if (activeTab === "konsentrasi")
+          payload.programKeahlianId = formData.programKeahlianId;
 
         res = await api.post(`/admin/departments/${activeTab}`, payload);
       }
 
       if (res.data.ok) {
-        toast.success(editingItem ? "Updated successfully" : "Created successfully");
+        toast.success(
+          editingItem ? "Updated successfully" : "Created successfully",
+        );
         setShowAddModal(false);
         fetchData();
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to save expertise field");
+      toast.error(
+        err.response?.data?.error || "Failed to save expertise field",
+      );
     }
   };
 
@@ -125,7 +151,8 @@ export default function ExpertiseFieldsPage() {
             Expertise <span className="text-neon-purple">Fields</span>
           </h1>
           <p className="text-white/40 text-[11px] font-semibold uppercase tracking-widest mt-4">
-            Manage Bidang Keahlian, Program Keahlian, & Konsentrasi Keahlian (SMK)
+            Manage Bidang Keahlian, Program Keahlian, & Konsentrasi Keahlian
+            (SMK)
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -190,24 +217,41 @@ export default function ExpertiseFieldsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">No</th>
-                  <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">Name</th>
+                  <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">
+                    No
+                  </th>
+                  <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">
+                    Name
+                  </th>
                   {activeTab === "program" && (
-                    <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">Bidang Keahlian</th>
+                    <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">
+                      Bidang Keahlian
+                    </th>
                   )}
                   {activeTab === "konsentrasi" && (
-                    <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">Program Keahlian</th>
+                    <th className="pb-4 text-[10px] uppercase font-bold text-white/40 tracking-wider">
+                      Program Keahlian
+                    </th>
                   )}
-                  <th className="pb-4 text-right text-[10px] uppercase font-bold text-white/40 tracking-wider">Actions</th>
+                  <th className="pb-4 text-right text-[10px] uppercase font-bold text-white/40 tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {/* Bidang Keahlian List */}
                 {activeTab === "bidang" &&
                   bidangList.map((item, idx) => (
-                    <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                      <td className="py-5 text-sm font-semibold text-white/40">{idx + 1}</td>
-                      <td className="py-5 text-sm font-bold text-white">{item.name}</td>
+                    <tr
+                      key={item.id}
+                      className="border-b border-white/5 hover:bg-white/[0.01] transition-colors"
+                    >
+                      <td className="py-5 text-sm font-semibold text-white/40">
+                        {idx + 1}
+                      </td>
+                      <td className="py-5 text-sm font-bold text-white">
+                        {item.name}
+                      </td>
                       <td className="py-5 text-right">
                         <div className="flex justify-end gap-3">
                           <button
@@ -230,10 +274,19 @@ export default function ExpertiseFieldsPage() {
                 {/* Program Keahlian List */}
                 {activeTab === "program" &&
                   programList.map((item, idx) => (
-                    <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                      <td className="py-5 text-sm font-semibold text-white/40">{idx + 1}</td>
-                      <td className="py-5 text-sm font-bold text-white">{item.name}</td>
-                      <td className="py-5 text-sm text-neon-blue font-bold">{item.bidangKeahlian?.name || "-"}</td>
+                    <tr
+                      key={item.id}
+                      className="border-b border-white/5 hover:bg-white/[0.01] transition-colors"
+                    >
+                      <td className="py-5 text-sm font-semibold text-white/40">
+                        {idx + 1}
+                      </td>
+                      <td className="py-5 text-sm font-bold text-white">
+                        {item.name}
+                      </td>
+                      <td className="py-5 text-sm text-neon-blue font-bold">
+                        {item.bidangKeahlian?.name || "-"}
+                      </td>
                       <td className="py-5 text-right">
                         <div className="flex justify-end gap-3">
                           <button
@@ -256,10 +309,19 @@ export default function ExpertiseFieldsPage() {
                 {/* Konsentrasi Keahlian List */}
                 {activeTab === "konsentrasi" &&
                   konsentrasiList.map((item, idx) => (
-                    <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                      <td className="py-5 text-sm font-semibold text-white/40">{idx + 1}</td>
-                      <td className="py-5 text-sm font-bold text-white">{item.name}</td>
-                      <td className="py-5 text-sm text-neon-pink font-bold">{item.programKeahlian?.name || "-"}</td>
+                    <tr
+                      key={item.id}
+                      className="border-b border-white/5 hover:bg-white/[0.01] transition-colors"
+                    >
+                      <td className="py-5 text-sm font-semibold text-white/40">
+                        {idx + 1}
+                      </td>
+                      <td className="py-5 text-sm font-bold text-white">
+                        {item.name}
+                      </td>
+                      <td className="py-5 text-sm text-neon-pink font-bold">
+                        {item.programKeahlian?.name || "-"}
+                      </td>
                       <td className="py-5 text-right">
                         <div className="flex justify-end gap-3">
                           <button
@@ -301,7 +363,9 @@ export default function ExpertiseFieldsPage() {
                   required
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="e.g. Rekayasa Perangkat Lunak"
                   className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-white font-semibold focus:outline-none focus:border-neon-purple/50 focus:bg-white/[0.05] transition-all"
                 />
@@ -314,7 +378,12 @@ export default function ExpertiseFieldsPage() {
                   </label>
                   <select
                     value={formData.bidangKeahlianId}
-                    onChange={(e) => setFormData({ ...formData, bidangKeahlianId: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        bidangKeahlianId: e.target.value,
+                      })
+                    }
                     className="w-full bg-slate-950 border border-white/10 rounded-2xl p-5 text-white font-semibold focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer"
                   >
                     {bidangList.map((b) => (
@@ -333,7 +402,12 @@ export default function ExpertiseFieldsPage() {
                   </label>
                   <select
                     value={formData.programKeahlianId}
-                    onChange={(e) => setFormData({ ...formData, programKeahlianId: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        programKeahlianId: e.target.value,
+                      })
+                    }
                     className="w-full bg-slate-950 border border-white/10 rounded-2xl p-5 text-white font-semibold focus:outline-none focus:border-neon-pink/50 transition-all cursor-pointer"
                   >
                     {programList.map((p) => (

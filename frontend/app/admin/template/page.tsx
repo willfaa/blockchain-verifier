@@ -265,205 +265,202 @@ export default function CertificateTemplatePage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
-        
-        {/* Left Columns - Form Configurations */}
-        <div className="xl:col-span-1 space-y-8">
-          
-          {/* Paper Size Switch */}
-          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
-            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-              <Maximize2 size={20} className="text-neon-blue" />
-              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Paper Size
-              </h3>
-            </div>
-            <div className="space-y-4 mt-6">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Certificate Paper Size Format
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => handlePaperSizeChange("A4")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    paperSize === "A4"
-                      ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  A4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">210 × 297 mm</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePaperSizeChange("F4")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    paperSize === "F4"
-                      ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  F4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">215 × 330 mm</span>
-                </button>
-              </div>
-            </div>
+      {/* Settings Grid — 2×2 compact arrangement */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Paper Size */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
+          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+            <Maximize2 size={18} className="text-neon-blue" />
+            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+              Paper Size
+            </h3>
           </div>
-
-          {/* Orientation switch */}
-          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
-            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-              <FileText size={20} className="text-neon-pink" />
-              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Print Orientation
-              </h3>
-            </div>
-            <div className="space-y-4 mt-6">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Certificate Layout ({paperSize})
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => handleOrientationChange("HORIZONTAL")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    layout === "HORIZONTAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  Horizontal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOrientationChange("VERTICAL")}
-                  className={`py-3.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                    layout === "VERTICAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  Vertical
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Background template Upload */}
-          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
-            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-              <ImageIcon size={20} className="text-neon-blue" />
-              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Default Background Template
-              </h3>
-            </div>
-            <div className="mt-6 space-y-4">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Upload Default Certificate Background
-              </p>
-              
-              <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-white/20 transition-all">
-                {bgPath ? (
-                  <div className="text-center p-4">
-                    {/* Close/Cancel button - top right */}
-                    <button
-                      onClick={handleRemoveTemplate}
-                      disabled={removingTemplate}
-                      className="absolute top-3 right-3 z-20 p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-xl border border-red-400/30 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 group"
-                      title="Remove uploaded template and revert to mock data"
-                    >
-                      <X size={16} className="group-hover:rotate-90 transition-transform duration-200" />
-                    </button>
-                    <p className="text-xs text-white/60 font-semibold break-all mb-2">
-                      Template Loaded:
-                    </p>
-                    <p className="text-[10px] text-teal-400 font-mono select-all">
-                      {bgPath}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-white/20 flex flex-col items-center">
-                    <ImageIcon size={48} className="mb-4" />
-                    <span className="text-[10px] uppercase font-bold tracking-widest">
-                      Using Procedural Theme
-                    </span>
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 bg-slate-950/90 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <label className="cursor-pointer px-6 py-3.5 bg-white text-black hover:bg-neon-blue hover:text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">
-                    {uploading ? "Uploading..." : "Upload New File"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      disabled={uploading}
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Instructor Signatures */}
-          <div className="glass-panel p-8 rounded-3xl border-transparent shadow-xl">
-            <form onSubmit={handleSaveDetails} className="space-y-6">
-              <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                <Save size={20} className="text-neon-purple" />
-                <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                  Instructor Details (Global)
-                </h3>
-              </div>
-              
-              <div className="space-y-4 mt-6">
-                <div>
-                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
-                    Head Instructor / Principal Name
-                  </label>
-                  <input
-                    type="text"
-                    value={instructorName}
-                    onChange={(e) => setInstructorName(e.target.value)}
-                    placeholder="e.g. Budi Headmaster, M.T."
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
-                    Instructor ID / Registration ID
-                  </label>
-                  <input
-                    type="text"
-                    value={instructorNip}
-                    onChange={(e) => setInstructorNip(e.target.value)}
-                    placeholder="e.g. 198706152010121002"
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                  />
-                </div>
-              </div>
-
+          <div className="space-y-3 mt-4">
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              Certificate Paper Size Format
+            </p>
+            <div className="grid grid-cols-2 gap-3">
               <button
-                type="submit"
-                disabled={saving}
-                className="w-full py-4 bg-neon-purple hover:shadow-[0_0_20px_rgba(176,38,255,0.4)] text-white text-xs font-bold uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95"
+                type="button"
+                onClick={() => handlePaperSizeChange("A4")}
+                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                  paperSize === "A4"
+                    ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
+                    : "border-white/10 text-white/60 hover:border-white/30"
+                }`}
               >
-                {saving ? "Saving Details..." : "Save Instructor Details"}
+                A4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">210 × 297 mm</span>
               </button>
-            </form>
+              <button
+                type="button"
+                onClick={() => handlePaperSizeChange("F4")}
+                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                  paperSize === "F4"
+                    ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
+                    : "border-white/10 text-white/60 hover:border-white/30"
+                }`}
+              >
+                F4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">215 × 330 mm</span>
+              </button>
+            </div>
           </div>
-
         </div>
+
+        {/* Print Orientation */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
+          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+            <FileText size={18} className="text-neon-pink" />
+            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+              Print Orientation
+            </h3>
+          </div>
+          <div className="space-y-3 mt-4">
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              Certificate Layout ({paperSize})
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleOrientationChange("HORIZONTAL")}
+                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                  layout === "HORIZONTAL"
+                    ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                    : "border-white/10 text-white/60 hover:border-white/30"
+                }`}
+              >
+                Horizontal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOrientationChange("VERTICAL")}
+                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                  layout === "VERTICAL"
+                    ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                    : "border-white/10 text-white/60 hover:border-white/30"
+                }`}
+              >
+                Vertical
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Default Background Template */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
+          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+            <ImageIcon size={18} className="text-neon-blue" />
+            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+              Default Background Template
+            </h3>
+          </div>
+          <div className="mt-4 space-y-3">
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              Upload Default Certificate Background
+            </p>
+
+            <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-white/20 transition-all">
+              {bgPath ? (
+                <div className="text-center p-4">
+                  {/* Close/Cancel button - top right */}
+                  <button
+                    onClick={handleRemoveTemplate}
+                    disabled={removingTemplate}
+                    className="absolute top-3 right-3 z-20 p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-xl border border-red-400/30 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 group"
+                    title="Remove uploaded template and revert to mock data"
+                  >
+                    <X size={16} className="group-hover:rotate-90 transition-transform duration-200" />
+                  </button>
+                  <p className="text-xs text-white/60 font-semibold break-all mb-2">
+                    Template Loaded:
+                  </p>
+                  <p className="text-[10px] text-teal-400 font-mono select-all">
+                    {bgPath}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-white/20 flex flex-col items-center">
+                  <ImageIcon size={40} className="mb-3" />
+                  <span className="text-[10px] uppercase font-bold tracking-widest">
+                    Using Procedural Theme
+                  </span>
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-slate-950/90 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                <label className="cursor-pointer px-6 py-3.5 bg-white text-black hover:bg-neon-blue hover:text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">
+                  {uploading ? "Uploading..." : "Upload New File"}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Instructor Details */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
+          <form onSubmit={handleSaveDetails} className="space-y-4 h-full flex flex-col">
+            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+              <Save size={18} className="text-neon-purple" />
+              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                Instructor Details (Global)
+              </h3>
+            </div>
+
+            <div className="space-y-3 flex-1 mt-2">
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                  Head Instructor / Principal Name
+                </label>
+                <input
+                  type="text"
+                  value={instructorName}
+                  onChange={(e) => setInstructorName(e.target.value)}
+                  placeholder="e.g. Budi Headmaster, M.T."
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                  Instructor ID / Registration ID
+                </label>
+                <input
+                  type="text"
+                  value={instructorNip}
+                  onChange={(e) => setInstructorNip(e.target.value)}
+                  placeholder="e.g. 198706152010121002"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-3 bg-neon-purple hover:shadow-[0_0_20px_rgba(176,38,255,0.4)] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
+            >
+              {saving ? "Saving Details..." : "Save Instructor Details"}
+            </button>
+          </form>
+        </div>
+
       </div>
-      
+
       {/* Visual Editor Section */}
       <div className="mt-12 space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Interactive Layout Editor</h2>
           <p className="text-white/40 text-xs mt-2">Drag and drop elements, resize boxes, and customize typography.</p>
         </div>
-        
+
         <div className="w-full">
-          <CertificateEditor 
+          <CertificateEditor
             initialConfig={layoutConfig}
             paperSize={paperSize}
             layout={layout}
@@ -474,14 +471,24 @@ export default function CertificateTemplatePage() {
           />
         </div>
       </div>
-      
+
       {/* Final Preview Section */}
       <div className="mt-12 space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Final Output Preview</h2>
-          <p className="text-white/40 text-xs mt-2">This is the exact image that will be rendered by the server.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Final Output Preview</h2>
+            <p className="text-white/40 text-xs mt-2">This is the exact image that will be rendered by the server.</p>
+          </div>
+          <button
+            onClick={() => setPreviewKey(Date.now())}
+            className="flex items-center gap-2 px-5 py-3 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 text-white rounded-2xl transition-all group"
+            title="Refresh Preview"
+          >
+            <RefreshCw size={16} className="group-hover:animate-spin" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Refresh</span>
+          </button>
         </div>
-        
+
         <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
           <div className="flex items-center justify-between w-full mb-6">
             <h3 className="font-bold text-white/60 text-xs uppercase tracking-widest">
@@ -491,7 +498,7 @@ export default function CertificateTemplatePage() {
               {paperSize} · {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
             </span>
           </div>
-          
+
           <div className={`group relative w-full ${getPreviewAspect()} border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl transition-all duration-500`}>
             {previewBlobUrl ? (
               <img

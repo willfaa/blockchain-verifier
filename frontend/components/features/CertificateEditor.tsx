@@ -258,11 +258,12 @@ export default function CertificateEditor({ initialConfig, paperSize, layout, bg
         {/* Editor Main Canvas Area */}
         <div 
           ref={containerRef}
-          className="flex-1 relative overflow-auto bg-slate-900/50 flex items-center justify-center p-8 custom-scrollbar"
+          className="flex-1 relative overflow-auto bg-slate-900/50 p-8 custom-scrollbar"
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedId(null);
           }}
         >
+
           <div 
             className="relative bg-slate-950 shadow-[0_0_50px_rgba(0,0,0,0.8)] origin-top-left"
             style={{ 
@@ -318,9 +319,9 @@ export default function CertificateEditor({ initialConfig, paperSize, layout, bg
                   }}
                   dragGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
                   bounds="parent"
-                  className={`group ${isSelected ? 'z-50' : 'z-10 hover:z-40'}`}
+                  className={`group ${isSelected ? 'z-50' : selectedId ? 'z-10 pointer-events-none' : 'z-10 hover:z-40'}`}
                   enableResizing={el.type === "image" || el.type === "line" ? undefined : false}
-                  disableDragging={!isSelected && selectedId !== null} // optimize performance
+                  disableDragging={!isSelected && selectedId !== null}
                 >
                   <div 
                     className={`relative w-full h-full flex transition-colors ${isSelected ? 'ring-4 ring-cyan-500 bg-cyan-500/10' : 'hover:ring-4 hover:ring-white/20'}`}
@@ -328,7 +329,10 @@ export default function CertificateEditor({ initialConfig, paperSize, layout, bg
                   >
                     
                     {isSelected && (
-                      <div className="absolute -top-12 left-0 bg-slate-900 text-white text-base font-mono px-3 py-1 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                      <div 
+                        className="absolute -top-8 left-0 bg-slate-900 text-white text-[11px] font-mono px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-white/10"
+                        style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom left' }}
+                      >
                         X: {Math.round(el.x)} Y: {Math.round(el.y)}
                       </div>
                     )}
