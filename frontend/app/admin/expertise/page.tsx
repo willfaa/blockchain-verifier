@@ -173,36 +173,36 @@ export default function ExpertiseFieldsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/5 p-1 bg-white/[0.02] rounded-2xl max-w-lg border border-white/10">
+      <div className="flex border-b border-white/5 p-1 bg-white/[0.02] rounded-2xl max-w-2xl border border-white/10">
         <button
           onClick={() => setActiveTab("bidang")}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3 ${
+          className={`flex-1 py-3 px-1 text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2.5 whitespace-nowrap ${
             activeTab === "bidang"
               ? "bg-neon-purple text-white shadow-lg"
               : "text-white/40 hover:text-white"
           }`}
         >
-          <Briefcase size={14} /> Bidang Keahlian
+          <Briefcase size={14} className="shrink-0" /> Bidang Keahlian
         </button>
         <button
           onClick={() => setActiveTab("program")}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3 ${
+          className={`flex-1 py-3 px-1 text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2.5 whitespace-nowrap ${
             activeTab === "program"
               ? "bg-neon-blue text-white shadow-lg"
               : "text-white/40 hover:text-white"
           }`}
         >
-          <Layers size={14} /> Program Keahlian
+          <Layers size={14} className="shrink-0" /> Program Keahlian
         </button>
         <button
           onClick={() => setActiveTab("konsentrasi")}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3 ${
+          className={`flex-1 py-3 px-1 text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2.5 whitespace-nowrap ${
             activeTab === "konsentrasi"
               ? "bg-neon-pink text-white shadow-lg"
               : "text-white/40 hover:text-white"
           }`}
         >
-          <BookOpen size={14} /> Konsentrasi
+          <BookOpen size={14} className="shrink-0" /> Konsentrasi
         </button>
       </div>
 

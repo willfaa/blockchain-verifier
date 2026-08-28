@@ -1,19 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { Save, Upload, ImageIcon, RefreshCw, FileText, X, Maximize2 } from "lucide-react";
+import { getApiBase } from "@/lib/utils";
+import {
+  Save,
+  Upload,
+  ImageIcon,
+  RefreshCw,
+  FileText,
+  X,
+  Maximize2,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
-import CertificateEditor, { LayoutElement } from "@/components/features/CertificateEditor";
+import CertificateEditor, {
+  LayoutElement,
+  CertificateLayoutConfig,
+} from "@/components/features/CertificateEditor";
+
+const PAPER_PRESETS: Record<
+  string,
+  { label: string; width: number; height: number; desc: string }
+> = {
+  A4: { label: "A4", width: 29.7, height: 21.0, desc: "21.0 × 29.7 cm" },
+  F4: {
+    label: "F4 / Folio",
+    width: 33.0,
+    height: 21.5,
+    desc: "21.5 × 33.0 cm",
+  },
+  LETTER: {
+    label: "US Letter",
+    width: 27.94,
+    height: 21.59,
+    desc: "21.59 × 27.94 cm",
+  },
+};
+
+// Helper URL yang akurat untuk file uploads
+export const resolveUploadUrl = (
+  path: string | null | undefined,
+): string | null => {
+  if (!path) return null;
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+  const apiBase = getApiBase();
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${apiBase}${cleanPath}`;
+};
 
 export default function CertificateTemplatePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [removingTemplate, setRemovingTemplate] = useState(false);
-  
+
   const [layout, setLayout] = useState<"HORIZONTAL" | "VERTICAL">("HORIZONTAL");
-  const [paperSize, setPaperSize] = useState<"A4" | "F4">("A4");
+  const [paperSize, setPaperSize] = useState<string>("A4");
+  const [paperWidthCm, setPaperWidthCm] = useState<number>(29.7);
+  const [paperHeightCm, setPaperHeightCm] = useState<number>(21.0);
   const [instructorName, setInstructorName] = useState("");
   const [instructorNip, setInstructorNip] = useState("");
   const [bgPath, setBgPath] = useState<string | null>(null);
@@ -21,7 +75,9 @@ export default function CertificateTemplatePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
-  const [layoutConfig, setLayoutConfig] = useState<Record<string, LayoutElement> | null>(null);
+  const [layoutConfig, setLayoutConfig] = useState<
+    CertificateLayoutConfig | Record<string, LayoutElement> | null
+  >(null);
   const [savingConfig, setSavingConfig] = useState(false);
 
   const loadPreview = async () => {
@@ -36,9 +92,9 @@ export default function CertificateTemplatePage() {
         return url;
       });
     } catch (err) {
-      console.error("Failed to load certificate template preview:", err);
+      console.error("Gagal memuat pratinjau sertifikat:", err);
       setPreviewError(true);
-      toast.error("Failed to load certificate preview image from API");
+      toast.error("Gagal memuat gambar pratinjau sertifikat dari server");
     }
   };
 
@@ -67,12 +123,22 @@ export default function CertificateTemplatePage() {
       const [settingsRes, detailsRes, configRes] = await Promise.all([
         api.get("/admin/settings"),
         api.get("/admin/settings/details"),
-        api.get("/admin/settings/layout-config")
+        api.get("/admin/settings/layout-config"),
       ]);
 
       if (settingsRes.data.ok && settingsRes.data.settings) {
-        setLayout(settingsRes.data.settings.certificateLayout);
-        setPaperSize(settingsRes.data.settings.certificatePaperSize || "A4");
+        setLayout(settingsRes.data.settings.certificateLayout || "HORIZONTAL");
+        const currentSize =
+          settingsRes.data.settings.certificatePaperSize || "A4";
+        setPaperSize(currentSize);
+        setPaperWidthCm(
+          settingsRes.data.settings.paperWidthCm ||
+            (PAPER_PRESETS[currentSize]?.width ?? 29.7),
+        );
+        setPaperHeightCm(
+          settingsRes.data.settings.paperHeightCm ||
+            (PAPER_PRESETS[currentSize]?.height ?? 21.0),
+        );
       }
 
       if (detailsRes.data.ok && detailsRes.data.data) {
@@ -86,7 +152,7 @@ export default function CertificateTemplatePage() {
       await loadPreview();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load certificate template configurations");
+      toast.error("Gagal memuat konfigurasi template sertifikat");
     } finally {
       setLoading(false);
     }
@@ -101,42 +167,79 @@ export default function CertificateTemplatePage() {
         instructorNip,
       });
       if (res.data.ok) {
-        toast.success("Instructor details updated successfully");
+        toast.success("Detail instruktur berhasil diperbarui");
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save instructor details");
+      toast.error("Gagal menyimpan detail instruktur");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleOrientationChange = async (newLayout: "HORIZONTAL" | "VERTICAL") => {
+  const handleOrientationChange = async (
+    newLayout: "HORIZONTAL" | "VERTICAL",
+  ) => {
     try {
-      const res = await api.post("/admin/settings", { certificateLayout: newLayout });
+      const res = await api.post("/admin/settings", {
+        certificateLayout: newLayout,
+      });
       if (res.data.ok) {
         setLayout(newLayout);
-        toast.success(`Orientation updated to ${newLayout.toLowerCase()}`);
+        toast.success(
+          `Orientasi diubah ke ${newLayout === "HORIZONTAL" ? "Landscape (Horizontal)" : "Portrait (Vertikal)"}`,
+        );
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update layout orientation");
+      toast.error("Gagal mengubah orientasi layout");
     }
   };
 
-  const handlePaperSizeChange = async (newSize: "A4" | "F4") => {
+  const handlePresetSelect = async (presetKey: string) => {
+    const preset = PAPER_PRESETS[presetKey];
+    if (!preset) return;
+
     try {
-      const res = await api.post("/admin/settings", { certificatePaperSize: newSize });
+      const res = await api.post("/admin/settings", {
+        certificatePaperSize: presetKey,
+        paperWidthCm: preset.width,
+        paperHeightCm: preset.height,
+      });
       if (res.data.ok) {
-        setPaperSize(newSize);
-        toast.success(`Paper size updated to ${newSize}`);
+        setPaperSize(presetKey);
+        setPaperWidthCm(preset.width);
+        setPaperHeightCm(preset.height);
+        toast.success(
+          `Ukuran kertas diatur ke ${preset.label} (${preset.width} × ${preset.height} cm)`,
+        );
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update paper size");
+      toast.error("Gagal memperbarui ukuran kertas");
+    }
+  };
+
+  const handleCustomDimensionsApply = async () => {
+    try {
+      const res = await api.post("/admin/settings", {
+        certificatePaperSize: "CUSTOM",
+        paperWidthCm: Number(paperWidthCm),
+        paperHeightCm: Number(paperHeightCm),
+      });
+      if (res.data.ok) {
+        setPaperSize("CUSTOM");
+        toast.success(
+          `Dimensi kustom disimpan: ${paperWidthCm} × ${paperHeightCm} cm`,
+        );
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal memperbarui dimensi kustom");
     }
   };
 
@@ -145,7 +248,7 @@ export default function CertificateTemplatePage() {
       const file = e.target.files[0];
       setSelectedFile(file);
 
-      // Perform upload immediately
+      // Unggah gambar background langsung
       setUploading(true);
       const formData = new FormData();
       formData.append("certificateTemplate", file);
@@ -156,14 +259,13 @@ export default function CertificateTemplatePage() {
         });
 
         if (res.data.ok) {
-          toast.success("Template background updated");
+          toast.success("Background template berhasil diunggah");
           setBgPath(res.data.path);
-          // Synchronize real-time layout preview after upload
           setPreviewKey(Date.now());
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to upload template background image");
+        toast.error("Gagal mengunggah gambar background");
       } finally {
         setUploading(false);
       }
@@ -175,296 +277,335 @@ export default function CertificateTemplatePage() {
     try {
       const res = await api.delete("/admin/settings/template");
       if (res.data.ok) {
-        toast.success("Template removed. Reverted to procedural theme.");
+        toast.success("Background template dihapus. Kembali ke tema dasar.");
         setBgPath(null);
         setSelectedFile(null);
-        // Synchronize real-time layout preview after removal
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to remove template background");
+      toast.error("Gagal menghapus background template");
     } finally {
       setRemovingTemplate(false);
     }
   };
 
-  const handleSaveConfig = async (config: Record<string, LayoutElement>) => {
+  const handleSaveConfig = async (config: CertificateLayoutConfig) => {
     setSavingConfig(true);
     try {
       const res = await api.post("/admin/settings/layout-config", { config });
       if (res.data.ok) {
-        toast.success("Layout configuration saved");
+        toast.success("Konfigurasi tata letak berhasil disimpan");
         setLayoutConfig(config);
-        setPreviewKey(Date.now()); // Update actual preview image
+        setPreviewKey(Date.now());
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to save layout configuration");
+      if (err.response?.status === 413) {
+        toast.error("Ukuran data gambar terlalu besar. Silakan gunakan gambar dengan resolusi yang lebih efisien.");
+      } else {
+        toast.error(err.response?.data?.error || "Gagal menyimpan konfigurasi tata letak");
+      }
     } finally {
       setSavingConfig(false);
     }
   };
 
   const handleResetConfig = async () => {
-    if (!window.confirm("Are you sure you want to reset the layout to defaults? All custom positions will be lost.")) return;
+    if (
+      !window.confirm(
+        "Apakah Anda yakin ingin mereset layout ke pengaturan default? Semua posisi kustom dan layer tambahan akan dikembalikan.",
+      )
+    )
+      return;
     setSavingConfig(true);
     try {
       const res = await api.delete("/admin/settings/layout-config");
       if (res.data.ok) {
-        toast.success("Layout reset to defaults");
+        toast.success("Tata letak berhasil direset ke default");
         setLayoutConfig(null);
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to reset layout configuration");
+      toast.error("Gagal mereset konfigurasi tata letak");
     } finally {
       setSavingConfig(false);
     }
   };
 
-  // Compute the preview container aspect ratio based on paper size and orientation
-  const getPreviewAspect = () => {
-    if (paperSize === "F4") {
-      return layout === "HORIZONTAL" ? "aspect-[1953/1272]" : "aspect-[1272/1953]";
+  // Unduh Gambar Sertifikat Resolusi Penuh
+  const handleDownloadCertificate = () => {
+    if (!previewBlobUrl) {
+      toast.error("Pratinjau sertifikat belum siap");
+      return;
     }
-    // A4
-    return layout === "HORIZONTAL" ? "aspect-[1754/1240]" : "aspect-[1240/1754]";
+    const a = document.createElement("a");
+    a.href = previewBlobUrl;
+    a.download = `Sertifikat-${paperSize}-${layout}-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success("Gambar sertifikat berhasil diunduh");
   };
+
+  // Perhitungan aspect ratio container pratinjau
+  const previewRatioW =
+    layout === "VERTICAL"
+      ? Math.min(paperWidthCm, paperHeightCm)
+      : Math.max(paperWidthCm, paperHeightCm);
+  const previewRatioH =
+    layout === "VERTICAL"
+      ? Math.max(paperWidthCm, paperHeightCm)
+      : Math.min(paperWidthCm, paperHeightCm);
+
+  const fullBgUrl = resolveUploadUrl(bgPath);
 
   if (loading) {
     return (
       <div className="text-teal-500 animate-pulse font-mono flex items-center gap-2">
-        <span>&gt;</span> MONITORING_TEMPLATE_COMPONENTS...
+        <span>&gt;</span> MEMUAT_KOMPONEN_TEMPLATE...
       </div>
     );
   }
 
-
-
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-sans">
-      
-      {/* Top Header */}
+      {/* Header Utama */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-white/5 pb-8">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
-            Certificate <span className="text-neon-purple">Template Settings</span>
+            Pengaturan{" "}
+            <span className="text-neon-purple">Template Sertifikat</span>
           </h1>
           <p className="text-white/40 text-[11px] font-semibold uppercase tracking-widest mt-4">
-            Configure default certificate layouts, metadata overlays, and head instructor signatures
+            Konfigurasi dimensi kertas (cm), orientasi, template background,
+            layer variabel, dan tanda tangan instruktur
           </p>
         </div>
         <button
-          onClick={() => setPreviewKey(Date.now())}
-          className="p-4 bg-white/5 border border-white/10 hover:border-white/20 text-white rounded-2xl transition-all"
-          title="Refresh Template Preview"
+          onClick={() => router.push("/admin/certificates")}
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 text-white/80 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
         >
-          <RefreshCw size={18} />
+          Lihat Log Sertifikat
         </button>
       </div>
 
-      {/* Settings Grid — 2×2 compact arrangement */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Paper Size */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
-          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-            <Maximize2 size={18} className="text-neon-blue" />
-            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-              Paper Size
-            </h3>
-          </div>
-          <div className="space-y-3 mt-4">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-              Certificate Paper Size Format
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handlePaperSizeChange("A4")}
-                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  paperSize === "A4"
-                    ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
-                    : "border-white/10 text-white/60 hover:border-white/30"
-                }`}
-              >
-                A4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">210 × 297 mm</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePaperSizeChange("F4")}
-                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  paperSize === "F4"
-                    ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
-                    : "border-white/10 text-white/60 hover:border-white/30"
-                }`}
-              >
-                F4 <span className="block text-[9px] mt-0.5 font-normal opacity-70">215 × 330 mm</span>
-              </button>
+      {/* Grid Pengaturan — 3 Kolom Responsif */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Dimensi Kertas (Float CM) */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <div className="flex items-center gap-3">
+                <Maximize2 size={18} className="text-neon-blue" />
+                <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                  Dimensi Kertas (CM)
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-neon-blue bg-neon-blue/10 px-2.5 py-0.5 rounded-lg border border-neon-blue/20">
+                {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm
+              </span>
             </div>
-          </div>
-        </div>
 
-        {/* Print Orientation */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
-          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-            <FileText size={18} className="text-neon-pink" />
-            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-              Print Orientation
-            </h3>
-          </div>
-          <div className="space-y-3 mt-4">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-              Certificate Layout ({paperSize})
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleOrientationChange("HORIZONTAL")}
-                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  layout === "HORIZONTAL"
-                    ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                    : "border-white/10 text-white/60 hover:border-white/30"
-                }`}
-              >
-                Horizontal
-              </button>
-              <button
-                type="button"
-                onClick={() => handleOrientationChange("VERTICAL")}
-                className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  layout === "VERTICAL"
-                    ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                    : "border-white/10 text-white/60 hover:border-white/30"
-                }`}
-              >
-                Vertical
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Default Background Template */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
-          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-            <ImageIcon size={18} className="text-neon-blue" />
-            <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-              Default Background Template
-            </h3>
-          </div>
-          <div className="mt-4 space-y-3">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-              Upload Default Certificate Background
-            </p>
-
-            <div className="relative w-full aspect-[16/10] bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-white/20 transition-all">
-              {bgPath ? (
-                <div className="text-center p-4">
-                  {/* Close/Cancel button - top right */}
+            {/* Pilihan Standar Presets */}
+            <div className="space-y-3 mt-4">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Format Standar
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(PAPER_PRESETS).map(([key, preset]) => (
                   <button
-                    onClick={handleRemoveTemplate}
-                    disabled={removingTemplate}
-                    className="absolute top-3 right-3 z-20 p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-xl border border-red-400/30 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 group"
-                    title="Remove uploaded template and revert to mock data"
+                    key={key}
+                    type="button"
+                    onClick={() => handlePresetSelect(key)}
+                    className={`py-2 px-1 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                      paperSize === key
+                        ? "bg-neon-blue text-white border-neon-blue shadow-[0_0_15px_#00e5ff]"
+                        : "border-white/10 text-white/60 hover:border-white/30 bg-white/[0.02]"
+                    }`}
                   >
-                    <X size={16} className="group-hover:rotate-90 transition-transform duration-200" />
+                    {preset.label}
+                    <span className="block text-[8px] mt-0.5 font-normal opacity-70">
+                      {preset.desc}
+                    </span>
                   </button>
-                  <p className="text-xs text-white/60 font-semibold break-all mb-2">
-                    Template Loaded:
-                  </p>
-                  <p className="text-[10px] text-teal-400 font-mono select-all">
-                    {bgPath}
-                  </p>
-                </div>
-              ) : (
-                <div className="text-white/20 flex flex-col items-center">
-                  <ImageIcon size={40} className="mb-3" />
-                  <span className="text-[10px] uppercase font-bold tracking-widest">
-                    Using Procedural Theme
-                  </span>
-                </div>
-              )}
+                ))}
+              </div>
+            </div>
 
-              <div className="absolute inset-0 bg-slate-950/90 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                <label className="cursor-pointer px-6 py-3.5 bg-white text-black hover:bg-neon-blue hover:text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">
-                  {uploading ? "Uploading..." : "Upload New File"}
+            {/* Input Manual Float CM */}
+            <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Pengaturan Ukuran Manual (Float CM)
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] text-white/40 uppercase font-bold block mb-1">
+                    Lebar (cm)
+                  </label>
                   <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={uploading}
+                    type="number"
+                    step="0.1"
+                    min="10"
+                    max="100"
+                    value={paperWidthCm}
+                    onChange={(e) => {
+                      setPaperWidthCm(parseFloat(e.target.value) || 0);
+                      setPaperSize("CUSTOM");
+                    }}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono font-bold text-xs focus:outline-none focus:border-neon-blue"
                   />
-                </label>
+                </div>
+                <div>
+                  <label className="text-[9px] text-white/40 uppercase font-bold block mb-1">
+                    Tinggi (cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="10"
+                    max="100"
+                    value={paperHeightCm}
+                    onChange={(e) => {
+                      setPaperHeightCm(parseFloat(e.target.value) || 0);
+                      setPaperSize("CUSTOM");
+                    }}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono font-bold text-xs focus:outline-none focus:border-neon-blue"
+                  />
+                </div>
               </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleCustomDimensionsApply}
+            className="mt-4 w-full py-2.5 bg-neon-blue/15 hover:bg-neon-blue text-neon-blue hover:text-slate-950 border border-neon-blue/30 text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+          >
+            Terapkan Dimensi
+          </button>
         </div>
 
-        {/* Instructor Details */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
-          <form onSubmit={handleSaveDetails} className="space-y-4 h-full flex flex-col">
+        {/* Orientasi Cetak */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between">
+          <div>
             <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-              <Save size={18} className="text-neon-purple" />
+              <FileText size={18} className="text-neon-pink" />
               <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Instructor Details (Global)
+                Orientasi Cetak
               </h3>
             </div>
-
-            <div className="space-y-3 flex-1 mt-2">
-              <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                  Head Instructor / Principal Name
-                </label>
-                <input
-                  type="text"
-                  value={instructorName}
-                  onChange={(e) => setInstructorName(e.target.value)}
-                  placeholder="e.g. Budi Headmaster, M.T."
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                />
+            <div className="space-y-3 mt-4">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Orientasi Layout ({paperSize})
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleOrientationChange("HORIZONTAL")}
+                  className={`py-3 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 text-left flex items-center justify-between ${
+                    layout === "HORIZONTAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  <span>Horizontal (Landscape)</span>
+                  <span className="text-[10px] opacity-70">29.7 × 21.0</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOrientationChange("VERTICAL")}
+                  className={`py-3 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 text-left flex items-center justify-between ${
+                    layout === "VERTICAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  <span>Vertikal (Portrait)</span>
+                  <span className="text-[10px] opacity-70">21.0 × 29.7</span>
+                </button>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                  Instructor ID / Registration ID
-                </label>
-                <input
-                  type="text"
-                  value={instructorNip}
-                  onChange={(e) => setInstructorNip(e.target.value)}
-                  placeholder="e.g. 198706152010121002"
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                />
+            </div>
+          </div>
+          <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[11px] text-white/50 mt-4">
+            💡 Tambahkan gambar background, ornamen, atau tanda tangan langsung di <b>Editor Tata Letak</b> di bawah.
+          </div>
+        </div>
+
+        {/* Detail Instruktur Global */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
+          <form
+            onSubmit={handleSaveDetails}
+            className="space-y-4 h-full flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                <Save size={18} className="text-neon-purple" />
+                <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                  Detail Instruktur (Global)
+                </h3>
+              </div>
+
+              <div className="space-y-3 mt-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                    Nama Kepala Instruktur / Dekan
+                  </label>
+                  <input
+                    type="text"
+                    value={instructorName}
+                    onChange={(e) => setInstructorName(e.target.value)}
+                    placeholder="contoh: Dr. Budi Santoso, M.T."
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                    NIP / ID Registrasi Instruktur
+                  </label>
+                  <input
+                    type="text"
+                    value={instructorNip}
+                    onChange={(e) => setInstructorNip(e.target.value)}
+                    placeholder="contoh: 198706152010121002"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
+                  />
+                </div>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3 bg-neon-purple hover:shadow-[0_0_20px_rgba(176,38,255,0.4)] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
+              className="w-full py-3 bg-neon-purple hover:shadow-[0_0_20px_rgba(176,38,255,0.4)] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 mt-4"
             >
-              {saving ? "Saving Details..." : "Save Instructor Details"}
+              {saving ? "Menyimpan Detail..." : "Simpan Detail Instruktur"}
             </button>
           </form>
         </div>
-
       </div>
 
-      {/* Visual Editor Section */}
+      {/* Editor Tata Letak Visual */}
       <div className="mt-12 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Interactive Layout Editor</h2>
-          <p className="text-white/40 text-xs mt-2">Drag and drop elements, resize boxes, and customize typography.</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">
+            Editor Tata Letak Interaktif
+          </h2>
+          <p className="text-white/40 text-xs mt-2">
+            Klik tunggal untuk memilih, geser untuk memindahkan, tombol panah
+            untuk pergeseran presisi, dan sesuaikan warna dasar canvas kanvas.
+          </p>
         </div>
 
         <div className="w-full">
           <CertificateEditor
             initialConfig={layoutConfig}
             paperSize={paperSize}
+            paperWidthCm={paperWidthCm}
+            paperHeightCm={paperHeightCm}
             layout={layout}
-            bgPath={bgPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads/${bgPath.split('/').pop()}` : null}
+            bgPath={fullBgUrl}
             onSave={handleSaveConfig}
             onReset={handleResetConfig}
             isSaving={savingConfig}
@@ -472,53 +613,77 @@ export default function CertificateTemplatePage() {
         </div>
       </div>
 
-      {/* Final Preview Section */}
+      {/* Pratinjau Output Akhir & Fitur Unduh PNG */}
       <div className="mt-12 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Final Output Preview</h2>
-            <p className="text-white/40 text-xs mt-2">This is the exact image that will be rendered by the server.</p>
+            <h2 className="text-2xl font-bold text-white tracking-tight">
+              Pratinjau Output Akhir (Server Render)
+            </h2>
+            <p className="text-white/40 text-xs mt-2">
+              Gambar hasil render resmi dari server yang dibatasi tepat sesuai
+              kanvas sertifikat.
+            </p>
           </div>
-          <button
-            onClick={() => setPreviewKey(Date.now())}
-            className="flex items-center gap-2 px-5 py-3 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 text-white rounded-2xl transition-all group"
-            title="Refresh Preview"
-          >
-            <RefreshCw size={16} className="group-hover:animate-spin" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Refresh</span>
-          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadCertificate}
+              disabled={!previewBlobUrl}
+              className="flex items-center gap-2 px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-2xl transition-all shadow-lg shadow-cyan-500/20 font-bold text-xs uppercase tracking-wider disabled:opacity-40"
+              title="Unduh File Gambar PNG Resmi (150 DPI)"
+            >
+              <Download size={16} />
+              <span>Unduh PNG</span>
+            </button>
+
+            <button
+              onClick={() => setPreviewKey(Date.now())}
+              className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 text-white rounded-2xl transition-all group"
+              title="Segarkan Pratinjau"
+            >
+              <RefreshCw size={16} className="group-hover:animate-spin" />
+              <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">
+                Segarkan
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
           <div className="flex items-center justify-between w-full mb-6">
             <h3 className="font-bold text-white/60 text-xs uppercase tracking-widest">
-              Server Rendered Image
+              Hasil Render Sertifikat
             </h3>
             <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider px-3 py-1.5 bg-white/[0.03] rounded-lg border border-white/5">
-              {paperSize} · {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
+              {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm (
+              {paperSize}) ·{" "}
+              {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
             </span>
           </div>
 
-          <div className={`group relative w-full ${getPreviewAspect()} border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl transition-all duration-500`}>
+          <div
+            style={{ aspectRatio: `${previewRatioW} / ${previewRatioH}` }}
+            className="group relative w-full border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl transition-all duration-500"
+          >
             {previewBlobUrl ? (
               <img
                 src={previewBlobUrl}
-                alt="Certificate Render Preview"
+                alt="Pratinjau Sertifikat"
                 className="max-h-full max-w-full object-contain animate-in fade-in duration-300"
               />
             ) : previewError ? (
               <div className="text-red-500 text-xs font-mono">
-                FAILED_TO_LOAD_PREVIEW
+                GAGAL_MEMUAT_PRATINJAU
               </div>
             ) : (
               <div className="text-white/20 animate-pulse text-xs font-mono uppercase tracking-widest">
-                GENERATING_PREVIEW...
+                MEMBUAT_PRATINJAU...
               </div>
             )}
           </div>
         </div>
       </div>
-
     </div>
   );
 }

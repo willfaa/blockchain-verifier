@@ -429,15 +429,19 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
 
 export const getSystemSettings = async (req: Request, res: Response) => {
   try {
-    const [layoutSetting, paperSizeSetting] = await Promise.all([
+    const [layoutSetting, paperSizeSetting, widthCmSetting, heightCmSetting] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_width_cm" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_height_cm" } }),
     ]);
     return safeResponse(res, 200, {
       ok: true,
       settings: {
         certificateLayout: layoutSetting?.value || "HORIZONTAL",
         certificatePaperSize: paperSizeSetting?.value || "A4",
+        paperWidthCm: widthCmSetting?.value ? parseFloat(widthCmSetting.value) : 29.7,
+        paperHeightCm: heightCmSetting?.value ? parseFloat(heightCmSetting.value) : 21.0,
       },
     });
   } catch (error: any) {
@@ -448,7 +452,7 @@ export const getSystemSettings = async (req: Request, res: Response) => {
 
 export const updateSystemSettings = async (req: Request, res: Response) => {
   try {
-    const { certificateLayout, certificatePaperSize } = req.body;
+    const { certificateLayout, certificatePaperSize, paperWidthCm, paperHeightCm } = req.body;
 
     if (certificateLayout) {
       if (!["HORIZONTAL", "VERTICAL"].includes(certificateLayout)) {
@@ -462,19 +466,34 @@ export const updateSystemSettings = async (req: Request, res: Response) => {
     }
 
     if (certificatePaperSize) {
-      if (!["A4", "F4"].includes(certificatePaperSize)) {
-        return safeResponse(res, 400, { error: "Invalid paper size value. Must be A4 or F4" });
-      }
       await db.systemSetting.upsert({
         where: { key: "certificate_paper_size" },
-        update: { value: certificatePaperSize },
-        create: { key: "certificate_paper_size", value: certificatePaperSize },
+        update: { value: String(certificatePaperSize) },
+        create: { key: "certificate_paper_size", value: String(certificatePaperSize) },
       });
     }
 
-    const [updatedLayout, updatedPaperSize] = await Promise.all([
+    if (paperWidthCm !== undefined && paperWidthCm !== null) {
+      await db.systemSetting.upsert({
+        where: { key: "certificate_paper_width_cm" },
+        update: { value: String(paperWidthCm) },
+        create: { key: "certificate_paper_width_cm", value: String(paperWidthCm) },
+      });
+    }
+
+    if (paperHeightCm !== undefined && paperHeightCm !== null) {
+      await db.systemSetting.upsert({
+        where: { key: "certificate_paper_height_cm" },
+        update: { value: String(paperHeightCm) },
+        create: { key: "certificate_paper_height_cm", value: String(paperHeightCm) },
+      });
+    }
+
+    const [updatedLayout, updatedPaperSize, updatedWidth, updatedHeight] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_width_cm" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_height_cm" } }),
     ]);
 
     return safeResponse(res, 200, {
@@ -483,6 +502,8 @@ export const updateSystemSettings = async (req: Request, res: Response) => {
       settings: {
         certificateLayout: updatedLayout?.value || "HORIZONTAL",
         certificatePaperSize: updatedPaperSize?.value || "A4",
+        paperWidthCm: updatedWidth?.value ? parseFloat(updatedWidth.value) : 29.7,
+        paperHeightCm: updatedHeight?.value ? parseFloat(updatedHeight.value) : 21.0,
       },
     });
   } catch (error: any) {
@@ -666,9 +687,11 @@ export const deleteCertificateTemplateBackground = async (req: Request, res: Res
 
 export const getCertificateTemplatePreview = async (req: Request, res: Response) => {
   try {
-    const [layoutSetting, paperSizeSetting, nameSetting, nipSetting, templateSetting, layoutConfigSetting] = await Promise.all([
+    const [layoutSetting, paperSizeSetting, widthCmSetting, heightCmSetting, nameSetting, nipSetting, templateSetting, layoutConfigSetting] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_width_cm" } }),
+      db.systemSetting.findUnique({ where: { key: "certificate_paper_height_cm" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_template" } }),
@@ -676,7 +699,10 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
     ]);
 
     const layout = (layoutSetting?.value as "HORIZONTAL" | "VERTICAL") || "HORIZONTAL";
-    const paperSize = (paperSizeSetting?.value as "A4" | "F4") || "A4";
+    const paperSize = paperSizeSetting?.value || "A4";
+    const paperWidthCm = widthCmSetting?.value ? parseFloat(widthCmSetting.value) : undefined;
+    const paperHeightCm = heightCmSetting?.value ? parseFloat(heightCmSetting.value) : undefined;
+
     let layoutConfig = undefined;
     if (layoutConfigSetting?.value) {
       try { layoutConfig = JSON.parse(layoutConfigSetting.value); } catch (e) { /* ignore */ }
@@ -705,6 +731,8 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
       instructorMajor: "Teknik Informatika",
       layout,
       paperSize,
+      paperWidthCm,
+      paperHeightCm,
       layoutConfig,
       customTemplatePath: templateSetting?.value ? path.join(process.cwd(), templateSetting.value) : undefined
     };

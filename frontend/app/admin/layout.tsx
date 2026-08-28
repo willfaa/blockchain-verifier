@@ -95,25 +95,25 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="flex min-h-screen bg-dark-bg text-slate-100 font-sans selection:bg-neon-purple/30 overflow-hidden">
-      {/* Sidebar - GALAXY THEME */}
+    <div className="flex h-screen w-full bg-dark-bg text-slate-100 font-sans selection:bg-neon-purple/30 overflow-hidden">
+      {/* Sidebar - GALAXY THEME (Sticky Viewport, No laggy animations, Icon-only when collapsed) */}
       <aside
         className={`${
           isCollapsed ? "w-20" : "w-72"
-        } sticky top-0 h-screen hidden md:flex flex-col border-r border-white/5 bg-dark-bg/40 backdrop-blur-2xl transition-all duration-300 z-30 overflow-y-auto`}
+        } sticky top-0 h-screen shrink-0 hidden md:flex flex-col border-r border-white/5 bg-dark-bg/80 backdrop-blur-2xl z-30 overflow-y-auto`}
       >
         {/* Brand */}
         <div
           className={`h-24 flex items-center ${
-            isCollapsed ? "justify-center" : "px-8"
-          } border-b border-white/5`}
+            isCollapsed ? "justify-center px-2" : "px-8"
+          } border-b border-white/5 shrink-0`}
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-neon-purple/10 flex items-center justify-center shrink-0 border border-neon-purple/30 shadow-[0_0_20px_rgba(176,38,255,0.1)]">
               <ShieldAlert className="text-neon-purple h-6 w-6" />
             </div>
             {!isCollapsed && (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+              <div>
                 <h1 className="font-bold text-xl tracking-tight text-white">
                   User Records <span className="text-neon-purple">Hub</span>
                 </h1>
@@ -126,63 +126,44 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-12 px-6 space-y-3">
+        <nav className={`flex-1 py-8 ${isCollapsed ? "px-3" : "px-6"} space-y-2`}>
           {!isCollapsed && (
-            <p className="px-2 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-6">
+            <p className="px-2 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-4">
               Menu Navigation
             </p>
           )}
 
           {menuItems.map((item, idx) => {
             const isActive = pathname === item.href;
-            const colors = [
-              "group-hover:text-neon-purple",
-              "group-hover:text-neon-blue",
-              "group-hover:text-neon-pink",
-              "group-hover:text-neon-soft-blue",
-            ];
             const activeBorders = [
-              "border-neon-purple/40 bg-neon-purple/10 shadow-[0_0_15px_rgba(176,38,255,0.1)]",
-              "border-neon-blue/40 bg-neon-blue/10 shadow-[0_0_15px_rgba(0,229,255,0.1)]",
-              "border-neon-pink/40 bg-neon-pink/10 shadow-[0_0_15px_rgba(255,0,255,0.1)]",
-              "border-neon-soft-blue/40 bg-neon-soft-blue/10 shadow-[0_0_15px_rgba(112,161,255,0.1)]",
+              "border-neon-purple/40 bg-neon-purple/10 text-white shadow-[0_0_15px_rgba(176,38,255,0.1)]",
+              "border-neon-blue/40 bg-neon-blue/10 text-white shadow-[0_0_15px_rgba(0,229,255,0.1)]",
+              "border-neon-pink/40 bg-neon-pink/10 text-white shadow-[0_0_15px_rgba(255,0,255,0.1)]",
+              "border-neon-soft-blue/40 bg-neon-soft-blue/10 text-white shadow-[0_0_15px_rgba(112,161,255,0.1)]",
             ];
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
+                title={isCollapsed ? item.label : undefined}
+                className={`group flex items-center gap-4 ${
+                  isCollapsed ? "justify-center p-3.5" : "px-4 py-3.5"
+                } rounded-2xl border ${
                   isActive
-                    ? `text-white ${activeBorders[idx % 4]}`
+                    ? activeBorders[idx % 4]
                     : "text-white/40 border-transparent hover:bg-white/5 hover:text-white"
-                } ${isCollapsed ? "justify-center" : ""}`}
+                }`}
               >
                 <item.icon
-                  size={22}
-                  className={`transition-all duration-300 ${
-                    isActive ? "animate-float" : colors[idx % 4]
-                  }`}
+                  size={20}
+                  className="shrink-0"
                 />
 
                 {!isCollapsed && (
-                  <span className="text-sm font-semibold tracking-tight">
+                  <span className="text-sm font-semibold tracking-tight truncate">
                     {item.label}
                   </span>
-                )}
-
-                {isActive && !isCollapsed && (
-                  <div
-                    className={`absolute right-4 w-1.5 h-1.5 rounded-full animate-pulse ${
-                      idx % 4 === 0
-                        ? "bg-neon-purple shadow-[0_0_10px_#b026ff]"
-                        : idx % 4 === 1
-                        ? "bg-neon-blue shadow-[0_0_10px_#00e5ff]"
-                        : idx % 4 === 2
-                        ? "bg-neon-pink shadow-[0_0_10px_#ff00ff]"
-                        : "bg-neon-soft-blue shadow-[0_0_10px_#70a1ff]"
-                    }`}
-                  ></div>
                 )}
               </Link>
             );
@@ -190,17 +171,15 @@ export default function AdminLayout({
         </nav>
 
         {/* Collapse Toggle */}
-        <div className="border-t border-white/5 p-4 flex justify-center">
+        <div className="border-t border-white/5 p-4 flex justify-center shrink-0">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="group flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/5 hover:border-white/20 hover:bg-white/5 text-white/40 hover:text-white transition-all duration-300"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/5 hover:border-white/20 hover:bg-white/5 text-white/40 hover:text-white"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             <ChevronLeft
               size={18}
-              className={`transition-transform duration-300 ${
-                isCollapsed ? "rotate-180" : ""
-              }`}
+              className={isCollapsed ? "rotate-180" : ""}
             />
             {!isCollapsed && (
               <span className="text-[10px] font-bold uppercase tracking-widest">
