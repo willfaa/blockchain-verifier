@@ -21,16 +21,22 @@ const normalizeLocalPath = (urlPath: string) => {
 };
 
 export const getApiBase = () => {
-  // Always use local API URL in development mode
+  // If explicitly defined via Environment Variable (e.g. Ngrok, Cloudflare Tunnel, or VPS), use it first!
+  const customApiBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL;
+  if (customApiBase) {
+    return customApiBase.replace(/\/$/, "");
+  }
+
+  // Development mode local fallback
   if (process.env.NODE_ENV === "development") {
-    const base = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const base = "http://localhost:4000";
     if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      // Replace localhost/127.0.0.1 with the active local IP address so it works on mobile devices testing locally
       return base.replace("localhost", window.location.hostname).replace("127.0.0.1", window.location.hostname);
     }
     return base;
   }
 
+  // Production on Vercel: fallback to internal serverless route if no external API base is specified
   if (typeof window !== "undefined") {
     if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       return `${window.location.origin}/_/backend`;
@@ -44,7 +50,8 @@ export const getApiBase = () => {
       return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/_/backend`;
     }
   }
-  return process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  return "http://localhost:4000";
 };
 
 export const getAvatarUrl = (path: string | null | undefined) => {

@@ -124,3 +124,9 @@ Metode ini menggunakan fitur cgroups Linux untuk membekukan (freeze) proses cont
 cd ~/fabric-samples/test-network
 docker pause $(docker ps -q)
 docker unpause $(docker ps -q)
+
+NGROK for Blockchain (Alternatif VPS untuk expose localhost ke public)
+cd backend
+npm run dev
+npx ngrok http 4000
+change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru (https://gumminess-ranged-frostbite.ngrok-free.dev kalau tidak berubah)
