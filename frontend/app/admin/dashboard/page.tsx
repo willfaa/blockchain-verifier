@@ -66,14 +66,23 @@ export default function AdminDashboard() {
   const fetchStats = useCallback(async (isManual: boolean = false) => {
     if (isManual) setIsSyncing(true);
     try {
+      const timestamp = Date.now();
+      const noCacheConfig = {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      };
+
       const [statsRes, discRes, reqRes, syncStatsRes] = await Promise.allSettled([
-        api.get("/admin/stats"),
-        api.get("/certificates/discrepancies"),
-        api.get("/certificates/correction-requests?status=PENDING"),
-        api.get("/certificates/sync-stats"),
+        api.get(`/admin/stats?_t=${timestamp}`, noCacheConfig),
+        api.get(`/certificates/discrepancies?_t=${timestamp}`, noCacheConfig),
+        api.get(`/certificates/correction-requests?status=PENDING&_t=${timestamp}`, noCacheConfig),
+        api.get(`/certificates/sync-stats?_t=${timestamp}`, noCacheConfig),
       ]);
 
-      if (statsRes.status === "fulfilled" && statsRes.value?.data) {
+      if (statsRes.status === "fulfilled" && statsRes.value?.data?.ok) {
         setIsBackendConnected(true);
         setStats(statsRes.value.data);
         setLastSyncedAt(new Date());
@@ -85,7 +94,7 @@ export default function AdminDashboard() {
             toast.info("Status tersinkronisasi. Blockchain: " + (blockchainStatus || "OFFLINE"));
           }
         }
-      } else {
+      } else if (statsRes.status === "rejected") {
         // Backend request failed (e.g. Tunnel closed or backend server offline)
         setIsBackendConnected(false);
         setLastSyncedAt(new Date());
@@ -96,14 +105,10 @@ export default function AdminDashboard() {
 
       if (discRes.status === "fulfilled" && discRes.value?.data?.ok) {
         setDiscrepancies(discRes.value.data.data || []);
-      } else {
-        setDiscrepancies([]);
       }
 
       if (reqRes.status === "fulfilled" && reqRes.value?.data?.ok) {
         setCorrectionRequests(reqRes.value.data.data || []);
-      } else {
-        setCorrectionRequests([]);
       }
 
       if (syncStatsRes.status === "fulfilled" && syncStatsRes.value?.data?.ok) {

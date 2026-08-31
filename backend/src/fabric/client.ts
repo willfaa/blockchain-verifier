@@ -3,6 +3,7 @@ import { Gateway, Wallets, Contract, X509Identity } from "fabric-network";
 import FabricCAServices from "fabric-ca-client";
 import * as path from "path";
 import * as fs from "fs";
+import * as net from "net";
 import * as dotenv from "dotenv"; // Tambahkan ini agar aman
 import { CertificateRecord } from "../types";
 import { db } from "../config/db";
@@ -411,7 +412,27 @@ export async function registerFabricUser(
 
 let lastHealthCheckTime = 0;
 let lastHealthCheckResult = false;
-const HEALTH_CACHE_TTL = 8000; // 8 seconds cache to prevent peer TLS throttling
+const HEALTH_CACHE_TTL = 3000; // 3 seconds reactive cache for realtime sync
+
+function probeTcpPort(host: string, port: number, timeoutMs = 800): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(timeoutMs);
+    socket.on("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
 
 export async function checkFabricReady(
   userId?: string,
@@ -420,10 +441,24 @@ export async function checkFabricReady(
 ): Promise<boolean> {
   const now = Date.now();
   if (!bypassCache && now - lastHealthCheckTime < HEALTH_CACHE_TTL) {
-    if (lastHealthCheckResult) return true;
+    return lastHealthCheckResult;
   }
 
   try {
+    const ccp = loadConnectionProfile();
+    const peerUrl = ccp.peers?.["peer0.org1.example.com"]?.url || "grpcs://localhost:7051";
+    const cleanUrl = peerUrl.replace(/^grpcs?:\/\//, "");
+    const [hostPart, portPart] = cleanUrl.split(":");
+    const host = hostPart === "localhost" ? "127.0.0.1" : hostPart;
+    const port = parseInt(portPart || "7051", 10);
+
+    const isPortOpen = await probeTcpPort(host, port, 800);
+    if (!isPortOpen) {
+      lastHealthCheckResult = false;
+      lastHealthCheckTime = Date.now();
+      return false;
+    }
+
     const { gateway } = await getContract(userId, role);
     gateway.disconnect();
     lastHealthCheckResult = true;
@@ -432,7 +467,7 @@ export async function checkFabricReady(
   } catch (err: any) {
     lastHealthCheckResult = false;
     lastHealthCheckTime = Date.now();
-    throw err;
+    return false;
   }
 }
 
