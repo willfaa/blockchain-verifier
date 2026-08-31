@@ -12,7 +12,11 @@ import {
   FileText,
   X,
   Maximize2,
+  Minimize2,
   Download,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import CertificateEditor, {
@@ -79,6 +83,33 @@ export default function CertificateTemplatePage() {
     CertificateLayoutConfig | Record<string, LayoutElement> | null
   >(null);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [previewZoom, setPreviewZoom] = useState<number>(100);
+  const [isFullscreenPreview, setIsFullscreenPreview] = useState<boolean>(false);
+  const [fullscreenZoom, setFullscreenZoom] = useState<number>(100);
+
+  const handleZoomIn = () => {
+    setPreviewZoom((z) => Math.min(300, z + 15));
+  };
+
+  const handleZoomOut = () => {
+    setPreviewZoom((z) => Math.max(30, z - 15));
+  };
+
+  const handleResetZoom = () => {
+    setPreviewZoom(100);
+  };
+
+  const handleFullscreenZoomIn = () => {
+    setFullscreenZoom((z) => Math.min(300, z + 15));
+  };
+
+  const handleFullscreenZoomOut = () => {
+    setFullscreenZoom((z) => Math.max(30, z - 15));
+  };
+
+  const handleFullscreenResetZoom = () => {
+    setFullscreenZoom(100);
+  };
 
   const loadPreview = async () => {
     setPreviewError(false);
@@ -622,7 +653,8 @@ export default function CertificateTemplatePage() {
             </h2>
             <p className="text-white/40 text-xs mt-2">
               Gambar hasil render resmi dari server yang dibatasi tepat sesuai
-              kanvas sertifikat.
+              kanvas sertifikat. Gunakan kontrol zoom atau tombol layar penuh
+              untuk inspeksi detail tanpa terpotong.
             </p>
           </div>
 
@@ -650,40 +682,232 @@ export default function CertificateTemplatePage() {
           </div>
         </div>
 
-        <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
-          <div className="flex items-center justify-between w-full mb-6">
-            <h3 className="font-bold text-white/60 text-xs uppercase tracking-widest">
-              Hasil Render Sertifikat
-            </h3>
-            <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider px-3 py-1.5 bg-white/[0.03] rounded-lg border border-white/5">
-              {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm (
-              {paperSize}) ·{" "}
-              {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
-            </span>
+        <div className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden shadow-2xl flex flex-col items-center">
+          {/* Header Panel Preview dengan Kontrol Zoom & Info Dimensi */}
+          <div className="flex flex-wrap items-center justify-between w-full mb-6 gap-3 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-white/80 text-xs uppercase tracking-widest">
+                Hasil Render Sertifikat
+              </h3>
+              <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/40 px-3 py-1 rounded-lg border border-cyan-500/20">
+                {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm (
+                {paperSize}) ·{" "}
+                {layout === "HORIZONTAL" ? "Landscape" : "Portrait"}
+              </span>
+            </div>
+
+            {/* Toolbar Zoom & Layar Penuh */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  className="p-1 text-white/60 hover:text-cyan-400 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Perkecil Pratinjau (Zoom Out)"
+                >
+                  <ZoomOut size={15} />
+                </button>
+                <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                  {previewZoom}%
+                </span>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  className="p-1 text-white/60 hover:text-cyan-400 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Perbesar Pratinjau (Zoom In)"
+                >
+                  <ZoomIn size={15} />
+                </button>
+                <div className="w-px h-4 bg-white/15 mx-1" />
+                <button
+                  type="button"
+                  onClick={handleResetZoom}
+                  className="p-1 text-white/60 hover:text-cyan-400 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Reset Ukuran (100% Fit)"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFullscreenZoom(100);
+                  setIsFullscreenPreview(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-semibold transition-colors"
+                title="Buka Pratinjau Layar Penuh (Fullscreen Modal)"
+              >
+                <Maximize2 size={14} className="text-cyan-400" />
+                <span className="hidden sm:inline">Layar Penuh</span>
+              </button>
+            </div>
           </div>
 
+          {/* Area Viewport Scrollable & Zoomable (Tidak akan terpotong halaman) */}
           <div
-            style={{ aspectRatio: `${previewRatioW} / ${previewRatioH}` }}
-            className="group relative w-full border border-white/5 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner max-w-3xl transition-all duration-500"
+            onWheel={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                  setPreviewZoom((z) => Math.min(300, z + 10));
+                } else {
+                  setPreviewZoom((z) => Math.max(30, z - 10));
+                }
+              }
+            }}
+            className="w-full max-h-[640px] min-h-[380px] bg-slate-950/80 rounded-2xl border border-white/10 p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-inner"
           >
             {previewBlobUrl ? (
-              <img
-                src={previewBlobUrl}
-                alt="Pratinjau Sertifikat"
-                className="max-h-full max-w-full object-contain animate-in fade-in duration-300"
-              />
+              <div
+                style={{
+                  width: `${previewZoom}%`,
+                  maxWidth: "none",
+                  transition: "width 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+              >
+                <img
+                  src={previewBlobUrl}
+                  alt="Pratinjau Sertifikat"
+                  className="w-full h-auto object-contain rounded-lg shadow-2xl border border-white/10 select-none animate-in fade-in duration-300"
+                />
+              </div>
             ) : previewError ? (
-              <div className="text-red-500 text-xs font-mono">
-                GAGAL_MEMUAT_PRATINJAU
+              <div className="flex flex-col items-center justify-center gap-2 text-rose-400 p-8 text-center">
+                <span className="text-sm font-semibold">Gagal memuat pratinjau sertifikat</span>
+                <span className="text-xs text-white/40">Klik tombol Segarkan di atas untuk mencoba lagi</span>
               </div>
             ) : (
-              <div className="text-white/20 animate-pulse text-xs font-mono uppercase tracking-widest">
-                MEMBUAT_PRATINJAU...
+              <div className="flex flex-col items-center justify-center gap-3 text-white/30 p-12">
+                <RefreshCw size={24} className="animate-spin text-cyan-400/60" />
+                <span className="text-xs font-mono uppercase tracking-widest">
+                  Membuat Pratinjau Server...
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full flex items-center justify-between text-[11px] text-white/40 mt-3 px-1">
+            <span>💡 Tekan <b>Ctrl + Scroll Mouse</b> di atas gambar untuk zoom cepat.</span>
+            <span>Skala saat ini: <b>{previewZoom}%</b></span>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal Lightbox Layar Penuh (Fullscreen Preview Modal) */}
+      {isFullscreenPreview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col p-4 sm:p-6 animate-in fade-in duration-200 select-none"
+          onClick={() => setIsFullscreenPreview(false)}
+        >
+          {/* Header Lightbox */}
+          <div
+            className="flex items-center justify-between w-full pb-4 border-b border-white/10 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Inspeksi Resolusi Penuh Sertifikat
+              </h3>
+              <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-lg border border-cyan-500/30">
+                {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm ({paperSize})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Zoom Controls di Fullscreen */}
+              <div className="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={handleFullscreenZoomOut}
+                  className="p-1 text-white/60 hover:text-cyan-400 rounded-lg"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <span className="text-xs font-mono text-white/90 w-14 text-center font-bold">
+                  {fullscreenZoom}%
+                </span>
+                <button
+                  type="button"
+                  onClick={handleFullscreenZoomIn}
+                  className="p-1 text-white/60 hover:text-cyan-400 rounded-lg"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={16} />
+                </button>
+                <div className="w-px h-4 bg-white/20 mx-1" />
+                <button
+                  type="button"
+                  onClick={handleFullscreenResetZoom}
+                  className="p-1 text-white/60 hover:text-cyan-400 rounded-lg"
+                  title="Reset 100%"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </div>
+
+              <button
+                onClick={handleDownloadCertificate}
+                disabled={!previewBlobUrl}
+                className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20"
+                title="Unduh Gambar PNG"
+              >
+                <Download size={15} />
+                <span className="hidden sm:inline">Unduh PNG</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFullscreenPreview(false)}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors"
+                title="Tutup Layar Penuh (Esc)"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Area Gambar Fullscreen dengan scroll bebas */}
+          <div
+            className="flex-1 w-full overflow-auto custom-scrollbar flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setIsFullscreenPreview(false);
+              }
+            }}
+            onWheel={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                  setFullscreenZoom((z) => Math.min(300, z + 10));
+                } else {
+                  setFullscreenZoom((z) => Math.max(30, z - 10));
+                }
+              }
+            }}
+          >
+            {previewBlobUrl && (
+              <div
+                style={{
+                  width: `${fullscreenZoom}%`,
+                  maxWidth: "none",
+                  transition: "width 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={previewBlobUrl}
+                  alt="Pratinjau Sertifikat Layar Penuh"
+                  className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/15"
+                />
               </div>
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
