@@ -6,6 +6,7 @@ import { getApiBase } from "./utils";
 const api = axios.create({
   headers: {
     "ngrok-skip-browser-warning": "true",
+    "Bypass-Tunnel-Reminder": "true",
   },
 });
 

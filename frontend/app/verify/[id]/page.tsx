@@ -59,6 +59,7 @@ export default async function VerificationPage({
       cache: "no-store",
       headers: {
         "ngrok-skip-browser-warning": "true",
+        "Bypass-Tunnel-Reminder": "true",
       },
     });
 
@@ -66,7 +67,10 @@ export default async function VerificationPage({
       // Fallback to /api/certificates/:id
       const fallbackRes = await fetch(`${apiBase}/api/certificates/${id}`, {
         cache: "no-store",
-        headers: { "ngrok-skip-browser-warning": "true" },
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Bypass-Tunnel-Reminder": "true",
+        },
       });
       if (fallbackRes.ok) {
         const fbData = await fallbackRes.json();
