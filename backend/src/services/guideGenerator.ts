@@ -1,4 +1,5 @@
 import { createCanvas } from "canvas";
+import { resolveCanvasFont } from "./imageGenerator";
 
 // Helper function to draw a dashed rectangle with text label
 const drawBox = (
@@ -22,14 +23,14 @@ const drawBox = (
 
   // Label text
   ctx.fillStyle = "#1e3a8a"; // Dark blue text
-  ctx.font = "bold 14px Arial";
+  ctx.font = resolveCanvasFont("Arial", 14, true, false);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(label, x + w / 2, y + h / 2 - (desc ? 10 : 0));
 
   if (desc) {
     ctx.fillStyle = "#2563eb";
-    ctx.font = "italic 11px Arial";
+    ctx.font = resolveCanvasFont("Arial", 11, false, true);
     ctx.fillText(desc, x + w / 2, y + h / 2 + 10);
   }
 };
@@ -69,7 +70,7 @@ export const generateGuideImage = (orientation: "HORIZONTAL" | "VERTICAL"): Buff
 
   // Header Title
   ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 24px Arial";
+  ctx.font = resolveCanvasFont("Arial", 24, true, false);
   ctx.textAlign = "center";
   ctx.fillText(
     `UNESA CERTIFICATE BLUEPRINT MAP (${orientation} A4)`,

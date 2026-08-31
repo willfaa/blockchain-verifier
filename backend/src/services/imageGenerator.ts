@@ -1,9 +1,87 @@
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage, registerFont } from "canvas";
 import path from "path";
 import * as QRCode from "qrcode";
 import fs from "fs";
 import axios from "axios";
 import { db } from "../config/db";
+
+// --- Cross-Platform Font Registration for node-canvas ---
+// In Linux/Docker environments, Windows system fonts (Arial, Times New Roman, Courier New)
+// do not exist by default, causing canvas to render "tofu" boxes.
+// Registering bundled open-source TTF fonts ensures clean, consistent rendering on all platforms.
+const initFonts = () => {
+  const possibleFontDirs = [
+    path.join(process.cwd(), "assets", "fonts"),
+    path.resolve(__dirname, "../../assets/fonts"),
+    path.resolve(__dirname, "../assets/fonts"),
+    path.resolve(__dirname, "../../../assets/fonts"),
+  ];
+
+  let fontsDir: string | null = null;
+  for (const dir of possibleFontDirs) {
+    if (fs.existsSync(dir)) {
+      fontsDir = dir;
+      break;
+    }
+  }
+
+  if (!fontsDir) return;
+
+  const fontConfigs = [
+    { file: "Roboto-Regular.ttf", family: "Roboto", weight: "normal", style: "normal", alias: "Arial" },
+    { file: "Roboto-Bold.ttf", family: "Roboto", weight: "bold", style: "normal", alias: "Arial" },
+    { file: "Roboto-Italic.ttf", family: "Roboto", weight: "normal", style: "italic", alias: "Arial" },
+    { file: "Roboto-BoldItalic.ttf", family: "Roboto", weight: "bold", style: "italic", alias: "Arial" },
+    { file: "RobotoMono-Regular.ttf", family: "Roboto Mono", weight: "normal", style: "normal", alias: "Courier New" },
+    { file: "RobotoMono-Bold.ttf", family: "Roboto Mono", weight: "bold", style: "normal", alias: "Courier New" },
+    { file: "PlayfairDisplay-Regular.ttf", family: "Playfair Display", weight: "normal", style: "normal", alias: "Times New Roman" },
+  ];
+
+  for (const f of fontConfigs) {
+    const fontPath = path.join(fontsDir, f.file);
+    if (fs.existsSync(fontPath)) {
+      try {
+        registerFont(fontPath, { family: f.family, weight: f.weight as any, style: f.style as any });
+        if (f.alias) {
+          registerFont(fontPath, { family: f.alias, weight: f.weight as any, style: f.style as any });
+        }
+      } catch (e: any) {
+        // Warning fallback
+      }
+    }
+  }
+};
+
+initFonts();
+
+/**
+ * Resolves font-family string with comprehensive cross-platform fallbacks
+ */
+export const resolveCanvasFont = (
+  fontFamily: string = "Arial",
+  fontSize: number = 24,
+  bold: boolean = false,
+  italic: boolean = false
+): string => {
+  const cleanFamily = (fontFamily || "Arial").replace(/["']/g, "").trim().toLowerCase();
+  let fallbacks = '"Arial", "Roboto", "DejaVu Sans", "Liberation Sans", sans-serif';
+
+  if (cleanFamily.includes("courier") || cleanFamily.includes("mono")) {
+    fallbacks = '"Courier New", "Roboto Mono", "DejaVu Sans Mono", monospace';
+  } else if (
+    cleanFamily.includes("times") ||
+    cleanFamily.includes("serif") ||
+    cleanFamily.includes("georgia") ||
+    cleanFamily.includes("playfair")
+  ) {
+    fallbacks = '"Times New Roman", "Playfair Display", "Georgia", "DejaVu Serif", serif';
+  } else if (cleanFamily.includes("verdana")) {
+    fallbacks = '"Verdana", "Roboto", "DejaVu Sans", sans-serif';
+  }
+
+  const prefix = `${italic ? "italic " : ""}${bold ? "bold " : ""}`;
+  return `${prefix}${fontSize}px ${fallbacks}`;
+};
 
 export interface BackgroundConfig {
   scaleX?: number;
@@ -375,7 +453,12 @@ export const generateCertificateImage = async (
       ctx.textAlign = el.align || "left";
       ctx.textBaseline = "top";
 
-      const style = `${el.italic ? "italic " : ""}${el.bold ? "bold " : ""}${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
+      const style = resolveCanvasFont(
+        el.fontFamily || "Arial",
+        el.fontSize || 24,
+        !!el.bold,
+        !!el.italic
+      );
       ctx.font = style;
 
       // Special background pill for presentedTo (hanya jika followTemplateDesign aktif)
@@ -629,7 +712,7 @@ export const generateCertificateImage = async (
     // University Title
     ctx.textAlign = "center";
     ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 24px Arial";
+    ctx.font = resolveCanvasFont("Arial", 24, true, false);
     ctx.fillText("UNIVERSITAS NEGERI SURABAYA", centerX, logoY + logoSize + 40);
 
     if (isVertical) {
@@ -637,21 +720,21 @@ export const generateCertificateImage = async (
       ctx.shadowColor = "#38bdf8";
       ctx.shadowBlur = 30;
       ctx.fillStyle = "#f0f9ff"; // Sky 50
-      ctx.font = "bold 56px Arial";
+      ctx.font = resolveCanvasFont("Arial", 56, true, false);
       ctx.fillText("CERTIFICATE OF", centerX, 480);
       ctx.fillText("COMPLETION", centerX, 550);
       ctx.shadowBlur = 0;
 
       // "Proudly Presented To"
       ctx.fillStyle = "#94a3b8"; // Slate 400
-      ctx.font = "italic 24px Arial";
+      ctx.font = resolveCanvasFont("Arial", 24, false, true);
       ctx.fillText("Proudly Presented To", centerX, 680);
 
       // Student Name
       ctx.shadowColor = "#e879f9"; // Fuchsia glow
       ctx.shadowBlur = 20;
       ctx.fillStyle = "#fae8ff"; // Fuchsia 50
-      ctx.font = "bold 64px Arial";
+      ctx.font = resolveCanvasFont("Arial", 64, true, false);
       ctx.fillText(data.name, centerX, 780);
       ctx.shadowBlur = 0;
 
@@ -665,7 +748,7 @@ export const generateCertificateImage = async (
 
       // Major / Program
       ctx.fillStyle = "#e2e8f0"; // Slate 200
-      ctx.font = "bold 20px Arial";
+      ctx.font = resolveCanvasFont("Arial", 20, true, false);
       ctx.fillText(
         `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
         centerX,
@@ -674,24 +757,24 @@ export const generateCertificateImage = async (
 
       // Student User ID
       ctx.fillStyle = "#67e8f9"; // Cyan 300
-      ctx.font = "bold 20px Arial";
+      ctx.font = resolveCanvasFont("Arial", 20, true, false);
       ctx.fillText(`Student ID : ${data.studentId}`, centerX, 900);
 
       // "For successfully completing..."
       ctx.fillStyle = "#94a3b8"; // Slate 400
-      ctx.font = "italic 20px Arial";
+      ctx.font = resolveCanvasFont("Arial", 20, false, true);
       ctx.fillText("For successfully completing the course:", centerX, 1020);
 
       // Course Title
       ctx.fillStyle = "#e0f2fe"; // Sky 100
-      ctx.font = "bold 44px Arial";
+      ctx.font = resolveCanvasFont("Arial", 44, true, false);
       ctx.fillText(data.courseName || "Blockchain Course", centerX, 1090);
 
       // Footer - Instructor (Y=1450)
       const footerY = 1450;
       const leftX = 280;
       ctx.fillStyle = "#f8fafc";
-      ctx.font = "bold italic 24px Arial";
+      ctx.font = resolveCanvasFont("Arial", 24, true, true);
       ctx.fillText(finalInstructorName, leftX, footerY - 50);
 
       ctx.strokeStyle = "#475569";
@@ -702,10 +785,10 @@ export const generateCertificateImage = async (
       ctx.stroke();
 
       ctx.fillStyle = "#cbd5e1";
-      ctx.font = "bold 14px Arial";
+      ctx.font = resolveCanvasFont("Arial", 14, true, false);
       ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
       ctx.fillStyle = "#38bdf8";
-      ctx.font = "14px Courier New";
+      ctx.font = resolveCanvasFont("Courier New", 14, false, false);
       ctx.fillText(`Instructor ID: ${finalInstructorNip}`, leftX, footerY + 15);
 
       // Footer - QR Code (Y=1450, Right)
@@ -720,12 +803,12 @@ export const generateCertificateImage = async (
       ctx.drawImage(qrImage, rightX - 70, footerY - 100, 140, 140);
 
       ctx.fillStyle = "#0ea5e9";
-      ctx.font = "bold 12px Arial";
+      ctx.font = resolveCanvasFont("Arial", 12, true, false);
       ctx.fillText("SCAN TO VERIFY", rightX, footerY + 60);
 
       // Dynamic Hash / Details
       ctx.fillStyle = "#64748b";
-      ctx.font = "14px Arial";
+      ctx.font = resolveCanvasFont("Arial", 14, false, false);
       ctx.fillText(`Certificate ID: ${data.certId}`, centerX, height - 120);
       ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 90);
 
@@ -735,21 +818,21 @@ export const generateCertificateImage = async (
       ctx.shadowColor = "#38bdf8";
       ctx.shadowBlur = 30;
       ctx.fillStyle = "#f0f9ff"; // Sky 50
-      ctx.font = "bold 80px Arial";
+      ctx.font = resolveCanvasFont("Arial", 80, true, false);
       ctx.fillText("CERTIFICATE OF", centerX, 360);
       ctx.fillText("COMPLETION", centerX, 450);
       ctx.shadowBlur = 0;
 
       // "Proudly Presented To"
       ctx.fillStyle = "#94a3b8"; // Slate 400
-      ctx.font = "italic 24px Arial";
+      ctx.font = resolveCanvasFont("Arial", 24, false, true);
       ctx.fillText("Proudly Presented To", centerX, 520);
 
       // Student Name
       ctx.shadowColor = "#e879f9";
       ctx.shadowBlur = 20;
       ctx.fillStyle = "#fae8ff";
-      ctx.font = "bold 90px Arial";
+      ctx.font = resolveCanvasFont("Arial", 90, true, false);
       ctx.fillText(data.name, centerX, 620);
       ctx.shadowBlur = 0;
 
@@ -763,7 +846,7 @@ export const generateCertificateImage = async (
 
       // Major / Program
       ctx.fillStyle = "#e2e8f0";
-      ctx.font = "bold 22px Arial";
+      ctx.font = resolveCanvasFont("Arial", 22, true, false);
       ctx.fillText(
         `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
         centerX,
@@ -772,23 +855,24 @@ export const generateCertificateImage = async (
 
       // Student User ID
       ctx.fillStyle = "#67e8f9";
+      ctx.font = resolveCanvasFont("Arial", 20, false, false);
       ctx.fillText(`Student ID : ${data.studentId}`, centerX, 725);
 
       // "For successfully completing..."
       ctx.fillStyle = "#94a3b8";
-      ctx.font = "italic 20px Arial";
+      ctx.font = resolveCanvasFont("Arial", 20, false, true);
       ctx.fillText("For successfully completing the course:", centerX, 780);
 
       // Course Title
       ctx.fillStyle = "#e0f2fe";
-      ctx.font = "bold 50px Arial";
+      ctx.font = resolveCanvasFont("Arial", 50, true, false);
       ctx.fillText(data.courseName || "Blockchain Course", centerX, 820);
 
       // Footer - Instructor (Left)
       const footerY = height - 120;
       const leftX = 350;
       ctx.fillStyle = "#f8fafc";
-      ctx.font = "bold italic 28px Arial";
+      ctx.font = resolveCanvasFont("Arial", 28, true, true);
       ctx.fillText(finalInstructorName, leftX, footerY - 50);
 
       ctx.strokeStyle = "#475569";
@@ -799,15 +883,15 @@ export const generateCertificateImage = async (
       ctx.stroke();
 
       ctx.fillStyle = "#cbd5e1";
-      ctx.font = "bold 16px Arial";
+      ctx.font = resolveCanvasFont("Arial", 16, true, false);
       ctx.fillText((finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(), leftX, footerY - 10);
       ctx.fillStyle = "#38bdf8";
-      ctx.font = "14px Courier New";
+      ctx.font = resolveCanvasFont("Courier New", 14, false, false);
       ctx.fillText(`Instructor ID: ${finalInstructorNip}`, leftX, footerY + 15);
 
       // Middle Info (ID and Date)
       ctx.fillStyle = "#64748b";
-      ctx.font = "14px Arial";
+      ctx.font = resolveCanvasFont("Arial", 14, false, false);
       ctx.fillText(`ID: ${data.certId}`, centerX, height - 60);
       ctx.fillText(`Issued: ${data.issuedAt}`, centerX, height - 40);
 
@@ -823,7 +907,7 @@ export const generateCertificateImage = async (
       ctx.drawImage(qrImage, rightX - 75, footerY - 100, 150, 150);
 
       ctx.fillStyle = "#0ea5e9";
-      ctx.font = "bold 12px Arial";
+      ctx.font = resolveCanvasFont("Arial", 12, true, false);
       ctx.fillText("SCAN TO VERIFY", rightX, footerY + 70);
     }
   }
