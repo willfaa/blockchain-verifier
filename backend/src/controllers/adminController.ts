@@ -91,15 +91,20 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       }
     }
 
-    // Check Fabric
+    // Check Fabric with timeout safety
     let isFabricOnline = false;
     if (process.env.FABRIC_ENABLED === "true") {
       try {
         const { checkFabricReady } = require("../fabric/client");
-        await checkFabricReady("admin", "admin");
+        const fabricCheckPromise = checkFabricReady("admin", "admin");
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Fabric health check timed out")), 3500)
+        );
+        await Promise.race([fabricCheckPromise, timeoutPromise]);
         isFabricOnline = true;
-      } catch (e) {
-        // Offline
+      } catch (e: any) {
+        console.warn("[HealthCheck] Fabric connection test failed/offline:", e.message);
+        isFabricOnline = false;
       }
     }
 
