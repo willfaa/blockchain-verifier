@@ -31,31 +31,53 @@ const FUNC_READ = "ReadCertificate";
 const FUNC_LIST = "GetAllCertificates";
 const FUNC_REVOKE = "RevokeCertificate";
 
-// --- PATH DEFINITIONS ---
-const CCP_PATH = path.join(
-  process.cwd(),
-  "fabric-network",
-  "connection-org1.json",
-);
-const WALLET_PATH = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "fabric-network",
-  "wallet",
-);
+// --- RESILIENT PATH DEFINITIONS ---
+function getCcpPath(): string {
+  const envPath = process.env.FABRIC_CONN_PROFILE;
+  const candidates = [
+    envPath ? (path.isAbsolute(envPath) ? envPath : path.resolve(process.cwd(), envPath)) : null,
+    path.resolve(__dirname, "../../fabric-network/connection-org1.json"),
+    path.resolve(__dirname, "../fabric-network/connection-org1.json"),
+    path.join(process.cwd(), "fabric-network", "connection-org1.json"),
+    path.join(process.cwd(), "backend", "fabric-network", "connection-org1.json"),
+  ].filter(Boolean) as string[];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return path.resolve(__dirname, "../../fabric-network/connection-org1.json");
+}
+
+function getWalletRootPath(): string {
+  const candidates = [
+    path.resolve(__dirname, "../../fabric-network/wallet"),
+    path.resolve(__dirname, "../fabric-network/wallet"),
+    path.join(process.cwd(), "fabric-network", "wallet"),
+    path.join(process.cwd(), "backend", "fabric-network", "wallet"),
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return path.resolve(__dirname, "../../fabric-network/wallet");
+}
 
 function loadConnectionProfile() {
-  if (!fs.existsSync(CCP_PATH)) {
-    throw new Error(`Connection profile tidak ditemukan di: ${CCP_PATH}`);
+  const ccpPath = getCcpPath();
+  if (!fs.existsSync(ccpPath)) {
+    throw new Error(`Connection profile tidak ditemukan di: ${ccpPath}`);
   }
-  const ccpJSON = fs.readFileSync(CCP_PATH, "utf8");
+  const ccpJSON = fs.readFileSync(ccpPath, "utf8");
   return JSON.parse(ccpJSON);
 }
 
 // Helper: Determine wallet path based on role
 function getWalletPath(role?: string): string {
-  const root = WALLET_PATH;
+  const root = getWalletRootPath();
   if (role === "teacher" || role === "lecture")
     return path.join(root, "lecture");
   if (role === "student") return path.join(root, "student");
@@ -251,13 +273,14 @@ export async function registerFabricUser(
       caInfo.caName,
     );
 
-    const adminWallet = await Wallets.newFileSystemWallet(WALLET_PATH);
+    const walletRoot = getWalletRootPath();
+    const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
 
-    let targetWalletPath = WALLET_PATH;
+    let targetWalletPath = walletRoot;
     if (role === "student") {
-      targetWalletPath = path.join(WALLET_PATH, "student");
+      targetWalletPath = path.join(walletRoot, "student");
     } else if (role === "teacher") {
-      targetWalletPath = path.join(WALLET_PATH, "lecture");
+      targetWalletPath = path.join(walletRoot, "lecture");
     }
 
     const userWallet = await Wallets.newFileSystemWallet(targetWalletPath);
