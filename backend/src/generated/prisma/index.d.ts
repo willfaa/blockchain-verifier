@@ -69,6 +69,11 @@ export type Enrollment = $Result.DefaultSelection<Prisma.$EnrollmentPayload>
  */
 export type Certificate = $Result.DefaultSelection<Prisma.$CertificatePayload>
 /**
+ * Model CertificateCorrectionRequest
+ * 
+ */
+export type CertificateCorrectionRequest = $Result.DefaultSelection<Prisma.$CertificateCorrectionRequestPayload>
+/**
  * Model ExamResult
  * 
  */
@@ -342,6 +347,16 @@ export class PrismaClient<
     * ```
     */
   get certificate(): Prisma.CertificateDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.certificateCorrectionRequest`: Exposes CRUD operations for the **CertificateCorrectionRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CertificateCorrectionRequests
+    * const certificateCorrectionRequests = await prisma.certificateCorrectionRequest.findMany()
+    * ```
+    */
+  get certificateCorrectionRequest(): Prisma.CertificateCorrectionRequestDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.examResult`: Exposes CRUD operations for the **ExamResult** model.
@@ -837,6 +852,7 @@ export namespace Prisma {
     Exam: 'Exam',
     Enrollment: 'Enrollment',
     Certificate: 'Certificate',
+    CertificateCorrectionRequest: 'CertificateCorrectionRequest',
     ExamResult: 'ExamResult',
     SystemSetting: 'SystemSetting',
     BidangKeahlian: 'BidangKeahlian',
@@ -857,7 +873,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
+      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1675,6 +1691,80 @@ export namespace Prisma {
           }
         }
       }
+      CertificateCorrectionRequest: {
+        payload: Prisma.$CertificateCorrectionRequestPayload<ExtArgs>
+        fields: Prisma.CertificateCorrectionRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CertificateCorrectionRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CertificateCorrectionRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.CertificateCorrectionRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CertificateCorrectionRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          findMany: {
+            args: Prisma.CertificateCorrectionRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>[]
+          }
+          create: {
+            args: Prisma.CertificateCorrectionRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          createMany: {
+            args: Prisma.CertificateCorrectionRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CertificateCorrectionRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.CertificateCorrectionRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          update: {
+            args: Prisma.CertificateCorrectionRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.CertificateCorrectionRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CertificateCorrectionRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CertificateCorrectionRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.CertificateCorrectionRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CertificateCorrectionRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.CertificateCorrectionRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCertificateCorrectionRequest>
+          }
+          groupBy: {
+            args: Prisma.CertificateCorrectionRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CertificateCorrectionRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CertificateCorrectionRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<CertificateCorrectionRequestCountAggregateOutputType> | number
+          }
+        }
+      }
       ExamResult: {
         payload: Prisma.$ExamResultPayload<ExtArgs>
         fields: Prisma.ExamResultFieldRefs
@@ -2164,6 +2254,7 @@ export namespace Prisma {
     exam?: ExamOmit
     enrollment?: EnrollmentOmit
     certificate?: CertificateOmit
+    certificateCorrectionRequest?: CertificateCorrectionRequestOmit
     examResult?: ExamResultOmit
     systemSetting?: SystemSettingOmit
     bidangKeahlian?: BidangKeahlianOmit
@@ -2254,6 +2345,7 @@ export namespace Prisma {
     certificates: number
     examResults: number
     assignmentSubmissions: number
+    correctionRequests: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2262,6 +2354,7 @@ export namespace Prisma {
     certificates?: boolean | UserCountOutputTypeCountCertificatesArgs
     examResults?: boolean | UserCountOutputTypeCountExamResultsArgs
     assignmentSubmissions?: boolean | UserCountOutputTypeCountAssignmentSubmissionsArgs
+    correctionRequests?: boolean | UserCountOutputTypeCountCorrectionRequestsArgs
   }
 
   // Custom InputTypes
@@ -2308,6 +2401,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAssignmentSubmissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AssignmentSubmissionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCorrectionRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CertificateCorrectionRequestWhereInput
   }
 
 
@@ -2508,6 +2608,37 @@ export namespace Prisma {
    */
   export type ExamCountOutputTypeCountResultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ExamResultWhereInput
+  }
+
+
+  /**
+   * Count Type CertificateCountOutputType
+   */
+
+  export type CertificateCountOutputType = {
+    correctionRequests: number
+  }
+
+  export type CertificateCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    correctionRequests?: boolean | CertificateCountOutputTypeCountCorrectionRequestsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CertificateCountOutputType without action
+   */
+  export type CertificateCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCountOutputType
+     */
+    select?: CertificateCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CertificateCountOutputType without action
+   */
+  export type CertificateCountOutputTypeCountCorrectionRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CertificateCorrectionRequestWhereInput
   }
 
 
@@ -2858,6 +2989,7 @@ export namespace Prisma {
     certificates?: boolean | User$certificatesArgs<ExtArgs>
     examResults?: boolean | User$examResultsArgs<ExtArgs>
     assignmentSubmissions?: boolean | User$assignmentSubmissionsArgs<ExtArgs>
+    correctionRequests?: boolean | User$correctionRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2934,6 +3066,7 @@ export namespace Prisma {
     certificates?: boolean | User$certificatesArgs<ExtArgs>
     examResults?: boolean | User$examResultsArgs<ExtArgs>
     assignmentSubmissions?: boolean | User$assignmentSubmissionsArgs<ExtArgs>
+    correctionRequests?: boolean | User$correctionRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2947,6 +3080,7 @@ export namespace Prisma {
       certificates: Prisma.$CertificatePayload<ExtArgs>[]
       examResults: Prisma.$ExamResultPayload<ExtArgs>[]
       assignmentSubmissions: Prisma.$AssignmentSubmissionPayload<ExtArgs>[]
+      correctionRequests: Prisma.$CertificateCorrectionRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3367,6 +3501,7 @@ export namespace Prisma {
     certificates<T extends User$certificatesArgs<ExtArgs> = {}>(args?: Subset<T, User$certificatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     examResults<T extends User$examResultsArgs<ExtArgs> = {}>(args?: Subset<T, User$examResultsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExamResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assignmentSubmissions<T extends User$assignmentSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignmentSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssignmentSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    correctionRequests<T extends User$correctionRequestsArgs<ExtArgs> = {}>(args?: Subset<T, User$correctionRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3925,6 +4060,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AssignmentSubmissionScalarFieldEnum | AssignmentSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * User.correctionRequests
+   */
+  export type User$correctionRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    where?: CertificateCorrectionRequestWhereInput
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CertificateCorrectionRequestScalarFieldEnum | CertificateCorrectionRequestScalarFieldEnum[]
   }
 
   /**
@@ -14506,6 +14665,10 @@ export namespace Prisma {
     cid: string | null
     hash: string | null
     status: string | null
+    revokedAt: string | null
+    revocationReason: string | null
+    supersededBy: string | null
+    supersededFrom: string | null
   }
 
   export type CertificateMaxAggregateOutputType = {
@@ -14521,6 +14684,10 @@ export namespace Prisma {
     cid: string | null
     hash: string | null
     status: string | null
+    revokedAt: string | null
+    revocationReason: string | null
+    supersededBy: string | null
+    supersededFrom: string | null
   }
 
   export type CertificateCountAggregateOutputType = {
@@ -14536,6 +14703,10 @@ export namespace Prisma {
     cid: number
     hash: number
     status: number
+    revokedAt: number
+    revocationReason: number
+    supersededBy: number
+    supersededFrom: number
     _all: number
   }
 
@@ -14553,6 +14724,10 @@ export namespace Prisma {
     cid?: true
     hash?: true
     status?: true
+    revokedAt?: true
+    revocationReason?: true
+    supersededBy?: true
+    supersededFrom?: true
   }
 
   export type CertificateMaxAggregateInputType = {
@@ -14568,6 +14743,10 @@ export namespace Prisma {
     cid?: true
     hash?: true
     status?: true
+    revokedAt?: true
+    revocationReason?: true
+    supersededBy?: true
+    supersededFrom?: true
   }
 
   export type CertificateCountAggregateInputType = {
@@ -14583,6 +14762,10 @@ export namespace Prisma {
     cid?: true
     hash?: true
     status?: true
+    revokedAt?: true
+    revocationReason?: true
+    supersededBy?: true
+    supersededFrom?: true
     _all?: true
   }
 
@@ -14671,6 +14854,10 @@ export namespace Prisma {
     cid: string
     hash: string
     status: string
+    revokedAt: string | null
+    revocationReason: string | null
+    supersededBy: string | null
+    supersededFrom: string | null
     _count: CertificateCountAggregateOutputType | null
     _min: CertificateMinAggregateOutputType | null
     _max: CertificateMaxAggregateOutputType | null
@@ -14703,8 +14890,14 @@ export namespace Prisma {
     cid?: boolean
     hash?: boolean
     status?: boolean
+    revokedAt?: boolean
+    revocationReason?: boolean
+    supersededBy?: boolean
+    supersededFrom?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    correctionRequests?: boolean | Certificate$correctionRequestsArgs<ExtArgs>
+    _count?: boolean | CertificateCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["certificate"]>
 
   export type CertificateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -14720,6 +14913,10 @@ export namespace Prisma {
     cid?: boolean
     hash?: boolean
     status?: boolean
+    revokedAt?: boolean
+    revocationReason?: boolean
+    supersededBy?: boolean
+    supersededFrom?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["certificate"]>
@@ -14737,6 +14934,10 @@ export namespace Prisma {
     cid?: boolean
     hash?: boolean
     status?: boolean
+    revokedAt?: boolean
+    revocationReason?: boolean
+    supersededBy?: boolean
+    supersededFrom?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["certificate"]>
@@ -14754,12 +14955,18 @@ export namespace Prisma {
     cid?: boolean
     hash?: boolean
     status?: boolean
+    revokedAt?: boolean
+    revocationReason?: boolean
+    supersededBy?: boolean
+    supersededFrom?: boolean
   }
 
-  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status", ExtArgs["result"]["certificate"]>
+  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status" | "revokedAt" | "revocationReason" | "supersededBy" | "supersededFrom", ExtArgs["result"]["certificate"]>
   export type CertificateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    correctionRequests?: boolean | Certificate$correctionRequestsArgs<ExtArgs>
+    _count?: boolean | CertificateCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CertificateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course?: boolean | Certificate$courseArgs<ExtArgs>
@@ -14775,6 +14982,7 @@ export namespace Prisma {
     objects: {
       course: Prisma.$CoursePayload<ExtArgs> | null
       user: Prisma.$UserPayload<ExtArgs>
+      correctionRequests: Prisma.$CertificateCorrectionRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14789,6 +14997,10 @@ export namespace Prisma {
       cid: string
       hash: string
       status: string
+      revokedAt: string | null
+      revocationReason: string | null
+      supersededBy: string | null
+      supersededFrom: string | null
     }, ExtArgs["result"]["certificate"]>
     composites: {}
   }
@@ -15185,6 +15397,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     course<T extends Certificate$courseArgs<ExtArgs> = {}>(args?: Subset<T, Certificate$courseArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    correctionRequests<T extends Certificate$correctionRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Certificate$correctionRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15226,6 +15439,10 @@ export namespace Prisma {
     readonly cid: FieldRef<"Certificate", 'String'>
     readonly hash: FieldRef<"Certificate", 'String'>
     readonly status: FieldRef<"Certificate", 'String'>
+    readonly revokedAt: FieldRef<"Certificate", 'String'>
+    readonly revocationReason: FieldRef<"Certificate", 'String'>
+    readonly supersededBy: FieldRef<"Certificate", 'String'>
+    readonly supersededFrom: FieldRef<"Certificate", 'String'>
   }
     
 
@@ -15646,6 +15863,30 @@ export namespace Prisma {
   }
 
   /**
+   * Certificate.correctionRequests
+   */
+  export type Certificate$correctionRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    where?: CertificateCorrectionRequestWhereInput
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CertificateCorrectionRequestScalarFieldEnum | CertificateCorrectionRequestScalarFieldEnum[]
+  }
+
+  /**
    * Certificate without action
    */
   export type CertificateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15661,6 +15902,1155 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CertificateInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CertificateCorrectionRequest
+   */
+
+  export type AggregateCertificateCorrectionRequest = {
+    _count: CertificateCorrectionRequestCountAggregateOutputType | null
+    _min: CertificateCorrectionRequestMinAggregateOutputType | null
+    _max: CertificateCorrectionRequestMaxAggregateOutputType | null
+  }
+
+  export type CertificateCorrectionRequestMinAggregateOutputType = {
+    id: string | null
+    certificateId: string | null
+    userId: string | null
+    requestedName: string | null
+    requestedProgram: string | null
+    requestedMajority: string | null
+    reason: string | null
+    status: string | null
+    adminNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CertificateCorrectionRequestMaxAggregateOutputType = {
+    id: string | null
+    certificateId: string | null
+    userId: string | null
+    requestedName: string | null
+    requestedProgram: string | null
+    requestedMajority: string | null
+    reason: string | null
+    status: string | null
+    adminNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CertificateCorrectionRequestCountAggregateOutputType = {
+    id: number
+    certificateId: number
+    userId: number
+    requestedName: number
+    requestedProgram: number
+    requestedMajority: number
+    reason: number
+    status: number
+    adminNotes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CertificateCorrectionRequestMinAggregateInputType = {
+    id?: true
+    certificateId?: true
+    userId?: true
+    requestedName?: true
+    requestedProgram?: true
+    requestedMajority?: true
+    reason?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CertificateCorrectionRequestMaxAggregateInputType = {
+    id?: true
+    certificateId?: true
+    userId?: true
+    requestedName?: true
+    requestedProgram?: true
+    requestedMajority?: true
+    reason?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CertificateCorrectionRequestCountAggregateInputType = {
+    id?: true
+    certificateId?: true
+    userId?: true
+    requestedName?: true
+    requestedProgram?: true
+    requestedMajority?: true
+    reason?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CertificateCorrectionRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CertificateCorrectionRequest to aggregate.
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CertificateCorrectionRequests to fetch.
+     */
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CertificateCorrectionRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CertificateCorrectionRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CertificateCorrectionRequests
+    **/
+    _count?: true | CertificateCorrectionRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CertificateCorrectionRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CertificateCorrectionRequestMaxAggregateInputType
+  }
+
+  export type GetCertificateCorrectionRequestAggregateType<T extends CertificateCorrectionRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateCertificateCorrectionRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCertificateCorrectionRequest[P]>
+      : GetScalarType<T[P], AggregateCertificateCorrectionRequest[P]>
+  }
+
+
+
+
+  export type CertificateCorrectionRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CertificateCorrectionRequestWhereInput
+    orderBy?: CertificateCorrectionRequestOrderByWithAggregationInput | CertificateCorrectionRequestOrderByWithAggregationInput[]
+    by: CertificateCorrectionRequestScalarFieldEnum[] | CertificateCorrectionRequestScalarFieldEnum
+    having?: CertificateCorrectionRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CertificateCorrectionRequestCountAggregateInputType | true
+    _min?: CertificateCorrectionRequestMinAggregateInputType
+    _max?: CertificateCorrectionRequestMaxAggregateInputType
+  }
+
+  export type CertificateCorrectionRequestGroupByOutputType = {
+    id: string
+    certificateId: string
+    userId: string
+    requestedName: string | null
+    requestedProgram: string | null
+    requestedMajority: string | null
+    reason: string
+    status: string
+    adminNotes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CertificateCorrectionRequestCountAggregateOutputType | null
+    _min: CertificateCorrectionRequestMinAggregateOutputType | null
+    _max: CertificateCorrectionRequestMaxAggregateOutputType | null
+  }
+
+  type GetCertificateCorrectionRequestGroupByPayload<T extends CertificateCorrectionRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CertificateCorrectionRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CertificateCorrectionRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CertificateCorrectionRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], CertificateCorrectionRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CertificateCorrectionRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    certificateId?: boolean
+    userId?: boolean
+    requestedName?: boolean
+    requestedProgram?: boolean
+    requestedMajority?: boolean
+    reason?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["certificateCorrectionRequest"]>
+
+  export type CertificateCorrectionRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    certificateId?: boolean
+    userId?: boolean
+    requestedName?: boolean
+    requestedProgram?: boolean
+    requestedMajority?: boolean
+    reason?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["certificateCorrectionRequest"]>
+
+  export type CertificateCorrectionRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    certificateId?: boolean
+    userId?: boolean
+    requestedName?: boolean
+    requestedProgram?: boolean
+    requestedMajority?: boolean
+    reason?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["certificateCorrectionRequest"]>
+
+  export type CertificateCorrectionRequestSelectScalar = {
+    id?: boolean
+    certificateId?: boolean
+    userId?: boolean
+    requestedName?: boolean
+    requestedProgram?: boolean
+    requestedMajority?: boolean
+    reason?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CertificateCorrectionRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certificateId" | "userId" | "requestedName" | "requestedProgram" | "requestedMajority" | "reason" | "status" | "adminNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["certificateCorrectionRequest"]>
+  export type CertificateCorrectionRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CertificateCorrectionRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CertificateCorrectionRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    certificate?: boolean | CertificateDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $CertificateCorrectionRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CertificateCorrectionRequest"
+    objects: {
+      certificate: Prisma.$CertificatePayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      certificateId: string
+      userId: string
+      requestedName: string | null
+      requestedProgram: string | null
+      requestedMajority: string | null
+      reason: string
+      status: string
+      adminNotes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["certificateCorrectionRequest"]>
+    composites: {}
+  }
+
+  type CertificateCorrectionRequestGetPayload<S extends boolean | null | undefined | CertificateCorrectionRequestDefaultArgs> = $Result.GetResult<Prisma.$CertificateCorrectionRequestPayload, S>
+
+  type CertificateCorrectionRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CertificateCorrectionRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CertificateCorrectionRequestCountAggregateInputType | true
+    }
+
+  export interface CertificateCorrectionRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CertificateCorrectionRequest'], meta: { name: 'CertificateCorrectionRequest' } }
+    /**
+     * Find zero or one CertificateCorrectionRequest that matches the filter.
+     * @param {CertificateCorrectionRequestFindUniqueArgs} args - Arguments to find a CertificateCorrectionRequest
+     * @example
+     * // Get one CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CertificateCorrectionRequestFindUniqueArgs>(args: SelectSubset<T, CertificateCorrectionRequestFindUniqueArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CertificateCorrectionRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CertificateCorrectionRequestFindUniqueOrThrowArgs} args - Arguments to find a CertificateCorrectionRequest
+     * @example
+     * // Get one CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CertificateCorrectionRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, CertificateCorrectionRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CertificateCorrectionRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestFindFirstArgs} args - Arguments to find a CertificateCorrectionRequest
+     * @example
+     * // Get one CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CertificateCorrectionRequestFindFirstArgs>(args?: SelectSubset<T, CertificateCorrectionRequestFindFirstArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CertificateCorrectionRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestFindFirstOrThrowArgs} args - Arguments to find a CertificateCorrectionRequest
+     * @example
+     * // Get one CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CertificateCorrectionRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, CertificateCorrectionRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CertificateCorrectionRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CertificateCorrectionRequests
+     * const certificateCorrectionRequests = await prisma.certificateCorrectionRequest.findMany()
+     * 
+     * // Get first 10 CertificateCorrectionRequests
+     * const certificateCorrectionRequests = await prisma.certificateCorrectionRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const certificateCorrectionRequestWithIdOnly = await prisma.certificateCorrectionRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CertificateCorrectionRequestFindManyArgs>(args?: SelectSubset<T, CertificateCorrectionRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CertificateCorrectionRequest.
+     * @param {CertificateCorrectionRequestCreateArgs} args - Arguments to create a CertificateCorrectionRequest.
+     * @example
+     * // Create one CertificateCorrectionRequest
+     * const CertificateCorrectionRequest = await prisma.certificateCorrectionRequest.create({
+     *   data: {
+     *     // ... data to create a CertificateCorrectionRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends CertificateCorrectionRequestCreateArgs>(args: SelectSubset<T, CertificateCorrectionRequestCreateArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CertificateCorrectionRequests.
+     * @param {CertificateCorrectionRequestCreateManyArgs} args - Arguments to create many CertificateCorrectionRequests.
+     * @example
+     * // Create many CertificateCorrectionRequests
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CertificateCorrectionRequestCreateManyArgs>(args?: SelectSubset<T, CertificateCorrectionRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CertificateCorrectionRequests and returns the data saved in the database.
+     * @param {CertificateCorrectionRequestCreateManyAndReturnArgs} args - Arguments to create many CertificateCorrectionRequests.
+     * @example
+     * // Create many CertificateCorrectionRequests
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CertificateCorrectionRequests and only return the `id`
+     * const certificateCorrectionRequestWithIdOnly = await prisma.certificateCorrectionRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CertificateCorrectionRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, CertificateCorrectionRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CertificateCorrectionRequest.
+     * @param {CertificateCorrectionRequestDeleteArgs} args - Arguments to delete one CertificateCorrectionRequest.
+     * @example
+     * // Delete one CertificateCorrectionRequest
+     * const CertificateCorrectionRequest = await prisma.certificateCorrectionRequest.delete({
+     *   where: {
+     *     // ... filter to delete one CertificateCorrectionRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CertificateCorrectionRequestDeleteArgs>(args: SelectSubset<T, CertificateCorrectionRequestDeleteArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CertificateCorrectionRequest.
+     * @param {CertificateCorrectionRequestUpdateArgs} args - Arguments to update one CertificateCorrectionRequest.
+     * @example
+     * // Update one CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CertificateCorrectionRequestUpdateArgs>(args: SelectSubset<T, CertificateCorrectionRequestUpdateArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CertificateCorrectionRequests.
+     * @param {CertificateCorrectionRequestDeleteManyArgs} args - Arguments to filter CertificateCorrectionRequests to delete.
+     * @example
+     * // Delete a few CertificateCorrectionRequests
+     * const { count } = await prisma.certificateCorrectionRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CertificateCorrectionRequestDeleteManyArgs>(args?: SelectSubset<T, CertificateCorrectionRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CertificateCorrectionRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CertificateCorrectionRequests
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CertificateCorrectionRequestUpdateManyArgs>(args: SelectSubset<T, CertificateCorrectionRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CertificateCorrectionRequests and returns the data updated in the database.
+     * @param {CertificateCorrectionRequestUpdateManyAndReturnArgs} args - Arguments to update many CertificateCorrectionRequests.
+     * @example
+     * // Update many CertificateCorrectionRequests
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CertificateCorrectionRequests and only return the `id`
+     * const certificateCorrectionRequestWithIdOnly = await prisma.certificateCorrectionRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CertificateCorrectionRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, CertificateCorrectionRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CertificateCorrectionRequest.
+     * @param {CertificateCorrectionRequestUpsertArgs} args - Arguments to update or create a CertificateCorrectionRequest.
+     * @example
+     * // Update or create a CertificateCorrectionRequest
+     * const certificateCorrectionRequest = await prisma.certificateCorrectionRequest.upsert({
+     *   create: {
+     *     // ... data to create a CertificateCorrectionRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CertificateCorrectionRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CertificateCorrectionRequestUpsertArgs>(args: SelectSubset<T, CertificateCorrectionRequestUpsertArgs<ExtArgs>>): Prisma__CertificateCorrectionRequestClient<$Result.GetResult<Prisma.$CertificateCorrectionRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CertificateCorrectionRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestCountArgs} args - Arguments to filter CertificateCorrectionRequests to count.
+     * @example
+     * // Count the number of CertificateCorrectionRequests
+     * const count = await prisma.certificateCorrectionRequest.count({
+     *   where: {
+     *     // ... the filter for the CertificateCorrectionRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends CertificateCorrectionRequestCountArgs>(
+      args?: Subset<T, CertificateCorrectionRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CertificateCorrectionRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CertificateCorrectionRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CertificateCorrectionRequestAggregateArgs>(args: Subset<T, CertificateCorrectionRequestAggregateArgs>): Prisma.PrismaPromise<GetCertificateCorrectionRequestAggregateType<T>>
+
+    /**
+     * Group by CertificateCorrectionRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CertificateCorrectionRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CertificateCorrectionRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CertificateCorrectionRequestGroupByArgs['orderBy'] }
+        : { orderBy?: CertificateCorrectionRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CertificateCorrectionRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCertificateCorrectionRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CertificateCorrectionRequest model
+   */
+  readonly fields: CertificateCorrectionRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CertificateCorrectionRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CertificateCorrectionRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    certificate<T extends CertificateDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CertificateDefaultArgs<ExtArgs>>): Prisma__CertificateClient<$Result.GetResult<Prisma.$CertificatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CertificateCorrectionRequest model
+   */
+  interface CertificateCorrectionRequestFieldRefs {
+    readonly id: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly certificateId: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly userId: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly requestedName: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly requestedProgram: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly requestedMajority: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly reason: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly status: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly adminNotes: FieldRef<"CertificateCorrectionRequest", 'String'>
+    readonly createdAt: FieldRef<"CertificateCorrectionRequest", 'DateTime'>
+    readonly updatedAt: FieldRef<"CertificateCorrectionRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CertificateCorrectionRequest findUnique
+   */
+  export type CertificateCorrectionRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which CertificateCorrectionRequest to fetch.
+     */
+    where: CertificateCorrectionRequestWhereUniqueInput
+  }
+
+  /**
+   * CertificateCorrectionRequest findUniqueOrThrow
+   */
+  export type CertificateCorrectionRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which CertificateCorrectionRequest to fetch.
+     */
+    where: CertificateCorrectionRequestWhereUniqueInput
+  }
+
+  /**
+   * CertificateCorrectionRequest findFirst
+   */
+  export type CertificateCorrectionRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which CertificateCorrectionRequest to fetch.
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CertificateCorrectionRequests to fetch.
+     */
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CertificateCorrectionRequests.
+     */
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CertificateCorrectionRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CertificateCorrectionRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CertificateCorrectionRequests.
+     */
+    distinct?: CertificateCorrectionRequestScalarFieldEnum | CertificateCorrectionRequestScalarFieldEnum[]
+  }
+
+  /**
+   * CertificateCorrectionRequest findFirstOrThrow
+   */
+  export type CertificateCorrectionRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which CertificateCorrectionRequest to fetch.
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CertificateCorrectionRequests to fetch.
+     */
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CertificateCorrectionRequests.
+     */
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CertificateCorrectionRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CertificateCorrectionRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CertificateCorrectionRequests.
+     */
+    distinct?: CertificateCorrectionRequestScalarFieldEnum | CertificateCorrectionRequestScalarFieldEnum[]
+  }
+
+  /**
+   * CertificateCorrectionRequest findMany
+   */
+  export type CertificateCorrectionRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which CertificateCorrectionRequests to fetch.
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CertificateCorrectionRequests to fetch.
+     */
+    orderBy?: CertificateCorrectionRequestOrderByWithRelationInput | CertificateCorrectionRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CertificateCorrectionRequests.
+     */
+    cursor?: CertificateCorrectionRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CertificateCorrectionRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CertificateCorrectionRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CertificateCorrectionRequests.
+     */
+    distinct?: CertificateCorrectionRequestScalarFieldEnum | CertificateCorrectionRequestScalarFieldEnum[]
+  }
+
+  /**
+   * CertificateCorrectionRequest create
+   */
+  export type CertificateCorrectionRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CertificateCorrectionRequest.
+     */
+    data: XOR<CertificateCorrectionRequestCreateInput, CertificateCorrectionRequestUncheckedCreateInput>
+  }
+
+  /**
+   * CertificateCorrectionRequest createMany
+   */
+  export type CertificateCorrectionRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CertificateCorrectionRequests.
+     */
+    data: CertificateCorrectionRequestCreateManyInput | CertificateCorrectionRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CertificateCorrectionRequest createManyAndReturn
+   */
+  export type CertificateCorrectionRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many CertificateCorrectionRequests.
+     */
+    data: CertificateCorrectionRequestCreateManyInput | CertificateCorrectionRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CertificateCorrectionRequest update
+   */
+  export type CertificateCorrectionRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CertificateCorrectionRequest.
+     */
+    data: XOR<CertificateCorrectionRequestUpdateInput, CertificateCorrectionRequestUncheckedUpdateInput>
+    /**
+     * Choose, which CertificateCorrectionRequest to update.
+     */
+    where: CertificateCorrectionRequestWhereUniqueInput
+  }
+
+  /**
+   * CertificateCorrectionRequest updateMany
+   */
+  export type CertificateCorrectionRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CertificateCorrectionRequests.
+     */
+    data: XOR<CertificateCorrectionRequestUpdateManyMutationInput, CertificateCorrectionRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which CertificateCorrectionRequests to update
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * Limit how many CertificateCorrectionRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CertificateCorrectionRequest updateManyAndReturn
+   */
+  export type CertificateCorrectionRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update CertificateCorrectionRequests.
+     */
+    data: XOR<CertificateCorrectionRequestUpdateManyMutationInput, CertificateCorrectionRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which CertificateCorrectionRequests to update
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * Limit how many CertificateCorrectionRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CertificateCorrectionRequest upsert
+   */
+  export type CertificateCorrectionRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CertificateCorrectionRequest to update in case it exists.
+     */
+    where: CertificateCorrectionRequestWhereUniqueInput
+    /**
+     * In case the CertificateCorrectionRequest found by the `where` argument doesn't exist, create a new CertificateCorrectionRequest with this data.
+     */
+    create: XOR<CertificateCorrectionRequestCreateInput, CertificateCorrectionRequestUncheckedCreateInput>
+    /**
+     * In case the CertificateCorrectionRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CertificateCorrectionRequestUpdateInput, CertificateCorrectionRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * CertificateCorrectionRequest delete
+   */
+  export type CertificateCorrectionRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
+    /**
+     * Filter which CertificateCorrectionRequest to delete.
+     */
+    where: CertificateCorrectionRequestWhereUniqueInput
+  }
+
+  /**
+   * CertificateCorrectionRequest deleteMany
+   */
+  export type CertificateCorrectionRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CertificateCorrectionRequests to delete
+     */
+    where?: CertificateCorrectionRequestWhereInput
+    /**
+     * Limit how many CertificateCorrectionRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CertificateCorrectionRequest without action
+   */
+  export type CertificateCorrectionRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CertificateCorrectionRequest
+     */
+    select?: CertificateCorrectionRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CertificateCorrectionRequest
+     */
+    omit?: CertificateCorrectionRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CertificateCorrectionRequestInclude<ExtArgs> | null
   }
 
 
@@ -21081,10 +22471,31 @@ export namespace Prisma {
     issuedAt: 'issuedAt',
     cid: 'cid',
     hash: 'hash',
-    status: 'status'
+    status: 'status',
+    revokedAt: 'revokedAt',
+    revocationReason: 'revocationReason',
+    supersededBy: 'supersededBy',
+    supersededFrom: 'supersededFrom'
   };
 
   export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
+
+
+  export const CertificateCorrectionRequestScalarFieldEnum: {
+    id: 'id',
+    certificateId: 'certificateId',
+    userId: 'userId',
+    requestedName: 'requestedName',
+    requestedProgram: 'requestedProgram',
+    requestedMajority: 'requestedMajority',
+    reason: 'reason',
+    status: 'status',
+    adminNotes: 'adminNotes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CertificateCorrectionRequestScalarFieldEnum = (typeof CertificateCorrectionRequestScalarFieldEnum)[keyof typeof CertificateCorrectionRequestScalarFieldEnum]
 
 
   export const ExamResultScalarFieldEnum: {
@@ -21309,6 +22720,7 @@ export namespace Prisma {
     certificates?: CertificateListRelationFilter
     examResults?: ExamResultListRelationFilter
     assignmentSubmissions?: AssignmentSubmissionListRelationFilter
+    correctionRequests?: CertificateCorrectionRequestListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -21336,6 +22748,7 @@ export namespace Prisma {
     certificates?: CertificateOrderByRelationAggregateInput
     examResults?: ExamResultOrderByRelationAggregateInput
     assignmentSubmissions?: AssignmentSubmissionOrderByRelationAggregateInput
+    correctionRequests?: CertificateCorrectionRequestOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -21366,6 +22779,7 @@ export namespace Prisma {
     certificates?: CertificateListRelationFilter
     examResults?: ExamResultListRelationFilter
     assignmentSubmissions?: AssignmentSubmissionListRelationFilter
+    correctionRequests?: CertificateCorrectionRequestListRelationFilter
   }, "id" | "email" | "personalEmail" | "studentId" | "nip">
 
   export type UserOrderByWithAggregationInput = {
@@ -22153,8 +23567,13 @@ export namespace Prisma {
     cid?: StringFilter<"Certificate"> | string
     hash?: StringFilter<"Certificate"> | string
     status?: StringFilter<"Certificate"> | string
+    revokedAt?: StringNullableFilter<"Certificate"> | string | null
+    revocationReason?: StringNullableFilter<"Certificate"> | string | null
+    supersededBy?: StringNullableFilter<"Certificate"> | string | null
+    supersededFrom?: StringNullableFilter<"Certificate"> | string | null
     course?: XOR<CourseNullableScalarRelationFilter, CourseWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    correctionRequests?: CertificateCorrectionRequestListRelationFilter
   }
 
   export type CertificateOrderByWithRelationInput = {
@@ -22170,8 +23589,13 @@ export namespace Prisma {
     cid?: SortOrder
     hash?: SortOrder
     status?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revocationReason?: SortOrderInput | SortOrder
+    supersededBy?: SortOrderInput | SortOrder
+    supersededFrom?: SortOrderInput | SortOrder
     course?: CourseOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    correctionRequests?: CertificateCorrectionRequestOrderByRelationAggregateInput
   }
 
   export type CertificateWhereUniqueInput = Prisma.AtLeast<{
@@ -22190,8 +23614,13 @@ export namespace Prisma {
     cid?: StringFilter<"Certificate"> | string
     hash?: StringFilter<"Certificate"> | string
     status?: StringFilter<"Certificate"> | string
+    revokedAt?: StringNullableFilter<"Certificate"> | string | null
+    revocationReason?: StringNullableFilter<"Certificate"> | string | null
+    supersededBy?: StringNullableFilter<"Certificate"> | string | null
+    supersededFrom?: StringNullableFilter<"Certificate"> | string | null
     course?: XOR<CourseNullableScalarRelationFilter, CourseWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    correctionRequests?: CertificateCorrectionRequestListRelationFilter
   }, "id" | "certId">
 
   export type CertificateOrderByWithAggregationInput = {
@@ -22207,6 +23636,10 @@ export namespace Prisma {
     cid?: SortOrder
     hash?: SortOrder
     status?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revocationReason?: SortOrderInput | SortOrder
+    supersededBy?: SortOrderInput | SortOrder
+    supersededFrom?: SortOrderInput | SortOrder
     _count?: CertificateCountOrderByAggregateInput
     _max?: CertificateMaxOrderByAggregateInput
     _min?: CertificateMinOrderByAggregateInput
@@ -22228,6 +23661,98 @@ export namespace Prisma {
     cid?: StringWithAggregatesFilter<"Certificate"> | string
     hash?: StringWithAggregatesFilter<"Certificate"> | string
     status?: StringWithAggregatesFilter<"Certificate"> | string
+    revokedAt?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    revocationReason?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    supersededBy?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    supersededFrom?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+  }
+
+  export type CertificateCorrectionRequestWhereInput = {
+    AND?: CertificateCorrectionRequestWhereInput | CertificateCorrectionRequestWhereInput[]
+    OR?: CertificateCorrectionRequestWhereInput[]
+    NOT?: CertificateCorrectionRequestWhereInput | CertificateCorrectionRequestWhereInput[]
+    id?: StringFilter<"CertificateCorrectionRequest"> | string
+    certificateId?: StringFilter<"CertificateCorrectionRequest"> | string
+    userId?: StringFilter<"CertificateCorrectionRequest"> | string
+    requestedName?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedProgram?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedMajority?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    reason?: StringFilter<"CertificateCorrectionRequest"> | string
+    status?: StringFilter<"CertificateCorrectionRequest"> | string
+    adminNotes?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    createdAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
+    certificate?: XOR<CertificateScalarRelationFilter, CertificateWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type CertificateCorrectionRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    certificateId?: SortOrder
+    userId?: SortOrder
+    requestedName?: SortOrderInput | SortOrder
+    requestedProgram?: SortOrderInput | SortOrder
+    requestedMajority?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    certificate?: CertificateOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type CertificateCorrectionRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CertificateCorrectionRequestWhereInput | CertificateCorrectionRequestWhereInput[]
+    OR?: CertificateCorrectionRequestWhereInput[]
+    NOT?: CertificateCorrectionRequestWhereInput | CertificateCorrectionRequestWhereInput[]
+    certificateId?: StringFilter<"CertificateCorrectionRequest"> | string
+    userId?: StringFilter<"CertificateCorrectionRequest"> | string
+    requestedName?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedProgram?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedMajority?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    reason?: StringFilter<"CertificateCorrectionRequest"> | string
+    status?: StringFilter<"CertificateCorrectionRequest"> | string
+    adminNotes?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    createdAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
+    certificate?: XOR<CertificateScalarRelationFilter, CertificateWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type CertificateCorrectionRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    certificateId?: SortOrder
+    userId?: SortOrder
+    requestedName?: SortOrderInput | SortOrder
+    requestedProgram?: SortOrderInput | SortOrder
+    requestedMajority?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CertificateCorrectionRequestCountOrderByAggregateInput
+    _max?: CertificateCorrectionRequestMaxOrderByAggregateInput
+    _min?: CertificateCorrectionRequestMinOrderByAggregateInput
+  }
+
+  export type CertificateCorrectionRequestScalarWhereWithAggregatesInput = {
+    AND?: CertificateCorrectionRequestScalarWhereWithAggregatesInput | CertificateCorrectionRequestScalarWhereWithAggregatesInput[]
+    OR?: CertificateCorrectionRequestScalarWhereWithAggregatesInput[]
+    NOT?: CertificateCorrectionRequestScalarWhereWithAggregatesInput | CertificateCorrectionRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CertificateCorrectionRequest"> | string
+    certificateId?: StringWithAggregatesFilter<"CertificateCorrectionRequest"> | string
+    userId?: StringWithAggregatesFilter<"CertificateCorrectionRequest"> | string
+    requestedName?: StringNullableWithAggregatesFilter<"CertificateCorrectionRequest"> | string | null
+    requestedProgram?: StringNullableWithAggregatesFilter<"CertificateCorrectionRequest"> | string | null
+    requestedMajority?: StringNullableWithAggregatesFilter<"CertificateCorrectionRequest"> | string | null
+    reason?: StringWithAggregatesFilter<"CertificateCorrectionRequest"> | string
+    status?: StringWithAggregatesFilter<"CertificateCorrectionRequest"> | string
+    adminNotes?: StringNullableWithAggregatesFilter<"CertificateCorrectionRequest"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CertificateCorrectionRequest"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CertificateCorrectionRequest"> | Date | string
   }
 
   export type ExamResultWhereInput = {
@@ -22495,6 +24020,7 @@ export namespace Prisma {
     certificates?: CertificateCreateNestedManyWithoutUserInput
     examResults?: ExamResultCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -22522,6 +24048,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
     examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -22549,6 +24076,7 @@ export namespace Prisma {
     certificates?: CertificateUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -22576,6 +24104,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -23433,8 +24962,13 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
     course?: CourseCreateNestedOneWithoutCertificatesInput
     user: UserCreateNestedOneWithoutCertificatesInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateUncheckedCreateInput = {
@@ -23450,6 +24984,11 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateUpdateInput = {
@@ -23463,8 +25002,13 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
     course?: CourseUpdateOneWithoutCertificatesNestedInput
     user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateUncheckedUpdateInput = {
@@ -23480,6 +25024,11 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateCreateManyInput = {
@@ -23495,6 +25044,10 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
   }
 
   export type CertificateUpdateManyMutationInput = {
@@ -23508,6 +25061,10 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CertificateUncheckedUpdateManyInput = {
@@ -23523,6 +25080,106 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CertificateCorrectionRequestCreateInput = {
+    id?: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    certificate: CertificateCreateNestedOneWithoutCorrectionRequestsInput
+    user: UserCreateNestedOneWithoutCorrectionRequestsInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedCreateInput = {
+    id?: string
+    certificateId: string
+    userId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    certificate?: CertificateUpdateOneRequiredWithoutCorrectionRequestsNestedInput
+    user?: UserUpdateOneRequiredWithoutCorrectionRequestsNestedInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certificateId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestCreateManyInput = {
+    id?: string
+    certificateId: string
+    userId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certificateId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ExamResultCreateInput = {
@@ -23829,6 +25486,12 @@ export namespace Prisma {
     none?: AssignmentSubmissionWhereInput
   }
 
+  export type CertificateCorrectionRequestListRelationFilter = {
+    every?: CertificateCorrectionRequestWhereInput
+    some?: CertificateCorrectionRequestWhereInput
+    none?: CertificateCorrectionRequestWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -23851,6 +25514,10 @@ export namespace Prisma {
   }
 
   export type AssignmentSubmissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CertificateCorrectionRequestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -24664,6 +26331,10 @@ export namespace Prisma {
     cid?: SortOrder
     hash?: SortOrder
     status?: SortOrder
+    revokedAt?: SortOrder
+    revocationReason?: SortOrder
+    supersededBy?: SortOrder
+    supersededFrom?: SortOrder
   }
 
   export type CertificateMaxOrderByAggregateInput = {
@@ -24679,6 +26350,10 @@ export namespace Prisma {
     cid?: SortOrder
     hash?: SortOrder
     status?: SortOrder
+    revokedAt?: SortOrder
+    revocationReason?: SortOrder
+    supersededBy?: SortOrder
+    supersededFrom?: SortOrder
   }
 
   export type CertificateMinOrderByAggregateInput = {
@@ -24694,6 +26369,57 @@ export namespace Prisma {
     cid?: SortOrder
     hash?: SortOrder
     status?: SortOrder
+    revokedAt?: SortOrder
+    revocationReason?: SortOrder
+    supersededBy?: SortOrder
+    supersededFrom?: SortOrder
+  }
+
+  export type CertificateScalarRelationFilter = {
+    is?: CertificateWhereInput
+    isNot?: CertificateWhereInput
+  }
+
+  export type CertificateCorrectionRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    certificateId?: SortOrder
+    userId?: SortOrder
+    requestedName?: SortOrder
+    requestedProgram?: SortOrder
+    requestedMajority?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CertificateCorrectionRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    certificateId?: SortOrder
+    userId?: SortOrder
+    requestedName?: SortOrder
+    requestedProgram?: SortOrder
+    requestedMajority?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CertificateCorrectionRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    certificateId?: SortOrder
+    userId?: SortOrder
+    requestedName?: SortOrder
+    requestedProgram?: SortOrder
+    requestedMajority?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type FloatFilter<$PrismaModel = never> = {
@@ -24897,6 +26623,13 @@ export namespace Prisma {
     connect?: AssignmentSubmissionWhereUniqueInput | AssignmentSubmissionWhereUniqueInput[]
   }
 
+  export type CertificateCorrectionRequestCreateNestedManyWithoutUserInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput> | CertificateCorrectionRequestCreateWithoutUserInput[] | CertificateCorrectionRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutUserInput | CertificateCorrectionRequestCreateOrConnectWithoutUserInput[]
+    createMany?: CertificateCorrectionRequestCreateManyUserInputEnvelope
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+  }
+
   export type CourseUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<CourseCreateWithoutUserInput, CourseUncheckedCreateWithoutUserInput> | CourseCreateWithoutUserInput[] | CourseUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CourseCreateOrConnectWithoutUserInput | CourseCreateOrConnectWithoutUserInput[]
@@ -24930,6 +26663,13 @@ export namespace Prisma {
     connectOrCreate?: AssignmentSubmissionCreateOrConnectWithoutStudentInput | AssignmentSubmissionCreateOrConnectWithoutStudentInput[]
     createMany?: AssignmentSubmissionCreateManyStudentInputEnvelope
     connect?: AssignmentSubmissionWhereUniqueInput | AssignmentSubmissionWhereUniqueInput[]
+  }
+
+  export type CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput> | CertificateCorrectionRequestCreateWithoutUserInput[] | CertificateCorrectionRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutUserInput | CertificateCorrectionRequestCreateOrConnectWithoutUserInput[]
+    createMany?: CertificateCorrectionRequestCreateManyUserInputEnvelope
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -25018,6 +26758,20 @@ export namespace Prisma {
     deleteMany?: AssignmentSubmissionScalarWhereInput | AssignmentSubmissionScalarWhereInput[]
   }
 
+  export type CertificateCorrectionRequestUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput> | CertificateCorrectionRequestCreateWithoutUserInput[] | CertificateCorrectionRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutUserInput | CertificateCorrectionRequestCreateOrConnectWithoutUserInput[]
+    upsert?: CertificateCorrectionRequestUpsertWithWhereUniqueWithoutUserInput | CertificateCorrectionRequestUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CertificateCorrectionRequestCreateManyUserInputEnvelope
+    set?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    disconnect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    delete?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    update?: CertificateCorrectionRequestUpdateWithWhereUniqueWithoutUserInput | CertificateCorrectionRequestUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CertificateCorrectionRequestUpdateManyWithWhereWithoutUserInput | CertificateCorrectionRequestUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+  }
+
   export type CourseUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<CourseCreateWithoutUserInput, CourseUncheckedCreateWithoutUserInput> | CourseCreateWithoutUserInput[] | CourseUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CourseCreateOrConnectWithoutUserInput | CourseCreateOrConnectWithoutUserInput[]
@@ -25086,6 +26840,20 @@ export namespace Prisma {
     update?: AssignmentSubmissionUpdateWithWhereUniqueWithoutStudentInput | AssignmentSubmissionUpdateWithWhereUniqueWithoutStudentInput[]
     updateMany?: AssignmentSubmissionUpdateManyWithWhereWithoutStudentInput | AssignmentSubmissionUpdateManyWithWhereWithoutStudentInput[]
     deleteMany?: AssignmentSubmissionScalarWhereInput | AssignmentSubmissionScalarWhereInput[]
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput> | CertificateCorrectionRequestCreateWithoutUserInput[] | CertificateCorrectionRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutUserInput | CertificateCorrectionRequestCreateOrConnectWithoutUserInput[]
+    upsert?: CertificateCorrectionRequestUpsertWithWhereUniqueWithoutUserInput | CertificateCorrectionRequestUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CertificateCorrectionRequestCreateManyUserInputEnvelope
+    set?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    disconnect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    delete?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    update?: CertificateCorrectionRequestUpdateWithWhereUniqueWithoutUserInput | CertificateCorrectionRequestUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CertificateCorrectionRequestUpdateManyWithWhereWithoutUserInput | CertificateCorrectionRequestUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
   }
 
   export type CourseCreateNestedManyWithoutCategoryInput = {
@@ -25708,6 +27476,20 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput> | CertificateCorrectionRequestCreateWithoutCertificateInput[] | CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput | CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput[]
+    createMany?: CertificateCorrectionRequestCreateManyCertificateInputEnvelope
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+  }
+
+  export type CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput> | CertificateCorrectionRequestCreateWithoutCertificateInput[] | CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput | CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput[]
+    createMany?: CertificateCorrectionRequestCreateManyCertificateInputEnvelope
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+  }
+
   export type CourseUpdateOneWithoutCertificatesNestedInput = {
     create?: XOR<CourseCreateWithoutCertificatesInput, CourseUncheckedCreateWithoutCertificatesInput>
     connectOrCreate?: CourseCreateOrConnectWithoutCertificatesInput
@@ -25724,6 +27506,62 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutCertificatesInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCertificatesInput, UserUpdateWithoutCertificatesInput>, UserUncheckedUpdateWithoutCertificatesInput>
+  }
+
+  export type CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput> | CertificateCorrectionRequestCreateWithoutCertificateInput[] | CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput | CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput[]
+    upsert?: CertificateCorrectionRequestUpsertWithWhereUniqueWithoutCertificateInput | CertificateCorrectionRequestUpsertWithWhereUniqueWithoutCertificateInput[]
+    createMany?: CertificateCorrectionRequestCreateManyCertificateInputEnvelope
+    set?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    disconnect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    delete?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    update?: CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput | CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput[]
+    updateMany?: CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput | CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput[]
+    deleteMany?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput = {
+    create?: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput> | CertificateCorrectionRequestCreateWithoutCertificateInput[] | CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput[]
+    connectOrCreate?: CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput | CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput[]
+    upsert?: CertificateCorrectionRequestUpsertWithWhereUniqueWithoutCertificateInput | CertificateCorrectionRequestUpsertWithWhereUniqueWithoutCertificateInput[]
+    createMany?: CertificateCorrectionRequestCreateManyCertificateInputEnvelope
+    set?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    disconnect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    delete?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    connect?: CertificateCorrectionRequestWhereUniqueInput | CertificateCorrectionRequestWhereUniqueInput[]
+    update?: CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput | CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput[]
+    updateMany?: CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput | CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput[]
+    deleteMany?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+  }
+
+  export type CertificateCreateNestedOneWithoutCorrectionRequestsInput = {
+    create?: XOR<CertificateCreateWithoutCorrectionRequestsInput, CertificateUncheckedCreateWithoutCorrectionRequestsInput>
+    connectOrCreate?: CertificateCreateOrConnectWithoutCorrectionRequestsInput
+    connect?: CertificateWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutCorrectionRequestsInput = {
+    create?: XOR<UserCreateWithoutCorrectionRequestsInput, UserUncheckedCreateWithoutCorrectionRequestsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCorrectionRequestsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CertificateUpdateOneRequiredWithoutCorrectionRequestsNestedInput = {
+    create?: XOR<CertificateCreateWithoutCorrectionRequestsInput, CertificateUncheckedCreateWithoutCorrectionRequestsInput>
+    connectOrCreate?: CertificateCreateOrConnectWithoutCorrectionRequestsInput
+    upsert?: CertificateUpsertWithoutCorrectionRequestsInput
+    connect?: CertificateWhereUniqueInput
+    update?: XOR<XOR<CertificateUpdateToOneWithWhereWithoutCorrectionRequestsInput, CertificateUpdateWithoutCorrectionRequestsInput>, CertificateUncheckedUpdateWithoutCorrectionRequestsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutCorrectionRequestsNestedInput = {
+    create?: XOR<UserCreateWithoutCorrectionRequestsInput, UserUncheckedCreateWithoutCorrectionRequestsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCorrectionRequestsInput
+    upsert?: UserUpsertWithoutCorrectionRequestsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCorrectionRequestsInput, UserUpdateWithoutCorrectionRequestsInput>, UserUncheckedUpdateWithoutCorrectionRequestsInput>
   }
 
   export type UserCreateNestedOneWithoutExamResultsInput = {
@@ -26261,7 +28099,12 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
     course?: CourseCreateNestedOneWithoutCertificatesInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateUncheckedCreateWithoutUserInput = {
@@ -26276,6 +28119,11 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateCreateOrConnectWithoutUserInput = {
@@ -26355,6 +28203,42 @@ export namespace Prisma {
 
   export type AssignmentSubmissionCreateManyStudentInputEnvelope = {
     data: AssignmentSubmissionCreateManyStudentInput | AssignmentSubmissionCreateManyStudentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CertificateCorrectionRequestCreateWithoutUserInput = {
+    id?: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    certificate: CertificateCreateNestedOneWithoutCorrectionRequestsInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedCreateWithoutUserInput = {
+    id?: string
+    certificateId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestCreateOrConnectWithoutUserInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    create: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput>
+  }
+
+  export type CertificateCorrectionRequestCreateManyUserInputEnvelope = {
+    data: CertificateCorrectionRequestCreateManyUserInput | CertificateCorrectionRequestCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -26456,6 +28340,10 @@ export namespace Prisma {
     cid?: StringFilter<"Certificate"> | string
     hash?: StringFilter<"Certificate"> | string
     status?: StringFilter<"Certificate"> | string
+    revokedAt?: StringNullableFilter<"Certificate"> | string | null
+    revocationReason?: StringNullableFilter<"Certificate"> | string | null
+    supersededBy?: StringNullableFilter<"Certificate"> | string | null
+    supersededFrom?: StringNullableFilter<"Certificate"> | string | null
   }
 
   export type ExamResultUpsertWithWhereUniqueWithoutStudentInput = {
@@ -26521,6 +28409,39 @@ export namespace Prisma {
     studentId?: StringFilter<"AssignmentSubmission"> | string
     createdAt?: DateTimeFilter<"AssignmentSubmission"> | Date | string
     updatedAt?: DateTimeFilter<"AssignmentSubmission"> | Date | string
+  }
+
+  export type CertificateCorrectionRequestUpsertWithWhereUniqueWithoutUserInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    update: XOR<CertificateCorrectionRequestUpdateWithoutUserInput, CertificateCorrectionRequestUncheckedUpdateWithoutUserInput>
+    create: XOR<CertificateCorrectionRequestCreateWithoutUserInput, CertificateCorrectionRequestUncheckedCreateWithoutUserInput>
+  }
+
+  export type CertificateCorrectionRequestUpdateWithWhereUniqueWithoutUserInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    data: XOR<CertificateCorrectionRequestUpdateWithoutUserInput, CertificateCorrectionRequestUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CertificateCorrectionRequestUpdateManyWithWhereWithoutUserInput = {
+    where: CertificateCorrectionRequestScalarWhereInput
+    data: XOR<CertificateCorrectionRequestUpdateManyMutationInput, CertificateCorrectionRequestUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CertificateCorrectionRequestScalarWhereInput = {
+    AND?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+    OR?: CertificateCorrectionRequestScalarWhereInput[]
+    NOT?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+    id?: StringFilter<"CertificateCorrectionRequest"> | string
+    certificateId?: StringFilter<"CertificateCorrectionRequest"> | string
+    userId?: StringFilter<"CertificateCorrectionRequest"> | string
+    requestedName?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedProgram?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    requestedMajority?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    reason?: StringFilter<"CertificateCorrectionRequest"> | string
+    status?: StringFilter<"CertificateCorrectionRequest"> | string
+    adminNotes?: StringNullableFilter<"CertificateCorrectionRequest"> | string | null
+    createdAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"CertificateCorrectionRequest"> | Date | string
   }
 
   export type CourseCreateWithoutCategoryInput = {
@@ -26611,6 +28532,7 @@ export namespace Prisma {
     certificates?: CertificateCreateNestedManyWithoutUserInput
     examResults?: ExamResultCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedCoursesInput = {
@@ -26637,6 +28559,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
     examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedCoursesInput = {
@@ -26764,7 +28687,12 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
     user: UserCreateNestedOneWithoutCertificatesInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateUncheckedCreateWithoutCourseInput = {
@@ -26779,6 +28707,11 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
   export type CertificateCreateOrConnectWithoutCourseInput = {
@@ -26826,6 +28759,7 @@ export namespace Prisma {
     certificates?: CertificateUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedCoursesInput = {
@@ -26852,6 +28786,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutCoursesInput = {
@@ -27594,6 +29529,7 @@ export namespace Prisma {
     enrollments?: EnrollmentCreateNestedManyWithoutUserInput
     certificates?: CertificateCreateNestedManyWithoutUserInput
     examResults?: ExamResultCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssignmentSubmissionsInput = {
@@ -27620,6 +29556,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutUserInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
     examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssignmentSubmissionsInput = {
@@ -27699,6 +29636,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUpdateManyWithoutUserNestedInput
     certificates?: CertificateUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignmentSubmissionsInput = {
@@ -27725,6 +29663,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUncheckedUpdateManyWithoutUserNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ModuleCreateWithoutExamsInput = {
@@ -27863,6 +29802,7 @@ export namespace Prisma {
     certificates?: CertificateCreateNestedManyWithoutUserInput
     examResults?: ExamResultCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEnrollmentsInput = {
@@ -27889,6 +29829,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
     examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEnrollmentsInput = {
@@ -27974,6 +29915,7 @@ export namespace Prisma {
     certificates?: CertificateUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEnrollmentsInput = {
@@ -28000,6 +29942,7 @@ export namespace Prisma {
     certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CourseUpsertWithoutEnrollmentsInput = {
@@ -28118,6 +30061,7 @@ export namespace Prisma {
     enrollments?: EnrollmentCreateNestedManyWithoutUserInput
     examResults?: ExamResultCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCertificatesInput = {
@@ -28144,11 +30088,48 @@ export namespace Prisma {
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutUserInput
     examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCertificatesInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutCertificatesInput, UserUncheckedCreateWithoutCertificatesInput>
+  }
+
+  export type CertificateCorrectionRequestCreateWithoutCertificateInput = {
+    id?: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCorrectionRequestsInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput = {
+    id?: string
+    userId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestCreateOrConnectWithoutCertificateInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    create: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput>
+  }
+
+  export type CertificateCorrectionRequestCreateManyCertificateInputEnvelope = {
+    data: CertificateCorrectionRequestCreateManyCertificateInput | CertificateCorrectionRequestCreateManyCertificateInput[]
+    skipDuplicates?: boolean
   }
 
   export type CourseUpsertWithoutCertificatesInput = {
@@ -28235,6 +30216,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCertificatesInput = {
@@ -28259,6 +30241,239 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdCourses?: CourseUncheckedUpdateManyWithoutUserNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+    examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
+    assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CertificateCorrectionRequestUpsertWithWhereUniqueWithoutCertificateInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    update: XOR<CertificateCorrectionRequestUpdateWithoutCertificateInput, CertificateCorrectionRequestUncheckedUpdateWithoutCertificateInput>
+    create: XOR<CertificateCorrectionRequestCreateWithoutCertificateInput, CertificateCorrectionRequestUncheckedCreateWithoutCertificateInput>
+  }
+
+  export type CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput = {
+    where: CertificateCorrectionRequestWhereUniqueInput
+    data: XOR<CertificateCorrectionRequestUpdateWithoutCertificateInput, CertificateCorrectionRequestUncheckedUpdateWithoutCertificateInput>
+  }
+
+  export type CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput = {
+    where: CertificateCorrectionRequestScalarWhereInput
+    data: XOR<CertificateCorrectionRequestUpdateManyMutationInput, CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateInput>
+  }
+
+  export type CertificateCreateWithoutCorrectionRequestsInput = {
+    id?: string
+    certId: string
+    studentName: string
+    studentId: string
+    program: string
+    majority: string
+    issuedAt: string
+    cid: string
+    hash: string
+    status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
+    course?: CourseCreateNestedOneWithoutCertificatesInput
+    user: UserCreateNestedOneWithoutCertificatesInput
+  }
+
+  export type CertificateUncheckedCreateWithoutCorrectionRequestsInput = {
+    id?: string
+    certId: string
+    studentName: string
+    studentId: string
+    program: string
+    majority: string
+    courseId?: string | null
+    userId: string
+    issuedAt: string
+    cid: string
+    hash: string
+    status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
+  }
+
+  export type CertificateCreateOrConnectWithoutCorrectionRequestsInput = {
+    where: CertificateWhereUniqueInput
+    create: XOR<CertificateCreateWithoutCorrectionRequestsInput, CertificateUncheckedCreateWithoutCorrectionRequestsInput>
+  }
+
+  export type UserCreateWithoutCorrectionRequestsInput = {
+    id?: string
+    email: string
+    personalEmail?: string | null
+    password: string
+    name: string
+    role: string
+    isVerified?: boolean
+    isApproved?: boolean
+    isActive?: boolean
+    currentSessionId?: string | null
+    bio?: string | null
+    avatar?: string | null
+    studentId?: string | null
+    nip?: string | null
+    faculty?: string | null
+    majority?: string | null
+    studyProgram?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdCourses?: CourseCreateNestedManyWithoutUserInput
+    enrollments?: EnrollmentCreateNestedManyWithoutUserInput
+    certificates?: CertificateCreateNestedManyWithoutUserInput
+    examResults?: ExamResultCreateNestedManyWithoutStudentInput
+    assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+  }
+
+  export type UserUncheckedCreateWithoutCorrectionRequestsInput = {
+    id?: string
+    email: string
+    personalEmail?: string | null
+    password: string
+    name: string
+    role: string
+    isVerified?: boolean
+    isApproved?: boolean
+    isActive?: boolean
+    currentSessionId?: string | null
+    bio?: string | null
+    avatar?: string | null
+    studentId?: string | null
+    nip?: string | null
+    faculty?: string | null
+    majority?: string | null
+    studyProgram?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdCourses?: CourseUncheckedCreateNestedManyWithoutUserInput
+    enrollments?: EnrollmentUncheckedCreateNestedManyWithoutUserInput
+    certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
+    examResults?: ExamResultUncheckedCreateNestedManyWithoutStudentInput
+    assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+  }
+
+  export type UserCreateOrConnectWithoutCorrectionRequestsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCorrectionRequestsInput, UserUncheckedCreateWithoutCorrectionRequestsInput>
+  }
+
+  export type CertificateUpsertWithoutCorrectionRequestsInput = {
+    update: XOR<CertificateUpdateWithoutCorrectionRequestsInput, CertificateUncheckedUpdateWithoutCorrectionRequestsInput>
+    create: XOR<CertificateCreateWithoutCorrectionRequestsInput, CertificateUncheckedCreateWithoutCorrectionRequestsInput>
+    where?: CertificateWhereInput
+  }
+
+  export type CertificateUpdateToOneWithWhereWithoutCorrectionRequestsInput = {
+    where?: CertificateWhereInput
+    data: XOR<CertificateUpdateWithoutCorrectionRequestsInput, CertificateUncheckedUpdateWithoutCorrectionRequestsInput>
+  }
+
+  export type CertificateUpdateWithoutCorrectionRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certId?: StringFieldUpdateOperationsInput | string
+    studentName?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
+    program?: StringFieldUpdateOperationsInput | string
+    majority?: StringFieldUpdateOperationsInput | string
+    issuedAt?: StringFieldUpdateOperationsInput | string
+    cid?: StringFieldUpdateOperationsInput | string
+    hash?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    course?: CourseUpdateOneWithoutCertificatesNestedInput
+    user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
+  }
+
+  export type CertificateUncheckedUpdateWithoutCorrectionRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certId?: StringFieldUpdateOperationsInput | string
+    studentName?: StringFieldUpdateOperationsInput | string
+    studentId?: StringFieldUpdateOperationsInput | string
+    program?: StringFieldUpdateOperationsInput | string
+    majority?: StringFieldUpdateOperationsInput | string
+    courseId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+    issuedAt?: StringFieldUpdateOperationsInput | string
+    cid?: StringFieldUpdateOperationsInput | string
+    hash?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type UserUpsertWithoutCorrectionRequestsInput = {
+    update: XOR<UserUpdateWithoutCorrectionRequestsInput, UserUncheckedUpdateWithoutCorrectionRequestsInput>
+    create: XOR<UserCreateWithoutCorrectionRequestsInput, UserUncheckedCreateWithoutCorrectionRequestsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCorrectionRequestsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCorrectionRequestsInput, UserUncheckedUpdateWithoutCorrectionRequestsInput>
+  }
+
+  export type UserUpdateWithoutCorrectionRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    personalEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
+    nip?: NullableStringFieldUpdateOperationsInput | string | null
+    faculty?: NullableStringFieldUpdateOperationsInput | string | null
+    majority?: NullableStringFieldUpdateOperationsInput | string | null
+    studyProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdCourses?: CourseUpdateManyWithoutUserNestedInput
+    enrollments?: EnrollmentUpdateManyWithoutUserNestedInput
+    certificates?: CertificateUpdateManyWithoutUserNestedInput
+    examResults?: ExamResultUpdateManyWithoutStudentNestedInput
+    assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCorrectionRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    personalEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    currentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
+    nip?: NullableStringFieldUpdateOperationsInput | string | null
+    faculty?: NullableStringFieldUpdateOperationsInput | string | null
+    majority?: NullableStringFieldUpdateOperationsInput | string | null
+    studyProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdCourses?: CourseUncheckedUpdateManyWithoutUserNestedInput
+    enrollments?: EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+    certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     examResults?: ExamResultUncheckedUpdateManyWithoutStudentNestedInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
   }
@@ -28287,6 +30502,7 @@ export namespace Prisma {
     enrollments?: EnrollmentCreateNestedManyWithoutUserInput
     certificates?: CertificateCreateNestedManyWithoutUserInput
     assignmentSubmissions?: AssignmentSubmissionCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutExamResultsInput = {
@@ -28313,6 +30529,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutUserInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutUserInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutExamResultsInput = {
@@ -28380,6 +30597,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUpdateManyWithoutUserNestedInput
     certificates?: CertificateUpdateManyWithoutUserNestedInput
     assignmentSubmissions?: AssignmentSubmissionUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutExamResultsInput = {
@@ -28406,6 +30624,7 @@ export namespace Prisma {
     enrollments?: EnrollmentUncheckedUpdateManyWithoutUserNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutUserNestedInput
     assignmentSubmissions?: AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ExamUpsertWithoutResultsInput = {
@@ -28645,6 +30864,10 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
   }
 
   export type ExamResultCreateManyStudentInput = {
@@ -28668,6 +30891,19 @@ export namespace Prisma {
     startedAt?: Date | string | null
     submittedAt?: Date | string | null
     assignmentId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestCreateManyUserInput = {
+    id?: string
+    certificateId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28769,7 +31005,12 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
     course?: CourseUpdateOneWithoutCertificatesNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateUncheckedUpdateWithoutUserInput = {
@@ -28784,6 +31025,11 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateUncheckedUpdateManyWithoutUserInput = {
@@ -28798,6 +31044,10 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ExamResultUpdateWithoutStudentInput = {
@@ -28871,6 +31121,45 @@ export namespace Prisma {
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assignmentId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    certificate?: CertificateUpdateOneRequiredWithoutCorrectionRequestsNestedInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certificateId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    certificateId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28984,6 +31273,10 @@ export namespace Prisma {
     cid: string
     hash: string
     status?: string
+    revokedAt?: string | null
+    revocationReason?: string | null
+    supersededBy?: string | null
+    supersededFrom?: string | null
   }
 
   export type AttachmentUpdateWithoutCourseInput = {
@@ -29090,7 +31383,12 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
     user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
+    correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateUncheckedUpdateWithoutCourseInput = {
@@ -29105,6 +31403,11 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
   export type CertificateUncheckedUpdateManyWithoutCourseInput = {
@@ -29119,6 +31422,10 @@ export namespace Prisma {
     cid?: StringFieldUpdateOperationsInput | string
     hash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableStringFieldUpdateOperationsInput | string | null
+    revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
+    supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LessonCreateManyModuleInput = {
@@ -29359,6 +31666,58 @@ export namespace Prisma {
     studentId?: StringFieldUpdateOperationsInput | string
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestCreateManyCertificateInput = {
+    id?: string
+    userId: string
+    requestedName?: string | null
+    requestedProgram?: string | null
+    requestedMajority?: string | null
+    reason: string
+    status?: string
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CertificateCorrectionRequestUpdateWithoutCertificateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCorrectionRequestsNestedInput
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateWithoutCertificateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    requestedName?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedMajority?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProgramKeahlianCreateManyBidangKeahlianInput = {

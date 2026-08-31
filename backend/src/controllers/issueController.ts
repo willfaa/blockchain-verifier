@@ -365,11 +365,16 @@ export const getCertificateFromChain = async (req: Request, res: Response) => {
 
     // Merge data: Local DB has rich formatting, Chain has 'trust'
     const mergedData = {
-      ...chainData, // Base from chain
       ...localCert, // Overwrite/extend with local DB (e.g. relations)
+      ...chainData, // Base from chain
       // Ensure critical fields match chain if available
       certId: chainData?.certId || localCert?.certId,
       status: chainData?.status || localCert?.status,
+      supersededBy: chainData?.supersededBy || localCert?.supersededBy || null,
+      supersededFrom: localCert?.supersededFrom || null,
+      revocationReason: chainData?.revocationReason || localCert?.revocationReason || null,
+      revokedAt: chainData?.revokedAt || localCert?.revokedAt || null,
+      course: localCert?.course || null,
     };
 
     res.json({

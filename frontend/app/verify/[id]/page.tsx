@@ -27,10 +27,12 @@ interface CertificateRecord {
   cid: string; // RESTORED
   txId?: string;
   hash: string;
-  status: "PENDING" | "ISSUED" | "REVOKED";
+  status: "PENDING" | "ISSUED" | "REVOKED" | "SUPERSEDED";
   issuedAt: string;
   revokedAt?: string;
   revocationReason?: string;
+  supersededBy?: string;
+  supersededFrom?: string;
   courseName?: string;
   course?: { title: string };
 }
@@ -178,9 +180,11 @@ export default async function VerificationPage({
               "rounded-[2.5rem] border px-10 py-10 shadow-3xl flex flex-col sm:flex-row items-center gap-10 backdrop-blur-xl relative overflow-hidden",
               cert.status === "ISSUED"
                 ? "border-emerald-500/10 bg-emerald-500/[0.02]"
+                : cert.status === "SUPERSEDED"
+                ? "border-amber-500/20 bg-amber-500/[0.03]"
                 : cert.status === "REVOKED"
                 ? "border-red-500/10 bg-red-500/[0.02]"
-                : "border-amber-500/10 bg-amber-500/[0.02]"
+                : "border-cyan-500/10 bg-cyan-500/[0.02]"
             )}
           >
             <div
@@ -188,25 +192,32 @@ export default async function VerificationPage({
                 "absolute top-0 left-0 w-full h-1 opacity-20",
                 cert.status === "ISSUED"
                   ? "bg-emerald-500"
+                  : cert.status === "SUPERSEDED"
+                  ? "bg-amber-500"
                   : cert.status === "REVOKED"
                   ? "bg-red-500"
-                  : "bg-amber-500"
+                  : "bg-cyan-500"
               )}
             />
 
             {/* Icon */}
             <div
               className={clsx(
-                "p-6 rounded-[2rem] border transition-transform duration-500 hover:scale-110",
+                "p-6 rounded-[2rem] border transition-transform duration-500 hover:scale-110 shrink-0",
                 cert.status === "ISSUED"
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                  : cert.status === "SUPERSEDED"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                   : cert.status === "REVOKED"
                   ? "bg-red-500/10 border-red-500/20 text-red-500"
-                  : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                  : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
               )}
             >
               {cert.status === "ISSUED" && (
                 <CheckCircle className="h-16 w-16" />
+              )}
+              {cert.status === "SUPERSEDED" && (
+                <AlertTriangle className="h-16 w-16" />
               )}
               {cert.status === "REVOKED" && <XCircle className="h-16 w-16" />}
               {cert.status === "PENDING" && (
@@ -215,24 +226,56 @@ export default async function VerificationPage({
             </div>
 
             <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-4xl font-bold tracking-tight text-white mb-2">
-                {cert.status === "ISSUED" ? (
-                  <>
-                    Authentic{" "}
-                    <span className="text-neon-blue">Achievement</span>
-                  </>
-                ) : (
-                  cert.status
+              <div className="flex flex-wrap items-center gap-2 mb-2 justify-center sm:justify-start">
+                <h2 className="text-4xl font-bold tracking-tight text-white">
+                  {cert.status === "ISSUED" ? (
+                    <>
+                      Authentic{" "}
+                      <span className="text-neon-blue">Achievement</span>
+                    </>
+                  ) : cert.status === "SUPERSEDED" ? (
+                    <>
+                      Updated &{" "}
+                      <span className="text-amber-400">Superseded</span>
+                    </>
+                  ) : (
+                    cert.status
+                  )}
+                </h2>
+                {cert.supersededFrom && (
+                  <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider">
+                    Official Replacement
+                  </span>
                 )}
-              </h2>
-              <p className="text-sm font-medium text-white/40 leading-relaxed">
+              </div>
+
+              <p className="text-sm font-medium text-white/50 leading-relaxed">
                 {cert.status === "ISSUED"
                   ? "This credential has been successfully verified against the institutional blockchain records."
+                  : cert.status === "SUPERSEDED"
+                  ? `Sertifikat ini telah digantikan secara resmi oleh sertifikat yang diperbarui. Alasan koreksi: ${
+                      cert.revocationReason || "Data Correction"
+                    }`
                   : cert.status === "REVOKED"
                   ? `Access to this credential was terminated on ${cert.revokedAt}. Reason: ${cert.revocationReason}`
                   : "The record for this achievement is currently awaiting final network consensus."}
               </p>
-              <div className="mt-8 flex flex-wrap justify-center sm:justify-start gap-3">
+
+              {cert.status === "SUPERSEDED" && cert.supersededBy && (
+                <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="text-xs text-amber-200">
+                    <span className="font-bold">Sertifikat Pengganti yang Sah:</span> #{cert.supersededBy}
+                  </div>
+                  <Link
+                    href={`/verify/${cert.supersededBy}`}
+                    className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shrink-0"
+                  >
+                    Buka Sertifikat Baru &rarr;
+                  </Link>
+                </div>
+              )}
+
+              <div className="mt-6 flex flex-wrap justify-center sm:justify-start gap-3">
                 <span className="bg-white/5 border border-white/5 text-[9px] font-bold uppercase tracking-widest text-white/40 rounded-full px-4 py-2">
                   REF: {cert.certId}
                 </span>

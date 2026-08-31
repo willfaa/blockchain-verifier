@@ -389,9 +389,32 @@ export const deleteUser = async (req: Request, res: Response) => {
       return safeResponse(res, 400, { error: "Cannot delete self" });
     }
 
+    // 1. Fetch user data before deletion to clean up wallet and files
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      return safeResponse(res, 404, { error: "User not found" });
+    }
+
+    // 2. Automatically drop wallet identities from Fabric
+    if (process.env.FABRIC_ENABLED === "true") {
+      try {
+        const { removeFabricUserWallet } = require("../fabric/client");
+        if (user.email) await removeFabricUserWallet(user.email, user.role);
+        await removeFabricUserWallet(user.id, user.role);
+      } catch (fabricErr: any) {
+        console.warn(`[DeleteUser] Wallet drop notice for ${user.email}:`, fabricErr.message);
+      }
+    }
+
+    // 3. Delete user record from database
     await db.user.delete({ where: { id: userId } });
-    return safeResponse(res, 200, { message: "User deleted" });
+    return safeResponse(res, 200, { message: "User and blockchain wallet identity deleted successfully" });
   } catch (error: any) {
+    console.error("[DeleteUser Error]", error.message);
     return safeResponse(res, 500, { error: "Deletion failed" });
   }
 };

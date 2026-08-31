@@ -5,6 +5,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as dotenv from "dotenv"; // Tambahkan ini agar aman
 import { CertificateRecord } from "../types";
+import { db } from "../config/db";
 
 // --- LOAD ENV FILE ---
 // Pastikan file .env terbaca sebelum variabel didefinisikan
@@ -15,11 +16,9 @@ dotenv.config({ path: envPath });
 const CHANNEL_NAME = process.env.FABRIC_CHANNEL || "mychannel";
 const CHAINCODE_NAME = process.env.FABRIC_CHAINCODE || "basic";
 const MSPID = process.env.FABRIC_MSPID || "Org1MSP";
-const IDENTITY_LABEL = process.env.FABRIC_IDENTITY_LABEL || "appUser";
+const IDENTITY_LABEL = process.env.FABRIC_IDENTITY_LABEL || "admin";
 
 // --- LOGIC STRICT BOOLEAN ---
-// Hapus logika '|| "true"' agar sistem patuh 100% pada .env
-// Jika di .env tidak ada, defaultnya FALSE (agar ketahuan kalau lupa set)
 const DISCOVERY_ENABLED = process.env.FABRIC_DISCOVERY === "true";
 const AS_LOCALHOST =
   process.env.AS_LOCALHOST === "true" ||
@@ -30,6 +29,7 @@ const FUNC_ISSUE = "IssueCertificate";
 const FUNC_READ = "ReadCertificate";
 const FUNC_LIST = "GetAllCertificates";
 const FUNC_REVOKE = "RevokeCertificate";
+const FUNC_SUPERSEDE = "SupersedeCertificate";
 
 // --- RESILIENT PATH DEFINITIONS ---
 function getCcpPath(): string {
@@ -78,13 +78,14 @@ function loadConnectionProfile() {
 // Helper: Determine wallet path based on role
 function getWalletPath(role?: string): string {
   const root = getWalletRootPath();
-  if (role === "teacher" || role === "lecture")
+  const normalized = (role || "").toLowerCase();
+  if (normalized === "teacher" || normalized === "lecture")
     return path.join(root, "lecture");
-  if (role === "student") return path.join(root, "student");
+  if (normalized === "student") return path.join(root, "student");
   return root; // Default/Admin
 }
 
-// Helper Utama: Koneksi ke Gateway
+// Helper Utama: Koneksi ke Gateway dengan JIT Enrollment & Fallback
 export async function getContract(
   userId?: string,
   role?: string,
@@ -100,29 +101,53 @@ export async function getContract(
   const identityName = userId || IDENTITY_LABEL;
 
   // 3. Check Identity
-  const identity = await wallet.get(identityName);
-  if (!identity) {
-    console.error(
-      `❌ Identity "${identityName}" not found in wallet: ${targetWalletPath}`,
-    );
-    throw new Error(`Identity ${identityName} not found in user wallet`);
+  let identity = await wallet.get(identityName);
+
+  // JIT Auto-Enrollment: Jika user belum punya identitas di wallet, buatkan secara otomatis
+  if (!identity && userId && userId !== IDENTITY_LABEL && userId !== "admin") {
+    try {
+      console.log(`⚡ [JIT Enrollment] Identity "${identityName}" missing in wallet, attempting auto-enroll...`);
+      await registerFabricUser(userId, role || "student");
+      identity = await wallet.get(identityName);
+    } catch (enrollErr: any) {
+      console.warn(`[JIT Enrollment Notice for ${identityName}]:`, enrollErr.message);
+    }
   }
 
-  // Connect Gateway
+  // Gateway Connection
   const gateway = new Gateway();
 
-  await gateway.connect(ccp, {
-    wallet,
-    identity: identityName,
-    discovery: {
-      enabled: DISCOVERY_ENABLED,
-      asLocalhost: AS_LOCALHOST,
-    },
-  });
+  if (identity) {
+    await gateway.connect(ccp, {
+      wallet,
+      identity: identityName,
+      discovery: {
+        enabled: DISCOVERY_ENABLED,
+        asLocalhost: AS_LOCALHOST,
+      },
+    });
+  } else {
+    // Graceful Fallback ke Admin Identity di Root Wallet
+    const adminWallet = await Wallets.newFileSystemWallet(getWalletRootPath());
+    const adminIdentity = await adminWallet.get("admin") || await adminWallet.get(IDENTITY_LABEL);
+    if (adminIdentity) {
+      console.warn(`⚠️ [Fabric Fallback] Using admin identity as fallback for "${identityName}".`);
+      await gateway.connect(ccp, {
+        wallet: adminWallet,
+        identity: "admin",
+        discovery: {
+          enabled: DISCOVERY_ENABLED,
+          asLocalhost: AS_LOCALHOST,
+        },
+      });
+    } else {
+      console.error(`❌ Identity "${identityName}" not found in wallet: ${targetWalletPath}`);
+      throw new Error(`Identity ${identityName} not found in user wallet`);
+    }
+  }
 
   // Get Network & Contract
   const network = await gateway.getNetwork(CHANNEL_NAME);
-  // Use dynamic chaincode name (default: basic, or qscc for system)
   const contract = network.getContract(chaincodeName);
   return { gateway, contract };
 }
@@ -221,6 +246,26 @@ export async function revokeCertificateOnFabric(
       revocationReason,
       revokedAt,
     );
+  } finally {
+    gateway.disconnect();
+  }
+}
+
+export async function supersedeCertificateOnFabric(
+  oldCertId: string,
+  newCertId: string,
+  reason: string,
+): Promise<void> {
+  const { gateway, contract } = await getContract();
+  try {
+    console.log(`🔄 Superseding certificate on Fabric: ${oldCertId} -> ${newCertId} (Reason: ${reason})`);
+    await contract.submitTransaction(
+      FUNC_SUPERSEDE,
+      oldCertId,
+      newCertId,
+      reason,
+    );
+    console.log(`✅ Fabric Supersede Transaction Committed`);
   } finally {
     gateway.disconnect();
   }
@@ -372,5 +417,187 @@ export async function getAllCertificatesFromFabric(
   } catch (error: any) {
     console.error(`Failed to get all certificates: ${error}`);
     throw new Error(error.message);
+  }
+}
+
+/**
+ * Remove a user's wallet identity file when the user is deleted from the database.
+ * Also optionally revokes the user certificate from Fabric CA.
+ */
+export async function removeFabricUserWallet(
+  identifier: string,
+  role?: string,
+): Promise<boolean> {
+  try {
+    const walletRoot = getWalletRootPath();
+    const targetPaths = [
+      walletRoot,
+      path.join(walletRoot, "student"),
+      path.join(walletRoot, "lecture"),
+    ];
+
+    let removed = false;
+    for (const p of targetPaths) {
+      if (fs.existsSync(p)) {
+        try {
+          const wallet = await Wallets.newFileSystemWallet(p);
+          const exists = await wallet.get(identifier);
+          if (exists) {
+            await wallet.remove(identifier);
+            console.log(`🗑️ [Wallet Drop] Removed Fabric wallet identity "${identifier}" from ${p}`);
+            removed = true;
+          }
+        } catch (wErr: any) {
+          // ignore
+        }
+
+        // Check if raw .id file exists on disk directly
+        const rawFilePath = path.join(p, `${identifier}.id`);
+        if (fs.existsSync(rawFilePath)) {
+          fs.unlinkSync(rawFilePath);
+          console.log(`🗑️ [Wallet Drop] Deleted file ${rawFilePath}`);
+          removed = true;
+        }
+      }
+    }
+
+    // Attempt CA Revocation if CA is available
+    try {
+      const ccp = loadConnectionProfile();
+      const caInfo = ccp.certificateAuthorities?.["ca.org1.example.com"];
+      if (caInfo) {
+        const ca = new FabricCAServices(
+          caInfo.url,
+          { trustedRoots: caInfo.tlsCACerts.pem, verify: false },
+          caInfo.caName
+        );
+        const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
+        const adminIdentity = await adminWallet.get("admin");
+        if (adminIdentity) {
+          const provider = adminWallet.getProviderRegistry().getProvider(adminIdentity.type);
+          const adminUser = await provider.getUserContext(adminIdentity, "admin");
+          await ca.revoke({ enrollmentID: identifier, reason: "User deleted from system registry" }, adminUser);
+          console.log(`🔒 [CA Revocation] Successfully revoked Fabric certificate for "${identifier}"`);
+        }
+      }
+    } catch (caErr: any) {
+      // CA revocation errors can be safely ignored if user was never enrolled or already revoked
+    }
+
+    return removed;
+  } catch (err: any) {
+    console.error(`❌ Failed to remove wallet for ${identifier}:`, err.message);
+    return false;
+  }
+}
+
+/**
+ * Auto-Sync Fabric Wallet on Server Startup.
+ * Checks Admin enrollment, and ensures active DB users have identities in the wallet.
+ */
+export async function autoSyncFabricWallet(): Promise<void> {
+  if (process.env.FABRIC_ENABLED !== "true") return;
+
+  try {
+    const ccp = loadConnectionProfile();
+    const caInfo = ccp.certificateAuthorities?.["ca.org1.example.com"];
+    if (!caInfo) return;
+
+    const ca = new FabricCAServices(
+      caInfo.url,
+      { trustedRoots: caInfo.tlsCACerts.pem, verify: false },
+      caInfo.caName
+    );
+
+    const walletRoot = getWalletRootPath();
+    const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
+
+    // 1. Ensure Admin identity exists
+    let adminIdentity = (await adminWallet.get("admin")) as X509Identity | undefined;
+    if (!adminIdentity) {
+      console.log("👤 [AutoSync] Enrolling Admin identity from Fabric CA...");
+      const enrollment = await ca.enroll({
+        enrollmentID: "admin",
+        enrollmentSecret: "adminpw",
+      });
+      adminIdentity = {
+        credentials: {
+          certificate: enrollment.certificate,
+          privateKey: enrollment.key.toBytes(),
+        },
+        mspId: MSPID,
+        type: "X.509",
+      };
+      await adminWallet.put("admin", adminIdentity);
+      console.log("✅ [AutoSync] Admin identity enrolled successfully in wallet.");
+    }
+
+    // 2. Fetch users from DB and sync missing wallets
+    const users = await db.user.findMany({
+      where: {
+        role: { not: "admin", mode: "insensitive" as any },
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!users || users.length === 0) return;
+
+    const provider = adminWallet.getProviderRegistry().getProvider(adminIdentity.type);
+    const adminUser = await provider.getUserContext(adminIdentity, "admin");
+
+    for (const u of users) {
+      const roleStr = (u.role || "student").toLowerCase();
+      let targetPath = walletRoot;
+      if (roleStr === "student") {
+        targetPath = path.join(walletRoot, "student");
+      } else if (roleStr === "teacher" || roleStr === "lecture") {
+        targetPath = path.join(walletRoot, "lecture");
+      }
+
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true });
+      }
+
+      const userWallet = await Wallets.newFileSystemWallet(targetPath);
+      const identifier = u.email;
+      if (!identifier) continue;
+
+      const exists = await userWallet.get(identifier);
+      if (!exists) {
+        try {
+          const secret = await ca.register(
+            {
+              affiliation: "org1.department1",
+              enrollmentID: identifier,
+              role: "client",
+              attrs: [{ name: "role", value: roleStr, ecert: true }],
+            },
+            adminUser
+          );
+          const userEnrollment = await ca.enroll({
+            enrollmentID: identifier,
+            enrollmentSecret: secret,
+          });
+          const x509: X509Identity = {
+            credentials: {
+              certificate: userEnrollment.certificate,
+              privateKey: userEnrollment.key.toBytes(),
+            },
+            mspId: MSPID,
+            type: "X.509",
+          };
+          await userWallet.put(identifier, x509);
+          console.log(`✅ [AutoSync] Enrolled missing wallet identity for ${identifier} (${roleStr})`);
+        } catch (regErr: any) {
+          // If already registered in CA or connection busy, skip silently
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn("⚠️ [AutoSync Notice]: Fabric AutoSync skipped/deferred:", err.message);
   }
 }

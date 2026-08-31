@@ -21,8 +21,14 @@ import {
   Clock,
   ShieldCheck,
   Zap,
+  AlertTriangle,
+  Edit3,
+  Check,
+  ExternalLink,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -32,24 +38,51 @@ export default function AdminDashboard() {
   const [autoSync, setAutoSync] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Data Drift & Correction Requests State
+  const [discrepancies, setDiscrepancies] = useState<any[]>([]);
+  const [correctionRequests, setCorrectionRequests] = useState<any[]>([]);
+  const [selectedDiscrepancy, setSelectedDiscrepancy] = useState<any | null>(null);
+  const [showSupersedeModal, setShowSupersedeModal] = useState(false);
+  const [submittingSupersede, setSubmittingSupersede] = useState(false);
+
+  // Form State for Supersede
+  const [correctedName, setCorrectedName] = useState("");
+  const [correctedProgram, setCorrectedProgram] = useState("");
+  const [correctedMajority, setCorrectedMajority] = useState("");
+  const [supersedeReason, setSupersedeReason] = useState("");
+  const [updateUserProfile, setUpdateUserProfile] = useState(true);
+
   const isMountedRef = useRef(true);
 
-  // Fetch stats from backend
+  // Fetch stats and integrity checks from backend
   const fetchStats = useCallback(async (isManual: boolean = false) => {
     if (isManual) setIsSyncing(true);
     try {
-      const res = await api.get("/admin/stats");
-      if (res.data) {
-        setStats(res.data);
+      const [statsRes, discRes, reqRes] = await Promise.allSettled([
+        api.get("/admin/stats"),
+        api.get("/certificates/discrepancies"),
+        api.get("/certificates/correction-requests?status=PENDING"),
+      ]);
+
+      if (statsRes.status === "fulfilled" && statsRes.value?.data) {
+        setStats(statsRes.value.data);
         setLastSyncedAt(new Date());
         if (isManual) {
-          const blockchainStatus = res.data?.system?.health?.blockchain;
+          const blockchainStatus = statsRes.value.data?.system?.health?.blockchain;
           if (blockchainStatus === "ONLINE") {
             toast.success("Sinkronisasi Realtime Berhasil: Semua Service & Blockchain ONLINE!");
           } else {
             toast.info("Status tersinkronisasi. Blockchain: " + (blockchainStatus || "OFFLINE"));
           }
         }
+      }
+
+      if (discRes.status === "fulfilled" && discRes.value?.data?.ok) {
+        setDiscrepancies(discRes.value.data.data || []);
+      }
+
+      if (reqRes.status === "fulfilled" && reqRes.value?.data?.ok) {
+        setCorrectionRequests(reqRes.value.data.data || []);
       }
     } catch (err: any) {
       console.error("[Dashboard] Failed to fetch stats:", err);
@@ -87,6 +120,52 @@ export default function AdminDashboard() {
       clearInterval(clockTimer);
     };
   }, [fetchStats, autoSync]);
+
+  const openSupersedeModal = (item: any) => {
+    setSelectedDiscrepancy(item);
+    const cert = item.certificate;
+    const req = item.pendingRequest;
+    const user = item.currentUser;
+
+    setCorrectedName(req?.requestedName || user?.name || cert.studentName);
+    setCorrectedProgram(req?.requestedProgram || user?.studyProgram || cert.program);
+    setCorrectedMajority(req?.requestedMajority || user?.majority || cert.majority);
+    setSupersedeReason(req?.reason || "Koreksi data profil dan ejaan nama pada sertifikat");
+    setUpdateUserProfile(true);
+    setShowSupersedeModal(true);
+  };
+
+  const handleSupersedeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDiscrepancy || !supersedeReason.trim()) {
+      toast.error("Mohon isi alasan koreksi & penerbitan ulang.");
+      return;
+    }
+
+    setSubmittingSupersede(true);
+    try {
+      const res = await api.post("/certificates/supersede", {
+        oldCertId: selectedDiscrepancy.certificate.certId || selectedDiscrepancy.certificate.id,
+        correctedName: correctedName.trim(),
+        correctedProgram: correctedProgram.trim(),
+        correctedMajority: correctedMajority.trim(),
+        reason: supersedeReason.trim(),
+        requestId: selectedDiscrepancy.pendingRequest?.id || null,
+        updateUserProfile: updateUserProfile,
+      });
+
+      if (res.data.ok) {
+        toast.success("Sertifikat berhasil digantikan (Superseded) dan diterbitkan ulang di Blockchain!");
+        setShowSupersedeModal(false);
+        fetchStats(false);
+      }
+    } catch (err: any) {
+      console.error("Failed to supersede certificate:", err);
+      toast.error(err.response?.data?.error || "Gagal melakukan supersede sertifikat");
+    } finally {
+      setSubmittingSupersede(false);
+    }
+  };
 
   if (loading && !stats) {
     return (
@@ -162,6 +241,7 @@ export default function AdminDashboard() {
   ];
 
   const allOnline = services.every((s) => s.status === "ONLINE");
+  const totalIssues = discrepancies.length + correctionRequests.length;
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 font-sans">
@@ -179,6 +259,13 @@ export default function AdminDashboard() {
               />
               {autoSync ? "REALTIME SYNC (4s)" : "SYNC PAUSED"}
             </span>
+
+            {totalIssues > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold font-mono tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400 animate-pulse">
+                <AlertTriangle size={12} />
+                {totalIssues} DATA REVIEW
+              </span>
+            )}
           </div>
 
           <div className="text-white/40 text-[11px] font-semibold tracking-widest mt-3 flex flex-wrap items-center gap-4 uppercase font-mono">
@@ -288,6 +375,88 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* DATA DRIFT & CORRECTION REQUESTS SECTION */}
+      {discrepancies.length > 0 && (
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl border-amber-500/20 bg-amber-500/[0.02] shadow-2xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                  Deteksi Ketidaksesuaian Data & Permohonan Koreksi
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono">
+                    {discrepancies.length} Perlu Review
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Sistem otomatis mendeteksi perubahan profil akun atau tiket permohonan koreksi nama dari mahasiswa.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {discrepancies.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-white text-sm">
+                      {item.certificate?.course?.title || "Sertifikat"}
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
+                      ID: {item.certificate?.certId?.substring(0, 16)}...
+                    </span>
+                    {item.hasPendingCorrection && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                        Tiket Mahasiswa Masuk
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    <span className="text-slate-400">
+                      Nama di Sertifikat: <strong className="text-rose-300 line-through">{item.certificate?.studentName}</strong>
+                    </span>
+                    <ArrowRight size={12} className="text-slate-500" />
+                    <span className="text-emerald-400">
+                      Nama Terkini: <strong>{item.pendingRequest?.requestedName || item.currentUser?.name || "N/A"}</strong>
+                    </span>
+                  </div>
+
+                  {item.diffs && item.diffs.length > 0 && (
+                    <div className="text-[11px] text-amber-300/80 font-mono">
+                      &bull; {item.diffs.join(" | ")}
+                    </div>
+                  )}
+
+                  {item.pendingRequest?.reason && (
+                    <div className="text-xs text-slate-400 italic">
+                      Alasan: &ldquo;{item.pendingRequest.reason}&rdquo;
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => openSupersedeModal(item)}
+                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                  >
+                    <Edit3 size={14} />
+                    <span>Koreksi & Re-Issue</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Content Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -434,6 +603,133 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* MODAL SUPERSEDE & RE-ISSUE */}
+      {showSupersedeModal && selectedDiscrepancy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#111116] border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <Edit3 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Koreksi & Terbitkan Ulang Sertifikat (Supersede)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Sertifikat lama akan dicabut (SUPERSEDED) dan sertifikat baru diterbitkan ke Blockchain.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSupersedeModal(false)}
+                className="text-white/40 hover:text-white text-lg font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSupersedeSubmit} className="space-y-4">
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-xs space-y-1.5">
+                <div className="text-slate-400">
+                  ID Sertifikat Asli: <code className="text-amber-300 font-mono">{selectedDiscrepancy.certificate.certId}</code>
+                </div>
+                <div className="text-slate-400">
+                  Nama Awal di Sertifikat: <strong className="text-rose-300">{selectedDiscrepancy.certificate.studentName}</strong>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Ejaan Nama Lengkap yang Baru / Sah
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={correctedName}
+                  onChange={(e) => setCorrectedName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Program Studi
+                  </label>
+                  <input
+                    type="text"
+                    value={correctedProgram}
+                    onChange={(e) => setCorrectedProgram(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Bidang Keahlian
+                  </label>
+                  <input
+                    type="text"
+                    value={correctedMajority}
+                    onChange={(e) => setCorrectedMajority(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Alasan Pembaruan / Koreksi (Tercatat di Blockchain)
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={supersedeReason}
+                  onChange={(e) => setSupersedeReason(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500 resize-none"
+                  placeholder="Koreksi ejaan nama sesuai KTP / ijazah"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="updateProfile"
+                  checked={updateUserProfile}
+                  onChange={(e) => setUpdateUserProfile(e.target.checked)}
+                  className="rounded border-white/10 bg-white/5 text-cyan-500 focus:ring-0"
+                />
+                <label htmlFor="updateProfile" className="text-xs text-slate-300">
+                  Perbarui juga data profil user di database secara bersamaan
+                </label>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShowSupersedeModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingSupersede}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                >
+                  {submittingSupersede ? (
+                    <RefreshCw size={14} className="animate-spin" />
+                  ) : (
+                    <Check size={14} />
+                  )}
+                  <span>{submittingSupersede ? "Memproses Blockchain..." : "Terbitkan Ulang Sekarang"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

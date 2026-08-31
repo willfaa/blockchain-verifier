@@ -121,6 +121,13 @@ testConnection()
       👑 Admin API: http://localhost:${PORT}/api/admin
       📚 LMS API:   http://localhost:${PORT}/api/lms
       `);
+
+      // Non-blocking background wallet sync on startup for production/local resilience
+      if (process.env.FABRIC_ENABLED === "true") {
+        import("./fabric/client")
+          .then(({ autoSyncFabricWallet }) => autoSyncFabricWallet())
+          .catch((e) => console.warn("[Startup Fabric AutoSync skipped]:", e.message));
+      }
     });
   })
   .catch((err) => {

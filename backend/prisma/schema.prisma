@@ -37,6 +37,7 @@ model User {
   certificates   Certificate[] 
   examResults    ExamResult[]
   assignmentSubmissions AssignmentSubmission[] 
+  correctionRequests CertificateCorrectionRequest[]
 
   @@map("users")
 }
@@ -238,12 +239,38 @@ model Certificate {
   userId      String    
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  issuedAt    String   
-  cid         String   
-  hash        String   
-  status      String   @default("ISSUED") 
+  issuedAt         String   
+  cid              String   
+  hash             String   
+  status           String   @default("ISSUED") // ISSUED, PENDING, REVOKED, SUPERSEDED
+  revokedAt        String?
+  revocationReason String?
+  supersededBy     String?
+  supersededFrom   String?
+
+  correctionRequests CertificateCorrectionRequest[]
 
   @@map("certificates")
+}
+
+model CertificateCorrectionRequest {
+  id                String   @id @default(uuid())
+  certificateId     String
+  certificate       Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  requestedName     String?
+  requestedProgram  String?
+  requestedMajority String?
+  reason            String   @db.Text
+  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNotes        String?  @db.Text
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("certificate_correction_requests")
 }
 
 model ExamResult {

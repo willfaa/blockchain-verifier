@@ -261,7 +261,25 @@ exports.Prisma.CertificateScalarFieldEnum = {
   issuedAt: 'issuedAt',
   cid: 'cid',
   hash: 'hash',
-  status: 'status'
+  status: 'status',
+  revokedAt: 'revokedAt',
+  revocationReason: 'revocationReason',
+  supersededBy: 'supersededBy',
+  supersededFrom: 'supersededFrom'
+};
+
+exports.Prisma.CertificateCorrectionRequestScalarFieldEnum = {
+  id: 'id',
+  certificateId: 'certificateId',
+  userId: 'userId',
+  requestedName: 'requestedName',
+  requestedProgram: 'requestedProgram',
+  requestedMajority: 'requestedMajority',
+  reason: 'reason',
+  status: 'status',
+  adminNotes: 'adminNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.ExamResultScalarFieldEnum = {
@@ -343,6 +361,7 @@ exports.Prisma.ModelName = {
   Exam: 'Exam',
   Enrollment: 'Enrollment',
   Certificate: 'Certificate',
+  CertificateCorrectionRequest: 'CertificateCorrectionRequest',
   ExamResult: 'ExamResult',
   SystemSetting: 'SystemSetting',
   BidangKeahlian: 'BidangKeahlian',

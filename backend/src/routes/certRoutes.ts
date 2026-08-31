@@ -43,6 +43,26 @@ router.post("/revoke", verifyToken, verifyAdmin, (req, res) =>
   certController.revokeCertificate(req, res)
 );
 
+// C1. Automated Data Drift & Discrepancies (Admin / Teacher)
+router.get("/discrepancies", verifyToken, verifyIssuer, (req, res) =>
+  certController.getDiscrepancies(req, res)
+);
+
+// C2. Student Self-Service Request Correction (Student)
+router.post("/request-correction", verifyToken, (req, res) =>
+  certController.requestCorrection(req, res)
+);
+
+// C3. Get Correction Requests (Admin / Teacher)
+router.get("/correction-requests", verifyToken, verifyIssuer, (req, res) =>
+  certController.getCorrectionRequests(req, res)
+);
+
+// C4. Supersede / Re-Issue Certificate with Corrected Data (Admin / Teacher)
+router.post("/supersede", verifyToken, verifyIssuer, (req, res) =>
+  certController.supersedeCertificate(req, res)
+);
+
 // --- PUBLIC ROUTES (Bisa diakses siapa saja) ---
 
 // D. Verify Certificate (Read from Blockchain)

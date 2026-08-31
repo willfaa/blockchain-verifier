@@ -8,6 +8,7 @@ import {
   issueCertificateOnFabric,
   getCertificateFromFabric,
   revokeCertificateOnFabric,
+  supersedeCertificateOnFabric,
   getAllCertificatesFromFabric,
 } from "../fabric/client";
 import {
@@ -672,6 +673,332 @@ export class CertController {
       return res.json({ ok: true, data: certificates });
     } catch (err: any) {
       console.error("Get My Certificates Error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- AUTOMATED DATA DRIFT DETECTOR ---
+  public async getDiscrepancies(req: Request, res: Response) {
+    try {
+      const certificates = await prisma.certificate.findMany({
+        where: { status: "ISSUED" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              studentId: true,
+              nip: true,
+              studyProgram: true,
+              majority: true,
+              isActive: true,
+            },
+          },
+          course: {
+            select: { id: true, title: true, imageUrl: true },
+          },
+          correctionRequests: {
+            where: { status: "PENDING" },
+          },
+        },
+        orderBy: { issuedAt: "desc" },
+      });
+
+      const discrepancies: any[] = [];
+
+      for (const cert of certificates) {
+        const u = cert.user;
+        const diffs: string[] = [];
+
+        if (!u) {
+          diffs.push("User Account Deleted from System");
+        } else {
+          if (u.name && u.name.trim().toLowerCase() !== cert.studentName.trim().toLowerCase()) {
+            diffs.push(`Name Mismatch: Cert ("${cert.studentName}") vs Profile ("${u.name}")`);
+          }
+          if (u.studentId && cert.studentId && u.studentId.trim() !== cert.studentId.trim()) {
+            diffs.push(`ID/NIM Mismatch: Cert ("${cert.studentId}") vs Profile ("${u.studentId}")`);
+          }
+          if (u.studyProgram && cert.program && u.studyProgram.trim().toLowerCase() !== cert.program.trim().toLowerCase()) {
+            diffs.push(`Program Mismatch: Cert ("${cert.program}") vs Profile ("${u.studyProgram}")`);
+          }
+          if (u.majority && cert.majority && u.majority.trim().toLowerCase() !== cert.majority.trim().toLowerCase()) {
+            diffs.push(`Majority Mismatch: Cert ("${cert.majority}") vs Profile ("${u.majority}")`);
+          }
+        }
+
+        const hasPendingCorrection = cert.correctionRequests && cert.correctionRequests.length > 0;
+
+        if (diffs.length > 0 || hasPendingCorrection) {
+          discrepancies.push({
+            certificate: cert,
+            diffs,
+            hasPendingCorrection,
+            pendingRequest: hasPendingCorrection ? cert.correctionRequests[0] : null,
+            currentUser: u || null,
+          });
+        }
+      }
+
+      return res.json({
+        ok: true,
+        count: discrepancies.length,
+        data: discrepancies,
+      });
+    } catch (err: any) {
+      console.error("[CertController] getDiscrepancies Error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- STUDENT SELF-SERVICE REQUEST CORRECTION ---
+  public async requestCorrection(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      const { certificateId, requestedName, requestedProgram, requestedMajority, reason } = req.body;
+
+      if (!certificateId || !reason) {
+        return res.status(400).json({ error: "Certificate ID and reason are required" });
+      }
+
+      const cert = await prisma.certificate.findFirst({
+        where: {
+          OR: [{ id: certificateId }, { certId: certificateId }],
+          userId: userId,
+        },
+      });
+
+      if (!cert) {
+        return res.status(404).json({ error: "Certificate not found or not owned by user" });
+      }
+
+      const request = await prisma.certificateCorrectionRequest.create({
+        data: {
+          certificateId: cert.id,
+          userId: userId,
+          requestedName: requestedName || null,
+          requestedProgram: requestedProgram || null,
+          requestedMajority: requestedMajority || null,
+          reason: reason,
+          status: "PENDING",
+        },
+      });
+
+      return res.json({
+        ok: true,
+        message: "Correction request submitted successfully. Admin/Instructor will review it.",
+        data: request,
+      });
+    } catch (err: any) {
+      console.error("[CertController] requestCorrection Error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- GET CORRECTION REQUESTS FOR ADMIN/TEACHER ---
+  public async getCorrectionRequests(req: Request, res: Response) {
+    try {
+      const { status } = req.query;
+      const whereClause: any = {};
+      if (status && typeof status === "string") {
+        whereClause.status = status.toUpperCase();
+      }
+
+      const requests = await prisma.certificateCorrectionRequest.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: { id: true, name: true, email: true, studentId: true, avatar: true },
+          },
+          certificate: {
+            include: {
+              course: { select: { id: true, title: true, imageUrl: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return res.json({ ok: true, count: requests.length, data: requests });
+    } catch (err: any) {
+      console.error("[CertController] getCorrectionRequests Error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- SUPERSEDE / RE-ISSUE WITH CORRECTED DATA ---
+  public async supersedeCertificate(req: Request, res: Response) {
+    try {
+      const issuerId = req.user?.identifier || "admin";
+      const issuerRole = req.user?.role || "admin";
+      const {
+        oldCertId,
+        correctedName,
+        correctedStudentId,
+        correctedProgram,
+        correctedMajority,
+        reason,
+        requestId,
+        updateUserProfile,
+      } = req.body;
+
+      if (!oldCertId || !reason) {
+        return res.status(400).json({ error: "oldCertId and reason are required" });
+      }
+
+      // Fetch old certificate
+      const oldCert = await prisma.certificate.findFirst({
+        where: {
+          OR: [{ id: oldCertId }, { certId: oldCertId }],
+        },
+        include: {
+          course: { include: { user: true } },
+          user: true,
+        },
+      });
+
+      if (!oldCert) {
+        return res.status(404).json({ error: "Original certificate not found" });
+      }
+
+      if (oldCert.status === "SUPERSEDED") {
+        return res.status(400).json({ error: "Certificate has already been superseded" });
+      }
+
+      // Prepare corrected data
+      const finalName = correctedName || oldCert.studentName;
+      const finalStudentId = correctedStudentId || oldCert.studentId;
+      const finalProgram = correctedProgram || oldCert.program;
+      const finalMajority = correctedMajority || oldCert.majority;
+
+      const newCertId = uuidv4();
+      const nowFormatted = new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date());
+
+      // Prepare Instructor Details
+      let instructorName = oldCert.course?.user?.name || "Head Instructor";
+      let instructorNip = oldCert.course?.user?.nip || "-";
+      let instructorMajor = oldCert.course?.user?.studyProgram || oldCert.course?.user?.majority || "Department of Blockchain";
+      let customTemplatePath = oldCert.course?.certificateTemplate || undefined;
+
+      // 1. Generate new Certificate Image with Corrected Data
+      const imgBuffer = await generateCertificateImage({
+        certId: newCertId,
+        name: finalName,
+        studentId: finalStudentId,
+        program: finalProgram,
+        majority: finalMajority,
+        courseName: oldCert.course?.title || "Certificate of Achievement",
+        issuedAt: nowFormatted,
+        issuerId,
+        instructorName,
+        instructorNip,
+        instructorMajor,
+        customTemplatePath,
+      });
+
+      // 2. Upload to IPFS
+      const newCid = await uploadToIpfs(imgBuffer, `/certs/${newCertId}.png`);
+
+      // 3. Compute New Data Hash
+      const dataString = `${finalStudentId}|${finalName}|${finalProgram}|${finalMajority}`;
+      const newHash = crypto.createHash("sha256").update(dataString).digest("hex");
+
+      // 4. Supersede on Hyperledger Fabric
+      if (process.env.FABRIC_ENABLED === "true") {
+        try {
+          await supersedeCertificateOnFabric(oldCert.certId, newCertId, reason);
+        } catch (fErr: any) {
+          console.warn(`[Fabric Supersede Warning]: ${fErr.message}`);
+        }
+
+        // Issue new Certificate on Fabric
+        try {
+          const newFabricRecord: CertificateRecord = {
+            certId: newCertId,
+            studentId: finalStudentId,
+            name: finalName,
+            program: finalProgram,
+            majority: finalMajority,
+            score: (oldCert as any).score || "",
+            cid: newCid,
+            hash: newHash,
+            status: "ISSUED",
+            issuedAt: new Date().toISOString(),
+            courseId: oldCert.courseId || null,
+          };
+          await issueCertificateOnFabric(newFabricRecord, issuerId, issuerRole);
+        } catch (fErr: any) {
+          console.warn(`[Fabric Issue New Warning]: ${fErr.message}`);
+        }
+      }
+
+      // 5. Update Old Certificate in DB to SUPERSEDED
+      await prisma.certificate.update({
+        where: { id: oldCert.id },
+        data: {
+          status: "SUPERSEDED",
+          supersededBy: newCertId,
+          revocationReason: reason,
+          revokedAt: new Date().toISOString(),
+        },
+      });
+
+      // 6. Create New Certificate in DB
+      const newCert = await prisma.certificate.create({
+        data: {
+          id: newCertId,
+          certId: newCertId,
+          studentName: finalName,
+          studentId: finalStudentId,
+          program: finalProgram,
+          majority: finalMajority,
+          courseId: oldCert.courseId,
+          userId: oldCert.userId,
+          cid: newCid,
+          hash: newHash,
+          status: "ISSUED",
+          issuedAt: new Date().toISOString(),
+          supersededFrom: oldCert.certId,
+        },
+      });
+
+      // 7. If Request ID was provided, mark it APPROVED
+      if (requestId) {
+        await prisma.certificateCorrectionRequest.update({
+          where: { id: requestId },
+          data: {
+            status: "APPROVED",
+            adminNotes: `Superseded and re-issued with Certificate ID ${newCertId}. Reason: ${reason}`,
+          },
+        });
+      }
+
+      // 8. Optionally update User profile if requested
+      if (updateUserProfile && oldCert.userId) {
+        await prisma.user.update({
+          where: { id: oldCert.userId },
+          data: {
+            ...(correctedName ? { name: correctedName } : {}),
+            ...(correctedProgram ? { studyProgram: correctedProgram } : {}),
+            ...(correctedMajority ? { majority: correctedMajority } : {}),
+            ...(correctedStudentId ? { studentId: correctedStudentId } : {}),
+          },
+        });
+      }
+
+      return res.json({
+        ok: true,
+        message: `Certificate successfully superseded and re-issued!`,
+        oldCertId: oldCert.certId,
+        newCert: newCert,
+      });
+    } catch (err: any) {
+      console.error("[CertController] supersedeCertificate Error:", err);
       return res.status(500).json({ ok: false, error: err.message });
     }
   }
