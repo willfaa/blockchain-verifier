@@ -130,3 +130,6 @@ cd backend
 npm run dev
 npx ngrok http 4000
 change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru (https://gumminess-ranged-frostbite.ngrok-free.dev kalau tidak berubah)
+
+npx localtunnel --port 4000 --subdomain unesa-blockchain-backend
+NEXT_PUBLIC_API_BASE juga ganti ke link localtunnel terbaru

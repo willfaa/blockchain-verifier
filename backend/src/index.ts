@@ -38,17 +38,17 @@ if (process.env.ALLOWED_ORIGINS) {
 app.use(
   cors({
     origin: function (origin, callback) {
-      const isVercelPreview =
-        origin &&
-        /^https:\/\/blockchain-verifier-.*\.vercel\.app$/.test(origin);
-      if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
-        callback(null, true);
-      } else {
-        console.warn(`[CORS] Blocked request from origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
+      // Allow all origins to seamlessly support Vercel deployments, custom domains, and tunnels
+      callback(null, true);
     },
-    credentials: true, // Penting jika Anda menggunakan cookies/session untuk login
+    credentials: true,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "ngrok-skip-browser-warning",
+      "bypass-tunnel-reminder",
+      "Bypass-Tunnel-Reminder",
+    ],
   }),
 );
 
