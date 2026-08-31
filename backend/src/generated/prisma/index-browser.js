@@ -265,7 +265,10 @@ exports.Prisma.CertificateScalarFieldEnum = {
   revokedAt: 'revokedAt',
   revocationReason: 'revocationReason',
   supersededBy: 'supersededBy',
-  supersededFrom: 'supersededFrom'
+  supersededFrom: 'supersededFrom',
+  blockchainSyncStatus: 'blockchainSyncStatus',
+  blockchainTxId: 'blockchainTxId',
+  syncedAt: 'syncedAt'
 };
 
 exports.Prisma.CertificateCorrectionRequestScalarFieldEnum = {

@@ -375,11 +375,17 @@ export const getCertificateFromChain = async (req: Request, res: Response) => {
       revocationReason: chainData?.revocationReason || localCert?.revocationReason || null,
       revokedAt: chainData?.revokedAt || localCert?.revokedAt || null,
       course: localCert?.course || null,
+      blockchainSyncStatus: localCert?.blockchainSyncStatus || (chainData ? "SYNCED" : "PENDING_SYNC"),
+      blockchainTxId: localCert?.blockchainTxId || chainData?.txId || null,
     };
+
+    const isChainVerified = Boolean(chainData);
 
     res.json({
       ok: true,
-      source: chainData ? "blockchain" : "database",
+      source: isChainVerified ? "blockchain" : "mirror_database",
+      isChainVerified,
+      syncStatus: mergedData.blockchainSyncStatus,
       data: mergedData,
     });
   } catch (error: any) {

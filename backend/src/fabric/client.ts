@@ -18,11 +18,25 @@ const CHAINCODE_NAME = process.env.FABRIC_CHAINCODE || "basic";
 const MSPID = process.env.FABRIC_MSPID || "Org1MSP";
 const IDENTITY_LABEL = process.env.FABRIC_IDENTITY_LABEL || "admin";
 
-// --- LOGIC STRICT BOOLEAN ---
-const DISCOVERY_ENABLED = process.env.FABRIC_DISCOVERY === "true";
-const AS_LOCALHOST =
-  process.env.AS_LOCALHOST === "true" ||
-  process.env.FABRIC_ASLOCALHOST === "true";
+// --- SMART AUTO-RESOLVER FOR DISCOVERY & AS_LOCALHOST ---
+function getDiscoveryAndLocalhostOptions(ccp: any): { discoveryEnabled: boolean; asLocalhost: boolean } {
+  // If explicitly defined via .env, respect user setting
+  if (process.env.AS_LOCALHOST !== undefined) {
+    const asLocalhost = process.env.AS_LOCALHOST === "true" || process.env.FABRIC_ASLOCALHOST === "true";
+    const discoveryEnabled = process.env.FABRIC_DISCOVERY === "true";
+    return { discoveryEnabled, asLocalhost };
+  }
+
+  // Auto-resolve based on Peer URL in connection profile
+  const peerUrl = ccp.peers?.["peer0.org1.example.com"]?.url || "";
+  const isLocal = peerUrl.includes("localhost") || peerUrl.includes("127.0.0.1");
+
+  return {
+    asLocalhost: isLocal,
+    // When using single-port TCP tunnels (e.g. ngrok/vps), disable service discovery to avoid unmapped peer errors
+    discoveryEnabled: isLocal ? (process.env.FABRIC_DISCOVERY !== "false") : false,
+  };
+}
 
 // FUNGSI SMART CONTRACT
 const FUNC_ISSUE = "IssueCertificate";
@@ -72,7 +86,17 @@ function loadConnectionProfile() {
     throw new Error(`Connection profile tidak ditemukan di: ${ccpPath}`);
   }
   const ccpJSON = fs.readFileSync(ccpPath, "utf8");
-  return JSON.parse(ccpJSON);
+  const ccp = JSON.parse(ccpJSON);
+
+  // Dynamic Peer URL override (e.g. from FABRIC_PEER_URL / ngrok tcp / cloudflare)
+  if (process.env.FABRIC_PEER_URL && ccp.peers && ccp.peers["peer0.org1.example.com"]) {
+    ccp.peers["peer0.org1.example.com"].url = process.env.FABRIC_PEER_URL;
+  }
+  if (process.env.FABRIC_CA_URL && ccp.certificateAuthorities && ccp.certificateAuthorities["ca.org1.example.com"]) {
+    ccp.certificateAuthorities["ca.org1.example.com"].url = process.env.FABRIC_CA_URL;
+  }
+
+  return ccp;
 }
 
 // Helper: Determine wallet path based on role
@@ -92,6 +116,7 @@ export async function getContract(
   chaincodeName: string = CHAINCODE_NAME,
 ): Promise<{ gateway: Gateway; contract: Contract }> {
   const ccp = loadConnectionProfile();
+  const { asLocalhost, discoveryEnabled } = getDiscoveryAndLocalhostOptions(ccp);
 
   // 1. Determine Wallet Path
   const targetWalletPath = userId ? getWalletPath(role) : getWalletPath();
@@ -122,8 +147,8 @@ export async function getContract(
       wallet,
       identity: identityName,
       discovery: {
-        enabled: DISCOVERY_ENABLED,
-        asLocalhost: AS_LOCALHOST,
+        enabled: discoveryEnabled,
+        asLocalhost: asLocalhost,
       },
     });
   } else {
@@ -136,8 +161,8 @@ export async function getContract(
         wallet: adminWallet,
         identity: "admin",
         discovery: {
-          enabled: DISCOVERY_ENABLED,
-          asLocalhost: AS_LOCALHOST,
+          enabled: discoveryEnabled,
+          asLocalhost: asLocalhost,
         },
       });
     } else {
@@ -200,15 +225,17 @@ export async function issueCertificateOnFabric(
   record: CertificateRecord,
   issuerId: string,
   issuerRole: string,
-): Promise<void> {
+): Promise<{ txId: string }> {
   const { gateway, contract } = await getContract(issuerId, issuerRole);
   try {
     console.log(
       `⚡ Submitting Issue to Fabric: ${record.certId} by ${issuerId}`,
     );
 
-    await contract.submitTransaction(
-      FUNC_ISSUE,
+    const transaction = contract.createTransaction(FUNC_ISSUE);
+    const txId = transaction.getTransactionId();
+
+    await transaction.submit(
       record.certId,
       record.name,
       record.studentId, // Arg 3: Student ID (NISN)
@@ -222,7 +249,8 @@ export async function issueCertificateOnFabric(
       issuerId, // Arg 11
       issuerRole, // Arg 12
     );
-    console.log("✅ Fabric Transaction Committed");
+    console.log(`✅ Fabric Transaction Committed (TX ID: ${txId})`);
+    return { txId };
   } catch (err: any) {
     console.error("❌ Fabric Submit Failed!");
     if (err.responses) console.error("   Responses:", err.responses);
@@ -614,4 +642,77 @@ export async function autoSyncFabricWallet(): Promise<void> {
   } catch (err: any) {
     console.warn("⚠️ [AutoSync Notice]: Fabric AutoSync skipped/deferred:", err.message);
   }
+}
+
+// --- SYNC PENDING CERTIFICATES TO BLOCKCHAIN ---
+export async function syncPendingCertificatesToFabric() {
+  const { db } = require("../config/db");
+  const pendingCerts = await db.certificate.findMany({
+    where: {
+      blockchainSyncStatus: { in: ["PENDING_SYNC", "FAILED"] },
+      status: { not: "REVOKED" },
+    },
+    orderBy: { issuedAt: "asc" },
+  });
+
+  if (pendingCerts.length === 0) {
+    return { count: 0, synced: [], errors: [] };
+  }
+
+  console.log(`⏳ Found ${pendingCerts.length} pending certificate(s) to sync to Fabric...`);
+  const synced: string[] = [];
+  const errors: { certId: string; error: string }[] = [];
+
+  for (const cert of pendingCerts) {
+    try {
+      if (cert.status === "SUPERSEDED" && cert.supersededBy) {
+        await supersedeCertificateOnFabric(
+          cert.certId,
+          cert.supersededBy,
+          cert.revocationReason || "Superseded during ledger sync"
+        );
+      } else {
+        const fabricRecord: CertificateRecord = {
+          certId: cert.certId,
+          studentId: cert.studentId,
+          name: cert.studentName,
+          program: cert.program,
+          majority: cert.majority,
+          score: "",
+          cid: cert.cid,
+          hash: cert.hash,
+          status: cert.status,
+          issuedAt: cert.issuedAt,
+          courseId: cert.courseId || null,
+        };
+        const txResult = await issueCertificateOnFabric(fabricRecord, "admin", "admin");
+        await db.certificate.update({
+          where: { id: cert.id },
+          data: {
+            blockchainSyncStatus: "SYNCED",
+            blockchainTxId: txResult?.txId || `TX_SYNC_${Date.now()}`,
+            syncedAt: new Date(),
+          },
+        });
+        synced.push(cert.certId);
+      }
+    } catch (err: any) {
+      console.warn(`[Sync Pending Cert Error ${cert.certId}]:`, err.message);
+      errors.push({ certId: cert.certId, error: err.message });
+      await db.certificate.update({
+        where: { id: cert.id },
+        data: {
+          blockchainSyncStatus: "FAILED",
+        },
+      });
+    }
+  }
+
+  return {
+    total: pendingCerts.length,
+    successCount: synced.length,
+    failedCount: errors.length,
+    synced,
+    errors,
+  };
 }

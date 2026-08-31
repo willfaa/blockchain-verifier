@@ -10,6 +10,7 @@ import {
   revokeCertificateOnFabric,
   supersedeCertificateOnFabric,
   getAllCertificatesFromFabric,
+  syncPendingCertificatesToFabric,
 } from "../fabric/client";
 import {
   saveCertificate,
@@ -197,39 +198,47 @@ export class CertController {
         `Atomic Issuance: Inserting PENDING record ${certId} to DB...`
       );
 
-      // 8. Insert DB (Pending)
-      await saveCertificate(record);
-
+      let syncStatus = "SYNCED";
+      let txId = `TX_${Date.now()}`;
       try {
         console.log(`Atomic Issuance: Submitting to Fabric...`);
 
         // 9. Submit to Fabric (Status: ISSUED)
         const fabricRecord = { ...record, status: "ISSUED" as const };
-
-        // Mengirim issuerId dan issuerRole ke Client Fabric
-        await issueCertificateOnFabric(fabricRecord, issuerId, issuerRole);
+        const fabricResult = await issueCertificateOnFabric(fabricRecord, issuerId, issuerRole);
+        if (fabricResult?.txId) txId = fabricResult.txId;
 
         console.log(
-          `Atomic Issuance: Fabric Success. Updating DB to ISSUED...`
+          `Atomic Issuance: Fabric Success. Updating DB to ISSUED (SYNCED)...`
         );
 
         // 10. Update DB (Issued)
         record.status = "ISSUED";
         await saveCertificate(record);
-      } catch (fabricErr: any) {
-        console.error(
-          `Atomic Issuance: Fabric Failed. ROLLING BACK...`,
-          fabricErr
-        );
-
-        // ROLLBACK: Hapus data di DB agar konsisten jika blockchain gagal
-        await prisma.certificate.delete({
+        await prisma.certificate.update({
           where: { certId: certId },
+          data: {
+            blockchainSyncStatus: "SYNCED",
+            blockchainTxId: txId,
+            syncedAt: new Date(),
+          },
         });
-
-        throw new Error(
-          `Fabric submission failed: ${fabricErr.message}. DB Rolled back.`
+      } catch (fabricErr: any) {
+        console.warn(
+          `⚠️ [Atomic Issuance Notice]: Fabric Node offline/unreachable. Saved to Mirror DB as PENDING_SYNC:`,
+          fabricErr.message
         );
+
+        // Resilient Mirror Ledger: Jangan batalkan, simpan sebagai PENDING_SYNC
+        syncStatus = "PENDING_SYNC";
+        record.status = "ISSUED";
+        await saveCertificate(record);
+        await prisma.certificate.update({
+          where: { certId: certId },
+          data: {
+            blockchainSyncStatus: "PENDING_SYNC",
+          },
+        });
       }
 
       // 11. Sukses! Kembalikan Record + QR Code
@@ -237,6 +246,7 @@ export class CertController {
         ok: true,
         message: "Certificate Issued Successfully",
         record,
+        syncStatus,
         qrCode: qrCodeDataUrl,
         verificationUrl: verificationUrl,
       });
@@ -421,17 +431,42 @@ export class CertController {
   }
 
   public async getAllCertificates(req: Request, res: Response) {
-    // Unchanged
     try {
-      // Ambil username dari token login (admin/teacher)
       const username = req.user?.identifier || "admin";
       const role = req.user?.role || "admin";
 
-      // Panggil Fabric Client yang baru dibuat
-      const data = await getAllCertificatesFromFabric(username, role);
+      let data: any[] = [];
+      let source = "blockchain";
+
+      try {
+        data = await getAllCertificatesFromFabric(username, role);
+      } catch (fabricErr: any) {
+        console.warn(`[CertController] Fabric getAllCertificates fallback to DB:`, fabricErr.message);
+        source = "database";
+        const dbCerts = await prisma.certificate.findMany({
+          orderBy: { issuedAt: "desc" },
+          include: {
+            course: { select: { title: true, id: true, imageUrl: true } },
+          },
+        });
+        data = dbCerts.map((c) => ({
+          certId: c.certId,
+          studentId: c.studentId,
+          name: c.studentName,
+          program: c.program,
+          majority: c.majority,
+          cid: c.cid,
+          hash: c.hash,
+          status: c.status,
+          issuedAt: c.issuedAt,
+          blockchainSyncStatus: c.blockchainSyncStatus,
+          blockchainTxId: c.blockchainTxId,
+        }));
+      }
 
       return res.json({
         ok: true,
+        source,
         count: data.length,
         data: data,
       });
@@ -439,7 +474,7 @@ export class CertController {
       console.error("Get All Certificates Error:", err);
       return res.status(500).json({
         ok: false,
-        error: "Failed to fetch certificates from Blockchain",
+        error: "Failed to fetch certificates",
         detail: err.message,
       });
     }
@@ -612,41 +647,57 @@ export class CertController {
       };
 
       // 8. Submit to Fabric (As Admin/System)
-      // Issuer is "SYSTEM" or "Admin"
+      let syncStatus = "SYNCED";
+      let txId = `TX_${Date.now()}`;
       try {
-        await issueCertificateOnFabric(
+        const fabricResult = await issueCertificateOnFabric(
           { ...record, status: "ISSUED" },
           "admin",
           "admin"
         );
+        if (fabricResult?.txId) txId = fabricResult.txId;
 
-        // 9. Update DB Status & Enrollment
-        // Update Certificate Status
+        // 9. Update DB Status & Sync
         await prisma.certificate.update({
           where: { id: certId },
-          data: { status: "ISSUED" },
-        });
-
-        // Update Enrollment
-        await prisma.enrollment.update({
-          where: { id: enrollment.id },
           data: {
-            // @ts-ignore
-            certificateId: certId,
-            completedAt: new Date(),
+            status: "ISSUED",
+            blockchainSyncStatus: "SYNCED",
+            blockchainTxId: txId,
+            syncedAt: new Date(),
           },
         });
       } catch (fabricErr: any) {
-        console.error("FULL FABRIC ERROR:", fabricErr);
-        // Throw the REAL error message to the frontend so we can debug
-        throw new Error(`Fabric: ${fabricErr.message || fabricErr}`);
+        console.warn(
+          `⚠️ [Claim Certificate Notice]: Fabric offline. Saved to Mirror DB as PENDING_SYNC:`,
+          fabricErr.message
+        );
+        syncStatus = "PENDING_SYNC";
+        await prisma.certificate.update({
+          where: { id: certId },
+          data: {
+            status: "ISSUED",
+            blockchainSyncStatus: "PENDING_SYNC",
+          },
+        });
       }
+
+      // Update Enrollment
+      await prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: {
+          // @ts-ignore
+          certificateId: certId,
+          completedAt: new Date(),
+        },
+      });
 
       return res.json({
         ok: true,
         message: "Certificate claimed successfully",
         certId,
         cid,
+        syncStatus,
       });
     } catch (err: any) {
       console.error("Claim Certificate Error:", err);
@@ -999,6 +1050,45 @@ export class CertController {
       });
     } catch (err: any) {
       console.error("[CertController] supersedeCertificate Error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- SYNC PENDING LEDGER QUEUE TO FABRIC ---
+  public async syncPendingLedger(req: Request, res: Response) {
+    try {
+      console.log(`[LedgerSync] Triggered by ${req.user?.identifier || "Admin"}...`);
+      const result = await syncPendingCertificatesToFabric();
+      return res.json({
+        ok: true,
+        message: `Synced ${result.successCount} of ${result.total || 0} certificates to Blockchain.`,
+        data: result,
+      });
+    } catch (err: any) {
+      console.error("[LedgerSync Error]:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+
+  // --- GET SYNC STATS FOR ADMIN DASHBOARD ---
+  public async getSyncStats(req: Request, res: Response) {
+    try {
+      const [pendingCount, syncedCount, failedCount] = await Promise.all([
+        prisma.certificate.count({ where: { blockchainSyncStatus: "PENDING_SYNC" } }),
+        prisma.certificate.count({ where: { blockchainSyncStatus: "SYNCED" } }),
+        prisma.certificate.count({ where: { blockchainSyncStatus: "FAILED" } }),
+      ]);
+
+      return res.json({
+        ok: true,
+        data: {
+          pendingCount,
+          syncedCount,
+          failedCount,
+        },
+      });
+    } catch (err: any) {
+      console.error("[GetSyncStats Error]:", err);
       return res.status(500).json({ ok: false, error: err.message });
     }
   }

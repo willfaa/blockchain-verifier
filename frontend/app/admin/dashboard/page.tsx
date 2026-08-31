@@ -26,6 +26,9 @@ import {
   Check,
   ExternalLink,
   ArrowRight,
+  WifiOff,
+  GitMerge,
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -34,6 +37,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isBackendConnected, setIsBackendConnected] = useState(true);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [autoSync, setAutoSync] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -44,6 +48,10 @@ export default function AdminDashboard() {
   const [selectedDiscrepancy, setSelectedDiscrepancy] = useState<any | null>(null);
   const [showSupersedeModal, setShowSupersedeModal] = useState(false);
   const [submittingSupersede, setSubmittingSupersede] = useState(false);
+
+  // Hybrid Mirror Ledger Queue State
+  const [syncStats, setSyncStats] = useState({ pendingCount: 0, syncedCount: 0, failedCount: 0 });
+  const [isSyncingLedger, setIsSyncingLedger] = useState(false);
 
   // Form State for Supersede
   const [correctedName, setCorrectedName] = useState("");
@@ -58,13 +66,15 @@ export default function AdminDashboard() {
   const fetchStats = useCallback(async (isManual: boolean = false) => {
     if (isManual) setIsSyncing(true);
     try {
-      const [statsRes, discRes, reqRes] = await Promise.allSettled([
+      const [statsRes, discRes, reqRes, syncStatsRes] = await Promise.allSettled([
         api.get("/admin/stats"),
         api.get("/certificates/discrepancies"),
         api.get("/certificates/correction-requests?status=PENDING"),
+        api.get("/certificates/sync-stats"),
       ]);
 
       if (statsRes.status === "fulfilled" && statsRes.value?.data) {
+        setIsBackendConnected(true);
         setStats(statsRes.value.data);
         setLastSyncedAt(new Date());
         if (isManual) {
@@ -75,17 +85,33 @@ export default function AdminDashboard() {
             toast.info("Status tersinkronisasi. Blockchain: " + (blockchainStatus || "OFFLINE"));
           }
         }
+      } else {
+        // Backend request failed (e.g. Tunnel closed or backend server offline)
+        setIsBackendConnected(false);
+        setLastSyncedAt(new Date());
+        if (isManual) {
+          toast.error("Gagal terhubung ke Backend / Tunnel. Pastikan Backend & Ngrok menyala!");
+        }
       }
 
       if (discRes.status === "fulfilled" && discRes.value?.data?.ok) {
         setDiscrepancies(discRes.value.data.data || []);
+      } else {
+        setDiscrepancies([]);
       }
 
       if (reqRes.status === "fulfilled" && reqRes.value?.data?.ok) {
         setCorrectionRequests(reqRes.value.data.data || []);
+      } else {
+        setCorrectionRequests([]);
+      }
+
+      if (syncStatsRes.status === "fulfilled" && syncStatsRes.value?.data?.ok) {
+        setSyncStats(syncStatsRes.value.data.data);
       }
     } catch (err: any) {
       console.error("[Dashboard] Failed to fetch stats:", err);
+      setIsBackendConnected(false);
       if (isManual) {
         toast.error("Gagal menyinkronkan status service dari backend");
       }
@@ -120,6 +146,22 @@ export default function AdminDashboard() {
       clearInterval(clockTimer);
     };
   }, [fetchStats, autoSync]);
+
+  const handleManualLedgerSync = async () => {
+    setIsSyncingLedger(true);
+    try {
+      const res = await api.post("/certificates/sync-ledger");
+      if (res.data.ok) {
+        toast.success(res.data.message || "Sinkronisasi antrean ke Blockchain berhasil!");
+        fetchStats(false);
+      }
+    } catch (err: any) {
+      console.error("Manual Ledger Sync Error:", err);
+      toast.error(err.response?.data?.error || "Gagal menyinkronkan antrean ke Blockchain");
+    } finally {
+      setIsSyncingLedger(false);
+    }
+  };
 
   const openSupersedeModal = (item: any) => {
     setSelectedDiscrepancy(item);
@@ -167,7 +209,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading && !stats) {
+  if (loading && !stats && isBackendConnected) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center gap-4 text-cyan-400 font-mono">
         <RefreshCw size={32} className="animate-spin text-neon-blue" />
@@ -181,66 +223,74 @@ export default function AdminDashboard() {
   const cards = [
     {
       title: "Active_Users",
-      value: stats?.stats?.totalUsers || 0,
+      value: isBackendConnected ? stats?.stats?.totalUsers || 0 : "--",
       icon: Users,
     },
     {
       title: "Pending_Auth",
-      value: stats?.stats?.pendingTeachers || 0,
+      value: isBackendConnected ? stats?.stats?.pendingTeachers || 0 : "--",
       icon: UserCheck,
     },
     {
       title: "Issued_Certs",
-      value: stats?.stats?.totalCertificates || 0,
+      value: isBackendConnected ? stats?.stats?.totalCertificates || 0 : "--",
       icon: FileText,
     },
     {
       title: "Deployments",
-      value: stats?.stats?.totalCourses || 0,
+      value: isBackendConnected ? stats?.stats?.totalCourses || 0 : "--",
       icon: BookOpen,
     },
   ];
 
   // Professional service monitoring mapping with dynamic health check
+  const isFabricOnline = stats?.system?.health?.blockchain === "ONLINE";
+
   const services = [
     {
       name: "Frontend UI Client",
       status: "ONLINE",
-      desc: "Next.js Web Host",
+      desc: "Next.js Web Host (Vercel Edge)",
       icon: Layers,
       color: "text-cyan-400",
     },
     {
       name: "Backend API Server",
-      status: stats?.system?.health?.backend || "ONLINE",
-      desc: `Express Gateway (Uptime: ${stats?.system?.uptime || 0}s)`,
+      status: isBackendConnected && stats?.system?.health?.backend === "ONLINE" ? "ONLINE" : "OFFLINE",
+      desc: isBackendConnected
+        ? `Express Gateway (Uptime: ${stats?.system?.uptime || 0}s)`
+        : "Tunnel Mati / Backend Disconnected",
       icon: Server,
-      color: "text-emerald-400",
+      color: isBackendConnected ? "text-emerald-400" : "text-rose-400",
     },
     {
       name: "Database (PostgreSQL / Supabase)",
-      status: stats?.system?.health?.database || "OFFLINE",
-      desc: `Relational Registry (Port: ${stats?.system?.dbPort || 5433})`,
+      status: isBackendConnected ? (stats?.system?.health?.database || "OFFLINE") : "OFFLINE",
+      desc: isBackendConnected
+        ? `Cloud Mirror Ledger (Port: ${stats?.system?.dbPort || 5432})`
+        : "Unreachable (Backend Offline)",
       icon: Database,
-      color: "text-blue-400",
+      color: isBackendConnected && stats?.system?.health?.database === "ONLINE" ? "text-blue-400" : "text-rose-400",
     },
     {
       name: "IPFS Storage (Pinata / Kubo)",
-      status: stats?.system?.health?.ipfs || "OFFLINE",
-      desc: "Decentralized File Storage",
+      status: isBackendConnected ? (stats?.system?.health?.ipfs || "OFFLINE") : "OFFLINE",
+      desc: isBackendConnected ? "Decentralized File Storage (Cloud)" : "Unreachable (Backend Offline)",
       icon: HardDrive,
-      color: "text-purple-400",
+      color: isBackendConnected && stats?.system?.health?.ipfs === "ONLINE" ? "text-purple-400" : "text-rose-400",
     },
     {
       name: "Blockchain (Hyperledger Fabric)",
-      status: stats?.system?.health?.blockchain || "OFFLINE",
-      desc: "Consensus Ledger (Channel: mychannel)",
+      status: isBackendConnected ? (isFabricOnline ? "ONLINE" : "OFFLINE") : "OFFLINE",
+      desc: isBackendConnected
+        ? (isFabricOnline ? "Consensus Ledger (Channel: mychannel)" : "Mirror Queue Mode (Sync on Connect)")
+        : "Unreachable (Backend Offline)",
       icon: Cpu,
-      color: "text-neon-pink",
+      color: isBackendConnected && isFabricOnline ? "text-neon-pink" : "text-rose-400",
     },
   ];
 
-  const allOnline = services.every((s) => s.status === "ONLINE");
+  const allOnline = isBackendConnected && services.every((s) => s.status === "ONLINE");
   const totalIssues = discrepancies.length + correctionRequests.length;
 
   return (
@@ -260,7 +310,14 @@ export default function AdminDashboard() {
               {autoSync ? "REALTIME SYNC (4s)" : "SYNC PAUSED"}
             </span>
 
-            {totalIssues > 0 && (
+            {!isBackendConnected && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold font-mono tracking-wider bg-rose-500/10 border border-rose-500/30 text-rose-400 animate-pulse">
+                <WifiOff size={12} />
+                BACKEND DISCONNECTED
+              </span>
+            )}
+
+            {isBackendConnected && totalIssues > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold font-mono tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400 animate-pulse">
                 <AlertTriangle size={12} />
                 {totalIssues} DATA REVIEW
@@ -282,8 +339,8 @@ export default function AdminDashboard() {
             {lastSyncedAt && (
               <>
                 <span className="opacity-20">|</span>
-                <p className="text-white/50">
-                  Last Sync: {lastSyncedAt.toLocaleTimeString()}
+                <p className={isBackendConnected ? "text-white/50" : "text-rose-400/80 font-bold"}>
+                  Last Sync: {lastSyncedAt.toLocaleTimeString()} {isBackendConnected ? "" : "(Failed)"}
                 </p>
               </>
             )}
@@ -328,10 +385,10 @@ export default function AdminDashboard() {
             <p className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  allOnline ? "bg-emerald-400 animate-pulse" : "bg-amber-400 animate-pulse"
+                  allOnline ? "bg-emerald-400 animate-pulse" : isFabricOnline ? "bg-amber-400 animate-pulse" : "bg-cyan-400 animate-pulse"
                 }`}
               />
-              {allOnline ? "All Systems Operational" : "Degraded / Partial"}
+              {allOnline ? "All Systems Operational" : isFabricOnline ? "Partial Online" : "Mirror Cloud Mode Active"}
             </p>
           </div>
         </div>
@@ -374,6 +431,80 @@ export default function AdminDashboard() {
             </div>
           );
         })}
+      </div>
+
+      {/* HYBRID CLOUD MIRROR LEDGER & SYNC QUEUE WIDGET */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/20 bg-cyan-500/[0.02] shadow-2xl space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+              <GitMerge size={22} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2.5">
+                Blockchain Mirror Ledger & Catchup Queue
+                {syncStats.pendingCount > 0 ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold animate-pulse">
+                    {syncStats.pendingCount} Pending Sync
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
+                    Ledger Fully Synced
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Sertifikat yang diterbitkan saat node offline otomatis dicatat ke Mirror Ledger dan dapat disinkronkan ke konsensus Blockchain kapan saja.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleManualLedgerSync}
+              disabled={isSyncingLedger || !isBackendConnected || !isFabricOnline || syncStats.pendingCount === 0}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
+                isFabricOnline && syncStats.pendingCount > 0
+                  ? "bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-cyan-500/20 animate-pulse hover:opacity-90"
+                  : "bg-white/5 border border-white/10 text-white/60"
+              }`}
+              title={
+                !isFabricOnline
+                  ? "Hubungkan node Hyperledger Fabric untuk menyinkronkan antrean"
+                  : syncStats.pendingCount === 0
+                  ? "Tidak ada antrean tertunda"
+                  : "Sinkronkan seluruh sertifikat tertunda ke Hyperledger Fabric"
+              }
+            >
+              {isSyncingLedger ? (
+                <RefreshCw size={14} className="animate-spin" />
+              ) : (
+                <Send size={14} />
+              )}
+              <span>{isSyncingLedger ? "Menyinkronkan..." : "Sinkronkan Antrean ke Blockchain"}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+            <span className="text-slate-400">Tersinkronisasi Konsensus:</span>
+            <span className="text-emerald-400 font-bold text-sm">{syncStats.syncedCount} Certs</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+            <span className="text-slate-400">Antrean Pending Sync:</span>
+            <span className={syncStats.pendingCount > 0 ? "text-amber-400 font-bold text-sm" : "text-slate-400 font-bold text-sm"}>
+              {syncStats.pendingCount} Certs
+            </span>
+          </div>
+          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+            <span className="text-slate-400">Node Blockchain Peer:</span>
+            <span className={isFabricOnline ? "text-emerald-400 font-bold" : "text-slate-500"}>
+              {isFabricOnline ? "CONNECTED (Ready)" : "DISCONNECTED (Queueing)"}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* DATA DRIFT & CORRECTION REQUESTS SECTION */}
@@ -473,9 +604,11 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-4">
-            {stats?.recentActivity?.length === 0 ? (
+            {(!isBackendConnected || !stats?.recentActivity || stats?.recentActivity?.length === 0) ? (
               <div className="text-white/20 text-xs font-semibold py-24 text-center italic border border-white/5 bg-white/[0.01] rounded-3xl">
-                No recent activity recorded in the registry.
+                {!isBackendConnected
+                  ? "Backend is currently unreachable. Connect backend to view ledger activity."
+                  : "No recent activity recorded in the registry."}
               </div>
             ) : (
               stats?.recentActivity?.map((act: any) => (
@@ -527,15 +660,17 @@ export default function AdminDashboard() {
                 className={`flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
                   allOnline
                     ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                    : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                    : isFabricOnline
+                    ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                    : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
                 }`}
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    allOnline ? "bg-emerald-400" : "bg-amber-400"
+                    allOnline ? "bg-emerald-400" : isFabricOnline ? "bg-amber-400" : "bg-cyan-400"
                   }`}
                 />
-                {allOnline ? "HEALTHY" : "CHECK REQUIRED"}
+                {allOnline ? "HEALTHY (CONSENSUS)" : isFabricOnline ? "ONLINE (PARTIAL)" : "MIRROR CLOUD MODE"}
               </span>
             </div>
 
@@ -577,7 +712,7 @@ export default function AdminDashboard() {
                         className={`text-[10px] font-bold font-mono tracking-wider px-2.5 py-1 rounded-lg border transition-all ${
                           isOnline
                             ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                            : "text-rose-400 bg-rose-500/10 border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)] animate-pulse"
+                            : "text-rose-400 bg-rose-500/10 border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]"
                         }`}
                       >
                         {srv.status}
@@ -618,7 +753,7 @@ export default function AdminDashboard() {
                     Koreksi & Terbitkan Ulang Sertifikat (Supersede)
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Sertifikat lama akan dicabut (SUPERSEDED) dan sertifikat baru diterbitkan ke Blockchain.
+                    Sertifikat lama akan dicabut (SUPERSEDED) dan sertifikat baru diterbitkan ke Blockchain / Mirror Ledger.
                   </p>
                 </div>
               </div>
@@ -723,7 +858,7 @@ export default function AdminDashboard() {
                   ) : (
                     <Check size={14} />
                   )}
-                  <span>{submittingSupersede ? "Memproses Blockchain..." : "Terbitkan Ulang Sekarang"}</span>
+                  <span>{submittingSupersede ? "Memproses..." : "Terbitkan Ulang Sekarang"}</span>
                 </button>
               </div>
             </form>

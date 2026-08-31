@@ -14669,6 +14669,9 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    blockchainSyncStatus: string | null
+    blockchainTxId: string | null
+    syncedAt: Date | null
   }
 
   export type CertificateMaxAggregateOutputType = {
@@ -14688,6 +14691,9 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    blockchainSyncStatus: string | null
+    blockchainTxId: string | null
+    syncedAt: Date | null
   }
 
   export type CertificateCountAggregateOutputType = {
@@ -14707,6 +14713,9 @@ export namespace Prisma {
     revocationReason: number
     supersededBy: number
     supersededFrom: number
+    blockchainSyncStatus: number
+    blockchainTxId: number
+    syncedAt: number
     _all: number
   }
 
@@ -14728,6 +14737,9 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    blockchainSyncStatus?: true
+    blockchainTxId?: true
+    syncedAt?: true
   }
 
   export type CertificateMaxAggregateInputType = {
@@ -14747,6 +14759,9 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    blockchainSyncStatus?: true
+    blockchainTxId?: true
+    syncedAt?: true
   }
 
   export type CertificateCountAggregateInputType = {
@@ -14766,6 +14781,9 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    blockchainSyncStatus?: true
+    blockchainTxId?: true
+    syncedAt?: true
     _all?: true
   }
 
@@ -14858,6 +14876,9 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    blockchainSyncStatus: string
+    blockchainTxId: string | null
+    syncedAt: Date | null
     _count: CertificateCountAggregateOutputType | null
     _min: CertificateMinAggregateOutputType | null
     _max: CertificateMaxAggregateOutputType | null
@@ -14894,6 +14915,9 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    blockchainSyncStatus?: boolean
+    blockchainTxId?: boolean
+    syncedAt?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     correctionRequests?: boolean | Certificate$correctionRequestsArgs<ExtArgs>
@@ -14917,6 +14941,9 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    blockchainSyncStatus?: boolean
+    blockchainTxId?: boolean
+    syncedAt?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["certificate"]>
@@ -14938,6 +14965,9 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    blockchainSyncStatus?: boolean
+    blockchainTxId?: boolean
+    syncedAt?: boolean
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["certificate"]>
@@ -14959,9 +14989,12 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    blockchainSyncStatus?: boolean
+    blockchainTxId?: boolean
+    syncedAt?: boolean
   }
 
-  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status" | "revokedAt" | "revocationReason" | "supersededBy" | "supersededFrom", ExtArgs["result"]["certificate"]>
+  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status" | "revokedAt" | "revocationReason" | "supersededBy" | "supersededFrom" | "blockchainSyncStatus" | "blockchainTxId" | "syncedAt", ExtArgs["result"]["certificate"]>
   export type CertificateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -15001,6 +15034,9 @@ export namespace Prisma {
       revocationReason: string | null
       supersededBy: string | null
       supersededFrom: string | null
+      blockchainSyncStatus: string
+      blockchainTxId: string | null
+      syncedAt: Date | null
     }, ExtArgs["result"]["certificate"]>
     composites: {}
   }
@@ -15443,6 +15479,9 @@ export namespace Prisma {
     readonly revocationReason: FieldRef<"Certificate", 'String'>
     readonly supersededBy: FieldRef<"Certificate", 'String'>
     readonly supersededFrom: FieldRef<"Certificate", 'String'>
+    readonly blockchainSyncStatus: FieldRef<"Certificate", 'String'>
+    readonly blockchainTxId: FieldRef<"Certificate", 'String'>
+    readonly syncedAt: FieldRef<"Certificate", 'DateTime'>
   }
     
 
@@ -22475,7 +22514,10 @@ export namespace Prisma {
     revokedAt: 'revokedAt',
     revocationReason: 'revocationReason',
     supersededBy: 'supersededBy',
-    supersededFrom: 'supersededFrom'
+    supersededFrom: 'supersededFrom',
+    blockchainSyncStatus: 'blockchainSyncStatus',
+    blockchainTxId: 'blockchainTxId',
+    syncedAt: 'syncedAt'
   };
 
   export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
@@ -23571,6 +23613,9 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    blockchainSyncStatus?: StringFilter<"Certificate"> | string
+    blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
+    syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
     course?: XOR<CourseNullableScalarRelationFilter, CourseWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     correctionRequests?: CertificateCorrectionRequestListRelationFilter
@@ -23593,6 +23638,9 @@ export namespace Prisma {
     revocationReason?: SortOrderInput | SortOrder
     supersededBy?: SortOrderInput | SortOrder
     supersededFrom?: SortOrderInput | SortOrder
+    blockchainSyncStatus?: SortOrder
+    blockchainTxId?: SortOrderInput | SortOrder
+    syncedAt?: SortOrderInput | SortOrder
     course?: CourseOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
     correctionRequests?: CertificateCorrectionRequestOrderByRelationAggregateInput
@@ -23618,6 +23666,9 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    blockchainSyncStatus?: StringFilter<"Certificate"> | string
+    blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
+    syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
     course?: XOR<CourseNullableScalarRelationFilter, CourseWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     correctionRequests?: CertificateCorrectionRequestListRelationFilter
@@ -23640,6 +23691,9 @@ export namespace Prisma {
     revocationReason?: SortOrderInput | SortOrder
     supersededBy?: SortOrderInput | SortOrder
     supersededFrom?: SortOrderInput | SortOrder
+    blockchainSyncStatus?: SortOrder
+    blockchainTxId?: SortOrderInput | SortOrder
+    syncedAt?: SortOrderInput | SortOrder
     _count?: CertificateCountOrderByAggregateInput
     _max?: CertificateMaxOrderByAggregateInput
     _min?: CertificateMinOrderByAggregateInput
@@ -23665,6 +23719,9 @@ export namespace Prisma {
     revocationReason?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     supersededBy?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    blockchainSyncStatus?: StringWithAggregatesFilter<"Certificate"> | string
+    blockchainTxId?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    syncedAt?: DateTimeNullableWithAggregatesFilter<"Certificate"> | Date | string | null
   }
 
   export type CertificateCorrectionRequestWhereInput = {
@@ -24966,6 +25023,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     course?: CourseCreateNestedOneWithoutCertificatesInput
     user: UserCreateNestedOneWithoutCertificatesInput
     correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
@@ -24988,6 +25048,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
@@ -25006,6 +25069,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     course?: CourseUpdateOneWithoutCertificatesNestedInput
     user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
     correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
@@ -25028,6 +25094,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
@@ -25048,6 +25117,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
   }
 
   export type CertificateUpdateManyMutationInput = {
@@ -25065,6 +25137,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CertificateUncheckedUpdateManyInput = {
@@ -25084,6 +25159,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CertificateCorrectionRequestCreateInput = {
@@ -26335,6 +26413,9 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    blockchainSyncStatus?: SortOrder
+    blockchainTxId?: SortOrder
+    syncedAt?: SortOrder
   }
 
   export type CertificateMaxOrderByAggregateInput = {
@@ -26354,6 +26435,9 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    blockchainSyncStatus?: SortOrder
+    blockchainTxId?: SortOrder
+    syncedAt?: SortOrder
   }
 
   export type CertificateMinOrderByAggregateInput = {
@@ -26373,6 +26457,9 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    blockchainSyncStatus?: SortOrder
+    blockchainTxId?: SortOrder
+    syncedAt?: SortOrder
   }
 
   export type CertificateScalarRelationFilter = {
@@ -28103,6 +28190,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     course?: CourseCreateNestedOneWithoutCertificatesInput
     correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
   }
@@ -28123,6 +28213,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
@@ -28344,6 +28437,9 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    blockchainSyncStatus?: StringFilter<"Certificate"> | string
+    blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
+    syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
   }
 
   export type ExamResultUpsertWithWhereUniqueWithoutStudentInput = {
@@ -28691,6 +28787,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     user: UserCreateNestedOneWithoutCertificatesInput
     correctionRequests?: CertificateCorrectionRequestCreateNestedManyWithoutCertificateInput
   }
@@ -28711,6 +28810,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedCreateNestedManyWithoutCertificateInput
   }
 
@@ -30277,6 +30379,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
     course?: CourseCreateNestedOneWithoutCertificatesInput
     user: UserCreateNestedOneWithoutCertificatesInput
   }
@@ -30298,6 +30403,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
   }
 
   export type CertificateCreateOrConnectWithoutCorrectionRequestsInput = {
@@ -30390,6 +30498,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     course?: CourseUpdateOneWithoutCertificatesNestedInput
     user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
   }
@@ -30411,6 +30522,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUpsertWithoutCorrectionRequestsInput = {
@@ -30868,6 +30982,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
   }
 
   export type ExamResultCreateManyStudentInput = {
@@ -31009,6 +31126,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     course?: CourseUpdateOneWithoutCertificatesNestedInput
     correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
   }
@@ -31029,6 +31149,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
@@ -31048,6 +31171,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ExamResultUpdateWithoutStudentInput = {
@@ -31277,6 +31403,9 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    blockchainSyncStatus?: string
+    blockchainTxId?: string | null
+    syncedAt?: Date | string | null
   }
 
   export type AttachmentUpdateWithoutCourseInput = {
@@ -31387,6 +31516,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     user?: UserUpdateOneRequiredWithoutCertificatesNestedInput
     correctionRequests?: CertificateCorrectionRequestUpdateManyWithoutCertificateNestedInput
   }
@@ -31407,6 +31539,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     correctionRequests?: CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateNestedInput
   }
 
@@ -31426,6 +31561,9 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
+    blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type LessonCreateManyModuleInput = {

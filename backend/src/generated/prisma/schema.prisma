@@ -248,6 +248,11 @@ model Certificate {
   supersededBy     String?
   supersededFrom   String?
 
+  // --- HYBRID CLOUD MIRROR LEDGER FIELDS ---
+  blockchainSyncStatus String    @default("SYNCED") // SYNCED, PENDING_SYNC, FAILED
+  blockchainTxId       String?
+  syncedAt             DateTime?
+
   correctionRequests CertificateCorrectionRequest[]
 
   @@map("certificates")

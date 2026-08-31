@@ -63,6 +63,16 @@ router.post("/supersede", verifyToken, verifyIssuer, (req, res) =>
   certController.supersedeCertificate(req, res)
 );
 
+// C5. Sync Pending Mirror Ledger to Blockchain (Admin / Teacher)
+router.post("/sync-ledger", verifyToken, verifyIssuer, (req, res) =>
+  certController.syncPendingLedger(req, res)
+);
+
+// C6. Get Sync Queue Stats (Admin / Teacher)
+router.get("/sync-stats", verifyToken, verifyIssuer, (req, res) =>
+  certController.getSyncStats(req, res)
+);
+
 // --- PUBLIC ROUTES (Bisa diakses siapa saja) ---
 
 // D. Verify Certificate (Read from Blockchain)
