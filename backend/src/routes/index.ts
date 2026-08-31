@@ -6,6 +6,7 @@ import lmsRoutes from "./lmsRoutes";
 import authRoutes from "./authRoutes";
 import adminRoutes from "./adminRoutes";
 import explorerRoutes from "./explorerRoutes";
+import certRoutes from "./certRoutes";
 import { CertificateController } from "../controllers/certificateController";
 
 // Core Middlewares
@@ -35,16 +36,12 @@ router.get("/system/status", async (req, res) => {
   });
 });
 
-// Secured Certificate Routes
-router.get("/certificates/my-certificates", verifyToken, (req, res) =>
-  certController.getMyCertificates(req, res)
-);
+// Certificate Routes (Full Suite + PDF fallback)
 router.get("/certificates/:id/pdf", (req, res) =>
   certController.downloadCertificatePdf(req, res)
 );
-router.get("/certificates/:id", (req, res) =>
-  certController.getCertificate(req, res)
-);
+router.use("/certificates", certRoutes);
+router.use("/cert", certRoutes);
 
 router.use("/lms", lmsRoutes);
 router.use("/admin", adminRoutes);

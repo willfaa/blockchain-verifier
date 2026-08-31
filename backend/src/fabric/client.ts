@@ -381,16 +381,30 @@ export async function registerFabricUser(
   }
 }
 
+let lastHealthCheckTime = 0;
+let lastHealthCheckResult = false;
+const HEALTH_CACHE_TTL = 8000; // 8 seconds cache to prevent peer TLS throttling
+
 export async function checkFabricReady(
   userId?: string,
   role?: string,
+  bypassCache: boolean = false,
 ): Promise<boolean> {
-  const { gateway } = await getContract(userId, role);
+  const now = Date.now();
+  if (!bypassCache && now - lastHealthCheckTime < HEALTH_CACHE_TTL) {
+    if (lastHealthCheckResult) return true;
+  }
+
   try {
-    // If we got here, we successfully connected to the gateway and channel
-    return true;
-  } finally {
+    const { gateway } = await getContract(userId, role);
     gateway.disconnect();
+    lastHealthCheckResult = true;
+    lastHealthCheckTime = Date.now();
+    return true;
+  } catch (err: any) {
+    lastHealthCheckResult = false;
+    lastHealthCheckTime = Date.now();
+    throw err;
   }
 }
 

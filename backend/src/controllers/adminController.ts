@@ -91,14 +91,14 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       }
     }
 
-    // Check Fabric with timeout safety
+    // Check Fabric with timeout safety and caching
     let isFabricOnline = false;
     if (process.env.FABRIC_ENABLED === "true") {
       try {
         const { checkFabricReady } = require("../fabric/client");
         const fabricCheckPromise = checkFabricReady("admin", "admin");
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Fabric health check timed out")), 3500)
+          setTimeout(() => reject(new Error("Fabric health check timed out")), 6000)
         );
         await Promise.race([fabricCheckPromise, timeoutPromise]);
         isFabricOnline = true;
