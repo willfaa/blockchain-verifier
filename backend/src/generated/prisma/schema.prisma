@@ -74,10 +74,11 @@ model Course {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  attachments  Attachment[]
-  modules      Module[]
-  enrollments  Enrollment[]
-  certificates Certificate[]
+  attachments     Attachment[]
+  modules         Module[]
+  enrollments     Enrollment[]
+  certificates    Certificate[]
+  competencyUnits CourseCompetencyUnit[]
 
   @@map("courses")
 }
@@ -248,6 +249,13 @@ model Certificate {
   supersededBy     String?
   supersededFrom   String?
 
+  // --- UKK STANDARDS & CUSTOMIZATION FIELDS ---
+  certificateNumber String?
+  schoolName        String?
+  signers           Json? // [{ name, role, title, nip, institution, signatureUrl? }]
+  competencyUnits   Json? // Snapshot [{ code, title, standard, result, score? }]
+  layoutMode        String? @default("STANDARD") // "STANDARD" or "QR_ONLY"
+
   // --- HYBRID CLOUD MIRROR LEDGER FIELDS ---
   blockchainSyncStatus String    @default("SYNCED") // SYNCED, PENDING_SYNC, FAILED
   blockchainTxId       String?
@@ -256,6 +264,21 @@ model Certificate {
   correctionRequests CertificateCorrectionRequest[]
 
   @@map("certificates")
+}
+
+model CourseCompetencyUnit {
+  id       String @id @default(uuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  code     String // e.g. "J.620100.004.01"
+  title    String // e.g. "Menerapkan Pemrograman Berorientasi Objek"
+  standard String @default("SKKNI") // e.g. "SKKNI", "LSP", "DUDI"
+  order    Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("course_competency_units")
 }
 
 model CertificateCorrectionRequest {

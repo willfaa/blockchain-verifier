@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { getApiBase } from "@/lib/utils";
+import { VerificationTranscriptViewer } from "@/components/features/VerificationTranscriptViewer";
 
 // Force dynamic rendering so we always fetch fresh data
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ interface CertificateRecord {
   name: string;
   majority: string;
   program: string;
-  cid: string; // RESTORED
+  cid: string;
   txId?: string;
   blockchainTxId?: string;
   blockchainSyncStatus?: "SYNCED" | "PENDING_SYNC" | "FAILED";
@@ -37,6 +38,11 @@ interface CertificateRecord {
   supersededFrom?: string;
   courseName?: string;
   course?: { title: string };
+  certificateNumber?: string | null;
+  schoolName?: string | null;
+  signers?: any;
+  competencyUnits?: any;
+  layoutMode?: string | null;
   source?: "blockchain" | "mirror_database" | "database";
   isChainVerified?: boolean;
 }
@@ -309,6 +315,25 @@ export default async function VerificationPage({
               </div>
             </div>
           </div>
+
+          {/* Interactive Dual-View Certificate & SKKNI Competency Transcript Visualizer */}
+          <VerificationTranscriptViewer
+            certId={cert.certId}
+            certificateNumber={cert.certificateNumber}
+            schoolName={cert.schoolName}
+            studentName={cert.name}
+            studentId={cert.studentId || cert.nim || "-"}
+            majority={cert.majority}
+            program={cert.program}
+            courseTitle={cert.course?.title || cert.courseName}
+            issuedAt={cert.issuedAt}
+            cid={cert.cid}
+            hash={cert.hash}
+            competencyUnits={cert.competencyUnits}
+            signers={cert.signers}
+            apiBase={apiBase}
+            ipfsGateway={IPFS_GATEWAY}
+          />
 
           {/* Mobile Data Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

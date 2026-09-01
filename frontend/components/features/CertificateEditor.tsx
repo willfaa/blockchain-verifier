@@ -113,6 +113,7 @@ export interface CertificateLayoutConfig {
   canvasBgColor?: string;
   showDecorativeFrame?: boolean;
   followTemplateDesign?: boolean;
+  layoutMode?: "STANDARD" | "QR_ONLY";
   backgroundConfig?: BackgroundConfig;
   customGroups?: Record<string, CustomGroup>;
   elements: Record<string, LayoutElement>;
@@ -168,44 +169,54 @@ const DEFAULT_BG_CONFIG: BackgroundConfig = {
 const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
   universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 877, y: 220, width: 700, height: 35, fontSize: 24, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
-  certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "CERTIFICATE OF COMPLETION", x: 877, y: 295, width: 1000, height: 80, fontSize: 62, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
-  certIdLabel: { id: "certIdLabel", type: "text", label: "ID Sertifikat", text: "ID: CERT-2024-0001", x: 877, y: 385, width: 350, height: 25, fontSize: 15, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
-  presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "PROUDLY PRESENTED TO", x: 877, y: 440, width: 320, height: 36, fontSize: 16, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
-  studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 877, y: 515, width: 1000, height: 95, fontSize: 76, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
-  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "MAJORITY - STUDY PROGRAM", x: 877, y: 625, width: 700, height: 30, fontSize: 20, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
-  studentId: { id: "studentId", type: "text", label: "NIM / ID Siswa", text: "Student ID : 2024150042", x: 877, y: 665, width: 500, height: 30, fontSize: 18, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
-  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "For successfully completing the course:", x: 877, y: 720, width: 800, height: 26, fontSize: 16, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
-  courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "BLOCKCHAIN & DISTRIBUTED SYSTEMS", x: 877, y: 765, width: 1000, height: 60, fontSize: 44, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
-  instructorName: { id: "instructorName", type: "text", label: "Nama Instruktur", text: "Dr. Budi Santoso, M.T.", x: 350, y: 990, width: 360, height: 38, fontSize: 26, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 20 },
-  instructorLine: { id: "instructorLine", type: "line", label: "Garis Tanda Tangan", x: 350, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 21 },
-  instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Instruktur", text: "HEAD INSTRUCTOR", x: 350, y: 1045, width: 280, height: 24, fontSize: 15, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
-  instructorNip: { id: "instructorNip", type: "text", label: "NIP / ID Instruktur", text: "Instructor ID: 198706152010121002", x: 350, y: 1075, width: 320, height: 24, fontSize: 13, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 23 },
-  issuedDateTitle: { id: "issuedDateTitle", type: "text", label: "Label Tanggal Terbit", text: "DATE ISSUED", x: 877, y: 990, width: 200, height: 24, fontSize: 14, fontFamily: "Arial", color: "#94a3b8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 24 },
-  issuedDateBox: { id: "issuedDateBox", type: "text", label: "Kotak Tanggal Terbit", text: "28 August 2026", x: 877, y: 1030, width: 260, height: 38, fontSize: 20, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 25 },
-  qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 1404, y: 980, width: 130, height: 130, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 26 },
-  scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "SCAN TO VERIFY", x: 1404, y: 1080, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 27 },
+  certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN", x: 877, y: 295, width: 1000, height: 80, fontSize: 52, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
+  certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 877, y: 355, width: 500, height: 26, fontSize: 16, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
+  certIdLabel: { id: "certIdLabel", type: "text", label: "ID Registrasi Blockchain", text: "ID: CERT-2026-0001", x: 877, y: 385, width: 350, height: 25, fontSize: 14, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
+  presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "DIBERIKAN KEPADA", x: 877, y: 440, width: 320, height: 36, fontSize: 16, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
+  studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 877, y: 510, width: 1000, height: 90, fontSize: 72, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
+  schoolName: { id: "schoolName", type: "text", label: "Asal Sekolah / Satuan Pendidikan", text: "SMK NEGERI 1 SURABAYA", x: 877, y: 590, width: 700, height: 30, fontSize: 19, fontFamily: "Arial", color: "#e2e8f0", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15.5 },
+  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "TEKNOLOGI INFORMASI - REKAYASA PERANGKAT LUNAK", x: 877, y: 625, width: 750, height: 30, fontSize: 18, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
+  studentId: { id: "studentId", type: "text", label: "NISN / ID Siswa", text: "NISN / ID : 0056789123", x: 877, y: 665, width: 500, height: 30, fontSize: 17, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
+  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "Telah memenuhi standar kelulusan dan kompetensi pada skema:", x: 877, y: 720, width: 800, height: 26, fontSize: 16, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
+  courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK) REKAYASA PERANGKAT LUNAK", x: 877, y: 765, width: 1000, height: 60, fontSize: 38, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
+  
+  // Signer 1 (Internal Sekolah) - Left Bottom
+  instructorName: { id: "instructorName", type: "text", label: "Nama Kepala Sekolah (Signer 1)", text: "Drs. H. Mulyono, M.Pd.", x: 350, y: 990, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 20 },
+  instructorLine: { id: "instructorLine", type: "line", label: "Garis TTD Kepala Sekolah", x: 350, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 21 },
+  instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Signer 1", text: "KEPALA SEKOLAH / PENGUJI", x: 350, y: 1045, width: 320, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+  instructorNip: { id: "instructorNip", type: "text", label: "NIP Kepala Sekolah", text: "NIP: 197204121998021003", x: 350, y: 1075, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 23 },
+  
+  // Signer 2 (Eksternal / Mitra DUDI) - Center Bottom
+  signer2Name: { id: "signer2Name", type: "text", label: "Nama Asesor DUDI (Signer 2)", text: "Ir. Hendra Kusuma, M.Kom.", x: 877, y: 990, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 24 },
+  signer2Line: { id: "signer2Line", type: "line", label: "Garis TTD Asesor DUDI", x: 877, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 25 },
+  signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Asesor DUDI", text: "ASESOR MITRA INDUSTRI (DUDI)", x: 877, y: 1045, width: 340, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 26 },
+  signer2Nip: { id: "signer2Nip", type: "text", label: "Instansi / REG Asesor DUDI", text: "PT. TELKOM INDONESIA TBK", x: 877, y: 1075, width: 340, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 27 },
+
+  // QR Code - Right Bottom
+  qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 1404, y: 980, width: 130, height: 130, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 28 },
+  scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "PINDAI VERIFIKASI", x: 1404, y: 1080, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 29 },
 };
 
 // Tata letak default Vertikal (Portrait ~1240 x 1754 px, Center X = 620)
 const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
   universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 620, y: 235, width: 600, height: 35, fontSize: 22, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
-  certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "CERTIFICATE OF COMPLETION", x: 620, y: 310, width: 700, height: 70, fontSize: 48, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
-  certIdLabel: { id: "certIdLabel", type: "text", label: "ID Sertifikat", text: "ID: CERT-2024-0001", x: 620, y: 390, width: 350, height: 25, fontSize: 14, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
-  presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "PROUDLY PRESENTED TO", x: 620, y: 450, width: 300, height: 36, fontSize: 15, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
-  studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 620, y: 535, width: 750, height: 85, fontSize: 64, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
-  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "MAJORITY - STUDY PROGRAM", x: 620, y: 630, width: 650, height: 30, fontSize: 18, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
-  studentId: { id: "studentId", type: "text", label: "NIM / ID Siswa", text: "Student ID : 2024150042", x: 620, y: 670, width: 450, height: 30, fontSize: 16, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
-  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "For successfully completing the course:", x: 620, y: 735, width: 650, height: 26, fontSize: 15, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
-  courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "BLOCKCHAIN & DISTRIBUTED SYSTEMS", x: 620, y: 785, width: 750, height: 55, fontSize: 36, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
-  issuedDateTitle: { id: "issuedDateTitle", type: "text", label: "Label Tanggal Terbit", text: "DATE ISSUED", x: 620, y: 960, width: 200, height: 24, fontSize: 14, fontFamily: "Arial", color: "#94a3b8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 20 },
-  issuedDateBox: { id: "issuedDateBox", type: "text", label: "Kotak Tanggal Terbit", text: "28 August 2026", x: 620, y: 995, width: 240, height: 36, fontSize: 18, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
-  qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 620, y: 1150, width: 140, height: 140, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 22 },
-  scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "SCAN TO VERIFY", x: 620, y: 1255, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 23 },
-  instructorName: { id: "instructorName", type: "text", label: "Nama Instruktur", text: "Dr. Budi Santoso, M.T.", x: 620, y: 1440, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 24 },
-  instructorLine: { id: "instructorLine", type: "line", label: "Garis Tanda Tangan", x: 620, y: 1480, width: 280, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 25 },
-  instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Instruktur", text: "HEAD INSTRUCTOR", x: 620, y: 1500, width: 280, height: 24, fontSize: 15, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 26 },
-  instructorNip: { id: "instructorNip", type: "text", label: "NIP / ID Instruktur", text: "Instructor ID: 198706152010121002", x: 620, y: 1530, width: 320, height: 24, fontSize: 13, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 27 },
+  certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI", x: 620, y: 310, width: 700, height: 70, fontSize: 44, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
+  certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 620, y: 365, width: 450, height: 26, fontSize: 15, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
+  certIdLabel: { id: "certIdLabel", type: "text", label: "ID Registrasi Blockchain", text: "ID: CERT-2026-0001", x: 620, y: 390, width: 350, height: 25, fontSize: 13, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
+  presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "DIBERIKAN KEPADA", x: 620, y: 450, width: 300, height: 36, fontSize: 15, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
+  studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 620, y: 535, width: 750, height: 85, fontSize: 60, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
+  schoolName: { id: "schoolName", type: "text", label: "Asal Sekolah / Satuan Pendidikan", text: "SMK NEGERI 1 SURABAYA", x: 620, y: 605, width: 600, height: 28, fontSize: 17, fontFamily: "Arial", color: "#e2e8f0", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15.5 },
+  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "TEKNIK - REKAYASA PERANGKAT LUNAK", x: 620, y: 635, width: 650, height: 30, fontSize: 16, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
+  studentId: { id: "studentId", type: "text", label: "NISN / ID Siswa", text: "NISN / ID : 0056789123", x: 620, y: 670, width: 450, height: 30, fontSize: 15, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
+  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "Telah memenuhi standar kelulusan pada skema:", x: 620, y: 735, width: 650, height: 26, fontSize: 14, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
+  courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK)", x: 620, y: 785, width: 750, height: 55, fontSize: 32, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
+  qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 620, y: 1100, width: 140, height: 140, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 20 },
+  scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "PINDAI VERIFIKASI", x: 620, y: 1205, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
+  instructorName: { id: "instructorName", type: "text", label: "Nama Kepala Sekolah", text: "Drs. H. Mulyono, M.Pd.", x: 620, y: 1440, width: 360, height: 38, fontSize: 22, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 22 },
+  instructorLine: { id: "instructorLine", type: "line", label: "Garis Tanda Tangan", x: 620, y: 1480, width: 280, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 23 },
+  instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Kepala Sekolah", text: "KEPALA SEKOLAH / PENGUJI", x: 620, y: 1500, width: 280, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 24 },
+  instructorNip: { id: "instructorNip", type: "text", label: "NIP Kepala Sekolah", text: "NIP: 197204121998021003", x: 620, y: 1530, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 25 },
 };
 
 const MAX_HISTORY = 40;
@@ -242,6 +253,7 @@ export default function CertificateEditor({
   const [canvasBgColor, setCanvasBgColor] = useState<string>("#0B0F19");
   const [showDecorativeFrame, setShowDecorativeFrame] = useState<boolean>(true);
   const [followTemplateDesign, setFollowTemplateDesign] = useState<boolean>(true);
+  const [layoutMode, setLayoutMode] = useState<"STANDARD" | "QR_ONLY">("STANDARD");
 
   // Track previous layout to detect orientation change
   const prevLayoutRef = useRef<"HORIZONTAL" | "VERTICAL">(layout);
@@ -528,6 +540,9 @@ export default function CertificateEditor({
         if (wrapped.followTemplateDesign !== undefined) {
           setFollowTemplateDesign(wrapped.followTemplateDesign);
         }
+        if (wrapped.layoutMode) {
+          setLayoutMode(wrapped.layoutMode);
+        }
         if (wrapped.backgroundConfig) {
           setBgConfig({ ...DEFAULT_BG_CONFIG, ...wrapped.backgroundConfig });
           if (wrapped.backgroundConfig.canvasBgColor) {
@@ -545,6 +560,7 @@ export default function CertificateEditor({
       const fallbackDefaults = layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS;
       setElements(fallbackDefaults);
       setCustomGroups({});
+      setLayoutMode("STANDARD");
       setHistory([{ elements: fallbackDefaults, customGroups: {} }]);
       setHistoryIndex(0);
       setBgConfig(DEFAULT_BG_CONFIG);
@@ -1294,6 +1310,49 @@ export default function CertificateEditor({
     setSelectedIds((prev) => prev.filter((item) => item !== id));
   };
 
+  // 1-Klik: Switch ke Mode "Tempel QR Code Saja" (Pre-printed Finished Certificate)
+  const handleSetQrOnlyMode = () => {
+    setLayoutMode("QR_ONLY");
+    setShowDecorativeFrame(false);
+    setFollowTemplateDesign(false);
+    setElements((prev) => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach((k) => {
+        if (k !== "qrCode" && !updated[k]?.isCustom) {
+          updated[k] = { ...updated[k], visible: false };
+        }
+      });
+      // Pastikan QR code menyala
+      if (updated.qrCode) {
+        updated.qrCode = {
+          ...updated.qrCode,
+          visible: true,
+          width: 140,
+          height: 140,
+        };
+      }
+      pushHistory(updated);
+      return updated;
+    });
+  };
+
+  // 1-Klik: Switch ke Mode Standar (Semua Teks Menyala)
+  const handleSetFullStandardMode = () => {
+    setLayoutMode("STANDARD");
+    setShowDecorativeFrame(true);
+    setFollowTemplateDesign(true);
+    setElements((prev) => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach((k) => {
+        if (!k.startsWith("signer2")) {
+          updated[k] = { ...updated[k], visible: true };
+        }
+      });
+      pushHistory(updated);
+      return updated;
+    });
+  };
+
   // Simpan konfigurasi layout penuh
   const handleSave = () => {
     const fullConfig: CertificateLayoutConfig = {
@@ -1303,6 +1362,7 @@ export default function CertificateEditor({
       canvasBgColor,
       showDecorativeFrame,
       followTemplateDesign,
+      layoutMode,
       backgroundConfig: {
         ...bgConfig,
         canvasBgColor,
@@ -1359,22 +1419,22 @@ export default function CertificateEditor({
     {
       key: "header",
       title: "Header & Judul",
-      keys: ["universityLogo", "universityTitle", "certificateTitle", "certIdLabel"],
+      keys: ["universityLogo", "universityTitle", "certificateTitle", "certificateNumber", "certIdLabel"],
     },
     {
       key: "recipient",
       title: "Penerima Sertifikat",
-      keys: ["presentedTo", "studentName", "majorProgram", "studentId"],
+      keys: ["presentedTo", "studentName", "schoolName", "majorProgram", "studentId"],
     },
     {
       key: "course",
-      title: "Materi Pelatihan",
+      title: "Materi Pelatihan / UKK",
       keys: ["courseSubtitle", "courseTitle"],
     },
     {
       key: "instructor",
-      title: "Instruktur & Tanda Tangan",
-      keys: ["instructorName", "instructorLine", "instructorTitle", "instructorNip"],
+      title: "Penandatangan (Sekolah & DUDI)",
+      keys: ["instructorName", "instructorLine", "instructorTitle", "instructorNip", "signer2Name", "signer2Line", "signer2Title", "signer2Nip"],
     },
     {
       key: "verification",
@@ -1833,6 +1893,36 @@ export default function CertificateEditor({
               </button>
             </div>
 
+            {/* Switch: Mode Desain (Template Jadi QR-Only vs Penuh) */}
+            <div className="flex items-center gap-1 bg-slate-900 px-1.5 py-1 rounded-xl border border-white/10">
+              <button
+                type="button"
+                onClick={handleSetQrOnlyMode}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  layoutMode === "QR_ONLY"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+                title="Mode Template Jadi: Upload background sertifikat lengkap Anda, kami hanya menempelkan QR Code Blockchain verifikasi"
+              >
+                <QrCode size={13} className={layoutMode === "QR_ONLY" ? "text-fuchsia-400" : "text-white/40"} />
+                <span className="hidden md:inline">Mode Tempel QR</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSetFullStandardMode}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  layoutMode === "STANDARD"
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+                title="Mode Teks Penuh: Render semua data siswa, nomor SKKNI, asal sekolah, dan tanda tangan digital"
+              >
+                <Type size={13} className={layoutMode === "STANDARD" ? "text-cyan-400" : "text-white/40"} />
+                <span className="hidden md:inline">Mode Standar</span>
+              </button>
+            </div>
+
             {/* Switch: Ikuti Desain Template Bawaan (Follow Template Design Toggle) */}
             <button
               type="button"
@@ -1850,7 +1940,7 @@ export default function CertificateEditor({
             >
               <Sparkles size={13} />
               <span className="hidden md:inline">
-                {followTemplateDesign ? "Desain Bawaan: Aktif" : "Desain Murni Kustom"}
+                {followTemplateDesign ? "Bingkai: Aktif" : "Bingkai: Bersih"}
               </span>
             </button>
 

@@ -56,6 +56,11 @@ export const saveCertificate = async (cert: CertificateRecord) => {
       cid: cert.cid,
       studentId: cert.studentId, // Persist Student ID
       courseId: cert.courseId,
+      certificateNumber: cert.certificateNumber || undefined,
+      schoolName: cert.schoolName || undefined,
+      signers: cert.signers || undefined,
+      competencyUnits: cert.competencyUnits || undefined,
+      layoutMode: cert.layoutMode || undefined,
     },
     create: {
       certId: cert.certId,
@@ -69,6 +74,11 @@ export const saveCertificate = async (cert: CertificateRecord) => {
       issuedAt: cert.issuedAt,
       userId: user.id,
       courseId: cert.courseId,
+      certificateNumber: cert.certificateNumber || undefined,
+      schoolName: cert.schoolName || undefined,
+      signers: cert.signers || undefined,
+      competencyUnits: cert.competencyUnits || undefined,
+      layoutMode: cert.layoutMode || "STANDARD",
     },
   });
 };

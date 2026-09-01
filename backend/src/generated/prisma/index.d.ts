@@ -69,6 +69,11 @@ export type Enrollment = $Result.DefaultSelection<Prisma.$EnrollmentPayload>
  */
 export type Certificate = $Result.DefaultSelection<Prisma.$CertificatePayload>
 /**
+ * Model CourseCompetencyUnit
+ * 
+ */
+export type CourseCompetencyUnit = $Result.DefaultSelection<Prisma.$CourseCompetencyUnitPayload>
+/**
  * Model CertificateCorrectionRequest
  * 
  */
@@ -347,6 +352,16 @@ export class PrismaClient<
     * ```
     */
   get certificate(): Prisma.CertificateDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.courseCompetencyUnit`: Exposes CRUD operations for the **CourseCompetencyUnit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CourseCompetencyUnits
+    * const courseCompetencyUnits = await prisma.courseCompetencyUnit.findMany()
+    * ```
+    */
+  get courseCompetencyUnit(): Prisma.CourseCompetencyUnitDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.certificateCorrectionRequest`: Exposes CRUD operations for the **CertificateCorrectionRequest** model.
@@ -852,6 +867,7 @@ export namespace Prisma {
     Exam: 'Exam',
     Enrollment: 'Enrollment',
     Certificate: 'Certificate',
+    CourseCompetencyUnit: 'CourseCompetencyUnit',
     CertificateCorrectionRequest: 'CertificateCorrectionRequest',
     ExamResult: 'ExamResult',
     SystemSetting: 'SystemSetting',
@@ -873,7 +889,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
+      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "courseCompetencyUnit" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1691,6 +1707,80 @@ export namespace Prisma {
           }
         }
       }
+      CourseCompetencyUnit: {
+        payload: Prisma.$CourseCompetencyUnitPayload<ExtArgs>
+        fields: Prisma.CourseCompetencyUnitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CourseCompetencyUnitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CourseCompetencyUnitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          findFirst: {
+            args: Prisma.CourseCompetencyUnitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CourseCompetencyUnitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          findMany: {
+            args: Prisma.CourseCompetencyUnitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>[]
+          }
+          create: {
+            args: Prisma.CourseCompetencyUnitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          createMany: {
+            args: Prisma.CourseCompetencyUnitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CourseCompetencyUnitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>[]
+          }
+          delete: {
+            args: Prisma.CourseCompetencyUnitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          update: {
+            args: Prisma.CourseCompetencyUnitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          deleteMany: {
+            args: Prisma.CourseCompetencyUnitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CourseCompetencyUnitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CourseCompetencyUnitUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>[]
+          }
+          upsert: {
+            args: Prisma.CourseCompetencyUnitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseCompetencyUnitPayload>
+          }
+          aggregate: {
+            args: Prisma.CourseCompetencyUnitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCourseCompetencyUnit>
+          }
+          groupBy: {
+            args: Prisma.CourseCompetencyUnitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CourseCompetencyUnitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CourseCompetencyUnitCountArgs<ExtArgs>
+            result: $Utils.Optional<CourseCompetencyUnitCountAggregateOutputType> | number
+          }
+        }
+      }
       CertificateCorrectionRequest: {
         payload: Prisma.$CertificateCorrectionRequestPayload<ExtArgs>
         fields: Prisma.CertificateCorrectionRequestFieldRefs
@@ -2254,6 +2344,7 @@ export namespace Prisma {
     exam?: ExamOmit
     enrollment?: EnrollmentOmit
     certificate?: CertificateOmit
+    courseCompetencyUnit?: CourseCompetencyUnitOmit
     certificateCorrectionRequest?: CertificateCorrectionRequestOmit
     examResult?: ExamResultOmit
     systemSetting?: SystemSettingOmit
@@ -2451,6 +2542,7 @@ export namespace Prisma {
     modules: number
     enrollments: number
     certificates: number
+    competencyUnits: number
   }
 
   export type CourseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2458,6 +2550,7 @@ export namespace Prisma {
     modules?: boolean | CourseCountOutputTypeCountModulesArgs
     enrollments?: boolean | CourseCountOutputTypeCountEnrollmentsArgs
     certificates?: boolean | CourseCountOutputTypeCountCertificatesArgs
+    competencyUnits?: boolean | CourseCountOutputTypeCountCompetencyUnitsArgs
   }
 
   // Custom InputTypes
@@ -2497,6 +2590,13 @@ export namespace Prisma {
    */
   export type CourseCountOutputTypeCountCertificatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CertificateWhereInput
+  }
+
+  /**
+   * CourseCountOutputType without action
+   */
+  export type CourseCountOutputTypeCountCompetencyUnitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseCompetencyUnitWhereInput
   }
 
 
@@ -5371,6 +5471,7 @@ export namespace Prisma {
     modules?: boolean | Course$modulesArgs<ExtArgs>
     enrollments?: boolean | Course$enrollmentsArgs<ExtArgs>
     certificates?: boolean | Course$certificatesArgs<ExtArgs>
+    competencyUnits?: boolean | Course$competencyUnitsArgs<ExtArgs>
     _count?: boolean | CourseCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["course"]>
 
@@ -5434,6 +5535,7 @@ export namespace Prisma {
     modules?: boolean | Course$modulesArgs<ExtArgs>
     enrollments?: boolean | Course$enrollmentsArgs<ExtArgs>
     certificates?: boolean | Course$certificatesArgs<ExtArgs>
+    competencyUnits?: boolean | Course$competencyUnitsArgs<ExtArgs>
     _count?: boolean | CourseCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CourseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5454,6 +5556,7 @@ export namespace Prisma {
       modules: Prisma.$ModulePayload<ExtArgs>[]
       enrollments: Prisma.$EnrollmentPayload<ExtArgs>[]
       certificates: Prisma.$CertificatePayload<ExtArgs>[]
+      competencyUnits: Prisma.$CourseCompetencyUnitPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5869,6 +5972,7 @@ export namespace Prisma {
     modules<T extends Course$modulesArgs<ExtArgs> = {}>(args?: Subset<T, Course$modulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     enrollments<T extends Course$enrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, Course$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     certificates<T extends Course$certificatesArgs<ExtArgs> = {}>(args?: Subset<T, Course$certificatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CertificatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    competencyUnits<T extends Course$competencyUnitsArgs<ExtArgs> = {}>(args?: Subset<T, Course$competencyUnitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6424,6 +6528,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CertificateScalarFieldEnum | CertificateScalarFieldEnum[]
+  }
+
+  /**
+   * Course.competencyUnits
+   */
+  export type Course$competencyUnitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    where?: CourseCompetencyUnitWhereInput
+    orderBy?: CourseCompetencyUnitOrderByWithRelationInput | CourseCompetencyUnitOrderByWithRelationInput[]
+    cursor?: CourseCompetencyUnitWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CourseCompetencyUnitScalarFieldEnum | CourseCompetencyUnitScalarFieldEnum[]
   }
 
   /**
@@ -14669,6 +14797,9 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    certificateNumber: string | null
+    schoolName: string | null
+    layoutMode: string | null
     blockchainSyncStatus: string | null
     blockchainTxId: string | null
     syncedAt: Date | null
@@ -14691,6 +14822,9 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    certificateNumber: string | null
+    schoolName: string | null
+    layoutMode: string | null
     blockchainSyncStatus: string | null
     blockchainTxId: string | null
     syncedAt: Date | null
@@ -14713,6 +14847,11 @@ export namespace Prisma {
     revocationReason: number
     supersededBy: number
     supersededFrom: number
+    certificateNumber: number
+    schoolName: number
+    signers: number
+    competencyUnits: number
+    layoutMode: number
     blockchainSyncStatus: number
     blockchainTxId: number
     syncedAt: number
@@ -14737,6 +14876,9 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    certificateNumber?: true
+    schoolName?: true
+    layoutMode?: true
     blockchainSyncStatus?: true
     blockchainTxId?: true
     syncedAt?: true
@@ -14759,6 +14901,9 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    certificateNumber?: true
+    schoolName?: true
+    layoutMode?: true
     blockchainSyncStatus?: true
     blockchainTxId?: true
     syncedAt?: true
@@ -14781,6 +14926,11 @@ export namespace Prisma {
     revocationReason?: true
     supersededBy?: true
     supersededFrom?: true
+    certificateNumber?: true
+    schoolName?: true
+    signers?: true
+    competencyUnits?: true
+    layoutMode?: true
     blockchainSyncStatus?: true
     blockchainTxId?: true
     syncedAt?: true
@@ -14876,6 +15026,11 @@ export namespace Prisma {
     revocationReason: string | null
     supersededBy: string | null
     supersededFrom: string | null
+    certificateNumber: string | null
+    schoolName: string | null
+    signers: JsonValue | null
+    competencyUnits: JsonValue | null
+    layoutMode: string | null
     blockchainSyncStatus: string
     blockchainTxId: string | null
     syncedAt: Date | null
@@ -14915,6 +15070,11 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    certificateNumber?: boolean
+    schoolName?: boolean
+    signers?: boolean
+    competencyUnits?: boolean
+    layoutMode?: boolean
     blockchainSyncStatus?: boolean
     blockchainTxId?: boolean
     syncedAt?: boolean
@@ -14941,6 +15101,11 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    certificateNumber?: boolean
+    schoolName?: boolean
+    signers?: boolean
+    competencyUnits?: boolean
+    layoutMode?: boolean
     blockchainSyncStatus?: boolean
     blockchainTxId?: boolean
     syncedAt?: boolean
@@ -14965,6 +15130,11 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    certificateNumber?: boolean
+    schoolName?: boolean
+    signers?: boolean
+    competencyUnits?: boolean
+    layoutMode?: boolean
     blockchainSyncStatus?: boolean
     blockchainTxId?: boolean
     syncedAt?: boolean
@@ -14989,12 +15159,17 @@ export namespace Prisma {
     revocationReason?: boolean
     supersededBy?: boolean
     supersededFrom?: boolean
+    certificateNumber?: boolean
+    schoolName?: boolean
+    signers?: boolean
+    competencyUnits?: boolean
+    layoutMode?: boolean
     blockchainSyncStatus?: boolean
     blockchainTxId?: boolean
     syncedAt?: boolean
   }
 
-  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status" | "revokedAt" | "revocationReason" | "supersededBy" | "supersededFrom" | "blockchainSyncStatus" | "blockchainTxId" | "syncedAt", ExtArgs["result"]["certificate"]>
+  export type CertificateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "certId" | "studentName" | "studentId" | "program" | "majority" | "courseId" | "userId" | "issuedAt" | "cid" | "hash" | "status" | "revokedAt" | "revocationReason" | "supersededBy" | "supersededFrom" | "certificateNumber" | "schoolName" | "signers" | "competencyUnits" | "layoutMode" | "blockchainSyncStatus" | "blockchainTxId" | "syncedAt", ExtArgs["result"]["certificate"]>
   export type CertificateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course?: boolean | Certificate$courseArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -15034,6 +15209,11 @@ export namespace Prisma {
       revocationReason: string | null
       supersededBy: string | null
       supersededFrom: string | null
+      certificateNumber: string | null
+      schoolName: string | null
+      signers: Prisma.JsonValue | null
+      competencyUnits: Prisma.JsonValue | null
+      layoutMode: string | null
       blockchainSyncStatus: string
       blockchainTxId: string | null
       syncedAt: Date | null
@@ -15479,6 +15659,11 @@ export namespace Prisma {
     readonly revocationReason: FieldRef<"Certificate", 'String'>
     readonly supersededBy: FieldRef<"Certificate", 'String'>
     readonly supersededFrom: FieldRef<"Certificate", 'String'>
+    readonly certificateNumber: FieldRef<"Certificate", 'String'>
+    readonly schoolName: FieldRef<"Certificate", 'String'>
+    readonly signers: FieldRef<"Certificate", 'Json'>
+    readonly competencyUnits: FieldRef<"Certificate", 'Json'>
+    readonly layoutMode: FieldRef<"Certificate", 'String'>
     readonly blockchainSyncStatus: FieldRef<"Certificate", 'String'>
     readonly blockchainTxId: FieldRef<"Certificate", 'String'>
     readonly syncedAt: FieldRef<"Certificate", 'DateTime'>
@@ -15941,6 +16126,1142 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CertificateInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CourseCompetencyUnit
+   */
+
+  export type AggregateCourseCompetencyUnit = {
+    _count: CourseCompetencyUnitCountAggregateOutputType | null
+    _avg: CourseCompetencyUnitAvgAggregateOutputType | null
+    _sum: CourseCompetencyUnitSumAggregateOutputType | null
+    _min: CourseCompetencyUnitMinAggregateOutputType | null
+    _max: CourseCompetencyUnitMaxAggregateOutputType | null
+  }
+
+  export type CourseCompetencyUnitAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type CourseCompetencyUnitSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type CourseCompetencyUnitMinAggregateOutputType = {
+    id: string | null
+    courseId: string | null
+    code: string | null
+    title: string | null
+    standard: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CourseCompetencyUnitMaxAggregateOutputType = {
+    id: string | null
+    courseId: string | null
+    code: string | null
+    title: string | null
+    standard: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CourseCompetencyUnitCountAggregateOutputType = {
+    id: number
+    courseId: number
+    code: number
+    title: number
+    standard: number
+    order: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CourseCompetencyUnitAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type CourseCompetencyUnitSumAggregateInputType = {
+    order?: true
+  }
+
+  export type CourseCompetencyUnitMinAggregateInputType = {
+    id?: true
+    courseId?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CourseCompetencyUnitMaxAggregateInputType = {
+    id?: true
+    courseId?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CourseCompetencyUnitCountAggregateInputType = {
+    id?: true
+    courseId?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CourseCompetencyUnitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CourseCompetencyUnit to aggregate.
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseCompetencyUnits to fetch.
+     */
+    orderBy?: CourseCompetencyUnitOrderByWithRelationInput | CourseCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CourseCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CourseCompetencyUnits
+    **/
+    _count?: true | CourseCompetencyUnitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CourseCompetencyUnitAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CourseCompetencyUnitSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CourseCompetencyUnitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CourseCompetencyUnitMaxAggregateInputType
+  }
+
+  export type GetCourseCompetencyUnitAggregateType<T extends CourseCompetencyUnitAggregateArgs> = {
+        [P in keyof T & keyof AggregateCourseCompetencyUnit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCourseCompetencyUnit[P]>
+      : GetScalarType<T[P], AggregateCourseCompetencyUnit[P]>
+  }
+
+
+
+
+  export type CourseCompetencyUnitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseCompetencyUnitWhereInput
+    orderBy?: CourseCompetencyUnitOrderByWithAggregationInput | CourseCompetencyUnitOrderByWithAggregationInput[]
+    by: CourseCompetencyUnitScalarFieldEnum[] | CourseCompetencyUnitScalarFieldEnum
+    having?: CourseCompetencyUnitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CourseCompetencyUnitCountAggregateInputType | true
+    _avg?: CourseCompetencyUnitAvgAggregateInputType
+    _sum?: CourseCompetencyUnitSumAggregateInputType
+    _min?: CourseCompetencyUnitMinAggregateInputType
+    _max?: CourseCompetencyUnitMaxAggregateInputType
+  }
+
+  export type CourseCompetencyUnitGroupByOutputType = {
+    id: string
+    courseId: string
+    code: string
+    title: string
+    standard: string
+    order: number
+    createdAt: Date
+    updatedAt: Date
+    _count: CourseCompetencyUnitCountAggregateOutputType | null
+    _avg: CourseCompetencyUnitAvgAggregateOutputType | null
+    _sum: CourseCompetencyUnitSumAggregateOutputType | null
+    _min: CourseCompetencyUnitMinAggregateOutputType | null
+    _max: CourseCompetencyUnitMaxAggregateOutputType | null
+  }
+
+  type GetCourseCompetencyUnitGroupByPayload<T extends CourseCompetencyUnitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CourseCompetencyUnitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CourseCompetencyUnitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CourseCompetencyUnitGroupByOutputType[P]>
+            : GetScalarType<T[P], CourseCompetencyUnitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CourseCompetencyUnitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    courseId?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseCompetencyUnit"]>
+
+  export type CourseCompetencyUnitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    courseId?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseCompetencyUnit"]>
+
+  export type CourseCompetencyUnitSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    courseId?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseCompetencyUnit"]>
+
+  export type CourseCompetencyUnitSelectScalar = {
+    id?: boolean
+    courseId?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CourseCompetencyUnitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "courseId" | "code" | "title" | "standard" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["courseCompetencyUnit"]>
+  export type CourseCompetencyUnitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }
+  export type CourseCompetencyUnitIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }
+  export type CourseCompetencyUnitIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+  }
+
+  export type $CourseCompetencyUnitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CourseCompetencyUnit"
+    objects: {
+      course: Prisma.$CoursePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      courseId: string
+      code: string
+      title: string
+      standard: string
+      order: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["courseCompetencyUnit"]>
+    composites: {}
+  }
+
+  type CourseCompetencyUnitGetPayload<S extends boolean | null | undefined | CourseCompetencyUnitDefaultArgs> = $Result.GetResult<Prisma.$CourseCompetencyUnitPayload, S>
+
+  type CourseCompetencyUnitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CourseCompetencyUnitFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CourseCompetencyUnitCountAggregateInputType | true
+    }
+
+  export interface CourseCompetencyUnitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CourseCompetencyUnit'], meta: { name: 'CourseCompetencyUnit' } }
+    /**
+     * Find zero or one CourseCompetencyUnit that matches the filter.
+     * @param {CourseCompetencyUnitFindUniqueArgs} args - Arguments to find a CourseCompetencyUnit
+     * @example
+     * // Get one CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CourseCompetencyUnitFindUniqueArgs>(args: SelectSubset<T, CourseCompetencyUnitFindUniqueArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CourseCompetencyUnit that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CourseCompetencyUnitFindUniqueOrThrowArgs} args - Arguments to find a CourseCompetencyUnit
+     * @example
+     * // Get one CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CourseCompetencyUnitFindUniqueOrThrowArgs>(args: SelectSubset<T, CourseCompetencyUnitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CourseCompetencyUnit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitFindFirstArgs} args - Arguments to find a CourseCompetencyUnit
+     * @example
+     * // Get one CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CourseCompetencyUnitFindFirstArgs>(args?: SelectSubset<T, CourseCompetencyUnitFindFirstArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CourseCompetencyUnit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitFindFirstOrThrowArgs} args - Arguments to find a CourseCompetencyUnit
+     * @example
+     * // Get one CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CourseCompetencyUnitFindFirstOrThrowArgs>(args?: SelectSubset<T, CourseCompetencyUnitFindFirstOrThrowArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CourseCompetencyUnits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CourseCompetencyUnits
+     * const courseCompetencyUnits = await prisma.courseCompetencyUnit.findMany()
+     * 
+     * // Get first 10 CourseCompetencyUnits
+     * const courseCompetencyUnits = await prisma.courseCompetencyUnit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const courseCompetencyUnitWithIdOnly = await prisma.courseCompetencyUnit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CourseCompetencyUnitFindManyArgs>(args?: SelectSubset<T, CourseCompetencyUnitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CourseCompetencyUnit.
+     * @param {CourseCompetencyUnitCreateArgs} args - Arguments to create a CourseCompetencyUnit.
+     * @example
+     * // Create one CourseCompetencyUnit
+     * const CourseCompetencyUnit = await prisma.courseCompetencyUnit.create({
+     *   data: {
+     *     // ... data to create a CourseCompetencyUnit
+     *   }
+     * })
+     * 
+     */
+    create<T extends CourseCompetencyUnitCreateArgs>(args: SelectSubset<T, CourseCompetencyUnitCreateArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CourseCompetencyUnits.
+     * @param {CourseCompetencyUnitCreateManyArgs} args - Arguments to create many CourseCompetencyUnits.
+     * @example
+     * // Create many CourseCompetencyUnits
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CourseCompetencyUnitCreateManyArgs>(args?: SelectSubset<T, CourseCompetencyUnitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CourseCompetencyUnits and returns the data saved in the database.
+     * @param {CourseCompetencyUnitCreateManyAndReturnArgs} args - Arguments to create many CourseCompetencyUnits.
+     * @example
+     * // Create many CourseCompetencyUnits
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CourseCompetencyUnits and only return the `id`
+     * const courseCompetencyUnitWithIdOnly = await prisma.courseCompetencyUnit.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CourseCompetencyUnitCreateManyAndReturnArgs>(args?: SelectSubset<T, CourseCompetencyUnitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CourseCompetencyUnit.
+     * @param {CourseCompetencyUnitDeleteArgs} args - Arguments to delete one CourseCompetencyUnit.
+     * @example
+     * // Delete one CourseCompetencyUnit
+     * const CourseCompetencyUnit = await prisma.courseCompetencyUnit.delete({
+     *   where: {
+     *     // ... filter to delete one CourseCompetencyUnit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CourseCompetencyUnitDeleteArgs>(args: SelectSubset<T, CourseCompetencyUnitDeleteArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CourseCompetencyUnit.
+     * @param {CourseCompetencyUnitUpdateArgs} args - Arguments to update one CourseCompetencyUnit.
+     * @example
+     * // Update one CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CourseCompetencyUnitUpdateArgs>(args: SelectSubset<T, CourseCompetencyUnitUpdateArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CourseCompetencyUnits.
+     * @param {CourseCompetencyUnitDeleteManyArgs} args - Arguments to filter CourseCompetencyUnits to delete.
+     * @example
+     * // Delete a few CourseCompetencyUnits
+     * const { count } = await prisma.courseCompetencyUnit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CourseCompetencyUnitDeleteManyArgs>(args?: SelectSubset<T, CourseCompetencyUnitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CourseCompetencyUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CourseCompetencyUnits
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CourseCompetencyUnitUpdateManyArgs>(args: SelectSubset<T, CourseCompetencyUnitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CourseCompetencyUnits and returns the data updated in the database.
+     * @param {CourseCompetencyUnitUpdateManyAndReturnArgs} args - Arguments to update many CourseCompetencyUnits.
+     * @example
+     * // Update many CourseCompetencyUnits
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CourseCompetencyUnits and only return the `id`
+     * const courseCompetencyUnitWithIdOnly = await prisma.courseCompetencyUnit.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CourseCompetencyUnitUpdateManyAndReturnArgs>(args: SelectSubset<T, CourseCompetencyUnitUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CourseCompetencyUnit.
+     * @param {CourseCompetencyUnitUpsertArgs} args - Arguments to update or create a CourseCompetencyUnit.
+     * @example
+     * // Update or create a CourseCompetencyUnit
+     * const courseCompetencyUnit = await prisma.courseCompetencyUnit.upsert({
+     *   create: {
+     *     // ... data to create a CourseCompetencyUnit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CourseCompetencyUnit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CourseCompetencyUnitUpsertArgs>(args: SelectSubset<T, CourseCompetencyUnitUpsertArgs<ExtArgs>>): Prisma__CourseCompetencyUnitClient<$Result.GetResult<Prisma.$CourseCompetencyUnitPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CourseCompetencyUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitCountArgs} args - Arguments to filter CourseCompetencyUnits to count.
+     * @example
+     * // Count the number of CourseCompetencyUnits
+     * const count = await prisma.courseCompetencyUnit.count({
+     *   where: {
+     *     // ... the filter for the CourseCompetencyUnits we want to count
+     *   }
+     * })
+    **/
+    count<T extends CourseCompetencyUnitCountArgs>(
+      args?: Subset<T, CourseCompetencyUnitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CourseCompetencyUnitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CourseCompetencyUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CourseCompetencyUnitAggregateArgs>(args: Subset<T, CourseCompetencyUnitAggregateArgs>): Prisma.PrismaPromise<GetCourseCompetencyUnitAggregateType<T>>
+
+    /**
+     * Group by CourseCompetencyUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCompetencyUnitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CourseCompetencyUnitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CourseCompetencyUnitGroupByArgs['orderBy'] }
+        : { orderBy?: CourseCompetencyUnitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CourseCompetencyUnitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCourseCompetencyUnitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CourseCompetencyUnit model
+   */
+  readonly fields: CourseCompetencyUnitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CourseCompetencyUnit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CourseCompetencyUnitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    course<T extends CourseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CourseDefaultArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CourseCompetencyUnit model
+   */
+  interface CourseCompetencyUnitFieldRefs {
+    readonly id: FieldRef<"CourseCompetencyUnit", 'String'>
+    readonly courseId: FieldRef<"CourseCompetencyUnit", 'String'>
+    readonly code: FieldRef<"CourseCompetencyUnit", 'String'>
+    readonly title: FieldRef<"CourseCompetencyUnit", 'String'>
+    readonly standard: FieldRef<"CourseCompetencyUnit", 'String'>
+    readonly order: FieldRef<"CourseCompetencyUnit", 'Int'>
+    readonly createdAt: FieldRef<"CourseCompetencyUnit", 'DateTime'>
+    readonly updatedAt: FieldRef<"CourseCompetencyUnit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CourseCompetencyUnit findUnique
+   */
+  export type CourseCompetencyUnitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseCompetencyUnit to fetch.
+     */
+    where: CourseCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * CourseCompetencyUnit findUniqueOrThrow
+   */
+  export type CourseCompetencyUnitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseCompetencyUnit to fetch.
+     */
+    where: CourseCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * CourseCompetencyUnit findFirst
+   */
+  export type CourseCompetencyUnitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseCompetencyUnit to fetch.
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseCompetencyUnits to fetch.
+     */
+    orderBy?: CourseCompetencyUnitOrderByWithRelationInput | CourseCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CourseCompetencyUnits.
+     */
+    cursor?: CourseCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseCompetencyUnits.
+     */
+    distinct?: CourseCompetencyUnitScalarFieldEnum | CourseCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * CourseCompetencyUnit findFirstOrThrow
+   */
+  export type CourseCompetencyUnitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseCompetencyUnit to fetch.
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseCompetencyUnits to fetch.
+     */
+    orderBy?: CourseCompetencyUnitOrderByWithRelationInput | CourseCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CourseCompetencyUnits.
+     */
+    cursor?: CourseCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseCompetencyUnits.
+     */
+    distinct?: CourseCompetencyUnitScalarFieldEnum | CourseCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * CourseCompetencyUnit findMany
+   */
+  export type CourseCompetencyUnitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseCompetencyUnits to fetch.
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseCompetencyUnits to fetch.
+     */
+    orderBy?: CourseCompetencyUnitOrderByWithRelationInput | CourseCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CourseCompetencyUnits.
+     */
+    cursor?: CourseCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseCompetencyUnits.
+     */
+    distinct?: CourseCompetencyUnitScalarFieldEnum | CourseCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * CourseCompetencyUnit create
+   */
+  export type CourseCompetencyUnitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CourseCompetencyUnit.
+     */
+    data: XOR<CourseCompetencyUnitCreateInput, CourseCompetencyUnitUncheckedCreateInput>
+  }
+
+  /**
+   * CourseCompetencyUnit createMany
+   */
+  export type CourseCompetencyUnitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CourseCompetencyUnits.
+     */
+    data: CourseCompetencyUnitCreateManyInput | CourseCompetencyUnitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CourseCompetencyUnit createManyAndReturn
+   */
+  export type CourseCompetencyUnitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * The data used to create many CourseCompetencyUnits.
+     */
+    data: CourseCompetencyUnitCreateManyInput | CourseCompetencyUnitCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CourseCompetencyUnit update
+   */
+  export type CourseCompetencyUnitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CourseCompetencyUnit.
+     */
+    data: XOR<CourseCompetencyUnitUpdateInput, CourseCompetencyUnitUncheckedUpdateInput>
+    /**
+     * Choose, which CourseCompetencyUnit to update.
+     */
+    where: CourseCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * CourseCompetencyUnit updateMany
+   */
+  export type CourseCompetencyUnitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CourseCompetencyUnits.
+     */
+    data: XOR<CourseCompetencyUnitUpdateManyMutationInput, CourseCompetencyUnitUncheckedUpdateManyInput>
+    /**
+     * Filter which CourseCompetencyUnits to update
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * Limit how many CourseCompetencyUnits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CourseCompetencyUnit updateManyAndReturn
+   */
+  export type CourseCompetencyUnitUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * The data used to update CourseCompetencyUnits.
+     */
+    data: XOR<CourseCompetencyUnitUpdateManyMutationInput, CourseCompetencyUnitUncheckedUpdateManyInput>
+    /**
+     * Filter which CourseCompetencyUnits to update
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * Limit how many CourseCompetencyUnits to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CourseCompetencyUnit upsert
+   */
+  export type CourseCompetencyUnitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CourseCompetencyUnit to update in case it exists.
+     */
+    where: CourseCompetencyUnitWhereUniqueInput
+    /**
+     * In case the CourseCompetencyUnit found by the `where` argument doesn't exist, create a new CourseCompetencyUnit with this data.
+     */
+    create: XOR<CourseCompetencyUnitCreateInput, CourseCompetencyUnitUncheckedCreateInput>
+    /**
+     * In case the CourseCompetencyUnit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CourseCompetencyUnitUpdateInput, CourseCompetencyUnitUncheckedUpdateInput>
+  }
+
+  /**
+   * CourseCompetencyUnit delete
+   */
+  export type CourseCompetencyUnitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter which CourseCompetencyUnit to delete.
+     */
+    where: CourseCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * CourseCompetencyUnit deleteMany
+   */
+  export type CourseCompetencyUnitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CourseCompetencyUnits to delete
+     */
+    where?: CourseCompetencyUnitWhereInput
+    /**
+     * Limit how many CourseCompetencyUnits to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CourseCompetencyUnit without action
+   */
+  export type CourseCompetencyUnitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCompetencyUnit
+     */
+    select?: CourseCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseCompetencyUnit
+     */
+    omit?: CourseCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseCompetencyUnitInclude<ExtArgs> | null
   }
 
 
@@ -22515,12 +23836,31 @@ export namespace Prisma {
     revocationReason: 'revocationReason',
     supersededBy: 'supersededBy',
     supersededFrom: 'supersededFrom',
+    certificateNumber: 'certificateNumber',
+    schoolName: 'schoolName',
+    signers: 'signers',
+    competencyUnits: 'competencyUnits',
+    layoutMode: 'layoutMode',
     blockchainSyncStatus: 'blockchainSyncStatus',
     blockchainTxId: 'blockchainTxId',
     syncedAt: 'syncedAt'
   };
 
   export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
+
+
+  export const CourseCompetencyUnitScalarFieldEnum: {
+    id: 'id',
+    courseId: 'courseId',
+    code: 'code',
+    title: 'title',
+    standard: 'standard',
+    order: 'order',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CourseCompetencyUnitScalarFieldEnum = (typeof CourseCompetencyUnitScalarFieldEnum)[keyof typeof CourseCompetencyUnitScalarFieldEnum]
 
 
   export const CertificateCorrectionRequestScalarFieldEnum: {
@@ -22937,6 +24277,7 @@ export namespace Prisma {
     modules?: ModuleListRelationFilter
     enrollments?: EnrollmentListRelationFilter
     certificates?: CertificateListRelationFilter
+    competencyUnits?: CourseCompetencyUnitListRelationFilter
   }
 
   export type CourseOrderByWithRelationInput = {
@@ -22959,6 +24300,7 @@ export namespace Prisma {
     modules?: ModuleOrderByRelationAggregateInput
     enrollments?: EnrollmentOrderByRelationAggregateInput
     certificates?: CertificateOrderByRelationAggregateInput
+    competencyUnits?: CourseCompetencyUnitOrderByRelationAggregateInput
   }
 
   export type CourseWhereUniqueInput = Prisma.AtLeast<{
@@ -22984,6 +24326,7 @@ export namespace Prisma {
     modules?: ModuleListRelationFilter
     enrollments?: EnrollmentListRelationFilter
     certificates?: CertificateListRelationFilter
+    competencyUnits?: CourseCompetencyUnitListRelationFilter
   }, "id">
 
   export type CourseOrderByWithAggregationInput = {
@@ -23613,6 +24956,11 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    certificateNumber?: StringNullableFilter<"Certificate"> | string | null
+    schoolName?: StringNullableFilter<"Certificate"> | string | null
+    signers?: JsonNullableFilter<"Certificate">
+    competencyUnits?: JsonNullableFilter<"Certificate">
+    layoutMode?: StringNullableFilter<"Certificate"> | string | null
     blockchainSyncStatus?: StringFilter<"Certificate"> | string
     blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
     syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
@@ -23638,6 +24986,11 @@ export namespace Prisma {
     revocationReason?: SortOrderInput | SortOrder
     supersededBy?: SortOrderInput | SortOrder
     supersededFrom?: SortOrderInput | SortOrder
+    certificateNumber?: SortOrderInput | SortOrder
+    schoolName?: SortOrderInput | SortOrder
+    signers?: SortOrderInput | SortOrder
+    competencyUnits?: SortOrderInput | SortOrder
+    layoutMode?: SortOrderInput | SortOrder
     blockchainSyncStatus?: SortOrder
     blockchainTxId?: SortOrderInput | SortOrder
     syncedAt?: SortOrderInput | SortOrder
@@ -23666,6 +25019,11 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    certificateNumber?: StringNullableFilter<"Certificate"> | string | null
+    schoolName?: StringNullableFilter<"Certificate"> | string | null
+    signers?: JsonNullableFilter<"Certificate">
+    competencyUnits?: JsonNullableFilter<"Certificate">
+    layoutMode?: StringNullableFilter<"Certificate"> | string | null
     blockchainSyncStatus?: StringFilter<"Certificate"> | string
     blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
     syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
@@ -23691,6 +25049,11 @@ export namespace Prisma {
     revocationReason?: SortOrderInput | SortOrder
     supersededBy?: SortOrderInput | SortOrder
     supersededFrom?: SortOrderInput | SortOrder
+    certificateNumber?: SortOrderInput | SortOrder
+    schoolName?: SortOrderInput | SortOrder
+    signers?: SortOrderInput | SortOrder
+    competencyUnits?: SortOrderInput | SortOrder
+    layoutMode?: SortOrderInput | SortOrder
     blockchainSyncStatus?: SortOrder
     blockchainTxId?: SortOrderInput | SortOrder
     syncedAt?: SortOrderInput | SortOrder
@@ -23719,9 +25082,86 @@ export namespace Prisma {
     revocationReason?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     supersededBy?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    certificateNumber?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    schoolName?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
+    signers?: JsonNullableWithAggregatesFilter<"Certificate">
+    competencyUnits?: JsonNullableWithAggregatesFilter<"Certificate">
+    layoutMode?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     blockchainSyncStatus?: StringWithAggregatesFilter<"Certificate"> | string
     blockchainTxId?: StringNullableWithAggregatesFilter<"Certificate"> | string | null
     syncedAt?: DateTimeNullableWithAggregatesFilter<"Certificate"> | Date | string | null
+  }
+
+  export type CourseCompetencyUnitWhereInput = {
+    AND?: CourseCompetencyUnitWhereInput | CourseCompetencyUnitWhereInput[]
+    OR?: CourseCompetencyUnitWhereInput[]
+    NOT?: CourseCompetencyUnitWhereInput | CourseCompetencyUnitWhereInput[]
+    id?: StringFilter<"CourseCompetencyUnit"> | string
+    courseId?: StringFilter<"CourseCompetencyUnit"> | string
+    code?: StringFilter<"CourseCompetencyUnit"> | string
+    title?: StringFilter<"CourseCompetencyUnit"> | string
+    standard?: StringFilter<"CourseCompetencyUnit"> | string
+    order?: IntFilter<"CourseCompetencyUnit"> | number
+    createdAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+    course?: XOR<CourseScalarRelationFilter, CourseWhereInput>
+  }
+
+  export type CourseCompetencyUnitOrderByWithRelationInput = {
+    id?: SortOrder
+    courseId?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    course?: CourseOrderByWithRelationInput
+  }
+
+  export type CourseCompetencyUnitWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CourseCompetencyUnitWhereInput | CourseCompetencyUnitWhereInput[]
+    OR?: CourseCompetencyUnitWhereInput[]
+    NOT?: CourseCompetencyUnitWhereInput | CourseCompetencyUnitWhereInput[]
+    courseId?: StringFilter<"CourseCompetencyUnit"> | string
+    code?: StringFilter<"CourseCompetencyUnit"> | string
+    title?: StringFilter<"CourseCompetencyUnit"> | string
+    standard?: StringFilter<"CourseCompetencyUnit"> | string
+    order?: IntFilter<"CourseCompetencyUnit"> | number
+    createdAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+    course?: XOR<CourseScalarRelationFilter, CourseWhereInput>
+  }, "id">
+
+  export type CourseCompetencyUnitOrderByWithAggregationInput = {
+    id?: SortOrder
+    courseId?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CourseCompetencyUnitCountOrderByAggregateInput
+    _avg?: CourseCompetencyUnitAvgOrderByAggregateInput
+    _max?: CourseCompetencyUnitMaxOrderByAggregateInput
+    _min?: CourseCompetencyUnitMinOrderByAggregateInput
+    _sum?: CourseCompetencyUnitSumOrderByAggregateInput
+  }
+
+  export type CourseCompetencyUnitScalarWhereWithAggregatesInput = {
+    AND?: CourseCompetencyUnitScalarWhereWithAggregatesInput | CourseCompetencyUnitScalarWhereWithAggregatesInput[]
+    OR?: CourseCompetencyUnitScalarWhereWithAggregatesInput[]
+    NOT?: CourseCompetencyUnitScalarWhereWithAggregatesInput | CourseCompetencyUnitScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CourseCompetencyUnit"> | string
+    courseId?: StringWithAggregatesFilter<"CourseCompetencyUnit"> | string
+    code?: StringWithAggregatesFilter<"CourseCompetencyUnit"> | string
+    title?: StringWithAggregatesFilter<"CourseCompetencyUnit"> | string
+    standard?: StringWithAggregatesFilter<"CourseCompetencyUnit"> | string
+    order?: IntWithAggregatesFilter<"CourseCompetencyUnit"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"CourseCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CourseCompetencyUnit"> | Date | string
   }
 
   export type CertificateCorrectionRequestWhereInput = {
@@ -24287,6 +25727,7 @@ export namespace Prisma {
     modules?: ModuleCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateInput = {
@@ -24307,6 +25748,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUpdateInput = {
@@ -24327,6 +25769,7 @@ export namespace Prisma {
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateInput = {
@@ -24347,6 +25790,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseCreateManyInput = {
@@ -25023,6 +26467,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -25048,6 +26497,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -25069,6 +26523,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25094,6 +26553,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25117,6 +26581,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -25137,6 +26606,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25159,9 +26633,90 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CourseCompetencyUnitCreateInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    course: CourseCreateNestedOneWithoutCompetencyUnitsInput
+  }
+
+  export type CourseCompetencyUnitUncheckedCreateInput = {
+    id?: string
+    courseId: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CourseCompetencyUnitUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    course?: CourseUpdateOneRequiredWithoutCompetencyUnitsNestedInput
+  }
+
+  export type CourseCompetencyUnitUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    courseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseCompetencyUnitCreateManyInput = {
+    id?: string
+    courseId: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CourseCompetencyUnitUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseCompetencyUnitUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    courseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CertificateCorrectionRequestCreateInput = {
@@ -25783,11 +27338,21 @@ export namespace Prisma {
     none?: ModuleWhereInput
   }
 
+  export type CourseCompetencyUnitListRelationFilter = {
+    every?: CourseCompetencyUnitWhereInput
+    some?: CourseCompetencyUnitWhereInput
+    none?: CourseCompetencyUnitWhereInput
+  }
+
   export type AttachmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type ModuleOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CourseCompetencyUnitOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -26413,6 +27978,11 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    certificateNumber?: SortOrder
+    schoolName?: SortOrder
+    signers?: SortOrder
+    competencyUnits?: SortOrder
+    layoutMode?: SortOrder
     blockchainSyncStatus?: SortOrder
     blockchainTxId?: SortOrder
     syncedAt?: SortOrder
@@ -26435,6 +28005,9 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    certificateNumber?: SortOrder
+    schoolName?: SortOrder
+    layoutMode?: SortOrder
     blockchainSyncStatus?: SortOrder
     blockchainTxId?: SortOrder
     syncedAt?: SortOrder
@@ -26457,9 +28030,53 @@ export namespace Prisma {
     revocationReason?: SortOrder
     supersededBy?: SortOrder
     supersededFrom?: SortOrder
+    certificateNumber?: SortOrder
+    schoolName?: SortOrder
+    layoutMode?: SortOrder
     blockchainSyncStatus?: SortOrder
     blockchainTxId?: SortOrder
     syncedAt?: SortOrder
+  }
+
+  export type CourseCompetencyUnitCountOrderByAggregateInput = {
+    id?: SortOrder
+    courseId?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CourseCompetencyUnitAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type CourseCompetencyUnitMaxOrderByAggregateInput = {
+    id?: SortOrder
+    courseId?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CourseCompetencyUnitMinOrderByAggregateInput = {
+    id?: SortOrder
+    courseId?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CourseCompetencyUnitSumOrderByAggregateInput = {
+    order?: SortOrder
   }
 
   export type CertificateScalarRelationFilter = {
@@ -27025,6 +28642,13 @@ export namespace Prisma {
     connect?: CertificateWhereUniqueInput | CertificateWhereUniqueInput[]
   }
 
+  export type CourseCompetencyUnitCreateNestedManyWithoutCourseInput = {
+    create?: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput> | CourseCompetencyUnitCreateWithoutCourseInput[] | CourseCompetencyUnitUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseCompetencyUnitCreateOrConnectWithoutCourseInput | CourseCompetencyUnitCreateOrConnectWithoutCourseInput[]
+    createMany?: CourseCompetencyUnitCreateManyCourseInputEnvelope
+    connect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+  }
+
   export type AttachmentUncheckedCreateNestedManyWithoutCourseInput = {
     create?: XOR<AttachmentCreateWithoutCourseInput, AttachmentUncheckedCreateWithoutCourseInput> | AttachmentCreateWithoutCourseInput[] | AttachmentUncheckedCreateWithoutCourseInput[]
     connectOrCreate?: AttachmentCreateOrConnectWithoutCourseInput | AttachmentCreateOrConnectWithoutCourseInput[]
@@ -27051,6 +28675,13 @@ export namespace Prisma {
     connectOrCreate?: CertificateCreateOrConnectWithoutCourseInput | CertificateCreateOrConnectWithoutCourseInput[]
     createMany?: CertificateCreateManyCourseInputEnvelope
     connect?: CertificateWhereUniqueInput | CertificateWhereUniqueInput[]
+  }
+
+  export type CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput = {
+    create?: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput> | CourseCompetencyUnitCreateWithoutCourseInput[] | CourseCompetencyUnitUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseCompetencyUnitCreateOrConnectWithoutCourseInput | CourseCompetencyUnitCreateOrConnectWithoutCourseInput[]
+    createMany?: CourseCompetencyUnitCreateManyCourseInputEnvelope
+    connect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
   }
 
   export type UserUpdateOneRequiredWithoutCreatedCoursesNestedInput = {
@@ -27127,6 +28758,20 @@ export namespace Prisma {
     deleteMany?: CertificateScalarWhereInput | CertificateScalarWhereInput[]
   }
 
+  export type CourseCompetencyUnitUpdateManyWithoutCourseNestedInput = {
+    create?: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput> | CourseCompetencyUnitCreateWithoutCourseInput[] | CourseCompetencyUnitUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseCompetencyUnitCreateOrConnectWithoutCourseInput | CourseCompetencyUnitCreateOrConnectWithoutCourseInput[]
+    upsert?: CourseCompetencyUnitUpsertWithWhereUniqueWithoutCourseInput | CourseCompetencyUnitUpsertWithWhereUniqueWithoutCourseInput[]
+    createMany?: CourseCompetencyUnitCreateManyCourseInputEnvelope
+    set?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    disconnect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    delete?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    connect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    update?: CourseCompetencyUnitUpdateWithWhereUniqueWithoutCourseInput | CourseCompetencyUnitUpdateWithWhereUniqueWithoutCourseInput[]
+    updateMany?: CourseCompetencyUnitUpdateManyWithWhereWithoutCourseInput | CourseCompetencyUnitUpdateManyWithWhereWithoutCourseInput[]
+    deleteMany?: CourseCompetencyUnitScalarWhereInput | CourseCompetencyUnitScalarWhereInput[]
+  }
+
   export type AttachmentUncheckedUpdateManyWithoutCourseNestedInput = {
     create?: XOR<AttachmentCreateWithoutCourseInput, AttachmentUncheckedCreateWithoutCourseInput> | AttachmentCreateWithoutCourseInput[] | AttachmentUncheckedCreateWithoutCourseInput[]
     connectOrCreate?: AttachmentCreateOrConnectWithoutCourseInput | AttachmentCreateOrConnectWithoutCourseInput[]
@@ -27181,6 +28826,20 @@ export namespace Prisma {
     update?: CertificateUpdateWithWhereUniqueWithoutCourseInput | CertificateUpdateWithWhereUniqueWithoutCourseInput[]
     updateMany?: CertificateUpdateManyWithWhereWithoutCourseInput | CertificateUpdateManyWithWhereWithoutCourseInput[]
     deleteMany?: CertificateScalarWhereInput | CertificateScalarWhereInput[]
+  }
+
+  export type CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput = {
+    create?: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput> | CourseCompetencyUnitCreateWithoutCourseInput[] | CourseCompetencyUnitUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseCompetencyUnitCreateOrConnectWithoutCourseInput | CourseCompetencyUnitCreateOrConnectWithoutCourseInput[]
+    upsert?: CourseCompetencyUnitUpsertWithWhereUniqueWithoutCourseInput | CourseCompetencyUnitUpsertWithWhereUniqueWithoutCourseInput[]
+    createMany?: CourseCompetencyUnitCreateManyCourseInputEnvelope
+    set?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    disconnect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    delete?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    connect?: CourseCompetencyUnitWhereUniqueInput | CourseCompetencyUnitWhereUniqueInput[]
+    update?: CourseCompetencyUnitUpdateWithWhereUniqueWithoutCourseInput | CourseCompetencyUnitUpdateWithWhereUniqueWithoutCourseInput[]
+    updateMany?: CourseCompetencyUnitUpdateManyWithWhereWithoutCourseInput | CourseCompetencyUnitUpdateManyWithWhereWithoutCourseInput[]
+    deleteMany?: CourseCompetencyUnitScalarWhereInput | CourseCompetencyUnitScalarWhereInput[]
   }
 
   export type CourseCreateNestedOneWithoutAttachmentsInput = {
@@ -27621,6 +29280,20 @@ export namespace Prisma {
     update?: CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput | CertificateCorrectionRequestUpdateWithWhereUniqueWithoutCertificateInput[]
     updateMany?: CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput | CertificateCorrectionRequestUpdateManyWithWhereWithoutCertificateInput[]
     deleteMany?: CertificateCorrectionRequestScalarWhereInput | CertificateCorrectionRequestScalarWhereInput[]
+  }
+
+  export type CourseCreateNestedOneWithoutCompetencyUnitsInput = {
+    create?: XOR<CourseCreateWithoutCompetencyUnitsInput, CourseUncheckedCreateWithoutCompetencyUnitsInput>
+    connectOrCreate?: CourseCreateOrConnectWithoutCompetencyUnitsInput
+    connect?: CourseWhereUniqueInput
+  }
+
+  export type CourseUpdateOneRequiredWithoutCompetencyUnitsNestedInput = {
+    create?: XOR<CourseCreateWithoutCompetencyUnitsInput, CourseUncheckedCreateWithoutCompetencyUnitsInput>
+    connectOrCreate?: CourseCreateOrConnectWithoutCompetencyUnitsInput
+    upsert?: CourseUpsertWithoutCompetencyUnitsInput
+    connect?: CourseWhereUniqueInput
+    update?: XOR<XOR<CourseUpdateToOneWithWhereWithoutCompetencyUnitsInput, CourseUpdateWithoutCompetencyUnitsInput>, CourseUncheckedUpdateWithoutCompetencyUnitsInput>
   }
 
   export type CertificateCreateNestedOneWithoutCorrectionRequestsInput = {
@@ -28112,6 +29785,7 @@ export namespace Prisma {
     modules?: ModuleCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutUserInput = {
@@ -28131,6 +29805,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutUserInput = {
@@ -28190,6 +29865,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -28213,6 +29893,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -28437,6 +30122,11 @@ export namespace Prisma {
     revocationReason?: StringNullableFilter<"Certificate"> | string | null
     supersededBy?: StringNullableFilter<"Certificate"> | string | null
     supersededFrom?: StringNullableFilter<"Certificate"> | string | null
+    certificateNumber?: StringNullableFilter<"Certificate"> | string | null
+    schoolName?: StringNullableFilter<"Certificate"> | string | null
+    signers?: JsonNullableFilter<"Certificate">
+    competencyUnits?: JsonNullableFilter<"Certificate">
+    layoutMode?: StringNullableFilter<"Certificate"> | string | null
     blockchainSyncStatus?: StringFilter<"Certificate"> | string
     blockchainTxId?: StringNullableFilter<"Certificate"> | string | null
     syncedAt?: DateTimeNullableFilter<"Certificate"> | Date | string | null
@@ -28557,6 +30247,7 @@ export namespace Prisma {
     modules?: ModuleCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutCategoryInput = {
@@ -28576,6 +30267,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutCategoryInput = {
@@ -28787,6 +30479,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -28810,6 +30507,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -28823,6 +30525,36 @@ export namespace Prisma {
 
   export type CertificateCreateManyCourseInputEnvelope = {
     data: CertificateCreateManyCourseInput | CertificateCreateManyCourseInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CourseCompetencyUnitCreateWithoutCourseInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CourseCompetencyUnitUncheckedCreateWithoutCourseInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CourseCompetencyUnitCreateOrConnectWithoutCourseInput = {
+    where: CourseCompetencyUnitWhereUniqueInput
+    create: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput>
+  }
+
+  export type CourseCompetencyUnitCreateManyCourseInputEnvelope = {
+    data: CourseCompetencyUnitCreateManyCourseInput | CourseCompetencyUnitCreateManyCourseInput[]
     skipDuplicates?: boolean
   }
 
@@ -29002,6 +30734,36 @@ export namespace Prisma {
     data: XOR<CertificateUpdateManyMutationInput, CertificateUncheckedUpdateManyWithoutCourseInput>
   }
 
+  export type CourseCompetencyUnitUpsertWithWhereUniqueWithoutCourseInput = {
+    where: CourseCompetencyUnitWhereUniqueInput
+    update: XOR<CourseCompetencyUnitUpdateWithoutCourseInput, CourseCompetencyUnitUncheckedUpdateWithoutCourseInput>
+    create: XOR<CourseCompetencyUnitCreateWithoutCourseInput, CourseCompetencyUnitUncheckedCreateWithoutCourseInput>
+  }
+
+  export type CourseCompetencyUnitUpdateWithWhereUniqueWithoutCourseInput = {
+    where: CourseCompetencyUnitWhereUniqueInput
+    data: XOR<CourseCompetencyUnitUpdateWithoutCourseInput, CourseCompetencyUnitUncheckedUpdateWithoutCourseInput>
+  }
+
+  export type CourseCompetencyUnitUpdateManyWithWhereWithoutCourseInput = {
+    where: CourseCompetencyUnitScalarWhereInput
+    data: XOR<CourseCompetencyUnitUpdateManyMutationInput, CourseCompetencyUnitUncheckedUpdateManyWithoutCourseInput>
+  }
+
+  export type CourseCompetencyUnitScalarWhereInput = {
+    AND?: CourseCompetencyUnitScalarWhereInput | CourseCompetencyUnitScalarWhereInput[]
+    OR?: CourseCompetencyUnitScalarWhereInput[]
+    NOT?: CourseCompetencyUnitScalarWhereInput | CourseCompetencyUnitScalarWhereInput[]
+    id?: StringFilter<"CourseCompetencyUnit"> | string
+    courseId?: StringFilter<"CourseCompetencyUnit"> | string
+    code?: StringFilter<"CourseCompetencyUnit"> | string
+    title?: StringFilter<"CourseCompetencyUnit"> | string
+    standard?: StringFilter<"CourseCompetencyUnit"> | string
+    order?: IntFilter<"CourseCompetencyUnit"> | number
+    createdAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"CourseCompetencyUnit"> | Date | string
+  }
+
   export type CourseCreateWithoutAttachmentsInput = {
     id?: string
     title: string
@@ -29019,6 +30781,7 @@ export namespace Prisma {
     modules?: ModuleCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutAttachmentsInput = {
@@ -29038,6 +30801,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutAttachmentsInput = {
@@ -29073,6 +30837,7 @@ export namespace Prisma {
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutAttachmentsInput = {
@@ -29092,6 +30857,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseCreateWithoutModulesInput = {
@@ -29111,6 +30877,7 @@ export namespace Prisma {
     attachments?: AttachmentCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutModulesInput = {
@@ -29130,6 +30897,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutModulesInput = {
@@ -29267,6 +31035,7 @@ export namespace Prisma {
     attachments?: AttachmentUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutModulesInput = {
@@ -29286,6 +31055,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type LessonUpsertWithWhereUniqueWithoutModuleInput = {
@@ -29956,6 +31726,7 @@ export namespace Prisma {
     attachments?: AttachmentCreateNestedManyWithoutCourseInput
     modules?: ModuleCreateNestedManyWithoutCourseInput
     certificates?: CertificateCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutEnrollmentsInput = {
@@ -29975,6 +31746,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedCreateNestedManyWithoutCourseInput
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutEnrollmentsInput = {
@@ -30075,6 +31847,7 @@ export namespace Prisma {
     attachments?: AttachmentUpdateManyWithoutCourseNestedInput
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutEnrollmentsInput = {
@@ -30094,6 +31867,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedUpdateManyWithoutCourseNestedInput
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseCreateWithoutCertificatesInput = {
@@ -30113,6 +31887,7 @@ export namespace Prisma {
     attachments?: AttachmentCreateNestedManyWithoutCourseInput
     modules?: ModuleCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitCreateNestedManyWithoutCourseInput
   }
 
   export type CourseUncheckedCreateWithoutCertificatesInput = {
@@ -30132,6 +31907,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedCreateNestedManyWithoutCourseInput
     modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
     enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
+    competencyUnits?: CourseCompetencyUnitUncheckedCreateNestedManyWithoutCourseInput
   }
 
   export type CourseCreateOrConnectWithoutCertificatesInput = {
@@ -30262,6 +32038,7 @@ export namespace Prisma {
     attachments?: AttachmentUpdateManyWithoutCourseNestedInput
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutCertificatesInput = {
@@ -30281,6 +32058,7 @@ export namespace Prisma {
     attachments?: AttachmentUncheckedUpdateManyWithoutCourseNestedInput
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type UserUpsertWithoutCertificatesInput = {
@@ -30364,6 +32142,102 @@ export namespace Prisma {
     data: XOR<CertificateCorrectionRequestUpdateManyMutationInput, CertificateCorrectionRequestUncheckedUpdateManyWithoutCertificateInput>
   }
 
+  export type CourseCreateWithoutCompetencyUnitsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    imageUrl?: string | null
+    isPublished?: boolean
+    studyProgram?: string | null
+    targetAudience?: string | null
+    allowedPrograms?: NullableJsonNullValueInput | InputJsonValue
+    certificateTemplate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCreatedCoursesInput
+    category?: CategoryCreateNestedOneWithoutCoursesInput
+    attachments?: AttachmentCreateNestedManyWithoutCourseInput
+    modules?: ModuleCreateNestedManyWithoutCourseInput
+    enrollments?: EnrollmentCreateNestedManyWithoutCourseInput
+    certificates?: CertificateCreateNestedManyWithoutCourseInput
+  }
+
+  export type CourseUncheckedCreateWithoutCompetencyUnitsInput = {
+    id?: string
+    userId: string
+    title: string
+    description?: string | null
+    imageUrl?: string | null
+    isPublished?: boolean
+    categoryId?: string | null
+    studyProgram?: string | null
+    targetAudience?: string | null
+    allowedPrograms?: NullableJsonNullValueInput | InputJsonValue
+    certificateTemplate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attachments?: AttachmentUncheckedCreateNestedManyWithoutCourseInput
+    modules?: ModuleUncheckedCreateNestedManyWithoutCourseInput
+    enrollments?: EnrollmentUncheckedCreateNestedManyWithoutCourseInput
+    certificates?: CertificateUncheckedCreateNestedManyWithoutCourseInput
+  }
+
+  export type CourseCreateOrConnectWithoutCompetencyUnitsInput = {
+    where: CourseWhereUniqueInput
+    create: XOR<CourseCreateWithoutCompetencyUnitsInput, CourseUncheckedCreateWithoutCompetencyUnitsInput>
+  }
+
+  export type CourseUpsertWithoutCompetencyUnitsInput = {
+    update: XOR<CourseUpdateWithoutCompetencyUnitsInput, CourseUncheckedUpdateWithoutCompetencyUnitsInput>
+    create: XOR<CourseCreateWithoutCompetencyUnitsInput, CourseUncheckedCreateWithoutCompetencyUnitsInput>
+    where?: CourseWhereInput
+  }
+
+  export type CourseUpdateToOneWithWhereWithoutCompetencyUnitsInput = {
+    where?: CourseWhereInput
+    data: XOR<CourseUpdateWithoutCompetencyUnitsInput, CourseUncheckedUpdateWithoutCompetencyUnitsInput>
+  }
+
+  export type CourseUpdateWithoutCompetencyUnitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    studyProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    targetAudience?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedPrograms?: NullableJsonNullValueInput | InputJsonValue
+    certificateTemplate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCreatedCoursesNestedInput
+    category?: CategoryUpdateOneWithoutCoursesNestedInput
+    attachments?: AttachmentUpdateManyWithoutCourseNestedInput
+    modules?: ModuleUpdateManyWithoutCourseNestedInput
+    enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
+    certificates?: CertificateUpdateManyWithoutCourseNestedInput
+  }
+
+  export type CourseUncheckedUpdateWithoutCompetencyUnitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    studyProgram?: NullableStringFieldUpdateOperationsInput | string | null
+    targetAudience?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedPrograms?: NullableJsonNullValueInput | InputJsonValue
+    certificateTemplate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attachments?: AttachmentUncheckedUpdateManyWithoutCourseNestedInput
+    modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
+    enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
+    certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+  }
+
   export type CertificateCreateWithoutCorrectionRequestsInput = {
     id?: string
     certId: string
@@ -30379,6 +32253,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -30403,6 +32282,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -30498,6 +32382,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -30522,6 +32411,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -30982,6 +32876,11 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
@@ -31042,6 +32941,7 @@ export namespace Prisma {
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutUserInput = {
@@ -31061,6 +32961,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateManyWithoutUserInput = {
@@ -31126,6 +33027,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -31149,6 +33055,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -31171,6 +33082,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -31322,6 +33238,7 @@ export namespace Prisma {
     modules?: ModuleUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateWithoutCategoryInput = {
@@ -31341,6 +33258,7 @@ export namespace Prisma {
     modules?: ModuleUncheckedUpdateManyWithoutCourseNestedInput
     enrollments?: EnrollmentUncheckedUpdateManyWithoutCourseNestedInput
     certificates?: CertificateUncheckedUpdateManyWithoutCourseNestedInput
+    competencyUnits?: CourseCompetencyUnitUncheckedUpdateManyWithoutCourseNestedInput
   }
 
   export type CourseUncheckedUpdateManyWithoutCategoryInput = {
@@ -31403,9 +33321,24 @@ export namespace Prisma {
     revocationReason?: string | null
     supersededBy?: string | null
     supersededFrom?: string | null
+    certificateNumber?: string | null
+    schoolName?: string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: string | null
     blockchainSyncStatus?: string
     blockchainTxId?: string | null
     syncedAt?: Date | string | null
+  }
+
+  export type CourseCompetencyUnitCreateManyCourseInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AttachmentUpdateWithoutCourseInput = {
@@ -31516,6 +33449,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -31539,6 +33477,11 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -31561,9 +33504,44 @@ export namespace Prisma {
     revocationReason?: NullableStringFieldUpdateOperationsInput | string | null
     supersededBy?: NullableStringFieldUpdateOperationsInput | string | null
     supersededFrom?: NullableStringFieldUpdateOperationsInput | string | null
+    certificateNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    schoolName?: NullableStringFieldUpdateOperationsInput | string | null
+    signers?: NullableJsonNullValueInput | InputJsonValue
+    competencyUnits?: NullableJsonNullValueInput | InputJsonValue
+    layoutMode?: NullableStringFieldUpdateOperationsInput | string | null
     blockchainSyncStatus?: StringFieldUpdateOperationsInput | string
     blockchainTxId?: NullableStringFieldUpdateOperationsInput | string | null
     syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CourseCompetencyUnitUpdateWithoutCourseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseCompetencyUnitUncheckedUpdateWithoutCourseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseCompetencyUnitUncheckedUpdateManyWithoutCourseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LessonCreateManyModuleInput = {

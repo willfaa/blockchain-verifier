@@ -1811,3 +1811,112 @@ export const getDepartments = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to fetch departments structure" });
   }
 };
+
+// --- UKK COURSE COMPETENCY UNITS (SKKNI) ---
+
+export const getCourseCompetencyUnits = async (req: Request, res: Response) => {
+  try {
+    const { id: courseId } = req.params;
+    const units = await db.courseCompetencyUnit.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+    });
+
+    return res.json({ ok: true, data: units });
+  } catch (err: any) {
+    console.error("[LMS] getCourseCompetencyUnits Error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch competency units" });
+  }
+};
+
+export const createCourseCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { id: courseId } = req.params;
+    const { code, title, standard, order } = req.body;
+
+    if (!code || !title) {
+      return res.status(400).json({ error: "Code and Title are required" });
+    }
+
+    const currentCount = await db.courseCompetencyUnit.count({ where: { courseId } });
+
+    const newUnit = await db.courseCompetencyUnit.create({
+      data: {
+        courseId,
+        code: code.trim(),
+        title: title.trim(),
+        standard: standard ? standard.trim() : "SKKNI",
+        order: order !== undefined ? Number(order) : currentCount,
+      },
+    });
+
+    return res.status(201).json({ ok: true, data: newUnit });
+  } catch (err: any) {
+    console.error("[LMS] createCourseCompetencyUnit Error:", err.message);
+    return res.status(500).json({ error: "Failed to create competency unit" });
+  }
+};
+
+export const updateCourseCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { unitId } = req.params;
+    const { code, title, standard, order } = req.body;
+
+    const updated = await db.courseCompetencyUnit.update({
+      where: { id: unitId },
+      data: {
+        ...(code ? { code: code.trim() } : {}),
+        ...(title ? { title: title.trim() } : {}),
+        ...(standard ? { standard: standard.trim() } : {}),
+        ...(order !== undefined ? { order: Number(order) } : {}),
+      },
+    });
+
+    return res.json({ ok: true, data: updated });
+  } catch (err: any) {
+    console.error("[LMS] updateCourseCompetencyUnit Error:", err.message);
+    return res.status(500).json({ error: "Failed to update competency unit" });
+  }
+};
+
+export const deleteCourseCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { unitId } = req.params;
+    await db.courseCompetencyUnit.delete({
+      where: { id: unitId },
+    });
+
+    return res.json({ ok: true, message: "Competency unit deleted" });
+  } catch (err: any) {
+    console.error("[LMS] deleteCourseCompetencyUnit Error:", err.message);
+    return res.status(500).json({ error: "Failed to delete competency unit" });
+  }
+};
+
+export const reorderCourseCompetencyUnits = async (req: Request, res: Response) => {
+  try {
+    const { id: courseId } = req.params;
+    const { units } = req.body; // Array of { id, order }
+
+    if (Array.isArray(units)) {
+      await Promise.all(
+        units.map((u: any, idx: number) =>
+          db.courseCompetencyUnit.update({
+            where: { id: u.id },
+            data: { order: u.order !== undefined ? u.order : idx },
+          })
+        )
+      );
+    }
+
+    const updatedList = await db.courseCompetencyUnit.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+    });
+
+    return res.json({ ok: true, data: updatedList });
+  } catch (err: any) {
+    console.error("[LMS] reorderCourseCompetencyUnits Error:", err.message);
+    return res.status(500).json({ error: "Failed to reorder competency units" });
+  }
+};

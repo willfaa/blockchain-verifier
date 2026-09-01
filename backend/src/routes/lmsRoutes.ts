@@ -140,6 +140,41 @@ router.get(
   lmsController.getExamResults
 );
 
+// --- UKK COURSE COMPETENCY UNITS (SKKNI) ---
+router.get(
+  "/courses/:id/competency-units",
+  optionalVerifyToken,
+  lmsController.getCourseCompetencyUnits
+);
+
+router.post(
+  "/courses/:id/competency-units",
+  verifyToken,
+  verifyTeacher,
+  lmsController.createCourseCompetencyUnit
+);
+
+router.put(
+  "/courses/:id/competency-units/:unitId",
+  verifyToken,
+  verifyTeacher,
+  lmsController.updateCourseCompetencyUnit
+);
+
+router.delete(
+  "/courses/:id/competency-units/:unitId",
+  verifyToken,
+  verifyTeacher,
+  lmsController.deleteCourseCompetencyUnit
+);
+
+router.post(
+  "/courses/:id/competency-units/reorder",
+  verifyToken,
+  verifyTeacher,
+  lmsController.reorderCourseCompetencyUnits
+);
+
 // Alias for Results (Frontend Alignment)
 router.get(
   "/exams/course/:courseId/results",

@@ -36,8 +36,25 @@ export class CertController {
       console.log(`Processing Issue Request by: ${issuerId} (${issuerRole})`);
 
       // 2. Destructure Body
-      let { certId, studentId, nim, nisn, name, majority, program, cid, hash, issuedAt, score, courseId } =
-        req.body ?? {};
+      let {
+        certId,
+        studentId,
+        nim,
+        nisn,
+        name,
+        majority,
+        program,
+        cid,
+        hash,
+        issuedAt,
+        score,
+        courseId,
+        certificateNumber,
+        schoolName,
+        signers,
+        competencyUnits,
+        layoutMode,
+      } = req.body ?? {};
 
       // Fallback for compatibility
       if (!studentId) studentId = nim || nisn;
@@ -53,11 +70,28 @@ export class CertController {
         });
       }
 
-      // 4. Generate Data Hash (Fingerprint)
-      // Since we don't upload files anymore, the "File Hash" is now the "Data Hash".
-      // Formula: SHA256(studentId + name + program + majority)
-      // This ensures any tampering with the data changes the hash.
-      const dataString = `${studentId}|${name}|${program}|${majority}`;
+      // Auto-fetch course competency units if not provided in body
+      if ((!competencyUnits || !Array.isArray(competencyUnits) || competencyUnits.length === 0) && courseId) {
+        try {
+          const dbUnits = await prisma.courseCompetencyUnit.findMany({
+            where: { courseId },
+            orderBy: { order: "asc" },
+          });
+          if (dbUnits.length > 0) {
+            competencyUnits = dbUnits.map((u) => ({
+              code: u.code,
+              title: u.title,
+              standard: u.standard || "SKKNI",
+              result: "KOMPETEN",
+            }));
+          }
+        } catch (e) {}
+      }
+
+      // 4. Generate Deterministic Data Hash (Fingerprint)
+      const certNumber = certificateNumber || `UKK/${certId.substring(0, 8).toUpperCase()}`;
+      const unitsHash = competencyUnits ? JSON.stringify(competencyUnits) : "";
+      const dataString = `${certNumber}|${studentId}|${name}|${program}|${majority}|${unitsHash}`;
       hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
       // No IPFS for Data-Driven Certificates
@@ -73,9 +107,8 @@ export class CertController {
           console.log("🔒 Strict Mode ON: Checking Fabric connection...");
           const { checkFabricReady } = require("../fabric/client");
           await checkFabricReady(issuerId, issuerRole);
-          console.log("✅ Fabric Connection Verified.");
         } catch (err: any) {
-          console.error("❌ Fabric Pre-flight Check Failed:", err.message);
+          console.error("Strict Mode Failed: Fabric Not Ready");
           return res.status(503).json({
             ok: false,
             error: "Blockchain network Unavailable (Strict Mode)",
@@ -152,11 +185,16 @@ export class CertController {
       console.log("️ Generating Certificate Image (PNG)...");
       const imgBuffer = await generateCertificateImage({
         certId,
+        certificateNumber,
+        schoolName,
         name,
         studentId,
         program,
         majority,
         courseName,
+        signers,
+        competencyUnits,
+        layoutMode: layoutMode || "STANDARD",
         issuedAt: issuedAt || new Intl.DateTimeFormat("en-GB", {
           day: "numeric",
           month: "long",
@@ -192,6 +230,11 @@ export class CertController {
           year: "numeric",
         }).format(new Date()),
         courseId: courseId || null,
+        certificateNumber: certificateNumber || null,
+        schoolName: schoolName || null,
+        signers: signers || null,
+        competencyUnits: competencyUnits || null,
+        layoutMode: layoutMode || "STANDARD",
       };
 
       console.log(

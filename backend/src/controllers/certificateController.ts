@@ -359,7 +359,7 @@ export class CertificateController {
         where: { OR: [{ id: certId }, { certId }] },
         include: {
           course: {
-            include: { user: true }
+            include: { user: true, competencyUnits: { orderBy: { order: "asc" } } }
           },
           user: true
         }
@@ -381,24 +381,63 @@ export class CertificateController {
         year: "numeric",
       }).format(new Date(certificate.issuedAt));
 
-      const path = require("path");
+      // Resolve competency units from snapshot or course
+      let units = (certificate as any).competencyUnits;
+      if (!units || !Array.isArray(units) || units.length === 0) {
+        if (certificate.course?.competencyUnits && certificate.course.competencyUnits.length > 0) {
+          units = certificate.course.competencyUnits.map((u) => ({
+            code: u.code,
+            title: u.title,
+            standard: u.standard || "SKKNI",
+            result: "KOMPETEN",
+          }));
+        }
+      }
 
-      // Generate the high-res PNG image first
-      const imgBuffer = await generateCertificateImage({
+      // Resolve signers from snapshot or course
+      const signers = (certificate as any).signers || [
+        {
+          name: certificate.course?.user?.name || "Budi Headmaster, M.T.",
+          title: "KEPALA SEKOLAH / PENGUJI",
+          role: "INSTITUSI",
+          nip: certificate.course?.user?.nip || "-",
+        },
+        {
+          name: "ASESOR PENGUJI EKSTERNAL",
+          title: "MITRA INDUSTRI (DUDI)",
+          role: "DUDI",
+          institution: "PT. MITRA INDUSTRI INDONESIA",
+        }
+      ];
+
+      const certData = {
         certId: certificate.certId,
+        certificateNumber: (certificate as any).certificateNumber || undefined,
+        schoolName: (certificate as any).schoolName || undefined,
         name: certificate.studentName,
         courseName: certificate.course?.title || "Program Completion",
         majority: certificate.majority,
         program: certificate.program,
         issuedAt: issuedAtFormatted,
         issuerId: certificate.course?.user?.id || "SYSTEM",
-        studentId: certificate.studentId, // Already mapped to User ID in db
+        studentId: certificate.studentId,
         instructorName: certificate.course?.user?.name || "Head Instructor",
         instructorNip: certificate.course?.user?.nip || "-",
         instructorMajor: certificate.course?.user?.majority || "Department of Informatics",
+        signers,
+        competencyUnits: units,
+        layoutMode: (certificate as any).layoutMode || "STANDARD",
         layout,
         customTemplatePath: certificate.course?.certificateTemplate || undefined,
-      });
+      };
+
+      const { generateCertificateTranscriptCanvas } = require("../services/imageGenerator");
+
+      // Generate Page 1 (Front Certificate) and Page 2 (Back Transcript)
+      const [frontBuffer, backBuffer] = await Promise.all([
+        generateCertificateImage(certData as any),
+        generateCertificateTranscriptCanvas(certData as any),
+      ]);
 
       const PDFDocument = require("pdfkit");
       const doc = new PDFDocument({
@@ -414,9 +453,25 @@ export class CertificateController {
       );
       doc.pipe(res);
 
-      doc.image(imgBuffer, 0, 0, {
-        width: isVertical ? 595.28 : 841.89,
-        height: isVertical ? 841.89 : 595.28,
+      const pageWidth = isVertical ? 595.28 : 841.89;
+      const pageHeight = isVertical ? 841.89 : 595.28;
+
+      // --- PAGE 1: Front Certificate ---
+      doc.image(frontBuffer, 0, 0, {
+        width: pageWidth,
+        height: pageHeight,
+      });
+
+      // --- PAGE 2: Back Transcript (Duplex Ready) ---
+      doc.addPage({
+        size: "A4",
+        layout: isVertical ? "portrait" : "landscape",
+        margin: 0,
+      });
+
+      doc.image(backBuffer, 0, 0, {
+        width: pageWidth,
+        height: pageHeight,
       });
 
       doc.end();

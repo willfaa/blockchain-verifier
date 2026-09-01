@@ -11,8 +11,9 @@ import {
   Users,
   CheckSquare,
   BarChart,
-  Menu, // New import
+  Menu,
   ClipboardList,
+  Award,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,11 @@ export default function ManageCourseLayout({
   const navItems = [
     { label: "Basic Info", href: `${baseUrl}/basics`, icon: FileText },
     { label: "Curriculum", href: `${baseUrl}/curriculum`, icon: Book },
+    {
+      label: "Unit SKKNI (UKK)",
+      href: `${baseUrl}/competency-units`,
+      icon: Award,
+    },
     {
       label: "Assignments",
       href: `${baseUrl}/assignments`,

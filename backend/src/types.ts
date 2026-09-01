@@ -21,11 +21,16 @@ export interface CertificateRecord {
   issuedAt: string;
   // studentId (merged)
 
-  // Field Opsional (Diisi saat Revoke/Supersede)
+  // Field Opsional (Diisi saat Revoke/Supersede / UKK Standard)
   supersededBy?: string | null;
   revokedAt?: string; // Tambahan: Waktu pencabutan
   revocationReason?: string; // Tambahan: Alasan pencabutan
   courseId?: string | null; // Tambahan: ID Kursus opsional
+  certificateNumber?: string | null;
+  schoolName?: string | null;
+  signers?: any;
+  competencyUnits?: any;
+  layoutMode?: string | null;
 }
 
 export interface HistoryEvent {

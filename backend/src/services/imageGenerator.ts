@@ -93,18 +93,40 @@ export interface BackgroundConfig {
   opacity?: number;
 }
 
+export interface CertSigner {
+  name: string;
+  title?: string;
+  role?: string;
+  nip?: string;
+  institution?: string;
+  signatureUrl?: string;
+}
+
+export interface CertCompetencyUnit {
+  code: string;
+  title: string;
+  standard?: string;
+  result?: string;
+  score?: number;
+}
+
 export interface CertData {
   name: string;
   courseName: string;
   majority: string;
   program: string;
   certId: string;
+  certificateNumber?: string;
+  schoolName?: string;
   issuedAt: string;
   issuerId: string;
-  studentId: string; // This will hold the User ID instead of NIM
+  studentId: string;
   instructorName?: string;
   instructorNip?: string;
   instructorMajor?: string;
+  signers?: CertSigner[];
+  competencyUnits?: CertCompetencyUnit[];
+  layoutMode?: "STANDARD" | "QR_ONLY";
   layout?: "HORIZONTAL" | "VERTICAL";
   paperSize?: "A4" | "F4" | "LETTER" | "CUSTOM" | string;
   paperWidthCm?: number;
@@ -424,24 +446,42 @@ export const generateCertificateImage = async (
   if (elements && Object.keys(elements).length > 0) {
     // --- 2A. CUSTOM LAYOUT OVERLAYS (STRICT VISIBILITY & WYSIWYG) ---
 
+    const s1 = data.signers && data.signers[0];
+    const s2 = data.signers && data.signers[1];
+    const s3 = data.signers && data.signers[2];
+
     // Dynamic value mapping for variables
     const dynamicValues: Record<string, string> = {
       universityTitle: "UNIVERSITAS NEGERI SURABAYA",
-      certificateTitle: "CERTIFICATE OF COMPLETION",
+      certificateTitle: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN",
       certIdLabel: `ID: ${data.certId}`,
+      certificateNumber: data.certificateNumber ? `No: ${data.certificateNumber}` : `No: UKK/${data.certId.substring(0, 8).toUpperCase()}`,
       presentedTo: "PROUDLY PRESENTED TO",
       studentName: data.name,
+      schoolName: data.schoolName || "",
       majorProgram: `${(data.majority || "Major").toUpperCase()} - ${(data.program || "Level").toUpperCase()}`,
-      studentId: `Student ID : ${data.studentId}`,
-      courseSubtitle: "For successfully completing the course:",
+      studentId: `NISN / ID : ${data.studentId}`,
+      courseSubtitle: "For successfully completing the competency assessment:",
       courseTitle: data.courseName || "Blockchain Course",
       instructorName: finalInstructorName,
       instructorTitle: (finalInstructorMajor || "HEAD INSTRUCTOR").toUpperCase(),
       instructorNip: `Instructor ID: ${finalInstructorNip}`,
+      // Dynamic Multi-Signers
+      signer1Name: s1?.name || finalInstructorName,
+      signer1Title: (s1?.title || "KEPALA SEKOLAH / PENGUJI").toUpperCase(),
+      signer1Nip: s1?.nip ? `NIP: ${s1.nip}` : (finalInstructorNip ? `NIP: ${finalInstructorNip}` : ""),
+      signer2Name: s2?.name || "ASESOR PENGUJI EKSTERNAL",
+      signer2Title: (s2?.title || "MITRA INDUSTRI (DUDI)").toUpperCase(),
+      signer2Nip: s2?.institution || (s2?.nip ? `NIP: ${s2.nip}` : ""),
+      signer3Name: s3?.name || "",
+      signer3Title: (s3?.title || "").toUpperCase(),
+      signer3Nip: s3?.nip ? `NIP: ${s3.nip}` : (s3?.institution || ""),
       issuedDateTitle: "DATE ISSUED",
       issuedDateBox: data.issuedAt,
       scanToVerifyLabel: "SCAN TO VERIFY",
     };
+
+    const isQrOnly = data.layoutMode === "QR_ONLY" || (rawConfig as any)?.layoutMode === "QR_ONLY";
 
     // Helper to draw text element
     const drawTextElement = (key: string, el: any) => {
@@ -676,7 +716,14 @@ export const generateCertificateImage = async (
 
     // Render all elements in layout config in ascending zIndex order
     const sortedEntries = (Object.entries(elements) as [string, any][])
-      .filter(([_, el]) => el && el.visible !== false)
+      .filter(([key, el]) => {
+        if (!el || el.visible === false) return false;
+        if (isQrOnly) {
+          // In QR-Only mode, only render QR code and explicitly custom-added elements
+          return key === "qrCode" || el.isCustom === true;
+        }
+        return true;
+      })
       .sort((a, b) => (a[1].zIndex || 0) - (b[1].zIndex || 0));
 
     for (const [key, el] of sortedEntries) {
@@ -911,6 +958,263 @@ export const generateCertificateImage = async (
       ctx.fillText("SCAN TO VERIFY", rightX, footerY + 70);
     }
   }
+
+  return canvas.toBuffer("image/png");
+};
+
+/**
+ * Generates the Back Page (Page 2) - High Fidelity SKKNI Competency Transcript Table
+ */
+export const generateCertificateTranscriptCanvas = async (data: CertData): Promise<Buffer> => {
+  // Determine layout and dimensions
+  const isVertical = data.layout === "VERTICAL";
+  const paperPreset = PAPER_PRESETS_CM[data.paperSize || "A4"] || PAPER_PRESETS_CM.A4;
+  const widthCm = isVertical ? paperPreset.height : paperPreset.width;
+  const heightCm = isVertical ? paperPreset.width : paperPreset.height;
+
+  const width = Math.round(widthCm * CM_TO_PX);
+  const height = Math.round(heightCm * CM_TO_PX);
+
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  // Clean Crisp White Paper
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  // Elegant Border
+  ctx.strokeStyle = "#0f172a"; // Slate 900
+  ctx.lineWidth = 4;
+  ctx.strokeRect(40, 40, width - 80, height - 80);
+
+  ctx.strokeStyle = "#94a3b8"; // Slate 400
+  ctx.lineWidth = 1;
+  ctx.strokeRect(48, 48, width - 96, height - 96);
+
+  // Header Title
+  const centerX = width / 2;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+
+  ctx.fillStyle = "#0f172a";
+  ctx.font = resolveCanvasFont("Arial", 26, true, false);
+  ctx.fillText("DAFTAR UNIT KOMPETENSI / TRANSKRIP HASIL UJI", centerX, 70);
+
+  ctx.fillStyle = "#475569";
+  ctx.font = resolveCanvasFont("Arial", 14, false, true);
+  ctx.fillText("List of Competency Unit Standards & Official Assessment Results", centerX, 105);
+
+  // Divider Line
+  ctx.strokeStyle = "#0284c7"; // Sky 600
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(centerX - 250, 130);
+  ctx.lineTo(centerX + 250, 130);
+  ctx.stroke();
+
+  // Participant Info Card Box
+  const infoX = 70;
+  const infoY = 150;
+  const infoW = width - 140;
+  const infoH = 110;
+
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(infoX, infoY, infoW, infoH);
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(infoX, infoY, infoW, infoH);
+
+  // 2-Column Info Data
+  ctx.textAlign = "left";
+  ctx.font = resolveCanvasFont("Arial", 13, true, false);
+  ctx.fillStyle = "#334155";
+
+  const col1X = infoX + 25;
+  const col2X = centerX + 20;
+  let curY = infoY + 16;
+
+  // Left Column
+  ctx.fillText("Nama Peserta", col1X, curY);
+  ctx.fillText(`:  ${data.name.toUpperCase()}`, col1X + 130, curY);
+
+  ctx.fillText("NISN / ID Siswa", col1X, curY + 30);
+  ctx.fillText(`:  ${data.studentId}`, col1X + 130, curY + 30);
+
+  ctx.fillText("Asal Sekolah", col1X, curY + 60);
+  ctx.fillText(`:  ${data.schoolName || "SMK NEGERI 1 SURABAYA"}`, col1X + 130, curY + 60);
+
+  // Right Column
+  ctx.fillText("Program Keahlian", col2X, curY);
+  ctx.fillText(`:  ${data.majority || "Teknik"} - ${data.program || "RPL"}`, col2X + 150, curY);
+
+  ctx.fillText("No. Sertifikat", col2X, curY + 30);
+  ctx.fillText(`:  ${data.certificateNumber || `UKK/${data.certId.substring(0, 8).toUpperCase()}`}`, col2X + 150, curY + 30);
+
+  ctx.fillText("Tanggal Terbit", col2X, curY + 60);
+  ctx.fillText(`:  ${data.issuedAt}`, col2X + 150, curY + 60);
+
+  // Table Structure
+  const tableX = 70;
+  const tableY = 280;
+  const tableW = width - 140;
+  const rowHeight = 36;
+
+  // Column Widths: No (50), Kode (180), Judul (Flex), Standar (110), Hasil (130)
+  const colNoW = 55;
+  const colCodeW = 200;
+  const colStdW = 120;
+  const colResW = 140;
+  const colTitleW = tableW - (colNoW + colCodeW + colStdW + colResW);
+
+  // Table Header Fill
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(tableX, tableY, tableW, 40);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = resolveCanvasFont("Arial", 13, true, false);
+  ctx.textAlign = "center";
+
+  ctx.fillText("NO", tableX + colNoW / 2, tableY + 12);
+  ctx.fillText("KODE UNIT SKKNI", tableX + colNoW + colCodeW / 2, tableY + 12);
+  ctx.textAlign = "left";
+  ctx.fillText("JUDUL UNIT KOMPETENSI", tableX + colNoW + colCodeW + 15, tableY + 12);
+  ctx.textAlign = "center";
+  ctx.fillText("STANDAR", tableX + colNoW + colCodeW + colTitleW + colStdW / 2, tableY + 12);
+  ctx.fillText("PENCAPAIAN", tableX + tableW - colResW / 2, tableY + 12);
+
+  // Competency Units Data (Fallback to realistic default units if none provided)
+  const defaultUnits: CertCompetencyUnit[] = [
+    { code: "J.620100.004.01", title: "Menerapkan Pemrograman Berorientasi Objek (OOP)", standard: "SKKNI", result: "KOMPETEN" },
+    { code: "J.620100.009.02", title: "Menggunakan Struktur Data dan Algoritma Dasar", standard: "SKKNI", result: "KOMPETEN" },
+    { code: "J.620100.017.02", title: "Mengimplementasikan Basis Data Relasional (SQL/PostgreSQL)", standard: "SKKNI", result: "KOMPETEN" },
+    { code: "J.620100.025.02", title: "Melakukan Pengujian Perangkat Lunak (Software Unit Testing)", standard: "SKKNI", result: "KOMPETEN" },
+    { code: "J.620100.033.02", title: "Mengembangkan Arsitektur API dan Smart Contract Terdistribusi", standard: "SKKNI", result: "KOMPETEN" },
+  ];
+
+  const units = (data.competencyUnits && data.competencyUnits.length > 0)
+    ? data.competencyUnits
+    : defaultUnits;
+
+  let tableRowY = tableY + 40;
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#cbd5e1";
+
+  units.forEach((unit, idx) => {
+    const isEven = idx % 2 === 1;
+    if (isEven) {
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(tableX, tableRowY, tableW, rowHeight);
+    }
+
+    // Row borders
+    ctx.strokeRect(tableX, tableRowY, tableW, rowHeight);
+    ctx.strokeRect(tableX, tableRowY, colNoW, rowHeight);
+    ctx.strokeRect(tableX + colNoW, tableRowY, colCodeW, rowHeight);
+    ctx.strokeRect(tableX + colNoW + colCodeW, tableRowY, colTitleW, rowHeight);
+    ctx.strokeRect(tableX + colNoW + colCodeW + colTitleW, tableRowY, colStdW, rowHeight);
+
+    // Text Values
+    ctx.fillStyle = "#0f172a";
+    ctx.font = resolveCanvasFont("Arial", 12, false, false);
+
+    // No
+    ctx.textAlign = "center";
+    ctx.fillText(`${idx + 1}`, tableX + colNoW / 2, tableRowY + 11);
+
+    // Kode Unit
+    ctx.font = resolveCanvasFont("Courier New", 12, true, false);
+    ctx.fillText(unit.code, tableX + colNoW + colCodeW / 2, tableRowY + 11);
+
+    // Judul Unit
+    ctx.font = resolveCanvasFont("Arial", 12, false, false);
+    ctx.textAlign = "left";
+    let titleText = unit.title;
+    if (ctx.measureText(titleText).width > colTitleW - 30) {
+      titleText = titleText.substring(0, 55) + "...";
+    }
+    ctx.fillText(titleText, tableX + colNoW + colCodeW + 15, tableRowY + 11);
+
+    // Standar
+    ctx.textAlign = "center";
+    ctx.fillText(unit.standard || "SKKNI", tableX + colNoW + colCodeW + colTitleW + colStdW / 2, tableRowY + 11);
+
+    // Hasil (Green Badge Text)
+    ctx.fillStyle = "#15803d"; // Green 700
+    ctx.font = resolveCanvasFont("Arial", 12, true, false);
+    ctx.fillText(unit.result || "KOMPETEN", tableX + tableW - colResW / 2, tableRowY + 11);
+
+    tableRowY += rowHeight;
+  });
+
+  // Summary Row (Nilai Akhir)
+  const summaryH = 38;
+  ctx.fillStyle = "#f1f5f9";
+  ctx.fillRect(tableX, tableRowY, tableW, summaryH);
+  ctx.strokeStyle = "#94a3b8";
+  ctx.strokeRect(tableX, tableRowY, tableW, summaryH);
+
+  ctx.fillStyle = "#0f172a";
+  ctx.font = resolveCanvasFont("Arial", 13, true, false);
+  ctx.textAlign = "left";
+  ctx.fillText("HASIL AKHIR UJI KOMPETENSI KEAHLIAN", tableX + 25, tableRowY + 11);
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#0369a1"; // Sky 700
+  ctx.fillText("STATUS : SANGAT BAIK (KOMPETEN)", tableX + tableW - 25, tableRowY + 11);
+
+  // Dual Signers Footer
+  const footerY = height - 190;
+  const s1 = data.signers && data.signers[0];
+  const s2 = data.signers && data.signers[1];
+
+  const leftSignerX = 260;
+  const rightSignerX = width - 260;
+
+  ctx.fillStyle = "#334155";
+  ctx.font = resolveCanvasFont("Arial", 12, false, false);
+  ctx.textAlign = "center";
+
+  // Left Signer (Penguji Eksternal / Mitra DUDI)
+  ctx.fillText("Penguji Eksternal / Asesor Industri (DUDI)", leftSignerX, footerY);
+  ctx.fillText(s2?.institution || "PT. MITRA INDUSTRI INDONESIA", leftSignerX, footerY + 18);
+
+  const leftSignerName = s2?.name || "ASESOR PENGUJI EKSTERNAL";
+  ctx.font = resolveCanvasFont("Arial", 14, true, false);
+  ctx.fillStyle = "#0f172a";
+  ctx.fillText(leftSignerName, leftSignerX, footerY + 100);
+
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(leftSignerX - 120, footerY + 118);
+  ctx.lineTo(leftSignerX + 120, footerY + 118);
+  ctx.stroke();
+
+  ctx.fillStyle = "#64748b";
+  ctx.font = resolveCanvasFont("Arial", 11, false, false);
+  ctx.fillText(s2?.nip ? `NIP/REG: ${s2.nip}` : "ID REGISTRASI ASESOR", leftSignerX, footerY + 126);
+
+  // Right Signer (Kepala Sekolah / Penguji Internal)
+  ctx.font = resolveCanvasFont("Arial", 12, false, false);
+  ctx.fillStyle = "#334155";
+  ctx.fillText("Kepala Sekolah / Ketua Tim Penguji", rightSignerX, footerY);
+  ctx.fillText(data.schoolName || "SMK NEGERI 1 SURABAYA", rightSignerX, footerY + 18);
+
+  const rightSignerName = s1?.name || (data.instructorName || "KEPALA SEKOLAH / PENGUJI");
+  ctx.font = resolveCanvasFont("Arial", 14, true, false);
+  ctx.fillStyle = "#0f172a";
+  ctx.fillText(rightSignerName, rightSignerX, footerY + 100);
+
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(rightSignerX - 120, footerY + 118);
+  ctx.lineTo(rightSignerX + 120, footerY + 118);
+  ctx.stroke();
+
+  ctx.fillStyle = "#64748b";
+  ctx.font = resolveCanvasFont("Arial", 11, false, false);
+  ctx.fillText(s1?.nip ? `NIP: ${s1.nip}` : (data.instructorNip ? `NIP: ${data.instructorNip}` : "NIP: -"), rightSignerX, footerY + 126);
 
   return canvas.toBuffer("image/png");
 };

@@ -266,9 +266,25 @@ exports.Prisma.CertificateScalarFieldEnum = {
   revocationReason: 'revocationReason',
   supersededBy: 'supersededBy',
   supersededFrom: 'supersededFrom',
+  certificateNumber: 'certificateNumber',
+  schoolName: 'schoolName',
+  signers: 'signers',
+  competencyUnits: 'competencyUnits',
+  layoutMode: 'layoutMode',
   blockchainSyncStatus: 'blockchainSyncStatus',
   blockchainTxId: 'blockchainTxId',
   syncedAt: 'syncedAt'
+};
+
+exports.Prisma.CourseCompetencyUnitScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  code: 'code',
+  title: 'title',
+  standard: 'standard',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.CertificateCorrectionRequestScalarFieldEnum = {
@@ -364,6 +380,7 @@ exports.Prisma.ModelName = {
   Exam: 'Exam',
   Enrollment: 'Enrollment',
   Certificate: 'Certificate',
+  CourseCompetencyUnit: 'CourseCompetencyUnit',
   CertificateCorrectionRequest: 'CertificateCorrectionRequest',
   ExamResult: 'ExamResult',
   SystemSetting: 'SystemSetting',
