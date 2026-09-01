@@ -132,7 +132,7 @@ export const login = async (req: Request, res: Response) => {
         identifier: uniqueId,
         sessionId: currentSessionId,
       },
-      process.env.JWT_SECRET || "rahasia_default",
+      process.env.JWT_SECRET || "unesa_blockchain_secret_jwt_key_2026",
       { expiresIn: "24h" },
     );
 

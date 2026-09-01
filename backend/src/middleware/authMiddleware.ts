@@ -19,6 +19,8 @@ declare global {
   }
 }
 
+const JWT_SECRET = process.env.JWT_SECRET || "unesa_blockchain_secret_jwt_key_2026";
+
 export const verifyToken = async (
   req: Request,
   res: Response,
@@ -33,13 +35,16 @@ export const verifyToken = async (
   }
 
   try {
-    const secret =
-      process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
-    const decoded = jwt.verify(token, secret) as UserPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+    const userId = decoded.id || decoded.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Access Denied. Invalid token format (missing user id)." });
+    }
 
     // Validate active session
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+      where: { id: userId },
       select: { currentSessionId: true, isActive: true },
     });
 
@@ -53,7 +58,7 @@ export const verifyToken = async (
         .json({ error: "Your account has been deactivated. Contact Admin." });
     }
 
-    if (decoded.sessionId !== user.currentSessionId) {
+    if (decoded.sessionId && user.currentSessionId && decoded.sessionId !== user.currentSessionId) {
       return res.status(401).json({
         error:
           "You have been logged out because another login session was started.",
@@ -61,7 +66,12 @@ export const verifyToken = async (
       });
     }
 
-    req.user = decoded;
+    req.user = {
+      id: userId,
+      role: decoded.role,
+      identifier: decoded.identifier || decoded.email || decoded.studentId || userId,
+      sessionId: decoded.sessionId,
+    };
     next();
   } catch (error) {
     // STOP EXECUTION
@@ -82,17 +92,24 @@ export const optionalVerifyToken = async (
   }
 
   try {
-    const secret =
-      process.env.JWT_SECRET || "rahasia_default_jangan_dipakai_prod";
-    const decoded = jwt.verify(token, secret) as UserPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const userId = decoded.id || decoded.userId;
+    if (!userId) return next();
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+      where: { id: userId },
       select: { currentSessionId: true, isActive: true },
     });
 
-    if (user && user.isActive && decoded.sessionId === user.currentSessionId) {
-      req.user = decoded;
+    if (user && user.isActive) {
+      if (!decoded.sessionId || !user.currentSessionId || decoded.sessionId === user.currentSessionId) {
+        req.user = {
+          id: userId,
+          role: decoded.role,
+          identifier: decoded.identifier || decoded.email || decoded.studentId || userId,
+          sessionId: decoded.sessionId,
+        };
+      }
     }
     next();
   } catch (error) {
