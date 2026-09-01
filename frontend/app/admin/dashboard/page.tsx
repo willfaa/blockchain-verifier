@@ -96,11 +96,27 @@ export default function AdminDashboard() {
           }
         }
       } else {
-        // Backend request failed (e.g. Tunnel closed or backend server offline)
-        setIsBackendConnected(false);
-        setLastSyncedAt(new Date());
-        if (isManual) {
-          toast.error("Gagal terhubung ke Backend / Tunnel. Pastikan Backend & Tunnel menyala!");
+        // Backend request failed (e.g. Tunnel closed) -> Try Next.js Direct Cloud Route Fallback!
+        try {
+          const directCloudRes = await fetch(`/api/admin/stats?_t=${timestamp}`, { cache: "no-store" });
+          if (directCloudRes.ok) {
+            const cloudData = await directCloudRes.json();
+            setIsBackendConnected(true);
+            setStats(cloudData);
+            setLastSyncedAt(new Date());
+            if (isManual) {
+              toast.success("Tersambung ke Cloud Resilience Mode (Database Supabase & IPFS Pinata ONLINE)");
+            }
+          } else {
+            setIsBackendConnected(false);
+            setLastSyncedAt(new Date());
+            if (isManual) {
+              toast.error("Gagal terhubung ke Backend / Tunnel.");
+            }
+          }
+        } catch (cloudErr) {
+          setIsBackendConnected(false);
+          setLastSyncedAt(new Date());
         }
       }
 
@@ -251,6 +267,7 @@ export default function AdminDashboard() {
 
   // Professional service monitoring mapping with dynamic health check
   const isFabricOnline = stats?.system?.health?.blockchain === "ONLINE";
+  const isCloudResilience = stats?.system?.mode === "CLOUD_DIRECT_RESILIENCE";
 
   const services = [
     {
@@ -262,9 +279,11 @@ export default function AdminDashboard() {
     },
     {
       name: "Backend API Server",
-      status: isBackendConnected && stats?.system?.health?.backend === "ONLINE" ? "ONLINE" : "OFFLINE",
+      status: isBackendConnected && (stats?.system?.health?.backend === "ONLINE" || isCloudResilience) ? "ONLINE" : "OFFLINE",
       desc: isBackendConnected
-        ? `Express Gateway (Uptime: ${stats?.system?.uptime || 0}s)`
+        ? isCloudResilience
+          ? "Cloud Serverless Proxy (24/7 Cloud Resilience)"
+          : `Express Gateway (Uptime: ${stats?.system?.uptime || 0}s)`
         : "Tunnel Mati / Backend Disconnected",
       icon: Server,
       color: isBackendConnected ? "text-emerald-400" : "text-rose-400",
@@ -273,7 +292,9 @@ export default function AdminDashboard() {
       name: "Database (PostgreSQL / Supabase)",
       status: isBackendConnected ? (stats?.system?.health?.database || "OFFLINE") : "OFFLINE",
       desc: isBackendConnected
-        ? `Cloud Mirror Ledger (Port: ${stats?.system?.dbPort || 5432})`
+        ? isCloudResilience
+          ? "Supabase Cloud Database (Direct Pooler)"
+          : `Cloud Mirror Ledger (Port: ${stats?.system?.dbPort || 5432})`
         : "Unreachable (Backend Offline)",
       icon: Database,
       color: isBackendConnected && stats?.system?.health?.database === "ONLINE" ? "text-blue-400" : "text-rose-400",
@@ -281,18 +302,22 @@ export default function AdminDashboard() {
     {
       name: "IPFS Storage (Pinata / Kubo)",
       status: isBackendConnected ? (stats?.system?.health?.ipfs || "OFFLINE") : "OFFLINE",
-      desc: isBackendConnected ? "Decentralized File Storage (Cloud)" : "Unreachable (Backend Offline)",
+      desc: isBackendConnected ? "Pinata IPFS Gateway (Cloud Pinning)" : "Unreachable (Backend Offline)",
       icon: HardDrive,
       color: isBackendConnected && stats?.system?.health?.ipfs === "ONLINE" ? "text-purple-400" : "text-rose-400",
     },
     {
       name: "Blockchain (Hyperledger Fabric)",
-      status: isBackendConnected ? (isFabricOnline ? "ONLINE" : "OFFLINE") : "OFFLINE",
+      status: isBackendConnected ? (isFabricOnline ? "ONLINE" : isCloudResilience ? "STANDBY" : "OFFLINE") : "OFFLINE",
       desc: isBackendConnected
-        ? (isFabricOnline ? "Consensus Ledger (Channel: mychannel)" : "Mirror Queue Mode (Sync on Connect)")
+        ? isFabricOnline
+          ? "Consensus Ledger (Channel: mychannel)"
+          : isCloudResilience
+          ? "Mirror Cryptographic Proof (Sync on Local Connect)"
+          : "Mirror Queue Mode (Sync on Connect)"
         : "Unreachable (Backend Offline)",
       icon: Cpu,
-      color: isBackendConnected && isFabricOnline ? "text-neon-pink" : "text-rose-400",
+      color: isBackendConnected && isFabricOnline ? "text-neon-pink" : isCloudResilience ? "text-amber-400" : "text-rose-400",
     },
   ];
 
