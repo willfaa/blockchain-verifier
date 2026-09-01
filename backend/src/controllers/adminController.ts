@@ -77,16 +77,17 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     if (!isIpfsOnline && process.env.PINATA_JWT) {
       try {
+        const pinataJwt = process.env.PINATA_JWT.replace(/^["']|["']$/g, "").trim();
         const pinataRes = await axios.get("https://api.pinata.cloud/data/testAuthentication", {
           headers: {
-            Authorization: `Bearer ${process.env.PINATA_JWT}`,
+            Authorization: `Bearer ${pinataJwt}`,
           },
-          timeout: 2000,
+          timeout: 4000,
         });
         if (pinataRes.status === 200) {
           isIpfsOnline = true;
         }
-      } catch (e) {
+      } catch (e: any) {
         // Pinata Offline
       }
     }
