@@ -3,25 +3,28 @@ import axios from "axios";
 
 import { getApiBase } from "./utils";
 
-const api = axios.create({
-  headers: {
-    "ngrok-skip-browser-warning": "true",
-    "Bypass-Tunnel-Reminder": "true",
-  },
-});
+const api = axios.create();
 
 api.interceptors.request.use(
   (config) => {
     config.baseURL = `${getApiBase()}/api`;
+    
+    // Always inject tunnel bypass & JSON accept headers
+    if (!config.headers) {
+      config.headers = {} as any;
+    }
+    config.headers["ngrok-skip-browser-warning"] = "69420";
+    config.headers["Bypass-Tunnel-Reminder"] = "true";
+    config.headers["bypass-tunnel-reminder"] = "1";
+    config.headers["Accept"] = "application/json";
+
     if (typeof window !== "undefined") {
-      // Logic menyesuaikan AuthContext Anda:
-      // Token ada di dalam object JSON "chainnesa_user"
       const storedData = localStorage.getItem("chainnesa_user");
       if (storedData) {
         try {
           const parsed = JSON.parse(storedData);
-          const token = parsed.token; // Backend mengirim user + token
-          if (token && config.headers) {
+          const token = parsed.token;
+          if (token) {
             config.headers.Authorization = `Bearer ${token}`;
           }
         } catch (e) {

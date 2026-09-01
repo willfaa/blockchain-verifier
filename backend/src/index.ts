@@ -42,15 +42,24 @@ app.use(
       callback(null, true);
     },
     credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
       "ngrok-skip-browser-warning",
       "bypass-tunnel-reminder",
       "Bypass-Tunnel-Reminder",
+      "Cache-Control",
+      "Pragma",
+      "Expires",
+      "Accept",
+      "X-Requested-With",
+      "*",
     ],
   }),
 );
+
+app.options("*", cors() as any);
 
 // --- GLOBAL MIDDLEWARES ---
 app.use(express.json({ limit: "50mb" }));
