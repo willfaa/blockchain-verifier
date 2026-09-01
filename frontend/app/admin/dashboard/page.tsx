@@ -82,24 +82,25 @@ export default function AdminDashboard() {
         api.get(`/certificates/sync-stats?_t=${timestamp}`, noCacheConfig),
       ]);
 
-      if (statsRes.status === "fulfilled" && statsRes.value?.data?.ok) {
+      if (statsRes.status === "fulfilled" && statsRes.value?.data) {
+        const data = statsRes.value.data;
         setIsBackendConnected(true);
-        setStats(statsRes.value.data);
+        setStats(data);
         setLastSyncedAt(new Date());
         if (isManual) {
-          const blockchainStatus = statsRes.value.data?.system?.health?.blockchain;
+          const blockchainStatus = data?.system?.health?.blockchain;
           if (blockchainStatus === "ONLINE") {
             toast.success("Sinkronisasi Realtime Berhasil: Semua Service & Blockchain ONLINE!");
           } else {
             toast.info("Status tersinkronisasi. Blockchain: " + (blockchainStatus || "OFFLINE"));
           }
         }
-      } else if (statsRes.status === "rejected") {
+      } else {
         // Backend request failed (e.g. Tunnel closed or backend server offline)
         setIsBackendConnected(false);
         setLastSyncedAt(new Date());
         if (isManual) {
-          toast.error("Gagal terhubung ke Backend / Tunnel. Pastikan Backend & Ngrok menyala!");
+          toast.error("Gagal terhubung ke Backend / Tunnel. Pastikan Backend & Tunnel menyala!");
         }
       }
 
