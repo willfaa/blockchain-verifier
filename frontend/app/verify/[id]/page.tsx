@@ -14,6 +14,7 @@ import {
 import clsx from "clsx";
 import { getApiBase } from "@/lib/utils";
 import { VerificationTranscriptViewer } from "@/components/features/VerificationTranscriptViewer";
+import { fetchCertificateFromSupabase } from "@/lib/supabase";
 
 // Force dynamic rendering so we always fetch fresh data
 export const dynamic = "force-dynamic";
@@ -84,12 +85,6 @@ export default async function VerificationPage({
           cert = fbData.record || fbData.data;
           cert!.source = fbData.source || "mirror_database";
         }
-      } else {
-        if (res.status === 404 && fallbackRes.status === 404) {
-          // not found
-        } else {
-          error = `Server Error: ${res.status}`;
-        }
       }
     } else {
       const text = await res.text();
@@ -99,22 +94,35 @@ export default async function VerificationPage({
           cert = data.record || data.data;
           cert!.source = data.source || "blockchain";
           cert!.isChainVerified = data.isChainVerified;
-        } else {
-          error = data.error || "Invalid response format";
         }
-      } catch (parseErr) {
-        error = "Invalid Server Response";
-      }
+      } catch (parseErr) {}
     }
+  } catch (err: any) {
+    console.warn("Backend API Unreachable. Activating Direct Cloud Resilience Fallback...");
+  }
 
-    if (cert) {
+  // --- DIRECT CLOUD RESILIENCE FALLBACK (When Laptop/Ngrok is OFF) ---
+  if (!cert) {
+    try {
+      const cloudCert = await fetchCertificateFromSupabase(id);
+      if (cloudCert) {
+        cert = cloudCert;
+        error = null;
+      }
+    } catch (cloudErr: any) {
+      console.error("Direct Cloud Fallback Error:", cloudErr);
+    }
+  }
+
+  if (cert) {
+    try {
       const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000";
       const verificationUrl = `${clientUrl}/verify/${cert.certId}`;
       qrCodeBase64 = await QRCode.toDataURL(verificationUrl);
-    }
-  } catch (err: any) {
-    console.error("Verification Fetch Error:", err);
-    error = err.message || "Failed to connect to backend";
+    } catch (e) {}
+  } else if (!error) {
+    // If not found in both backend and direct cloud Supabase
+    error = null; // Handled as not found UI
   }
 
   // --- Render Logic ---
