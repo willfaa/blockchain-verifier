@@ -37,10 +37,36 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Add Response Interceptor to handle 401 (Token Expired/Invalid)
+// Add Response Interceptor: Auto-fallback from dead tunnel + Handle 401
 api.interceptors.response.use(
   (response) => response,
-  (error: any) => {
+  async (error: any) => {
+    const config = error.config;
+
+    // Intelligent Failover: If external tunnel/Ngrok is dead, silently fallback to internal Vercel serverless backend
+    const isTunnelDead =
+      !error.response ||
+      error.code === "ERR_NETWORK" ||
+      error.code === "ECONNABORTED" ||
+      error.response?.status === 502 ||
+      error.response?.status === 503 ||
+      error.response?.status === 504;
+
+    if (isTunnelDead && config && !config._isRetry && typeof window !== "undefined") {
+      const isExternalBase =
+        config.baseURL &&
+        !config.baseURL.includes("/_/backend") &&
+        !config.baseURL.includes("localhost") &&
+        !config.baseURL.includes("127.0.0.1");
+
+      if (isExternalBase) {
+        config._isRetry = true;
+        config.baseURL = `${window.location.origin}/_/backend/api`;
+        console.warn(`[Tunnel Offline] Auto-switching request to Vercel Serverless Cloud: ${config.url}`);
+        return api(config);
+      }
+    }
+
     if (
       error.response &&
       (error.response.status === 401 || error.response.status === 403)
@@ -50,7 +76,6 @@ api.interceptors.response.use(
         console.warn(
           "Session expired or Access Denied (401/403). Logging out..."
         );
-        // Prevent infinite loop if login page itself throws 401 (unlikely for login)
         if (!window.location.pathname.includes("/login")) {
           localStorage.removeItem("chainnesa_user");
           const isOverwrite = error.response.data?.code === "SESSION_OVERWRITTEN";
