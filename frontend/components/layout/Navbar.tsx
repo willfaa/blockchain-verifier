@@ -30,8 +30,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();

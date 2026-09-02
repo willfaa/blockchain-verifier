@@ -65,8 +65,6 @@ export default function ManageExamPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [courseTitle, setCourseTitle] = useState("");
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-
   useEffect(() => {
     if (courseId) {
       fetchExamData();

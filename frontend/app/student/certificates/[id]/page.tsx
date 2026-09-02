@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
+import { getApiBase } from "@/lib/utils";
 
 interface CertificateDetail {
   id: string;
@@ -143,7 +144,7 @@ export default function CertificateDetailPage() {
     process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
   const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`;
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+  const API_BASE = getApiBase();
   const pdfUrl = `${API_BASE}/api/certificates/${cert.certId}/pdf`;
 
   return (

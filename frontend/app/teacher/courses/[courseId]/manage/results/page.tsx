@@ -86,8 +86,7 @@ export default function ExamResultsPage() {
     id: string;
     studentName: string;
   } | null>(null);
-
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+  const [grading, setGrading] = useState(false);
 
   useEffect(() => {
     if (courseId) loadResults();

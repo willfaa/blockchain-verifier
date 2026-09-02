@@ -8,8 +8,6 @@ import CourseCard from "@/components/features/CourseCard";
 import { BookOpen, Loader2 } from "lucide-react";
 import { getAssetUrl } from "@/lib/utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

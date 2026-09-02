@@ -21,37 +21,48 @@ const normalizeLocalPath = (urlPath: string) => {
 };
 
 export const getApiBase = () => {
-  // If explicitly defined via Environment Variable (e.g. Ngrok, Cloudflare Tunnel, or VPS), use it first!
-  const customApiBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL;
-  if (customApiBase) {
-    return customApiBase.replace(/\/$/, "");
-  }
+  const customApiBase = (
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    ""
+  ).trim().replace(/\/$/, "");
 
-  // Development mode local fallback
-  if (process.env.NODE_ENV === "development") {
-    const base = "http://localhost:4000";
-    if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      return base.replace("localhost", window.location.hostname).replace("127.0.0.1", window.location.hostname);
-    }
-    return base;
-  }
-
-  // Production on Vercel: fallback to internal serverless route if no external API base is specified
+  // Client-side Browser Execution:
   if (typeof window !== "undefined") {
-    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      return `${window.location.origin}/_/backend`;
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    // 1. If running on localhost development
+    if (isLocal) {
+      return customApiBase || "http://localhost:4000";
     }
-  } else {
-    // Server-side rendering (SSR) on Vercel
-    if (process.env.VERCEL_URL) {
-      return `https://${process.env.VERCEL_URL}/_/backend`;
+
+    // 2. If running on Vercel / Remote Domain:
+    // If tunnel was flagged offline in this session, immediately use local origin serverless
+    const isTunnelOffline = sessionStorage.getItem("tunnel_offline") === "true";
+    if (isTunnelOffline) {
+      return window.location.origin;
     }
-    if (process.env.NEXT_PUBLIC_VERCEL_URL) {
-      return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/_/backend`;
+
+    // If custom tunnel URL is provided in env, use it as primary
+    if (customApiBase) {
+      return customApiBase;
     }
+
+    // Default Vercel fallback
+    return window.location.origin;
   }
 
-  return "http://localhost:4000";
+  // Server-side Rendering (SSR / Node.js on Vercel):
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  return customApiBase || "http://localhost:4000";
 };
 
 export const getAvatarUrl = (path: string | null | undefined) => {

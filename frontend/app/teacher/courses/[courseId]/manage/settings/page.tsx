@@ -52,8 +52,6 @@ export default function CourseSettingsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-
   useEffect(() => {
     if (courseId) fetchCourse();
   }, [courseId]);

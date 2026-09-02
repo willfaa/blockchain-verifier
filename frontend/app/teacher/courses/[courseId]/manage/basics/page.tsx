@@ -19,8 +19,6 @@ import { ACADEMIC_DATA, MAJORITIES } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
 import { getAssetUrl, compressAndResizeImage, getApiBase } from "@/lib/utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-
 export default function CourseBasicsPage() {
   const params = useParams();
   const courseId = params?.courseId as string;

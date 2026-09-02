@@ -3,7 +3,9 @@ import axios from "axios";
 
 import { getApiBase } from "./utils";
 
-const api = axios.create();
+const api = axios.create({
+  timeout: 8000,
+});
 
 api.interceptors.request.use(
   (config) => {
@@ -44,24 +46,34 @@ api.interceptors.response.use(
     const config = error.config;
 
     // Intelligent Failover: If external tunnel/Ngrok is dead, silently fallback to internal Vercel serverless backend
+    const isNgrokErrorHtml =
+      typeof error.response?.data === "string" &&
+      (error.response.data.includes("ngrok") ||
+        error.response.data.includes("ERR_NGROK") ||
+        error.response.data.includes("Tunnel") ||
+        error.response.data.includes("localtunnel"));
+
     const isTunnelDead =
       !error.response ||
       error.code === "ERR_NETWORK" ||
       error.code === "ECONNABORTED" ||
+      error.code === "ETIMEDOUT" ||
       error.response?.status === 502 ||
       error.response?.status === 503 ||
-      error.response?.status === 504;
+      error.response?.status === 504 ||
+      isNgrokErrorHtml;
 
     if (isTunnelDead && config && !config._isRetry && typeof window !== "undefined") {
       const isExternalBase =
         config.baseURL &&
-        !config.baseURL.includes("/_/backend") &&
+        !config.baseURL.startsWith(window.location.origin) &&
         !config.baseURL.includes("localhost") &&
         !config.baseURL.includes("127.0.0.1");
 
       if (isExternalBase) {
+        sessionStorage.setItem("tunnel_offline", "true");
         config._isRetry = true;
-        config.baseURL = `${window.location.origin}/_/backend/api`;
+        config.baseURL = `${window.location.origin}/api`;
         console.warn(`[Tunnel Offline] Auto-switching request to Vercel Serverless Cloud: ${config.url}`);
         return api(config);
       }

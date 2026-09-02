@@ -314,13 +314,17 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
                     width: `${qWidth}px`,
                     height: `${qHeight}px`,
                     zIndex: el.zIndex !== undefined ? el.zIndex : 10,
+                    filter: el.hasGlow
+                      ? `drop-shadow(0 0 ${el.glowBlur || 12}px ${el.glowColor || "#38bdf8"})`
+                      : undefined,
+                    opacity: el.opacity !== undefined ? el.opacity / 100 : 1,
                   }}
-                  className="bg-black rounded-xl border border-white/10 flex items-center justify-center shadow-[0_0_30px_#c026d3]"
+                  className="bg-white p-1.5 rounded-lg border border-slate-200 flex items-center justify-center shadow-sm"
                 >
                   {qrCodeBase64 ? (
-                    <img src={qrCodeBase64} alt="QR Code" className="w-full h-full object-contain p-2" />
+                    <img src={qrCodeBase64} alt="QR Code" className="w-full h-full object-contain" />
                   ) : (
-                    <QrCode size={qWidth * 0.75} className="text-white" />
+                    <QrCode size={qWidth * 0.8} className="text-slate-900 w-full h-full" />
                   )}
                 </div>
               );
@@ -413,11 +417,11 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
         </div>
 
         <div className="relative">
-          <div className="bg-[#0B0F19] p-2 rounded-xl border border-slate-700/50 flex items-center justify-center">
+          <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center justify-center shadow-sm">
             {qrCodeBase64 ? (
-              <img src={qrCodeBase64} alt="QR Code" className="w-20 h-20" />
+              <img src={qrCodeBase64} alt="QR Code" className="w-20 h-20 object-contain" />
             ) : (
-              <QrCode className="w-20 h-20 text-white" strokeWidth={1.5} />
+              <QrCode className="w-20 h-20 text-slate-900" strokeWidth={1.5} />
             )}
           </div>
           <p className="text-center text-cyan-500 text-[9px] uppercase tracking-widest mt-1 font-semibold">

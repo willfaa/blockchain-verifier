@@ -64,6 +64,7 @@ export default async function VerificationPage({
   try {
     const res = await fetch(`${apiBase}/api/certificates/${id}/verify`, {
       cache: "no-store",
+      signal: AbortSignal.timeout(3500),
       headers: {
         "ngrok-skip-browser-warning": "true",
         "Bypass-Tunnel-Reminder": "true",
@@ -74,6 +75,7 @@ export default async function VerificationPage({
       // Fallback to /api/certificates/:id
       const fallbackRes = await fetch(`${apiBase}/api/certificates/${id}`, {
         cache: "no-store",
+        signal: AbortSignal.timeout(3500),
         headers: {
           "ngrok-skip-browser-warning": "true",
           "Bypass-Tunnel-Reminder": "true",

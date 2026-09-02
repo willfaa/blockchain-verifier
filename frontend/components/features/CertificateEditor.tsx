@@ -1310,7 +1310,26 @@ export default function CertificateEditor({
     setSelectedIds((prev) => prev.filter((item) => item !== id));
   };
 
-  // 1-Klik: Switch ke Mode "Tempel QR Code Saja" (Pre-printed Finished Certificate)
+  // Toggle visibility untuk seluruh elemen dalam satu kategori / folder
+  const handleToggleCategoryVisibility = (keys: string[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setElements((prev) => {
+      const memberElements = keys.map((k) => prev[k]).filter(Boolean);
+      const anyVisible = memberElements.some((el) => el.visible);
+      const newVisible = !anyVisible;
+
+      const updated = { ...prev };
+      keys.forEach((k) => {
+        if (updated[k]) {
+          updated[k] = { ...updated[k], visible: newVisible };
+        }
+      });
+      pushHistory(updated);
+      return updated;
+    });
+  };
+
+  // 1-Klik: Switch ke Tab 2: "Template Jadi (Blank Canvas)" (Pre-printed Finished Certificate)
   const handleSetQrOnlyMode = () => {
     setLayoutMode("QR_ONLY");
     setShowDecorativeFrame(false);
@@ -1318,17 +1337,23 @@ export default function CertificateEditor({
     setElements((prev) => {
       const updated = { ...prev };
       Object.keys(updated).forEach((k) => {
-        if (k !== "qrCode" && !updated[k]?.isCustom) {
+        if (k !== "qrCode" && k !== "certIdLabel" && !updated[k]?.isCustom) {
           updated[k] = { ...updated[k], visible: false };
         }
       });
-      // Pastikan QR code menyala
+      // Pastikan QR code dan certIdLabel menyala (visible)
       if (updated.qrCode) {
         updated.qrCode = {
           ...updated.qrCode,
           visible: true,
-          width: 140,
-          height: 140,
+          width: updated.qrCode.width || 140,
+          height: updated.qrCode.height || 140,
+        };
+      }
+      if (updated.certIdLabel) {
+        updated.certIdLabel = {
+          ...updated.certIdLabel,
+          visible: true,
         };
       }
       pushHistory(updated);
@@ -1336,7 +1361,7 @@ export default function CertificateEditor({
     });
   };
 
-  // 1-Klik: Switch ke Mode Standar (Semua Teks Menyala)
+  // 1-Klik: Switch ke Tab 1: "Desain Lengkap" (Semua Teks & Elemen Default Aktif)
   const handleSetFullStandardMode = () => {
     setLayoutMode("STANDARD");
     setShowDecorativeFrame(true);
@@ -1718,33 +1743,54 @@ export default function CertificateEditor({
             );
             if (memberKeys.length === 0) return null;
             const isCollapsed = !!collapsedCategories[gId];
+            const memberElements = memberKeys.map((k) => elements[k]).filter(Boolean);
+            const allVisible = memberElements.length > 0 && memberElements.every((el) => el.visible);
+            const anyVisible = memberElements.some((el) => el.visible);
 
             return (
               <div
                 key={gId}
-                className="border border-neon-purple/30 rounded-2xl p-1.5 bg-neon-purple/5"
+                className="border border-neon-purple/30 rounded-2xl p-1.5 bg-neon-purple/5 transition-all"
               >
                 <div
-                  className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg"
+                  className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
                   onClick={() => toggleCategoryCollapse(gId)}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     {isCollapsed ? (
-                      <ChevronRight size={13} className="text-neon-purple" />
+                      <ChevronRight size={13} className="text-neon-purple shrink-0" />
                     ) : (
-                      <ChevronDown size={13} className="text-neon-purple" />
+                      <ChevronDown size={13} className="text-neon-purple shrink-0" />
                     )}
-                    <Folder size={13} className="text-neon-purple" />
-                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">
+                    <Folder size={13} className="text-neon-purple shrink-0" />
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider truncate">
                       {group.name}
                     </span>
                   </div>
-                  <span className="text-[9px] text-white/40 font-mono">
-                    {memberKeys.length}
-                  </span>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[9px] text-white/40 font-mono">
+                      {memberElements.filter((e) => e.visible).length}/{memberKeys.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleCategoryVisibility(memberKeys, e)}
+                      className={`p-1 rounded hover:bg-white/10 ${
+                        allVisible
+                          ? "text-neon-purple"
+                          : anyVisible
+                          ? "text-amber-400"
+                          : "text-rose-500/70 hover:text-rose-400"
+                      }`}
+                      title={anyVisible ? "Sembunyikan semua elemen di grup ini" : "Tampilkan semua elemen di grup ini"}
+                    >
+                      {anyVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                    </button>
+                  </div>
                 </div>
+
                 {!isCollapsed && (
-                  <div className="space-y-1 mt-1">
+                  <div className="space-y-1 mt-1 pl-1">
                     {memberKeys.map((key) =>
                       renderLayerItem(key, elements[key], true),
                     )}
@@ -1756,27 +1802,37 @@ export default function CertificateEditor({
 
           {/* Custom Uploaded Independent Layers & Shapes */}
           {customKeys.filter((k) => !elements[k]?.groupId).length > 0 && (
-            <div>
+            <div className="border border-white/5 rounded-2xl p-1.5 bg-white/[0.02]">
               <div
-                className="flex items-center justify-between px-2 mb-1.5 cursor-pointer hover:bg-white/5 py-1 rounded-lg"
+                className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
                 onClick={() => toggleCategoryCollapse("custom")}
               >
                 <div className="flex items-center gap-1.5">
                   {collapsedCategories["custom"] ? (
-                    <ChevronRight size={13} className="text-neon-purple" />
+                    <ChevronRight size={13} className="text-neon-purple shrink-0" />
                   ) : (
-                    <ChevronDown size={13} className="text-neon-purple" />
+                    <ChevronDown size={13} className="text-neon-purple shrink-0" />
                   )}
                   <h4 className="text-[10px] font-bold text-neon-purple uppercase tracking-widest">
                     ★ Layer Kustom & Shape
                   </h4>
                 </div>
-                <span className="text-[9px] text-white/30 font-mono">
-                  {customKeys.filter((k) => !elements[k]?.groupId).length}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[9px] text-white/30 font-mono">
+                    {customKeys.filter((k) => !elements[k]?.groupId).length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleToggleCategoryVisibility(customKeys.filter((k) => !elements[k]?.groupId), e)}
+                    className="p-1 text-white/40 hover:text-white rounded hover:bg-white/10"
+                    title="Toggle seluruh layer kustom"
+                  >
+                    <Eye size={13} />
+                  </button>
+                </div>
               </div>
               {!collapsedCategories["custom"] && (
-                <div className="space-y-1">
+                <div className="space-y-1 mt-1 pl-1">
                   {customKeys
                     .filter((k) => !elements[k]?.groupId)
                     .map((key) => {
@@ -1789,39 +1845,70 @@ export default function CertificateEditor({
             </div>
           )}
 
-          {/* Standard Categories */}
+          {/* Standard Categories with Folder Accordion & Bulk Eye Toggle */}
           {standardCategories.map((cat) => {
             const memberKeys = cat.keys.filter((k) => !elements[k]?.groupId);
             if (memberKeys.length === 0) return null;
             const isCollapsed = !!collapsedCategories[cat.key];
+            const memberElements = memberKeys.map((k) => elements[k]).filter(Boolean);
+            const allVisible = memberElements.length > 0 && memberElements.every((el) => el.visible);
+            const anyVisible = memberElements.some((el) => el.visible);
 
             return (
-              <div key={cat.key}>
+              <div
+                key={cat.key}
+                className="border border-white/5 rounded-2xl p-1.5 bg-white/[0.02] transition-all"
+              >
                 <div
-                  className="flex items-center justify-between px-2 mb-1 cursor-pointer hover:bg-white/5 py-1 rounded-lg"
+                  className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
                   onClick={() => toggleCategoryCollapse(cat.key)}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     {isCollapsed ? (
-                      <ChevronRight size={13} className="text-white/40" />
+                      <ChevronRight size={13} className="text-white/40 shrink-0" />
                     ) : (
-                      <ChevronDown size={13} className="text-white/40" />
+                      <ChevronDown size={13} className="text-white/40 shrink-0" />
                     )}
-                    <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                    <Folder
+                      size={13}
+                      className={anyVisible ? "text-cyan-400 shrink-0" : "text-white/30 shrink-0"}
+                    />
+                    <h4
+                      className={`text-[10px] font-bold uppercase tracking-wider truncate ${
+                        anyVisible ? "text-white/80" : "text-white/40"
+                      }`}
+                    >
                       {cat.title}
                     </h4>
                   </div>
-                  <span className="text-[9px] text-white/30 font-mono">
-                    {memberKeys.length}
-                  </span>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[9px] text-white/30 font-mono">
+                      {memberElements.filter((e) => e.visible).length}/{memberKeys.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleCategoryVisibility(memberKeys, e)}
+                      className={`p-1 rounded hover:bg-white/10 ${
+                        allVisible
+                          ? "text-cyan-400"
+                          : anyVisible
+                          ? "text-amber-400"
+                          : "text-rose-500/70 hover:text-rose-400"
+                      }`}
+                      title={anyVisible ? "Sembunyikan semua elemen di folder ini" : "Tampilkan semua elemen di folder ini"}
+                    >
+                      {anyVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                    </button>
+                  </div>
                 </div>
 
                 {!isCollapsed && (
-                  <div className="space-y-1">
+                  <div className="space-y-1 mt-1 pl-1">
                     {memberKeys.map((key) => {
                       const el = elements[key];
                       if (!el) return null;
-                      return renderLayerItem(key, el);
+                      return renderLayerItem(key, el, true);
                     })}
                   </div>
                 )}
@@ -1833,6 +1920,41 @@ export default function CertificateEditor({
 
       {/* RIGHT MAIN AREA */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-950">
+        {/* Photoshop-Style Workspace Tabs Bar */}
+        <div className="flex items-center px-4 pt-2 bg-slate-950 border-b border-white/10 gap-1.5 overflow-x-auto shrink-0 select-none">
+          <button
+            type="button"
+            onClick={handleSetFullStandardMode}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t-xl text-xs font-bold transition-all border-t border-x ${
+              layoutMode === "STANDARD"
+                ? "bg-slate-900 text-cyan-300 border-cyan-500/40 shadow-sm relative -mb-[1px] z-10"
+                : "bg-white/[0.02] text-white/40 border-transparent hover:text-white/80 hover:bg-white/5"
+            }`}
+          >
+            <Folder size={14} className={layoutMode === "STANDARD" ? "text-cyan-400" : "text-white/30"} />
+            <span>Tab 1: Desain Lengkap (Full Dynamic)</span>
+            {layoutMode === "STANDARD" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSetQrOnlyMode}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t-xl text-xs font-bold transition-all border-t border-x ${
+              layoutMode === "QR_ONLY"
+                ? "bg-slate-900 text-fuchsia-300 border-fuchsia-500/40 shadow-sm relative -mb-[1px] z-10"
+                : "bg-white/[0.02] text-white/40 border-transparent hover:text-white/80 hover:bg-white/5"
+            }`}
+          >
+            <QrCode size={14} className={layoutMode === "QR_ONLY" ? "text-fuchsia-400" : "text-white/30"} />
+            <span>Tab 2: Template Jadi (Blank Canvas / Canva)</span>
+            {layoutMode === "QR_ONLY" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
+            )}
+          </button>
+        </div>
+
         {/* Toolbar Atas */}
         <div className="flex flex-wrap items-center justify-between px-6 py-2.5 bg-white/5 border-b border-white/10 shrink-0 gap-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -1890,36 +2012,6 @@ export default function CertificateEditor({
               >
                 <Sun size={13} />
                 <span className="hidden md:inline">Kertas Putih</span>
-              </button>
-            </div>
-
-            {/* Switch: Mode Desain (Template Jadi QR-Only vs Penuh) */}
-            <div className="flex items-center gap-1 bg-slate-900 px-1.5 py-1 rounded-xl border border-white/10">
-              <button
-                type="button"
-                onClick={handleSetQrOnlyMode}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  layoutMode === "QR_ONLY"
-                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 shadow-sm"
-                    : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-                title="Mode Template Jadi: Upload background sertifikat lengkap Anda, kami hanya menempelkan QR Code Blockchain verifikasi"
-              >
-                <QrCode size={13} className={layoutMode === "QR_ONLY" ? "text-fuchsia-400" : "text-white/40"} />
-                <span className="hidden md:inline">Mode Tempel QR</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSetFullStandardMode}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  layoutMode === "STANDARD"
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
-                    : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-                title="Mode Teks Penuh: Render semua data siswa, nomor SKKNI, asal sekolah, dan tanda tangan digital"
-              >
-                <Type size={13} className={layoutMode === "STANDARD" ? "text-cyan-400" : "text-white/40"} />
-                <span className="hidden md:inline">Mode Standar</span>
               </button>
             </div>
 
@@ -2432,10 +2524,18 @@ export default function CertificateEditor({
                       {el.type === "image" && (
                         <div className="w-full h-full flex items-center justify-center pointer-events-none relative rounded-xl overflow-hidden">
                           {el.id === "qrCode" ? (
-                            <div className="w-full h-full flex items-center justify-center bg-black rounded-xl border border-white/10 shadow-[0_0_30px_#c026d3]">
+                            <div
+                              className="w-full h-full flex items-center justify-center bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm"
+                              style={{
+                                filter: el.hasGlow
+                                  ? `drop-shadow(0 0 ${el.glowBlur || 12}px ${el.glowColor || "#38bdf8"})`
+                                  : undefined,
+                                opacity: el.opacity !== undefined ? el.opacity / 100 : 1,
+                              }}
+                            >
                               <QrCode
-                                size={el.width ? el.width * 0.75 : 90}
-                                className="text-white"
+                                size={el.width ? el.width * 0.8 : 90}
+                                className="text-slate-900 w-full h-full"
                               />
                             </div>
                           ) : el.id === "universityLogo" ||
@@ -2914,8 +3014,8 @@ export default function CertificateEditor({
                 </div>
               )}
 
-              {/* Image Properties: Generalized */}
-              {primarySelectedEl.type === "image" && primarySelectedEl.id !== "qrCode" && (
+              {/* Image & QR Code Properties: Generalized */}
+              {primarySelectedEl.type === "image" && (
                 <div className="flex items-center gap-4 flex-nowrap">
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
@@ -3058,35 +3158,39 @@ export default function CertificateEditor({
                     </button>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
-                      Latar Penuh
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleSetImageAsBackground(primarySelectedEl.id)}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg text-xs font-semibold border border-neon-purple/40 whitespace-nowrap shadow-sm"
-                      title="Jadikan Background: Fit Kanvas Penuh & Layer Paling Dasar (Z: 0)"
-                    >
-                      <Maximize size={12} />
-                      <span>Background Kanvas</span>
-                    </button>
-                  </div>
+                  {primarySelectedEl.id !== "qrCode" && (
+                    <>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                          Latar Penuh
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSetImageAsBackground(primarySelectedEl.id)}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg text-xs font-semibold border border-neon-purple/40 whitespace-nowrap shadow-sm"
+                          title="Jadikan Background: Fit Kanvas Penuh & Layer Paling Dasar (Z: 0)"
+                        >
+                          <Maximize size={12} />
+                          <span>Background Kanvas</span>
+                        </button>
+                      </div>
 
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
-                      Berkas
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => imageUploadRef.current?.click()}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-white/5 hover:bg-white/15 text-white/80 hover:text-white rounded-lg text-xs font-semibold border border-white/10 whitespace-nowrap"
-                      title="Ganti Berkas Gambar Ini"
-                    >
-                      <Upload size={12} />
-                      <span>Ganti File</span>
-                    </button>
-                  </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                          Berkas
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => imageUploadRef.current?.click()}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-white/5 hover:bg-white/15 text-white/80 hover:text-white rounded-lg text-xs font-semibold border border-white/10 whitespace-nowrap"
+                          title="Ganti Berkas Gambar Ini"
+                        >
+                          <Upload size={12} />
+                          <span>Ganti File</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

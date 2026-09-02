@@ -626,22 +626,28 @@ export const generateCertificateImage = async (
 
       if (key === "qrCode" || el.id === "qrCode") {
         const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/verify/${data.certId}`;
+        const qrWidth = el.width || 150;
+        const qrHeight = el.height || 150;
         const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-          width: el.width || 150,
+          width: qrWidth,
           margin: 1,
-          color: { dark: "#ffffff", light: "#00000000" },
+          color: { dark: "#000000", light: "#ffffff" },
         });
         const qrImage = await loadImage(qrDataUrl);
-        const qx = el.x - (el.width || 150) / 2;
-        const qy = el.y - (el.height || 150) / 2;
+        const qx = el.x - qrWidth / 2;
+        const qy = el.y - qrHeight / 2;
         
         ctx.save();
-        ctx.shadowColor = "#c026d3"; // fuchsia-600
-        ctx.shadowBlur = 30;
-        ctx.fillStyle = "#000000"; // dark background to make qr readable
-        ctx.fillRect(qx, qy, el.width || 150, el.height || 150);
-        ctx.shadowBlur = 0;
-        ctx.drawImage(qrImage, qx, qy, el.width || 150, el.height || 150);
+        if (el.hasGlow) {
+          ctx.shadowColor = el.glowColor || "#38bdf8";
+          ctx.shadowBlur = el.glowBlur || 15;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        if (el.opacity !== undefined) {
+          ctx.globalAlpha = el.opacity / 100;
+        }
+        ctx.drawImage(qrImage, qx, qy, qrWidth, qrHeight);
         ctx.restore();
         return;
       }
@@ -844,7 +850,7 @@ export const generateCertificateImage = async (
       const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
         width: 140,
         margin: 1,
-        color: { dark: "#ffffff", light: "#00000000" },
+        color: { dark: "#000000", light: "#ffffff" },
       });
       const qrImage = await loadImage(qrDataUrl);
       ctx.drawImage(qrImage, rightX - 70, footerY - 100, 140, 140);
@@ -948,7 +954,7 @@ export const generateCertificateImage = async (
       const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
         width: 150,
         margin: 1,
-        color: { dark: "#ffffff", light: "#00000000" },
+        color: { dark: "#000000", light: "#ffffff" },
       });
       const qrImage = await loadImage(qrDataUrl);
       ctx.drawImage(qrImage, rightX - 75, footerY - 100, 150, 150);
