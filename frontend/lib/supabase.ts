@@ -199,3 +199,80 @@ export async function fetchTeacherCoursesFromSupabase(teacherId: string) {
     return [];
   }
 }
+
+export async function getSystemSettingsMap(): Promise<Record<string, string>> {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/system_settings?select=*`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return {};
+    const list = await res.json();
+    const map: Record<string, string> = {};
+    if (Array.isArray(list)) {
+      list.forEach((item: any) => {
+        if (item.key) map[item.key] = item.value;
+      });
+    }
+    return map;
+  } catch (err: any) {
+    console.error("[Supabase System Settings Error]:", err.message);
+    return {};
+  }
+}
+
+export async function upsertSystemSetting(key: string, value: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/system_settings`;
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        ...getHeaders(),
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ key, value }),
+    });
+  } catch (e) {}
+}
+
+export async function deleteSystemSetting(key: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/system_settings?key=eq.${encodeURIComponent(key)}`;
+    await fetch(url, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+  } catch (e) {}
+}
+
+export async function insertCertificateToSupabase(certRecord: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/certificates`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...getHeaders(),
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(certRecord),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Failed to insert certificate into database");
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data[0] : data;
+  } catch (err: any) {
+    console.error("[Supabase Insert Certificate Error]:", err.message);
+    throw err;
+  }
+}
+
+export async function fetchCourseUnitsFromSupabase(courseId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/course_competency_units?courseId.eq.${encodeURIComponent(courseId)}&order=order.asc`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err: any) {
+    return [];
+  }
+}
