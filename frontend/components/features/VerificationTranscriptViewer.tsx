@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Award,
@@ -16,6 +16,9 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import CertificateTemplate from "@/components/features/CertificateTemplate";
+import QRCode from "qrcode";
+import api from "@/lib/api";
 
 interface CompetencyUnit {
   code: string;
@@ -69,6 +72,43 @@ export function VerificationTranscriptViewer({
 }: VerificationTranscriptViewerProps) {
   const [activeTab, setActiveTab] = useState<"front" | "transcript">("front");
   const [copiedHash, setCopiedHash] = useState(false);
+  const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
+  const [layoutSettings, setLayoutSettings] = useState<any>({});
+
+  useEffect(() => {
+    // Generate QR Code
+    if (certId) {
+      const clientBase =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "https://www.willfaa.web.id";
+      QRCode.toDataURL(`${clientBase}/verify/${certId}`, {
+        margin: 1,
+        width: 256,
+      })
+        .then(setQrCodeBase64)
+        .catch(() => {});
+    }
+
+    // Fetch Layout Settings
+    Promise.allSettled([
+      api.get("/admin/settings"),
+      api.get("/admin/settings/details"),
+      api.get("/admin/settings/layout-config"),
+    ]).then(([settingsRes, detailsRes, configRes]) => {
+      const merged: any = {};
+      if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
+        Object.assign(merged, settingsRes.value.data.settings);
+      }
+      if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.data) {
+        Object.assign(merged, detailsRes.value.data.data);
+      }
+      if (configRes.status === "fulfilled" && configRes.value?.data?.config) {
+        merged.layoutConfig = configRes.value.data.config;
+      }
+      setLayoutSettings(merged);
+    });
+  }, [certId]);
 
   const defaultUnits: CompetencyUnit[] = [
     { code: "J.620100.004.01", title: "Menerapkan Pemrograman Berorientasi Objek (OOP)", standard: "SKKNI", result: "KOMPETEN" },
@@ -152,46 +192,43 @@ export function VerificationTranscriptViewer({
       {/* TAB CONTENT: Front Certificate vs Back Transcript */}
       {activeTab === "front" ? (
         <div className="space-y-6">
-          {/* Certificate Preview Image if CID exists */}
-          {cid ? (
-            <div className="rounded-3xl border border-white/10 bg-black/40 p-3 backdrop-blur-2xl overflow-hidden shadow-2xl group relative">
-              <div className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
-                <img
-                  src={`${ipfsGateway}/ipfs/${cid}`}
-                  alt={`Sertifikat ${studentName}`}
-                  className="w-full h-full object-contain rounded-2xl"
-                  onError={(e) => {
-                    // Fallback to placeholder if IPFS gateway is slow
-                    (e.target as HTMLElement).style.display = "none";
-                  }}
-                />
-              </div>
-              <div className="mt-3 flex items-center justify-between px-3 py-1 text-[11px] text-white/50 font-mono">
-                <span>IPFS CID: {cid.substring(0, 18)}...</span>
-                <a
-                  href={`${ipfsGateway}/ipfs/${cid}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-cyan-400 hover:underline flex items-center gap-1"
-                >
-                  Buka Gambar Asli <ExternalLink size={12} />
-                </a>
-              </div>
+          {/* Real-Time Vector Certificate Preview (Zero-Failure Resilience) */}
+          <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
+            <div className="flex items-center justify-center shrink-0 m-auto">
+              <CertificateTemplate
+                studentName={studentName}
+                studentId={studentId}
+                courseName={courseTitle || program || "Sertifikat Kelulusan"}
+                certificateId={certId}
+                program={program}
+                majority={majority}
+                issuedAt={issuedAt}
+                qrCodeBase64={qrCodeBase64}
+                layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                paperSize={layoutSettings.certificatePaperSize || "A4"}
+                paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                instructorName={layoutSettings.instructorName || signerList[0]?.name}
+                instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
+                bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                layoutConfig={layoutSettings.layoutConfig}
+              />
             </div>
-          ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl">
-              <Award className="mx-auto h-16 w-16 text-cyan-400 mb-4 opacity-80" />
-              <h3 className="text-xl font-bold text-white mb-2">Sertifikat Digital Terverifikasi</h3>
-              <p className="text-white/50 text-sm max-w-md mx-auto mb-6">
-                Sertifikat ini terbit langsung dari konsensus Hyperledger Fabric dan siap dicetak melalui tombol unduh PDF resmi.
-              </p>
+          </div>
+
+          {cid && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] text-white/50 font-mono">
+              <span className="flex items-center gap-2">
+                <ShieldCheck size={14} className="text-emerald-400" />
+                IPFS Digital Proof CID: {cid.substring(0, 22)}...
+              </span>
               <a
-                href={`${apiBase}/api/certificates/${certId}/pdf`}
+                href={`${ipfsGateway}/ipfs/${cid}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20"
+                className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-sans font-bold text-xs"
               >
-                <Download size={15} /> Unduh PDF Lengkap
+                Buka Artifak Digital IPFS <ExternalLink size={12} />
               </a>
             </div>
           )}

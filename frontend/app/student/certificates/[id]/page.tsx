@@ -14,11 +14,14 @@ import {
   Edit3,
   AlertCircle,
   CheckCircle2,
+  Printer,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { getApiBase } from "@/lib/utils";
+import { getIpfsGatewayUrl } from "@/lib/ipfs";
 import CertificateTemplate from "@/components/features/CertificateTemplate";
 import QRCode from "qrcode";
 
@@ -193,23 +196,27 @@ export default function CertificateDetailPage() {
               Ajukan Koreksi Data
             </button>
 
-            <a
-              href={ipfsUrl}
-              download={`certificate-${cert.certId}.png`}
-              target="_blank"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700"
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
             >
-              <Download size={14} />
-              PNG
-            </a>
-            <a
-              href={pdfUrl}
-              download={`certificate-${cert.certId}.pdf`}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700"
-            >
-              <Download size={14} />
-              PDF
-            </a>
+              <Printer size={14} />
+              Cetak / Simpan PDF
+            </button>
+
+            {cert.cid && (
+              <a
+                href={getIpfsGatewayUrl(cert.cid)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700 text-slate-300"
+              >
+                <ExternalLink size={14} />
+                Artifak IPFS
+              </a>
+            )}
+
             <Link
               href={`/verify/${cert.certId}`}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:opacity-90 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-teal-500/20"
