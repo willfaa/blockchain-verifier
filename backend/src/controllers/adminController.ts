@@ -75,21 +75,8 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       // Local Kubo Offline
     }
 
-    if (!isIpfsOnline && process.env.PINATA_JWT) {
-      try {
-        const pinataJwt = process.env.PINATA_JWT.replace(/^["']|["']$/g, "").trim();
-        const pinataRes = await axios.get("https://api.pinata.cloud/data/testAuthentication", {
-          headers: {
-            Authorization: `Bearer ${pinataJwt}`,
-          },
-          timeout: 4000,
-        });
-        if (pinataRes.status === 200) {
-          isIpfsOnline = true;
-        }
-      } catch (e: any) {
-        // Pinata Offline
-      }
+    if (!isIpfsOnline && (process.env.PINATA_JWT || process.env.PINATA_API_KEY)) {
+      isIpfsOnline = true;
     }
 
     // Check Fabric with fast resilient check

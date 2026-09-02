@@ -11,9 +11,18 @@ console.log(`[IPFS] Initialized Client at ${IPFS_API_URL}`);
  * Uploads a file buffer directly to Pinata Cloud using their API.
  */
 async function uploadToPinata(buffer: Buffer, filename: string): Promise<string> {
-  const jwt = process.env.PINATA_JWT;
-  if (!jwt) {
-    throw new Error("PINATA_JWT environment variable is missing");
+  const jwt = process.env.PINATA_JWT?.replace(/^["']|["']$/g, "").trim();
+  const apiKey = process.env.PINATA_API_KEY?.replace(/^["']|["']$/g, "").trim();
+  const apiSecret = process.env.PINATA_API_SECRET?.replace(/^["']|["']$/g, "").trim();
+
+  let headers: Record<string, string> = {};
+  if (jwt) {
+    headers["Authorization"] = `Bearer ${jwt}`;
+  } else if (apiKey && apiSecret) {
+    headers["pinata_api_key"] = apiKey;
+    headers["pinata_secret_api_key"] = apiSecret;
+  } else {
+    throw new Error("PINATA_JWT or PINATA_API_KEY/PINATA_API_SECRET is missing");
   }
 
   // Use standard FormData and Blob (native in Node.js 18+)
@@ -29,9 +38,8 @@ async function uploadToPinata(buffer: Buffer, filename: string): Promise<string>
     "https://api.pinata.cloud/pinning/pinFileToIPFS",
     formData,
     {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-      },
+      headers,
+      timeout: 5000,
     }
   );
 
