@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials, getAvatarUrl } from "@/lib/utils";
+import CertificateTemplate from "@/components/features/CertificateTemplate";
 
 export default function SmartIssueCertificatePage() {
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -88,18 +89,18 @@ export default function SmartIssueCertificatePage() {
 
     try {
       const payload = {
+        name: foundStudent.name,
         studentName: foundStudent.name,
         studentId: foundStudent.studentId,
-        program: foundStudent.studyProgram || foundStudent.program,
-        majority: foundStudent.majority,
+        program: foundStudent.studyProgram || foundStudent.program || "Rekayasa Perangkat Lunak",
+        majority: foundStudent.majority || "Teknik Informatika",
         courseId: courseId || null,
-        // Backend akan handle creation date & unique Cert ID
       };
 
       const res = await api.post("/certificates/issue", payload);
 
       toast.success("Certificate Issued!", {
-        description: `TX Hash: ${res.data.txId || "N/A"}`,
+        description: `Certificate ID: ${res.data.certId || res.data.record?.certId || "SUCCESS"}`,
       });
       // Reset
       setFoundStudent(null);
@@ -126,22 +127,27 @@ export default function SmartIssueCertificatePage() {
     try {
       const payload = {
         name: foundStudent.name,
+        studentName: foundStudent.name,
         studentId: foundStudent.studentId,
-        program: foundStudent.studyProgram || foundStudent.program,
-        majority: foundStudent.majority,
+        program: foundStudent.studyProgram || foundStudent.program || "Rekayasa Perangkat Lunak",
+        majority: foundStudent.majority || "Teknik Informatika",
         courseId: courseId || null,
       };
 
       const res = await api.post("/certificates/preview", payload, {
         responseType: "blob",
+        timeout: 3000,
       });
 
-      const url = URL.createObjectURL(res.data);
-      setPreviewUrl(url);
-      setShowModal(true);
+      if (res.data && res.data.type?.includes("image")) {
+        const url = URL.createObjectURL(res.data);
+        setPreviewUrl(url);
+      }
     } catch (err: any) {
-      toast.error("Preview Failed: " + (err.response?.data?.error || err.message));
+      // Gracefully fallback to client-side CertificateTemplate vector preview
+      setPreviewUrl(null);
     } finally {
+      setShowModal(true);
       setLoadingPreview(false);
     }
   };
@@ -409,7 +415,15 @@ export default function SmartIssueCertificatePage() {
               {previewUrl ? (
                 <img src={previewUrl} alt="Certificate Preview" className="max-h-[60vh] max-w-full object-contain rounded-lg border border-white/5 shadow-2xl" />
               ) : (
-                <Loader2 className="animate-spin text-cyan-500" size={32} />
+                <div className="transform scale-[0.62] origin-center shrink-0">
+                  <CertificateTemplate
+                    studentName={foundStudent?.name}
+                    studentId={foundStudent?.studentId}
+                    program={foundStudent?.studyProgram || foundStudent?.program || "Rekayasa Perangkat Lunak"}
+                    majority={foundStudent?.majority || "Teknik Informatika"}
+                    courseName={courses.find((c) => c.id === courseId)?.title || "Program Keahlian"}
+                  />
+                </div>
               )}
             </div>
             

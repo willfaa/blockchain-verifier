@@ -10,31 +10,24 @@ import {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let {
-      certId,
-      studentId,
-      nim,
-      nisn,
-      name,
-      majority,
-      program,
-      courseId,
-      certificateNumber,
-      schoolName,
-      signers,
-      competencyUnits,
-      layoutMode,
-      issuedAt,
-    } = body;
+    const studentName = (body.name || body.studentName || "").trim();
+    const studentId = (body.studentId || body.nim || body.nisn || "").trim();
+    const certId = body.certId || crypto.randomUUID();
+    const majority = body.majority || body.jurusan || "Teknik Informatika";
+    const program = body.program || body.studyProgram || "Rekayasa Perangkat Lunak";
+    const courseId = body.courseId || null;
+    const certificateNumber = body.certificateNumber || null;
+    const schoolName = body.schoolName || null;
+    const signers = body.signers || null;
+    let competencyUnits = body.competencyUnits || null;
+    const layoutMode = body.layoutMode || "STANDARD";
+    const issuedAt = body.issuedAt || null;
 
-    if (!studentId) studentId = nim || nisn;
-    if (!certId) certId = crypto.randomUUID();
-
-    if (!studentId || !name || !majority || !program) {
+    if (!studentId || !studentName) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing required fields (studentId/NIM, name, majority, program)",
+          error: "Missing required fields: Student ID/NIM and Student Name",
         },
         { status: 400 }
       );
@@ -67,7 +60,7 @@ export async function POST(request: NextRequest) {
         const dummyEmail = `${studentId.toLowerCase().replace(/[^a-z0-9]/g, "")}@chainnesa.com`;
         user = await createSupabaseUser({
           id: crypto.randomUUID(),
-          name,
+          name: studentName,
           email: dummyEmail,
           password: "$2a$10$dummyHashForAutoProvisionedStudentCertOnly",
           role: "student",
@@ -91,7 +84,7 @@ export async function POST(request: NextRequest) {
     const certNumber =
       certificateNumber || `UKK/${certId.substring(0, 8).toUpperCase()}`;
     const unitsHash = competencyUnits ? JSON.stringify(competencyUnits) : "";
-    const dataString = `${certNumber}|${studentId}|${name}|${program}|${majority}|${unitsHash}`;
+    const dataString = `${certNumber}|${studentId}|${studentName}|${program}|${majority}|${unitsHash}`;
     const hash = crypto.createHash("sha256").update(dataString).digest("hex");
 
     const formattedDate =
@@ -106,7 +99,7 @@ export async function POST(request: NextRequest) {
     const certPayload: any = {
       id: crypto.randomUUID(),
       certId,
-      studentName: name,
+      studentName,
       studentId,
       program,
       majority,
@@ -130,6 +123,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       certId,
+      txId: "PENDING_FABRIC_SYNC",
       data: inserted,
       record: inserted,
       message: "Certificate Issued Successfully! (Synced with Cloud Ledger)",

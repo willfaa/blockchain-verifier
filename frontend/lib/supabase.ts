@@ -276,3 +276,168 @@ export async function fetchCourseUnitsFromSupabase(courseId: string) {
     return [];
   }
 }
+
+export async function fetchCourseByIdFromSupabase(courseId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/courses?id=eq.${encodeURIComponent(courseId)}&select=*,user:users(id,name,nip,studyProgram,majority)&limit=1`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+  } catch (err: any) {
+    return null;
+  }
+}
+
+export async function updateCourseInSupabase(courseId: string, updates: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/courses?id=eq.${encodeURIComponent(courseId)}`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: { ...getHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify({ ...updates, updatedAt: new Date().toISOString() }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data[0] : data;
+  } catch (err: any) {
+    return null;
+  }
+}
+
+export async function deleteCourseInSupabase(courseId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/courses?id=eq.${encodeURIComponent(courseId)}`;
+    await fetch(url, { method: "DELETE", headers: getHeaders() });
+    return true;
+  } catch (err: any) {
+    return false;
+  }
+}
+
+export async function fetchCourseStudentsFromSupabase(courseId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/enrollments?courseId.eq.${encodeURIComponent(courseId)}&select=*,user:users(id,name,email,studentId,majority,studyProgram,avatar)`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    return [];
+  }
+}
+
+export async function saveCompetencyUnitsInSupabase(courseId: string, units: any[]) {
+  try {
+    // Delete existing
+    const delUrl = `${SUPABASE_API_URL}/rest/v1/course_competency_units?courseId.eq.${encodeURIComponent(courseId)}`;
+    await fetch(delUrl, { method: "DELETE", headers: getHeaders() });
+
+    if (units.length === 0) return [];
+
+    const insertPayload = units.map((u, index) => ({
+      id: u.id || crypto.randomUUID(),
+      courseId,
+      code: u.code,
+      title: u.title,
+      standard: u.standard || "SKKNI",
+      order: u.order !== undefined ? u.order : index,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    const insUrl = `${SUPABASE_API_URL}/rest/v1/course_competency_units`;
+    const res = await fetch(insUrl, {
+      method: "POST",
+      headers: { ...getHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify(insertPayload),
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err: any) {
+    return [];
+  }
+}
+
+export async function updateUserStatusInSupabase(userId: string, updates: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: { ...getHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify({ ...updates, updatedAt: new Date().toISOString() }),
+    });
+    return res.ok;
+  } catch (err: any) {
+    return false;
+  }
+}
+
+export async function deleteUserInSupabase(userId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`;
+    const res = await fetch(url, { method: "DELETE", headers: getHeaders() });
+    return res.ok;
+  } catch (err: any) {
+    return false;
+  }
+}
+
+export async function fetchCorrectionRequestsFromSupabase(status?: string) {
+  try {
+    let url = `${SUPABASE_API_URL}/rest/v1/certificate_correction_requests?select=*,certificate:certificates(certId,studentName,studentId,course:courses(title))&order=createdAt.desc`;
+    if (status) {
+      url += `&status=eq.${encodeURIComponent(status)}`;
+    }
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err: any) {
+    return [];
+  }
+}
+
+export async function insertCorrectionRequestInSupabase(payload: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/certificate_correction_requests`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { ...getHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify({
+        id: crypto.randomUUID(),
+        ...payload,
+        status: "PENDING",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to submit correction request");
+    return await res.json();
+  } catch (err: any) {
+    throw err;
+  }
+}
+
+export async function fetchUsersByRoleFromSupabase(role?: string, search?: string) {
+  try {
+    let url = `${SUPABASE_API_URL}/rest/v1/users?select=id,name,email,role,studentId,nip,faculty,majority,studyProgram,avatar,isVerified,isApproved,isActive,createdAt&order=name.asc`;
+    if (role) {
+      url += `&role=eq.${encodeURIComponent(role)}`;
+    }
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    let data = await res.json();
+    if (search && Array.isArray(data)) {
+      const q = search.toLowerCase();
+      data = data.filter((u: any) =>
+        u.name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.studentId?.toLowerCase().includes(q) ||
+        u.nip?.toLowerCase().includes(q)
+      );
+    }
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    return [];
+  }
+}

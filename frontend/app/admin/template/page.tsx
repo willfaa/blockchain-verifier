@@ -23,6 +23,7 @@ import CertificateEditor, {
   LayoutElement,
   CertificateLayoutConfig,
 } from "@/components/features/CertificateEditor";
+import CertificateTemplate from "@/components/features/CertificateTemplate";
 
 const PAPER_PRESETS: Record<
   string,
@@ -116,16 +117,20 @@ export default function CertificateTemplatePage() {
     try {
       const res = await api.get("/admin/settings/template-preview", {
         responseType: "blob",
+        timeout: 3000,
       });
-      const url = URL.createObjectURL(res.data);
-      setPreviewBlobUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return url;
-      });
+      if (res.data && res.data.type?.includes("image")) {
+        const url = URL.createObjectURL(res.data);
+        setPreviewBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      } else {
+        setPreviewBlobUrl(null);
+      }
     } catch (err) {
-      console.error("Gagal memuat pratinjau sertifikat:", err);
-      setPreviewError(true);
-      toast.error("Gagal memuat gambar pratinjau sertifikat dari server");
+      // Gracefully switch to client vector renderer
+      setPreviewBlobUrl(null);
     }
   };
 
@@ -773,17 +778,30 @@ export default function CertificateTemplatePage() {
                   className="w-full h-auto object-contain rounded-lg shadow-2xl border border-white/10 select-none animate-in fade-in duration-300"
                 />
               </div>
-            ) : previewError ? (
-              <div className="flex flex-col items-center justify-center gap-2 text-rose-400 p-8 text-center">
-                <span className="text-sm font-semibold">Gagal memuat pratinjau sertifikat</span>
-                <span className="text-xs text-white/40">Klik tombol Segarkan di atas untuk mencoba lagi</span>
-              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 text-white/30 p-12">
-                <RefreshCw size={24} className="animate-spin text-cyan-400/60" />
-                <span className="text-xs font-mono uppercase tracking-widest">
-                  Membuat Pratinjau Server...
-                </span>
+              <div
+                style={{
+                  transform: `scale(${previewZoom / 100})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+              >
+                <CertificateTemplate
+                  studentName="John Doe"
+                  studentId="2024150042"
+                  courseName="Blockchain & Distributed Systems"
+                  majority="Teknik Informatika"
+                  program="Rekayasa Perangkat Lunak"
+                  instructorName={instructorName}
+                  instructorNip={instructorNip}
+                  layout={layout}
+                  paperSize={paperSize}
+                  paperWidthCm={paperWidthCm}
+                  paperHeightCm={paperHeightCm}
+                  bgPath={bgPath}
+                  layoutConfig={layoutConfig}
+                />
               </div>
             )}
           </div>
@@ -888,7 +906,7 @@ export default function CertificateTemplatePage() {
               }
             }}
           >
-            {previewBlobUrl && (
+            {previewBlobUrl ? (
               <div
                 style={{
                   width: `${fullscreenZoom}%`,
@@ -902,6 +920,32 @@ export default function CertificateTemplatePage() {
                   src={previewBlobUrl}
                   alt="Pratinjau Sertifikat Layar Penuh"
                   className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/15"
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  transform: `scale(${fullscreenZoom / 100})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CertificateTemplate
+                  studentName="John Doe"
+                  studentId="2024150042"
+                  courseName="Blockchain & Distributed Systems"
+                  majority="Teknik Informatika"
+                  program="Rekayasa Perangkat Lunak"
+                  instructorName={instructorName}
+                  instructorNip={instructorNip}
+                  layout={layout}
+                  paperSize={paperSize}
+                  paperWidthCm={paperWidthCm}
+                  paperHeightCm={paperHeightCm}
+                  bgPath={bgPath}
+                  layoutConfig={layoutConfig}
                 />
               </div>
             )}

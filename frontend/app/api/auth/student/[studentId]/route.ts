@@ -21,6 +21,7 @@ export async function GET(
       ok: true,
       data: userSafe,
       user: userSafe,
+      student: userSafe,
     });
   } catch (error: any) {
     console.error("[Serverless Student Lookup Error]:", error);
