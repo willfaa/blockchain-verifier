@@ -29,6 +29,8 @@ import {
   WifiOff,
   GitMerge,
   Send,
+  Link2,
+  Terminal,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -52,6 +54,9 @@ export default function AdminDashboard() {
   // Hybrid Mirror Ledger Queue State
   const [syncStats, setSyncStats] = useState({ pendingCount: 0, syncedCount: 0, failedCount: 0 });
   const [isSyncingLedger, setIsSyncingLedger] = useState(false);
+  const [customTunnel, setCustomTunnel] = useState("");
+  const [tunnelInput, setTunnelInput] = useState("");
+  const [showTunnelModal, setShowTunnelModal] = useState(false);
 
   // Form State for Supersede
   const [correctedName, setCorrectedName] = useState("");
@@ -61,6 +66,14 @@ export default function AdminDashboard() {
   const [updateUserProfile, setUpdateUserProfile] = useState(true);
 
   const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("chainnesa_custom_tunnel") || "";
+      setCustomTunnel(saved);
+      setTunnelInput(saved);
+    }
+  }, []);
 
   // Fetch stats and integrity checks from backend
   const fetchStats = useCallback(async (isManual: boolean = false) => {
@@ -178,6 +191,9 @@ export default function AdminDashboard() {
   const handleManualLedgerSync = async () => {
     setIsSyncingLedger(true);
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("tunnel_offline");
+      }
       const res = await api.post("/certificates/sync-ledger");
       if (res.data.ok) {
         toast.success(res.data.message || "Sinkronisasi antrean ke Blockchain berhasil!");
@@ -185,10 +201,40 @@ export default function AdminDashboard() {
       }
     } catch (err: any) {
       console.error("Manual Ledger Sync Error:", err);
-      toast.error(err.response?.data?.error || "Gagal menyinkronkan antrean ke Blockchain");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Gagal menyinkronkan antrean ke Blockchain");
     } finally {
       setIsSyncingLedger(false);
     }
+  };
+
+  const handleSaveTunnel = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanUrl = tunnelInput.trim().replace(/\/$/, "");
+    if (cleanUrl) {
+      localStorage.setItem("chainnesa_custom_tunnel", cleanUrl);
+      sessionStorage.removeItem("tunnel_offline");
+      setCustomTunnel(cleanUrl);
+      toast.success("Tunnel Blockchain berhasil disambungkan!", {
+        description: `Endpoint aktif: ${cleanUrl}`,
+      });
+    } else {
+      localStorage.removeItem("chainnesa_custom_tunnel");
+      sessionStorage.removeItem("tunnel_offline");
+      setCustomTunnel("");
+      toast.info("Kembali ke Serverless Cloud Mode");
+    }
+    setShowTunnelModal(false);
+    setTimeout(() => fetchStats(true), 200);
+  };
+
+  const handleResetTunnel = () => {
+    localStorage.removeItem("chainnesa_custom_tunnel");
+    sessionStorage.removeItem("tunnel_offline");
+    setCustomTunnel("");
+    setTunnelInput("");
+    setShowTunnelModal(false);
+    toast.info("Menggunakan Serverless Cloud Mode bawaan Vercel");
+    setTimeout(() => fetchStats(true), 200);
   };
 
   const openSupersedeModal = (item: any) => {
@@ -496,19 +542,32 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setTunnelInput(customTunnel);
+                setShowTunnelModal(true);
+              }}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-white/10 text-white"
+              title="Hubungkan tunnel Ngrok / Localtunnel dari laptop lokal"
+            >
+              <Link2 size={14} className={customTunnel ? "text-cyan-400" : "text-slate-400"} />
+              <span>{customTunnel ? "Node Terhubung (Ngrok)" : "Hubungkan Tunnel Ngrok"}</span>
+            </button>
+
             <button
               type="button"
               onClick={handleManualLedgerSync}
-              disabled={isSyncingLedger || !isBackendConnected || !isFabricOnline || (syncStats?.pendingCount || 0) === 0}
+              disabled={isSyncingLedger || !isBackendConnected || (!isFabricOnline && !customTunnel) || (syncStats?.pendingCount || 0) === 0}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
-                isFabricOnline && (syncStats?.pendingCount || 0) > 0
+                (isFabricOnline || customTunnel) && (syncStats?.pendingCount || 0) > 0
                   ? "bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-cyan-500/20 animate-pulse hover:opacity-90"
                   : "bg-white/5 border border-white/10 text-white/60"
               }`}
               title={
-                !isFabricOnline
-                  ? "Hubungkan node Hyperledger Fabric untuk menyinkronkan antrean"
+                !isFabricOnline && !customTunnel
+                  ? "Hubungkan node Hyperledger Fabric atau tunnel untuk menyinkronkan antrean"
                   : (syncStats?.pendingCount || 0) === 0
                   ? "Tidak ada antrean tertunda"
                   : "Sinkronkan seluruh sertifikat tertunda ke Hyperledger Fabric"
@@ -897,6 +956,79 @@ export default function AdminDashboard() {
                   )}
                   <span>{submittingSupersede ? "Memproses..." : "Terbitkan Ulang Sekarang"}</span>
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TUNNEL CONNECTOR MODAL (NGROK / LOCALTUNNEL) */}
+      {showTunnelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-cyan-500/30 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  <Terminal size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-tight">
+                    Hubungkan Node Hyperledger Fabric
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Sambungkan backend Express lokal & Fabric peer lewat Ngrok/Localtunnel
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTunnelModal(false)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTunnel} className="space-y-4">
+              <div>
+                <label className="text-xs font-mono uppercase tracking-widest text-slate-300 block mb-2">
+                  URL Forwarding Ngrok / Localtunnel
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://gumminess-ranged-frostbite.ngrok-free.dev"
+                  value={tunnelInput}
+                  onChange={(e) => setTunnelInput(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                />
+                <p className="text-[11px] text-slate-400 mt-2">
+                  💡 Jalankan di terminal: <code className="text-cyan-300 font-mono bg-white/5 px-1.5 py-0.5 rounded">npx ngrok http 4000</code> lalu salin URL forwarding di atas.
+                </p>
+              </div>
+
+              <div className="pt-4 flex items-center justify-between border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={handleResetTunnel}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors"
+                >
+                  Reset ke Serverless Cloud
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowTunnelModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20 hover:opacity-95"
+                  >
+                    Simpan & Sambungkan
+                  </button>
+                </div>
               </div>
             </form>
           </div>

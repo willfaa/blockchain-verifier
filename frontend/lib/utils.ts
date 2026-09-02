@@ -27,7 +27,13 @@ export const getApiBase = () => {
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
 
-    // 1. If running on local machine (localhost)
+    // 1. Dynamic Tunnel configured in UI (localStorage)
+    const customTunnel = localStorage.getItem("chainnesa_custom_tunnel");
+    if (customTunnel && customTunnel.trim() && sessionStorage.getItem("tunnel_offline") !== "true") {
+      return customTunnel.trim().replace(/\/$/, "");
+    }
+
+    // 2. Local Machine (localhost)
     if (isLocal) {
       const localBase =
         process.env.NEXT_PUBLIC_API_BASE ||
@@ -36,8 +42,19 @@ export const getApiBase = () => {
       return localBase.replace(/\/$/, "");
     }
 
-    // 2. If running on Vercel / Remote Web Deployment:
-    // Default baseline is ALWAYS Serverless Cloud (Next.js API + Supabase + Pinata)
+    // 3. Environment Variable (NEXT_PUBLIC_API_BASE, e.g. Ngrok or Localtunnel)
+    const envBase = process.env.NEXT_PUBLIC_API_BASE;
+    if (
+      envBase &&
+      envBase.trim() &&
+      !envBase.includes("localhost") &&
+      !envBase.includes("127.0.0.1") &&
+      sessionStorage.getItem("tunnel_offline") !== "true"
+    ) {
+      return envBase.trim().replace(/\/$/, "");
+    }
+
+    // 4. Default Fallback: Vercel Serverless Cloud
     return window.location.origin;
   }
 
