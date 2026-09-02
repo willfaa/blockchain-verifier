@@ -21,36 +21,23 @@ const normalizeLocalPath = (urlPath: string) => {
 };
 
 export const getApiBase = () => {
-  const customApiBase = (
-    process.env.NEXT_PUBLIC_API_BASE ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    ""
-  ).trim().replace(/\/$/, "");
-
   // Client-side Browser Execution:
   if (typeof window !== "undefined") {
     const isLocal =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
 
-    // 1. If running on localhost development
+    // 1. If running on local machine (localhost)
     if (isLocal) {
-      return customApiBase || "http://localhost:4000";
+      const localBase =
+        process.env.NEXT_PUBLIC_API_BASE ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:4000";
+      return localBase.replace(/\/$/, "");
     }
 
-    // 2. If running on Vercel / Remote Domain:
-    // If tunnel was flagged offline in this session, immediately use local origin serverless
-    const isTunnelOffline = sessionStorage.getItem("tunnel_offline") === "true";
-    if (isTunnelOffline) {
-      return window.location.origin;
-    }
-
-    // If custom tunnel URL is provided in env, use it as primary
-    if (customApiBase) {
-      return customApiBase;
-    }
-
-    // Default Vercel fallback
+    // 2. If running on Vercel / Remote Web Deployment:
+    // Default baseline is ALWAYS Serverless Cloud (Next.js API + Supabase + Pinata)
     return window.location.origin;
   }
 
@@ -62,7 +49,7 @@ export const getApiBase = () => {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
 
-  return customApiBase || "http://localhost:4000";
+  return "http://localhost:4000";
 };
 
 export const getAvatarUrl = (path: string | null | undefined) => {

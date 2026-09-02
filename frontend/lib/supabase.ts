@@ -102,3 +102,100 @@ export async function fetchCoursesFromSupabase() {
     return [];
   }
 }
+
+export async function findUserByIdentifier(identifier: string) {
+  try {
+    const clean = encodeURIComponent(identifier.trim());
+    const url = `${SUPABASE_API_URL}/rest/v1/users?or=(email.eq.${clean},studentId.eq.${clean},nip.eq.${clean},personalEmail.eq.${clean})&limit=1`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    return data[0];
+  } catch (err: any) {
+    console.error("[Supabase User Lookup Error]:", err.message);
+    return null;
+  }
+}
+
+export async function findUserById(id: string) {
+  try {
+    const clean = encodeURIComponent(id.trim());
+    const url = `${SUPABASE_API_URL}/rest/v1/users?id=eq.${clean}&limit=1`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    return data[0];
+  } catch (err: any) {
+    console.error("[Supabase Find User Error]:", err.message);
+    return null;
+  }
+}
+
+export async function updateUserSession(userId: string, currentSessionId: string) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`;
+    await fetch(url, {
+      method: "PATCH",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        currentSessionId,
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {}
+}
+
+export async function createSupabaseUser(userPayload: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/users`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...getHeaders(),
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        ...userPayload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Registration failed on cloud database");
+    }
+    const created = await res.json();
+    return Array.isArray(created) ? created[0] : created;
+  } catch (err: any) {
+    console.error("[Supabase Create User Error]:", err.message);
+    throw err;
+  }
+}
+
+export async function fetchStudentCertificatesFromSupabase(studentIdOrUserId: string) {
+  try {
+    const clean = encodeURIComponent(studentIdOrUserId.trim());
+    const url = `${SUPABASE_API_URL}/rest/v1/certificates?or=(studentId.eq.${clean},userId.eq.${clean})&select=*,course:courses(id,title)&order=issuedAt.desc`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err: any) {
+    console.error("[Supabase Student Certificates Error]:", err.message);
+    return [];
+  }
+}
+
+export async function fetchTeacherCoursesFromSupabase(teacherId: string) {
+  try {
+    const clean = encodeURIComponent(teacherId.trim());
+    const url = `${SUPABASE_API_URL}/rest/v1/courses?userId=eq.${clean}&select=*&order=createdAt.desc`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err: any) {
+    console.error("[Supabase Teacher Courses Error]:", err.message);
+    return [];
+  }
+}
