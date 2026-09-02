@@ -128,8 +128,14 @@ export default function AdminDashboard() {
         setCorrectionRequests(reqRes.value.data.data || []);
       }
 
-      if (syncStatsRes.status === "fulfilled" && syncStatsRes.value?.data?.ok) {
-        setSyncStats(syncStatsRes.value.data.data);
+      if (syncStatsRes.status === "fulfilled" && syncStatsRes.value?.data) {
+        const resData = syncStatsRes.value.data;
+        const statsObj = resData.data || resData.stats || resData;
+        setSyncStats({
+          pendingCount: statsObj.pendingCount ?? statsObj.pending ?? 0,
+          syncedCount: statsObj.syncedCount ?? statsObj.synced ?? 0,
+          failedCount: statsObj.failedCount ?? statsObj.failed ?? 0,
+        });
       }
     } catch (err: any) {
       console.error("[Dashboard] Failed to fetch stats:", err);
@@ -474,9 +480,9 @@ export default function AdminDashboard() {
             <div>
               <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2.5">
                 Blockchain Mirror Ledger & Catchup Queue
-                {syncStats.pendingCount > 0 ? (
+                {(syncStats?.pendingCount || 0) > 0 ? (
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold animate-pulse">
-                    {syncStats.pendingCount} Pending Sync
+                    {syncStats?.pendingCount || 0} Pending Sync
                   </span>
                 ) : (
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
@@ -494,16 +500,16 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={handleManualLedgerSync}
-              disabled={isSyncingLedger || !isBackendConnected || !isFabricOnline || syncStats.pendingCount === 0}
+              disabled={isSyncingLedger || !isBackendConnected || !isFabricOnline || (syncStats?.pendingCount || 0) === 0}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
-                isFabricOnline && syncStats.pendingCount > 0
+                isFabricOnline && (syncStats?.pendingCount || 0) > 0
                   ? "bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-cyan-500/20 animate-pulse hover:opacity-90"
                   : "bg-white/5 border border-white/10 text-white/60"
               }`}
               title={
                 !isFabricOnline
                   ? "Hubungkan node Hyperledger Fabric untuk menyinkronkan antrean"
-                  : syncStats.pendingCount === 0
+                  : (syncStats?.pendingCount || 0) === 0
                   ? "Tidak ada antrean tertunda"
                   : "Sinkronkan seluruh sertifikat tertunda ke Hyperledger Fabric"
               }
@@ -521,12 +527,12 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
             <span className="text-slate-400">Tersinkronisasi Konsensus:</span>
-            <span className="text-emerald-400 font-bold text-sm">{syncStats.syncedCount} Certs</span>
+            <span className="text-emerald-400 font-bold text-sm">{syncStats?.syncedCount || 0} Certs</span>
           </div>
           <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
             <span className="text-slate-400">Antrean Pending Sync:</span>
-            <span className={syncStats.pendingCount > 0 ? "text-amber-400 font-bold text-sm" : "text-slate-400 font-bold text-sm"}>
-              {syncStats.pendingCount} Certs
+            <span className={(syncStats?.pendingCount || 0) > 0 ? "text-amber-400 font-bold text-sm" : "text-slate-400 font-bold text-sm"}>
+              {syncStats?.pendingCount || 0} Certs
             </span>
           </div>
           <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">

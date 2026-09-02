@@ -12,29 +12,61 @@ const SUPABASE_KEY =
 
 export async function GET(request: NextRequest) {
   try {
-    const res = await fetch(`${SUPABASE_API_URL}/rest/v1/certificates?select=id,blockchainSyncStatus`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${SUPABASE_API_URL}/rest/v1/certificates?select=id,blockchainSyncStatus`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    const fallback = {
+      pendingCount: 0,
+      syncedCount: 0,
+      failedCount: 0,
+      total: 0,
+    };
 
     if (!res.ok) {
-      return NextResponse.json({ ok: true, stats: { total: 0, synced: 0, pending: 0, failed: 0 } });
+      return NextResponse.json({
+        ok: true,
+        data: fallback,
+        stats: { total: 0, synced: 0, pending: 0, failed: 0 },
+      });
     }
 
     const certs = await res.json();
     const total = Array.isArray(certs) ? certs.length : 0;
-    const synced = Array.isArray(certs) ? certs.filter((c: any) => c.blockchainSyncStatus === "SYNCED").length : 0;
-    const pending = Array.isArray(certs) ? certs.filter((c: any) => c.blockchainSyncStatus === "PENDING_SYNC").length : 0;
-    const failed = Array.isArray(certs) ? certs.filter((c: any) => c.blockchainSyncStatus === "FAILED").length : 0;
+    const synced = Array.isArray(certs)
+      ? certs.filter((c: any) => c.blockchainSyncStatus === "SYNCED").length
+      : 0;
+    const pending = Array.isArray(certs)
+      ? certs.filter((c: any) => c.blockchainSyncStatus === "PENDING_SYNC").length
+      : 0;
+    const failed = Array.isArray(certs)
+      ? certs.filter((c: any) => c.blockchainSyncStatus === "FAILED").length
+      : 0;
+
+    const dataObj = {
+      pendingCount: pending,
+      syncedCount: synced,
+      failedCount: failed,
+      total,
+    };
 
     return NextResponse.json({
       ok: true,
+      data: dataObj,
       stats: { total, synced, pending, failed },
     });
   } catch (error: any) {
-    return NextResponse.json({ ok: true, stats: { total: 0, synced: 0, pending: 0, failed: 0 } });
+    return NextResponse.json({
+      ok: true,
+      data: { pendingCount: 0, syncedCount: 0, failedCount: 0, total: 0 },
+      stats: { total: 0, synced: 0, pending: 0, failed: 0 },
+    });
   }
 }
