@@ -165,34 +165,29 @@ export default function MyCertificatesPage() {
                 className="group relative h-[440px] bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden hover:border-neon-purple/40 transition-all duration-500 hover:shadow-3xl flex flex-col animate-in slide-in-from-bottom-12"
                 style={{ animationDelay: `${idx * 120}ms` }}
               >
-                {/* Image Section with Overlay */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-                  <Image
-                    src={
-                      cert.cid
-                        ? `${IPFS_GATEWAY}/ipfs/${cert.cid}`
-                        : "/placeholder-cert.jpg"
-                    }
-                    alt="Certificate"
-                    fill
-                    className="object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/20 to-transparent" />
+                {/* Certificate Visual Banner */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-purple-950/40 p-6 flex flex-col justify-between border-b border-white/5 group-hover:border-neon-purple/30 transition-all">
+                  <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-neon-purple/10 rounded-full blur-2xl pointer-events-none" />
 
                   {/* Verified Badge */}
-                  <div className="absolute top-5 left-5">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 backdrop-blur-xl border border-neon-purple/20 rounded-full">
+                  <div className="flex items-center justify-between z-10">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-neon-purple/10 backdrop-blur-xl border border-neon-purple/20 rounded-full">
                       <ShieldCheck size={12} className="text-neon-purple" />
-                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+                      <span className="text-[9px] font-bold text-white uppercase tracking-widest">
                         Verified
                       </span>
                     </div>
+                    <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/20">
+                      #{cert.certId ? cert.certId.substring(0, 8).toUpperCase() : "CERT"}
+                    </span>
                   </div>
 
-                  <div className="absolute bottom-5 left-6 right-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-700">
-                    <h3 className="font-bold text-white text-lg line-clamp-2 leading-tight drop-shadow-2xl group-hover:text-neon-blue transition-colors tracking-tight">
-                      {cert.course?.title || "Active Course"}
+                  <div className="z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-500">
+                    <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest mb-1">
+                      Certificate of Achievement
+                    </p>
+                    <h3 className="font-bold text-white text-base line-clamp-2 leading-tight drop-shadow-2xl group-hover:text-neon-blue transition-colors tracking-tight">
+                      {cert.course?.title || (cert as any).program || "Sertifikat Kompetensi"}
                     </h3>
                   </div>
                 </div>
@@ -236,17 +231,13 @@ export default function MyCertificatesPage() {
                     >
                       <ExternalLink size={14} /> View Details
                     </Link>
-                    <button
-                      onClick={() =>
-                        window.open(
-                          `${IPFS_GATEWAY}/ipfs/${cert.cid}`,
-                          "_blank"
-                        )
-                      }
+                    <Link
+                      href={`/student/certificates/${cert.id}`}
                       className="w-14 flex items-center justify-center bg-neon-purple text-white rounded-2xl hover:bg-neon-blue transition-all shadow-xl"
+                      title="Lihat Sertifikat Lengkap"
                     >
                       <Download size={18} />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

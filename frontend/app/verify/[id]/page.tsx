@@ -60,7 +60,8 @@ export default async function VerificationPage({
   let qrCodeBase64 = "";
 
   const apiBase = getApiBase();
-  const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
+  const IPFS_GATEWAY =
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
   try {
     const res = await fetch(`${apiBase}/api/certificates/${id}/verify`, {
       cache: "no-store",

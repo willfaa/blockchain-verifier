@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { toast } from "sonner";
 import { getApiBase } from "@/lib/utils";
+import CertificateTemplate from "@/components/features/CertificateTemplate";
+import QRCode from "qrcode";
 
 interface CertificateDetail {
   id: string;
@@ -29,6 +30,7 @@ interface CertificateDetail {
   issuedAt: string;
   hash: string;
   studentName: string;
+  studentId?: string;
   program?: string;
   majority?: string;
   supersededBy?: string;
@@ -44,6 +46,8 @@ export default function CertificateDetailPage() {
   const [cert, setCert] = useState<CertificateDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [aspectRatio, setAspectRatio] = useState<string>("aspect-[1.414/1]");
+  const [layoutSettings, setLayoutSettings] = useState<any>({});
+  const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
 
   // Correction Modal State
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
@@ -53,6 +57,27 @@ export default function CertificateDetailPage() {
   const [correctionReason, setCorrectionReason] = useState("");
   const [submittingCorrection, setSubmittingCorrection] = useState(false);
   const [hasSubmittedCorrection, setHasSubmittedCorrection] = useState(false);
+
+  useEffect(() => {
+    // Fetch certificate settings & layout in parallel
+    Promise.allSettled([
+      api.get("/admin/settings"),
+      api.get("/admin/settings/details"),
+      api.get("/admin/settings/layout-config"),
+    ]).then(([settingsRes, detailsRes, configRes]) => {
+      const merged: any = {};
+      if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
+        Object.assign(merged, settingsRes.value.data.settings);
+      }
+      if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.data) {
+        Object.assign(merged, detailsRes.value.data.data);
+      }
+      if (configRes.status === "fulfilled" && configRes.value?.data?.config) {
+        merged.layoutConfig = configRes.value.data.config;
+      }
+      setLayoutSettings(merged);
+    });
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -72,19 +97,17 @@ export default function CertificateDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (cert && cert.cid) {
-      const ipfsGateway =
-        process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
-      const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`;
-      const img = new window.Image();
-      img.onload = () => {
-        if (img.height > img.width) {
-          setAspectRatio("aspect-[0.707/1]"); // Portrait
-        } else {
-          setAspectRatio("aspect-[1.414/1]"); // Landscape
-        }
-      };
-      img.src = ipfsUrl;
+    if (cert?.certId) {
+      const clientBase =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "https://www.willfaa.web.id";
+      QRCode.toDataURL(`${clientBase}/verify/${cert.certId}`, {
+        margin: 1,
+        width: 256,
+      })
+        .then(setQrCodeBase64)
+        .catch(() => {});
     }
   }, [cert]);
 
@@ -228,16 +251,27 @@ export default function CertificateDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Preview */}
           <div className="lg:col-span-2 space-y-6">
-            <div
-              className={`relative ${aspectRatio} bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl`}
-            >
-              <Image
-                src={ipfsUrl}
-                alt="Certificate Preview"
-                fill
-                className="object-contain"
-                unoptimized
-              />
+            <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
+              <div className="flex items-center justify-center shrink-0 m-auto">
+                <CertificateTemplate
+                  studentName={cert.studentName}
+                  studentId={cert.studentId || (cert as any).studentId}
+                  courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
+                  certificateId={cert.certId || cert.id}
+                  program={cert.program}
+                  majority={cert.majority}
+                  issuedAt={cert.issuedAt}
+                  qrCodeBase64={qrCodeBase64}
+                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                  paperSize={layoutSettings.certificatePaperSize || "A4"}
+                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                  instructorName={layoutSettings.instructorName}
+                  instructorNip={layoutSettings.instructorNip}
+                  bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                  layoutConfig={layoutSettings.layoutConfig}
+                />
+              </div>
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import {
   fetchCourseUnitsFromSupabase,
   insertCertificateToSupabase,
 } from "@/lib/supabase";
+import { pinJsonToPinata } from "@/lib/ipfs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -95,7 +96,32 @@ export async function POST(request: NextRequest) {
         year: "numeric",
       }).format(new Date());
 
-    // 3. Insert Certificate to Supabase Database
+    // 3. Pin Certificate Metadata to Pinata IPFS Cloud
+    let ipfsCid = "";
+    try {
+      ipfsCid = await pinJsonToPinata(
+        {
+          certId,
+          certificateNumber: certNumber,
+          studentName,
+          studentId,
+          program,
+          majority,
+          courseId,
+          issuedAt: formattedDate,
+          hash,
+          competencyUnits,
+          schoolName,
+          signers,
+          network: "Hyperledger Fabric + Pinata IPFS Decentralized Ledger",
+        },
+        `Cert_${studentId}_${certId.substring(0, 8)}`
+      );
+    } catch (pinErr: any) {
+      console.warn("[Pinata IPFS Pinning Error]:", pinErr.message);
+    }
+
+    // 4. Insert Certificate to Supabase Database
     const certPayload: any = {
       id: crypto.randomUUID(),
       certId,
@@ -106,7 +132,7 @@ export async function POST(request: NextRequest) {
       courseId: courseId || null,
       userId: user.id,
       issuedAt: formattedDate,
-      cid: "",
+      cid: ipfsCid || "",
       hash,
       status: "ISSUED",
       certificateNumber: certNumber,

@@ -28,7 +28,8 @@ interface VerifyResult {
   [key: string]: any;
 }
 
-const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
+const IPFS_GATEWAY =
+  process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
 
 export default function VerifyPage() {
   const [certId, setCertId] = useState("");
