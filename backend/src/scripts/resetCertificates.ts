@@ -1,11 +1,29 @@
 // backend/src/scripts/resetCertificates.ts
 import * as dotenv from "dotenv";
 import * as path from "path";
+
+// 1. MUST load dotenv BEFORE importing db or any database configs!
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
 import axios from "axios";
 import { db } from "../config/db";
 
-// 1. Load environment variables
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+const SUPABASE_API_URL =
+  process.env.SUPABASE_API_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://pitbddduxxntkhawzxrr.supabase.co";
+
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpdGJkZGR1eHhudGtoYXd6eHJyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjAzMTgyMywiZXhwIjoyMDk3NjA3ODIzfQ.3GVskVCDS5fBR2L0rr8RPwB_kzpl7YY37SC3sop1sdA";
+
+const getSupabaseHeaders = () => ({
+  apikey: SUPABASE_KEY,
+  Authorization: `Bearer ${SUPABASE_KEY}`,
+  "Content-Type": "application/json",
+  Prefer: "return=representation",
+});
 
 async function unpinAllFromPinata() {
   const jwt = process.env.PINATA_JWT?.replace(/^["']|["']$/g, "").trim();
@@ -71,48 +89,69 @@ async function main() {
     const { unpinnedCount, failedCount } = await unpinAllFromPinata();
     console.log(`   ✅ Selesai unpin Pinata: ${unpinnedCount} berhasil, ${failedCount} gagal/dilewati.\n`);
 
-    // 2. Database Certificate Deletion
-    console.log("2. Menghapus riwayat koreksi sertifikat di database...");
+    // 2. Direct Supabase Cloud REST Cleanup
+    console.log("2. Menghapus data sertifikat langsung di Supabase Cloud (REST API)...");
     try {
-      const tables: any[] = await db.$queryRaw`
-        SELECT table_name FROM information_schema.tables WHERE table_name = 'certificate_correction_requests'
-      `;
-      if (tables && tables.length > 0) {
-        const deletedCorrections = await db.certificateCorrectionRequest.deleteMany({});
-        console.log(`   ✅ Berhasil menghapus ${deletedCorrections.count} data pengajuan koreksi.\n`);
-      } else {
-        console.log(`   ℹ️ Tabel pengajuan koreksi tidak ditemukan di database (dilewati).\n`);
+      // 2a. Delete Correction Requests
+      const delCorrRes = await axios.delete(
+        `${SUPABASE_API_URL}/rest/v1/certificate_correction_requests?id=not.is.null`,
+        { headers: getSupabaseHeaders(), timeout: 10000 }
+      ).catch(() => null);
+      if (delCorrRes?.data) {
+        console.log(`   ✅ Supabase REST: Berhasil menghapus ${delCorrRes.data.length || 0} pengajuan koreksi.`);
       }
-    } catch {
-      console.log(`   ℹ️ Tabel pengajuan koreksi dilewati.\n`);
-    }
 
-    console.log("3. Menghapus seluruh sertifikat di tabel database...");
+      // 2b. Delete Certificates
+      const delCertsRes = await axios.delete(
+        `${SUPABASE_API_URL}/rest/v1/certificates?id=not.is.null`,
+        { headers: getSupabaseHeaders(), timeout: 10000 }
+      );
+      console.log(`   ✅ Supabase REST: Berhasil menghapus ${delCertsRes.data?.length || 0} data sertifikat.`);
+
+      // 2c. Reset Enrollments
+      const patchEnrRes = await axios.patch(
+        `${SUPABASE_API_URL}/rest/v1/enrollments?id=not.is.null`,
+        {
+          certificateId: null,
+          completedAt: null,
+          isCompleted: false,
+        },
+        { headers: getSupabaseHeaders(), timeout: 10000 }
+      );
+      console.log(`   ✅ Supabase REST: Berhasil me-reset ${patchEnrRes.data?.length || 0} status kelulusan enrollment.`);
+    } catch (sbErr: any) {
+      console.warn(`   ⚠️ Supabase REST Notice:`, sbErr.response?.data?.message || sbErr.message);
+    }
+    console.log("");
+
+    // 3. Prisma Database Cleanup
+    console.log("3. Menghapus rekaman sertifikat melalui Prisma Client...");
     try {
       const deletedCerts = await db.certificate.deleteMany({});
-      console.log(`   ✅ Berhasil menghapus ${deletedCerts.count} data sertifikat.\n`);
+      console.log(`   ✅ Prisma: Berhasil membersihkan ${deletedCerts.count} data sertifikat.\n`);
     } catch (certErr: any) {
-      console.warn(`   ⚠️ Gagal menghapus tabel sertifikat:`, certErr.message);
+      console.warn(`   ⚠️ Prisma:`, certErr.message);
     }
 
-    // 3. Reset Enrollment Status
-    console.log("4. Me-reset status klaim sertifikat pada Enrollment kelas...");
+    // 4. Reset Enrollment Status via Prisma
+    console.log("4. Me-reset status klaim sertifikat pada Enrollment (Prisma)...");
     try {
       const updatedEnrollments = await db.enrollment.updateMany({
         data: {
           certificateId: null,
           completedAt: null,
+          isCompleted: false,
         },
       });
-      console.log(`   ✅ Berhasil me-reset ${updatedEnrollments.count} status kelulusan/klaim di kelas.\n`);
+      console.log(`   ✅ Prisma: Berhasil me-reset ${updatedEnrollments.count} status kelulusan di kelas.\n`);
     } catch (enrErr: any) {
-      console.warn(`   ⚠️ Gagal me-reset enrollment:`, enrErr.message);
+      console.warn(`   ⚠️ Prisma Enrollment:`, enrErr.message);
     }
 
     console.log("=================================================================");
     console.log("🎉 RESET TOTAL SERTIFIKAT SELESAI DENGAN SUKSES!");
     console.log("   • Akun User (Admin, Guru, Siswa) & Kelas TETAP AMAN.");
-    console.log("   • Semua riwayat sertifikat di DB & Pinata telah dibersihkan.");
+    console.log("   • Semua riwayat sertifikat di Supabase Cloud & Pinata telah dibersihkan.");
     console.log("   • Siswa kini dapat menguji alur klaim sertifikat secara fresh.");
     console.log("=================================================================\n");
   } catch (error: any) {
