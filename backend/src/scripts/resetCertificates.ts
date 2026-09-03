@@ -74,10 +74,17 @@ async function main() {
     // 2. Database Certificate Deletion
     console.log("2. Menghapus riwayat koreksi sertifikat di database...");
     try {
-      const deletedCorrections = await db.certificateCorrectionRequest.deleteMany({});
-      console.log(`   ✅ Berhasil menghapus ${deletedCorrections.count} data pengajuan koreksi.\n`);
-    } catch (corrErr: any) {
-      console.log(`   ℹ️ Tabel pengajuan koreksi dilewati (${corrErr.message || "tabel belum ada"}).\n`);
+      const tables: any[] = await db.$queryRaw`
+        SELECT table_name FROM information_schema.tables WHERE table_name = 'certificate_correction_requests'
+      `;
+      if (tables && tables.length > 0) {
+        const deletedCorrections = await db.certificateCorrectionRequest.deleteMany({});
+        console.log(`   ✅ Berhasil menghapus ${deletedCorrections.count} data pengajuan koreksi.\n`);
+      } else {
+        console.log(`   ℹ️ Tabel pengajuan koreksi tidak ditemukan di database (dilewati).\n`);
+      }
+    } catch {
+      console.log(`   ℹ️ Tabel pengajuan koreksi dilewati.\n`);
     }
 
     console.log("3. Menghapus seluruh sertifikat di tabel database...");
