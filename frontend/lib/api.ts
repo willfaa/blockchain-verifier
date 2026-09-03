@@ -79,15 +79,10 @@ api.interceptors.response.use(
       }
     }
 
-    if (
-      error.response &&
-      (error.response.status === 401 || error.response.status === 403)
-    ) {
-      // Token expired, invalid, or access denied
+    if (error.response && error.response.status === 401) {
+      // Token expired, missing, or overwritten session
       if (typeof window !== "undefined") {
-        console.warn(
-          "Session expired or Access Denied (401/403). Logging out..."
-        );
+        console.warn("Session expired or Unauthorized (401). Logging out...");
         if (!window.location.pathname.includes("/login")) {
           localStorage.removeItem("chainnesa_user");
           const isOverwrite = error.response.data?.code === "SESSION_OVERWRITTEN";

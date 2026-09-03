@@ -62,24 +62,19 @@ export default function CertificateDetailPage() {
   const [hasSubmittedCorrection, setHasSubmittedCorrection] = useState(false);
 
   useEffect(() => {
-    // Fetch certificate settings & layout in parallel
-    Promise.allSettled([
-      api.get("/admin/settings"),
-      api.get("/admin/settings/details"),
-      api.get("/admin/settings/layout-config"),
-    ]).then(([settingsRes, detailsRes, configRes]) => {
-      const merged: any = {};
-      if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
-        Object.assign(merged, settingsRes.value.data.settings);
-      }
-      if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.data) {
-        Object.assign(merged, detailsRes.value.data.data);
-      }
-      if (configRes.status === "fulfilled" && configRes.value?.data?.config) {
-        merged.layoutConfig = configRes.value.data.config;
-      }
-      setLayoutSettings(merged);
-    });
+    // Fetch certificate settings & layout from public LMS settings endpoint
+    api
+      .get("/lms/settings")
+      .then((res) => {
+        if (res.data?.ok && res.data?.settings) {
+          setLayoutSettings(res.data.settings);
+        } else if (res.data?.ok && res.data?.data) {
+          setLayoutSettings(res.data.data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to fetch certificate layout settings:", err.message);
+      });
   }, []);
 
   useEffect(() => {

@@ -1774,14 +1774,39 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
 
 export const getSystemSettingsPublic = async (req: Request, res: Response) => {
   try {
-    const layoutSetting = await db.systemSetting.findUnique({
-      where: { key: "certificate_layout" },
+    const settingsList = await db.systemSetting.findMany();
+    const map: Record<string, string> = {};
+    settingsList.forEach((s) => {
+      map[s.key] = s.value;
     });
+
+    let layoutConfig = null;
+    if (map["certificate_layout_config"]) {
+      try {
+        layoutConfig = JSON.parse(map["certificate_layout_config"]);
+      } catch (e) {}
+    }
+
+    const payload = {
+      certificateLayout: map["certificate_layout"] || "HORIZONTAL",
+      certificatePaperSize: map["certificate_paper_size"] || "A4",
+      paperWidthCm: map["certificate_paper_width_cm"]
+        ? parseFloat(map["certificate_paper_width_cm"])
+        : 29.7,
+      paperHeightCm: map["certificate_paper_height_cm"]
+        ? parseFloat(map["certificate_paper_height_cm"])
+        : 21.0,
+      instructorName: map["default_certificate_instructor_name"] || "Budi Headmaster, M.T.",
+      instructorNip: map["default_certificate_instructor_nip"] || "198706152010121002",
+      certificateTemplate: map["default_certificate_template"] || null,
+      bgPath: map["default_certificate_template"] || null,
+      layoutConfig: layoutConfig,
+    };
+
     return res.json({
       ok: true,
-      settings: {
-        certificateLayout: layoutSetting?.value || "HORIZONTAL",
-      },
+      settings: payload,
+      data: payload,
     });
   } catch (error: any) {
     console.error("[LMS] Public settings fetch failed:", error.message);

@@ -90,7 +90,7 @@ export const verifyToken = async (
     };
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Invalid or Expired Token." });
+    return res.status(401).json({ error: "Invalid or Expired Token.", code: "TOKEN_EXPIRED" });
   }
 };
 
