@@ -166,4 +166,3 @@ change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru
 npx localtunnel --port 4000 --subdomain unesa-blockchain-backend
 NEXT_PUBLIC_API_BASE juga ganti ke link localtunnel terbaru
 npm run sync:fabric
-npm run sync:fabric
