@@ -452,14 +452,31 @@ export async function checkFabricReady(
     const host = hostPart === "localhost" ? "127.0.0.1" : hostPart;
     const port = parseInt(portPart || "7051", 10);
 
-    const isPortOpen = await probeTcpPort(host, port, 800);
+    // 1. Fast TCP Port Probe (500ms) - If offline, fails instantly without noisy gRPC error logs
+    const isPortOpen = await probeTcpPort(host, port, 500);
     if (!isPortOpen) {
       lastHealthCheckResult = false;
       lastHealthCheckTime = Date.now();
       return false;
     }
 
-    const { gateway } = await getContract(userId, role);
+    // 2. Fast Direct Gateway Ping without multi-peer discovery loop
+    const root = getWalletRootPath();
+    const wallet = await Wallets.newFileSystemWallet(root);
+    const adminIdentity = await wallet.get("admin") || await wallet.get(IDENTITY_LABEL);
+    if (!adminIdentity) {
+      lastHealthCheckResult = false;
+      lastHealthCheckTime = Date.now();
+      return false;
+    }
+
+    const gateway = new Gateway();
+    await gateway.connect(ccp, {
+      wallet,
+      identity: "admin",
+      discovery: { enabled: false, asLocalhost: true },
+    });
+
     gateway.disconnect();
     lastHealthCheckResult = true;
     lastHealthCheckTime = Date.now();
