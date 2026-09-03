@@ -29,7 +29,7 @@ export const getApiBase = () => {
 
     // 1. Dynamic Tunnel configured in UI (localStorage)
     const customTunnel = localStorage.getItem("chainnesa_custom_tunnel");
-    if (customTunnel && customTunnel.trim() && sessionStorage.getItem("tunnel_offline") !== "true") {
+    if (customTunnel && customTunnel.trim()) {
       return customTunnel.trim().replace(/\/$/, "");
     }
 
@@ -48,8 +48,7 @@ export const getApiBase = () => {
       envBase &&
       envBase.trim() &&
       !envBase.includes("localhost") &&
-      !envBase.includes("127.0.0.1") &&
-      sessionStorage.getItem("tunnel_offline") !== "true"
+      !envBase.includes("127.0.0.1")
     ) {
       return envBase.trim().replace(/\/$/, "");
     }
@@ -66,7 +65,11 @@ export const getApiBase = () => {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
 
-  return "http://localhost:4000";
+  return (
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:4000"
+  ).replace(/\/$/, "");
 };
 
 export const getAvatarUrl = (path: string | null | undefined) => {

@@ -414,7 +414,7 @@ let lastHealthCheckTime = 0;
 let lastHealthCheckResult = false;
 const HEALTH_CACHE_TTL = 3000; // 3 seconds reactive cache for realtime sync
 
-function probeTcpPort(host: string, port: number, timeoutMs = 800): Promise<boolean> {
+function probeTcpPort(host: string, port: number, timeoutMs = 2000): Promise<boolean> {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     socket.setTimeout(timeoutMs);

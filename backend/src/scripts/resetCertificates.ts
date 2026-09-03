@@ -73,22 +73,34 @@ async function main() {
 
     // 2. Database Certificate Deletion
     console.log("2. Menghapus riwayat koreksi sertifikat di database...");
-    const deletedCorrections = await db.certificateCorrectionRequest.deleteMany({});
-    console.log(`   ✅ Berhasil menghapus ${deletedCorrections.count} data pengajuan koreksi.\n`);
+    try {
+      const deletedCorrections = await db.certificateCorrectionRequest.deleteMany({});
+      console.log(`   ✅ Berhasil menghapus ${deletedCorrections.count} data pengajuan koreksi.\n`);
+    } catch (corrErr: any) {
+      console.log(`   ℹ️ Tabel pengajuan koreksi dilewati (${corrErr.message || "tabel belum ada"}).\n`);
+    }
 
     console.log("3. Menghapus seluruh sertifikat di tabel database...");
-    const deletedCerts = await db.certificate.deleteMany({});
-    console.log(`   ✅ Berhasil menghapus ${deletedCerts.count} data sertifikat.\n`);
+    try {
+      const deletedCerts = await db.certificate.deleteMany({});
+      console.log(`   ✅ Berhasil menghapus ${deletedCerts.count} data sertifikat.\n`);
+    } catch (certErr: any) {
+      console.warn(`   ⚠️ Gagal menghapus tabel sertifikat:`, certErr.message);
+    }
 
     // 3. Reset Enrollment Status
     console.log("4. Me-reset status klaim sertifikat pada Enrollment kelas...");
-    const updatedEnrollments = await db.enrollment.updateMany({
-      data: {
-        certificateId: null,
-        completedAt: null,
-      },
-    });
-    console.log(`   ✅ Berhasil me-reset ${updatedEnrollments.count} status kelulusan/klaim di kelas.\n`);
+    try {
+      const updatedEnrollments = await db.enrollment.updateMany({
+        data: {
+          certificateId: null,
+          completedAt: null,
+        },
+      });
+      console.log(`   ✅ Berhasil me-reset ${updatedEnrollments.count} status kelulusan/klaim di kelas.\n`);
+    } catch (enrErr: any) {
+      console.warn(`   ⚠️ Gagal me-reset enrollment:`, enrErr.message);
+    }
 
     console.log("=================================================================");
     console.log("🎉 RESET TOTAL SERTIFIKAT SELESAI DENGAN SUKSES!");

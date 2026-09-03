@@ -207,24 +207,46 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveTunnel = (e: React.FormEvent) => {
+  const handleSaveTunnel = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanUrl = tunnelInput.trim().replace(/\/$/, "");
     if (cleanUrl) {
       localStorage.setItem("chainnesa_custom_tunnel", cleanUrl);
       sessionStorage.removeItem("tunnel_offline");
       setCustomTunnel(cleanUrl);
-      toast.success("Tunnel Blockchain berhasil disambungkan!", {
-        description: `Endpoint aktif: ${cleanUrl}`,
-      });
+      setShowTunnelModal(false);
+
+      toast.loading("Menguji koneksi ke endpoint Ngrok...", { id: "tunnel_test" });
+      try {
+        const testRes = await fetch(`${cleanUrl}/api/system/status`, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420",
+            "Bypass-Tunnel-Reminder": "true",
+          },
+        });
+        if (testRes.ok) {
+          const testData = await testRes.json();
+          if (testData.blockchainOnline) {
+            toast.success("Terkoneksi ke Backend & Blockchain Hyperledger Fabric ONLINE! ⚡", { id: "tunnel_test" });
+          } else {
+            toast.success("Backend Express terhubung via Ngrok (Namun container Fabric di WSL belum online)", { id: "tunnel_test" });
+          }
+        } else {
+          toast.success("Endpoint Ngrok tersimpan. Menyinkronkan status...", { id: "tunnel_test" });
+        }
+      } catch (err: any) {
+        toast.error(`Gagal menghubungi ${cleanUrl}. Pastikan 'npm run dev' di folder backend sudah berjalan.`, { id: "tunnel_test" });
+      }
+
+      setTimeout(() => fetchStats(true), 300);
     } else {
       localStorage.removeItem("chainnesa_custom_tunnel");
       sessionStorage.removeItem("tunnel_offline");
       setCustomTunnel("");
+      setShowTunnelModal(false);
       toast.info("Kembali ke Serverless Cloud Mode");
+      setTimeout(() => fetchStats(true), 300);
     }
-    setShowTunnelModal(false);
-    setTimeout(() => fetchStats(true), 200);
   };
 
   const handleResetTunnel = () => {
