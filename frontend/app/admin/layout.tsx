@@ -14,8 +14,11 @@ import {
   BookOpen,
   Layers,
   Palette,
+  Home,
+  User as UserIcon,
 } from "lucide-react";
 import api from "@/lib/api";
+import { getAvatarUrl } from "@/lib/utils";
 
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react"; // Import Loader icon
@@ -170,8 +173,19 @@ export default function AdminLayout({
           })}
         </nav>
 
-        {/* Collapse Toggle */}
-        <div className="border-t border-white/5 p-4 flex justify-center shrink-0">
+        {/* Sidebar Footer: Back to Main LMS & Collapse Toggle */}
+        <div className="border-t border-white/5 p-4 space-y-2 shrink-0">
+          <Link
+            href="/"
+            title={isCollapsed ? "Dashboard Umum" : undefined}
+            className={`flex items-center gap-3 w-full py-3 rounded-2xl border border-white/5 hover:border-neon-purple/30 hover:bg-neon-purple/10 text-white/60 hover:text-white transition-all text-xs font-semibold ${
+              isCollapsed ? "justify-center px-0" : "px-4"
+            }`}
+          >
+            <Home size={18} className="text-neon-purple shrink-0" />
+            {!isCollapsed && <span>Dashboard Umum</span>}
+          </Link>
+
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/5 hover:border-white/20 hover:bg-white/5 text-white/40 hover:text-white"
@@ -197,27 +211,71 @@ export default function AdminLayout({
         <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-neon-blue/5 blur-[120px] rounded-full pointer-events-none"></div>
 
         {/* Top Bar */}
-        <header className="h-20 border-b border-white/5 bg-dark-bg/60 backdrop-blur-xl flex items-center justify-between px-12 sticky top-0 z-20 w-full">
-          <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-4">
-            <span className="text-neon-purple opacity-40">//</span>
-            {menuItems.find((i) => i.href === pathname)?.label || "Dashboard"}
-          </h2>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
+        <header className="h-20 border-b border-white/5 bg-dark-bg/60 backdrop-blur-xl flex items-center justify-between px-6 md:px-12 sticky top-0 z-20 w-full">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-4">
+              <span className="text-neon-purple opacity-40">//</span>
+              {menuItems.find((i) => i.href === pathname)?.label || "Dashboard"}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-4 md:gap-6">
+            {/* Back to Public LMS / Dashboard Umum Button */}
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-300 bg-white/5 hover:bg-neon-purple/10 border border-white/10 hover:border-neon-purple/30 text-white/80 hover:text-white group text-xs font-semibold shadow-sm"
+              title="Kembali ke Dashboard Umum"
+            >
+              <Home size={15} className="text-neon-purple group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">Dashboard Umum</span>
+            </Link>
+
+            {/* Admin Profile Shortcut */}
+            <Link
+              href="/profile"
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-neon-purple/30 transition-all text-left group"
+              title="Lihat Profil Admin"
+            >
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-neon-purple/20 flex items-center justify-center border border-white/10">
+                {user?.avatar ? (
+                  <img
+                    src={getAvatarUrl(user.avatar)}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="text-neon-purple w-4 h-4" />
+                )}
+              </div>
+              <div className="hidden lg:block">
+                <p className="text-xs font-bold text-white leading-none truncate max-w-[100px]">
+                  {user?.name || "Admin"}
+                </p>
+                <p className="text-[9px] text-neon-purple font-semibold uppercase tracking-wider mt-0.5">
+                  Admin
+                </p>
+              </div>
+            </Link>
+
+            {/* Live Status */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="h-2 w-2 rounded-full bg-neon-blue shadow-[0_0_10px_#00e5ff] animate-pulse"></div>
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Live Status
               </span>
             </div>
+
+            {/* Logout Button */}
             <button
               onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 group hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-300 group hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+              title="Sign Out"
             >
               <LogOut
                 size={16}
                 className="text-red-500 group-hover:animate-pulse"
               />
-              <span className="text-xs font-bold text-red-500 tracking-tight">
+              <span className="text-xs font-bold text-red-500 tracking-tight hidden sm:inline">
                 Logout
               </span>
             </button>

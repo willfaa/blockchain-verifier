@@ -441,3 +441,55 @@ export async function fetchUsersByRoleFromSupabase(role?: string, search?: strin
     return [];
   }
 }
+
+export async function updateUserProfileInSupabase(userId: string, updates: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        ...getHeaders(),
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data[0] : data;
+  } catch (err: any) {
+    console.error("[Supabase Update User Profile Error]:", err.message);
+    return null;
+  }
+}
+
+export async function uploadAvatarToSupabase(
+  fileBuffer: ArrayBuffer,
+  fileName: string,
+  contentType: string,
+  userId: string
+) {
+  try {
+    const remotePath = `avatars/${userId}/${fileName}`;
+    const url = `${SUPABASE_API_URL}/storage/v1/object/lms/${remotePath}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": contentType,
+        "x-upsert": "true",
+      },
+      body: fileBuffer,
+    });
+    if (res.ok) {
+      return `${SUPABASE_API_URL}/storage/v1/object/public/lms/${remotePath}`;
+    }
+    return null;
+  } catch (err: any) {
+    console.error("[Supabase Storage Error]:", err.message);
+    return null;
+  }
+}

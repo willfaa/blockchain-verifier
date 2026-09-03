@@ -54,11 +54,16 @@ router.put(
       let updateData: any = {};
 
       // Only update if field is sent AND not empty (for strings)
-      if (name && name.trim() !== "") updateData.name = name;
-      if (personalEmail && personalEmail.trim() !== "")
-        updateData.personalEmail = personalEmail;
-      // Bio can be empty string if they want to clear it, but usually we just check for undefined
-      if (bio !== undefined) updateData.bio = bio;
+      if (name && name.trim() !== "") updateData.name = name.trim();
+      if (personalEmail !== undefined) {
+        if (personalEmail && personalEmail.trim() !== "") {
+          updateData.personalEmail = personalEmail.trim();
+        } else {
+          updateData.personalEmail = null;
+        }
+      }
+      // Bio can be empty string if they want to clear it
+      if (bio !== undefined) updateData.bio = bio.trim();
 
       // 2. Handle Avatar
       if (req.file) {
@@ -134,13 +139,15 @@ router.put(
           role: true,
           avatar: true,
           bio: true,
+          studentId: true,
+          nip: true,
           majority: true,
           studyProgram: true,
         },
       });
 
       console.log("Update Success for:", updatedUser.name);
-      res.json({ ok: true, data: updatedUser });
+      res.json({ ok: true, data: updatedUser, user: updatedUser });
     } catch (error: any) {
       console.error("Inline Controller Error:", error);
       if (error.code === "P2002") {

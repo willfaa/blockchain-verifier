@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      data: userSafe,
       user: userSafe,
     });
   } catch (error: any) {

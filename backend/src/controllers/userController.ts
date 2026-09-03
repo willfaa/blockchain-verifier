@@ -105,9 +105,15 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const updateData: any = {};
 
     // 2. Allow Text Updates
-    if (name) updateData.name = name;
-    if (bio) updateData.bio = bio;
-    if (personalEmail) updateData.personalEmail = personalEmail;
+    if (name && name.trim() !== "") updateData.name = name.trim();
+    if (bio !== undefined) updateData.bio = bio.trim();
+    if (personalEmail !== undefined) {
+      if (personalEmail && personalEmail.trim() !== "") {
+        updateData.personalEmail = personalEmail.trim();
+      } else {
+        updateData.personalEmail = null;
+      }
+    }
 
     // 3. Handle Avatar Logic
     if (file) {

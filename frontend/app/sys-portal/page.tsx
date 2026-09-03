@@ -40,9 +40,8 @@ export default function HiddenAdminLogin() {
         throw new Error("Unauthorized access level.");
       }
 
-      // Login sukses, redirect ke dashboard atau homepage
-      // Anda bisa set redirectPath ke '/admin-dashboard' jika nanti dibuat
-      login(data.user, "/");
+      // Login sukses, redirect ke admin console
+      login(data.user, "/admin/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {

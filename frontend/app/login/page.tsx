@@ -118,11 +118,11 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 gap-1">
             <button
               type="button"
               onClick={() => setRole("student")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all ${
                 role === "student"
                   ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/25"
                   : "text-slate-400 hover:text-white"
@@ -133,7 +133,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setRole("teacher")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all ${
                 role === "teacher"
                   ? "bg-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/25"
                   : "text-slate-400 hover:text-white"
@@ -141,19 +141,38 @@ export default function LoginPage() {
             >
               Teacher
             </button>
+            <button
+              type="button"
+              onClick={() => setRole("admin")}
+              className={`flex-1 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all ${
+                role === "admin"
+                  ? "bg-neon-purple text-white shadow-lg shadow-neon-purple/25"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Admin
+            </button>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5 pl-1">
-                Email / ID
+                {role === "admin" ? "Admin ID / Email" : "Email / ID"}
               </label>
               <input
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-slate-600"
-                placeholder="Enter your Email, NIP, or Student ID"
+                className={`w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-slate-600 ${
+                  role === "admin"
+                    ? "focus:border-neon-purple focus:ring-1 focus:ring-neon-purple"
+                    : "focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                }`}
+                placeholder={
+                  role === "admin"
+                    ? "Enter Admin ID or Email"
+                    : "Enter your Email, NIP, or Student ID"
+                }
               />
             </div>
             <div>
@@ -164,7 +183,11 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-slate-600"
+                className={`w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-slate-600 ${
+                  role === "admin"
+                    ? "focus:border-neon-purple focus:ring-1 focus:ring-neon-purple"
+                    : "focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                }`}
                 placeholder="••••••••"
               />
             </div>
@@ -173,12 +196,12 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3.5 rounded-xl text-sm font-bold text-slate-950 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${
+            className={`w-full py-3.5 rounded-xl text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${
               role === "student"
-                ? "bg-linear-to-r from-cyan-400 to-blue-500 shadow-cyan-500/25"
+                ? "bg-linear-to-r from-cyan-400 to-blue-500 shadow-cyan-500/25 text-slate-950"
                 : role === "teacher"
-                ? "bg-linear-to-r from-fuchsia-500 to-orange-400 shadow-fuchsia-500/25"
-                : "bg-linear-to-r from-red-600 to-red-900 shadow-red-600/25"
+                ? "bg-linear-to-r from-fuchsia-500 to-orange-400 shadow-fuchsia-500/25 text-slate-950"
+                : "bg-linear-to-r from-neon-purple to-neon-blue shadow-neon-purple/25 text-white"
             }`}
           >
             {isLoading
