@@ -54,8 +54,9 @@ async function main() {
     });
 
     try {
-      const network = await gateway.getNetwork("mychannel");
-      const contract = network.getContract("basic");
+      const channelName = process.env.FABRIC_CHANNEL || "chainnesa";
+      const network = await gateway.getNetwork(channelName);
+      const contract = network.getContract(process.env.FABRIC_CHAINCODE || "basic");
 
       let result;
 

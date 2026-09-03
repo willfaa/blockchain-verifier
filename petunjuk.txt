@@ -5,7 +5,7 @@
 -----------------------------------------------------------------------------
 1. PERSIAPAN / CLEANUP MANDATORI (Penting jika ada konflik port/sertifikat)
 -----------------------------------------------------------------------------
-A. Matikan Service Docker bawaan WSL (agar tidak konflik port dengan Docker Desktop):
+A. Matikan Service Docker bawaan WSL (agar tidak konflik port 7050 7051 7054 dengan Docker Desktop):
    sudo service docker stop
    sudo systemctl stop docker
    sudo systemctl stop docker.socket
@@ -29,17 +29,18 @@ C. Bersihkan sisa sertifikat lama di folder network (WSL):
 -----------------------------------------------------------------------------
 A. Nyalakan network dan CA, serta buat channel:
    cd ~/fabric-samples/test-network
-   ./network.sh up createChannel -c mychannel -ca
+   ./network.sh up createChannel -c chainnesa -ca
 
 -----------------------------------------------------------------------------
 3. DEPLOY CHAINCODE / SMART CONTRACT (Jalankan di WSL)
 -----------------------------------------------------------------------------
-A. Jalankan perintah deployCC (Pastikan path Go ditambahkan ke PATH):
+A. Jalankan perintah deployCC (Pastikan flag -c chainnesa disertakan):
    export PATH=/usr/local/go/bin:$PATH
    ./network.sh deployCC \
      -ccn basic \
      -ccp /mnt/c/Users/willfaa/Documents/VSCode-Project/blockchain-verifier/chaincode-go \
      -ccl go \
+     -c chainnesa \
      -ccep "OR('Org1MSP.peer','Org2MSP.peer')" \
      -cci InitLedger
 
@@ -60,7 +61,7 @@ B. Check list channel & chaincode terinstall:
    peer lifecycle chaincode queryinstalled
 
 C. Query data awal (pastikan CORE_PEER di atas sudah di-export):
-   peer chaincode query -C mychannel -n basic -c '{"function":"GetAllCertificates","Args":[]}'
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}'
 
 -----------------------------------------------------------------------------
 5. KONFIGURASI BACKEND & WALLET SINKRONISASI
@@ -96,7 +97,7 @@ C. Container Docker Mati (Exited / Stopped)
    - Solusi: Nyalakan ulang semua container yang mati tanpa restart network total:
      docker start $(docker ps -aq -f status=exited)
    - Jika masih gagal, lakukan down-up bersih:
-     cd ~/fabric-samples/test-network && ./network.sh down && ./network.sh up createChannel -c mychannel -ca
+      cd ~/fabric-samples/test-network && ./network.sh down && ./network.sh up createChannel -c chainnesa -ca
 
 D. Daemon Docker Tidak Terdeteksi di WSL
    - Gejala: `Cannot connect to the Docker daemon...`
@@ -112,7 +113,38 @@ E. Pembersihan Port Terkunci (Windows PowerShell Admin)
    - Matikan proses paksa:
      taskkill /PID <PID_PROSES> /F
 
+-----------------------------------------------------------------------------
+7. DUA OPSI RESET & PEMULIHAN (RESET TOTAL VS DISASTER RECOVERY)
+-----------------------------------------------------------------------------
 
+OPSI 1: RESET TOTAL SERTIFIKAT (FRESH TESTING)
+Tujuan: Mengosongkan seluruh riwayat sertifikat di Blockchain, Database, dan IPFS Pinata secara otomatis, tetapi data User & Kursus tetap aman.
+
+Langkah-langkah:
+1. Di WSL (Reset Blockchain):
+   cd ~/fabric-samples/test-network
+   ./network.sh down
+   docker volume prune -f
+   ./network.sh up createChannel -c chainnesa -ca
+   ./network.sh deployCC -ccn basic -ccp /mnt/c/Users/willfaa/Documents/VSCode-Project/blockchain-verifier/chaincode-go -ccl go -c chainnesa -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cci InitLedger
+
+2. Di Backend (Reset Database & Unpin Pinata IPFS):
+   cd backend
+   npm run reset:certs
+
+-----------------------------------------------------------------------------
+OPSI 2: DISASTER RECOVERY / RE-SYNC TO BLOCKCHAIN
+Tujuan: Memulihkan seluruh sertifikat pending dari database ke ledger blockchain baru secara otomatis.
+
+Langkah-langkah:
+1. Nyalakan blockchain baru di WSL (channel: chainnesa).
+2. Di Backend jalankan script sinkronisasi:
+   cd backend
+   npm run sync:fabric
+
+-----------------------------------------------------------------------------
+8. MANAJEMEN CONTAINER DOCKER & TUNNELING
+-----------------------------------------------------------------------------
 Metode 1: Stop & Start (Paling Direkomendasikan)
 Metode ini akan mematikan container secara aman (langkah graceful shutdown). RAM dan CPU akan dibebaskan sepenuhnya, dan data ledger Anda tetap aman di dalam Docker Volume. Ini adalah pilihan terbaik jika Anda ingin mematikan komputer/WSL dan melanjutkan pekerjaan besok.
 cd ~/fabric-samples/test-network
@@ -129,8 +161,9 @@ NGROK for Blockchain (Alternatif VPS untuk expose localhost ke public)
 cd backend
 npm run dev
 npx ngrok http 4000
-change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru (https://gumminess-ranged-frostbite.ngrok-free.dev kalau tidak berubah)
+change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru
 
 npx localtunnel --port 4000 --subdomain unesa-blockchain-backend
 NEXT_PUBLIC_API_BASE juga ganti ke link localtunnel terbaru
+npm run sync:fabric
 npm run sync:fabric

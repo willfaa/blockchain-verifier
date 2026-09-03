@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
+  Clock,
   FileText,
   Loader2,
   XCircle,
@@ -223,7 +224,7 @@ export default async function VerificationPage({
                 ? "border-amber-500/20 bg-amber-500/[0.03]"
                 : cert.status === "REVOKED"
                 ? "border-red-500/10 bg-red-500/[0.02]"
-                : "border-cyan-500/10 bg-cyan-500/[0.02]"
+                : "border-amber-500/20 bg-amber-500/[0.02]"
             )}
           >
             <div
@@ -235,7 +236,7 @@ export default async function VerificationPage({
                   ? "bg-amber-500"
                   : cert.status === "REVOKED"
                   ? "bg-red-500"
-                  : "bg-cyan-500"
+                  : "bg-amber-500"
               )}
             />
 
@@ -249,7 +250,7 @@ export default async function VerificationPage({
                   ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                   : cert.status === "REVOKED"
                   ? "bg-red-500/10 border-red-500/20 text-red-500"
-                  : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-400"
               )}
             >
               {cert.status === "ISSUED" && (
@@ -260,7 +261,7 @@ export default async function VerificationPage({
               )}
               {cert.status === "REVOKED" && <XCircle className="h-16 w-16" />}
               {cert.status === "PENDING" && (
-                <Loader2 className="h-16 w-16 animate-spin" />
+                <Clock className="h-16 w-16 animate-pulse" />
               )}
             </div>
 
@@ -277,6 +278,11 @@ export default async function VerificationPage({
                       Updated &{" "}
                       <span className="text-amber-400">Superseded</span>
                     </>
+                  ) : cert.status === "PENDING" ? (
+                    <>
+                      Pending{" "}
+                      <span className="text-amber-400">Ledger Consensus</span>
+                    </>
                   ) : (
                     cert.status
                   )}
@@ -284,6 +290,11 @@ export default async function VerificationPage({
                 {cert.supersededFrom && (
                   <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider">
                     Official Replacement
+                  </span>
+                )}
+                {cert.status === "PENDING" && (
+                  <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider">
+                    Awaiting Sync
                   </span>
                 )}
               </div>
@@ -299,7 +310,7 @@ export default async function VerificationPage({
                     }`
                   : cert.status === "REVOKED"
                   ? `Access to this credential was terminated on ${cert.revokedAt}. Reason: ${cert.revocationReason}`
-                  : "The record for this achievement is currently awaiting final network consensus."}
+                  : "Kredensial ini telah diajukan dan sedang menunggu pencatatan resmi ke Hyperledger Fabric Ledger & IPFS. Sertifikat resmi belum dapat diverifikasi sampai transaksi dikonfirmasi oleh validator."}
               </p>
 
               {cert.status === "SUPERSEDED" && cert.supersededBy && (
@@ -327,24 +338,38 @@ export default async function VerificationPage({
             </div>
           </div>
 
-          {/* Interactive Dual-View Certificate & SKKNI Competency Transcript Visualizer */}
-          <VerificationTranscriptViewer
-            certId={cert.certId}
-            certificateNumber={cert.certificateNumber}
-            schoolName={cert.schoolName}
-            studentName={cert.name}
-            studentId={cert.studentId || cert.nim || "-"}
-            majority={cert.majority}
-            program={cert.program}
-            courseTitle={cert.course?.title || cert.courseName}
-            issuedAt={cert.issuedAt}
-            cid={cert.cid}
-            hash={cert.hash}
-            competencyUnits={cert.competencyUnits}
-            signers={cert.signers}
-            apiBase={apiBase}
-            ipfsGateway={IPFS_GATEWAY}
-          />
+          {/* Interactive Dual-View Certificate or Pending Banner */}
+          {cert.status === "PENDING" ? (
+            <div className="rounded-[2.5rem] border border-amber-500/20 bg-amber-500/[0.03] p-10 text-center shadow-2xl backdrop-blur-xl space-y-4">
+              <div className="inline-flex p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <Clock size={28} className="animate-pulse" />
+              </div>
+              <h3 className="text-xl font-bold text-white">
+                Sertifikat Belum Diterbitkan ke Ledger On-Chain
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+                Penerbitan digital sertifikat ini masih berada dalam antrean sinkronisasi konsensus blockchain (Hyperledger Fabric) & IPFS. Tampilan visual sertifikat resmi dan transkrip kelulusan akan aktif setelah proses validasi on-chain selesai.
+              </p>
+            </div>
+          ) : (
+            <VerificationTranscriptViewer
+              certId={cert.certId}
+              certificateNumber={cert.certificateNumber}
+              schoolName={cert.schoolName}
+              studentName={cert.name}
+              studentId={cert.studentId || cert.nim || "-"}
+              majority={cert.majority}
+              program={cert.program}
+              courseTitle={cert.course?.title || cert.courseName}
+              issuedAt={cert.issuedAt}
+              cid={cert.cid}
+              hash={cert.hash}
+              competencyUnits={cert.competencyUnits}
+              signers={cert.signers}
+              apiBase={apiBase}
+              ipfsGateway={IPFS_GATEWAY}
+            />
+          )}
 
           {/* Mobile Data Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -402,7 +427,7 @@ export default async function VerificationPage({
                       {isFabricVerified ? "Hyperledger Fabric Consensus Verified" : "Institutional Cryptographic Registry Verified"}
                     </p>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mt-1">
-                      {isFabricVerified ? "State Channel: mychannel (Org1MSP)" : "Mirror Ledger Proof · SHA-256 Matched"}
+                      {isFabricVerified ? "State Channel: chainnesa (Org1MSP)" : "Mirror Ledger Proof · SHA-256 Matched"}
                     </p>
                   </div>
                 </div>

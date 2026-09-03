@@ -86,7 +86,7 @@ fi
 echo "\n========================================================="
 echo "✨✨ RESET COMPLETE. CERTS FOLDER SAFE. FABRIC FRESH. ✨✨"
 echo "Next Steps:"
-echo "1. ./network.sh up createChannel -c mychannel -ca"
-echo "2. Deploy Chaincode"
+echo "1. ./network.sh up createChannel -c chainnesa -ca"
+echo "2. Deploy Chaincode (-c chainnesa)"
 echo "3. Start IPFS Daemon (if not running): 'ipfs daemon'"
-echo "4. Start Backend & Frontend
+echo "4. Start Backend & Frontend"

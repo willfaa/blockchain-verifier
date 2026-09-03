@@ -18,7 +18,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("✅ Fabric Network Online and Authenticated (Org1MSP / channel: mychannel).\n");
+  const ch = process.env.FABRIC_CHANNEL || "chainnesa";
+  console.log(`✅ Fabric Network Online and Authenticated (Org1MSP / channel: ${ch}).\n`);
   console.log("2. Scanning Supabase Cloud for PENDING_SYNC certificates...");
 
   const result = await syncPendingCertificatesToFabric();

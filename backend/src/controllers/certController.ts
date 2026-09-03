@@ -302,17 +302,18 @@ export class CertController {
         });
       } catch (fabricErr: any) {
         console.warn(
-          `⚠️ [Atomic Issuance Notice]: Fabric Node offline/unreachable. Saved to Mirror DB as PENDING_SYNC:`,
+          `⚠️ [Atomic Issuance Notice]: Fabric Node offline/unreachable. Saved to DB as PENDING:`,
           fabricErr.message
         );
 
-        // Resilient Mirror Ledger: Jangan batalkan, simpan sebagai PENDING_SYNC
+        // Strict Pending Mode: Belum masuk on-chain, simpan sebagai PENDING
         syncStatus = "PENDING_SYNC";
-        record.status = "ISSUED";
+        record.status = "PENDING";
         await saveCertificate(record);
         await prisma.certificate.update({
           where: { certId: certId },
           data: {
+            status: "PENDING",
             blockchainSyncStatus: "PENDING_SYNC",
           },
         });
@@ -746,14 +747,14 @@ export class CertController {
         });
       } catch (fabricErr: any) {
         console.warn(
-          `⚠️ [Claim Certificate Notice]: Fabric offline. Saved to Mirror DB as PENDING_SYNC:`,
+          `⚠️ [Claim Certificate Notice]: Fabric offline. Saved to DB as PENDING:`,
           fabricErr.message
         );
         syncStatus = "PENDING_SYNC";
         await prisma.certificate.update({
           where: { id: certId },
           data: {
-            status: "ISSUED",
+            status: "PENDING",
             blockchainSyncStatus: "PENDING_SYNC",
           },
         });

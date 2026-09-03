@@ -104,7 +104,7 @@ export default function ExplorerPage() {
             <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xl font-bold text-emerald-400">Active</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">channel: mychannel</p>
+          <p className="text-xs text-slate-500 mt-1">channel: chainnesa</p>
         </div>
       </div>
 

@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "sync:fabric": "ts-node src/scripts/syncFabric.ts",
+    "reset:certs": "ts-node src/scripts/resetCertificates.ts",
+    "clean:certs": "ts-node src/scripts/resetCertificates.ts",
     "generate": "prisma generate",
     "postinstall": "prisma generate",
     "clean-uploads": "node clean-uploads.js",

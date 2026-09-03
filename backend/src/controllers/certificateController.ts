@@ -306,7 +306,8 @@ export class CertificateController {
           courseId,
           cid,
           hash,
-          status: "ISSUED",
+          status: "PENDING",
+          blockchainSyncStatus: "PENDING_SYNC",
           issuedAt: new Date().toISOString(),
         },
       });
@@ -322,13 +323,26 @@ export class CertificateController {
       });
 
       // Fabric sync
-      issueCertificateOnFabric(
-        { ...cert, score: String((result as any).score || "") } as any,
-        "SYSTEM",
-        "TEACHER",
-      ).catch((err) => console.error("[Fabric] Claim Sync Error:", err));
+      try {
+        const txResult = await issueCertificateOnFabric(
+          { ...cert, score: String((result as any).score || "") } as any,
+          "SYSTEM",
+          "TEACHER"
+        );
+        await db.certificate.update({
+          where: { id: cert.id },
+          data: {
+            status: "ISSUED",
+            blockchainSyncStatus: "SYNCED",
+            blockchainTxId: txResult?.txId || `TX_${Date.now()}`,
+            syncedAt: new Date(),
+          },
+        });
+      } catch (fabricErr: any) {
+        console.warn("[Fabric] Claim Sync Offline. Saved as PENDING:", fabricErr.message);
+      }
 
-      return res.json({ ok: true, certId, cid });
+      return res.json({ ok: true, certId, cid, status: "PENDING" });
     } catch (error: any) {
       console.error("[CertController] claimCertificate Error:", error.message);
       return res.status(500).json({ error: error.message });

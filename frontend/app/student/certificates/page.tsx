@@ -12,6 +12,7 @@ import {
   Download,
   Share2,
   Cpu,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -169,12 +170,28 @@ export default function MyCertificatesPage() {
                 <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-purple-950/40 p-6 flex flex-col justify-between border-b border-white/5 group-hover:border-neon-purple/30 transition-all">
                   <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-neon-purple/10 rounded-full blur-2xl pointer-events-none" />
 
-                  {/* Verified Badge */}
+                  {/* Verified / Pending Badge */}
                   <div className="flex items-center justify-between z-10">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-neon-purple/10 backdrop-blur-xl border border-neon-purple/20 rounded-full">
-                      <ShieldCheck size={12} className="text-neon-purple" />
-                      <span className="text-[9px] font-bold text-white uppercase tracking-widest">
-                        Verified
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 backdrop-blur-xl border rounded-full ${
+                        cert.status === "PENDING"
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                          : cert.status === "SUPERSEDED"
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                          : "bg-neon-purple/10 border-neon-purple/20 text-white"
+                      }`}
+                    >
+                      {cert.status === "PENDING" ? (
+                        <Clock size={12} className="text-amber-400 animate-pulse" />
+                      ) : (
+                        <ShieldCheck size={12} className="text-neon-purple" />
+                      )}
+                      <span className="text-[9px] font-bold uppercase tracking-widest">
+                        {cert.status === "PENDING"
+                          ? "PENDING SYNC"
+                          : cert.status === "SUPERSEDED"
+                          ? "SUPERSEDED"
+                          : "VERIFIED"}
                       </span>
                     </div>
                     <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/20">

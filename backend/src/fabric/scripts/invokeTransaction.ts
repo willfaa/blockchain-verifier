@@ -59,8 +59,9 @@ async function main() {
 
     try {
       // 5. Network & Contract
-      const network = await gateway.getNetwork("mychannel");
-      const contract = network.getContract("basic");
+      const channelName = process.env.FABRIC_CHANNEL || "chainnesa";
+      const network = await gateway.getNetwork(channelName);
+      const contract = network.getContract(process.env.FABRIC_CHAINCODE || "basic");
 
       // --- DATA SERTIFIKAT DUMMY ---
 

@@ -363,7 +363,7 @@ export default function AdminDashboard() {
       status: isBackendConnected ? (isFabricOnline ? "ONLINE" : isCloudResilience ? "STANDBY" : "OFFLINE") : "OFFLINE",
       desc: isBackendConnected
         ? isFabricOnline
-          ? "Consensus Ledger (Channel: mychannel)"
+          ? "Consensus Ledger (Channel: chainnesa)"
           : isCloudResilience
           ? "Mirror Cryptographic Proof (Sync on Local Connect)"
           : "Mirror Queue Mode (Sync on Connect)"

@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Printer,
   ExternalLink,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -193,14 +194,15 @@ export default function CertificateDetailPage() {
 
             <button
               type="button"
+              disabled={cert.status === "PENDING"}
               onClick={() => window.print()}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
             >
               <Printer size={14} />
               Cetak / Simpan PDF
             </button>
 
-            {cert.cid && (
+            {cert.cid && !cert.cid.startsWith("PENDING") && (
               <a
                 href={getIpfsGatewayUrl(cert.cid)}
                 target="_blank"
@@ -231,6 +233,15 @@ export default function CertificateDetailPage() {
           </div>
         )}
 
+        {cert.status === "PENDING" && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-300 text-xs">
+            <Clock size={18} className="shrink-0 animate-pulse" />
+            <span>
+              <strong>Status Antrean Konsensus:</strong> Sertifikat ini baru saja diajukan dan sedang menunggu pencatatan resmi ke Hyperledger Fabric Ledger (channel: chainnesa) serta pinning ke IPFS. Tampilan visual sertifikat resmi dan cetak PDF akan aktif setelah proses sinkronisasi selesai.
+            </span>
+          </div>
+        )}
+
         {cert.status === "SUPERSEDED" && (
           <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-4 text-amber-300 text-xs">
             <div className="flex items-center gap-3">
@@ -253,27 +264,41 @@ export default function CertificateDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Preview */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
-              <div className="flex items-center justify-center shrink-0 m-auto">
-                <CertificateTemplate
-                  studentName={cert.studentName}
-                  studentId={cert.studentId || (cert as any).studentId}
-                  courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
-                  certificateId={cert.certId || cert.id}
-                  program={cert.program}
-                  majority={cert.majority}
-                  issuedAt={cert.issuedAt}
-                  qrCodeBase64={qrCodeBase64}
-                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                  paperSize={layoutSettings.certificatePaperSize || "A4"}
-                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                  instructorName={layoutSettings.instructorName}
-                  instructorNip={layoutSettings.instructorNip}
-                  bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
-                  layoutConfig={layoutSettings.layoutConfig}
-                />
-              </div>
+            <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl min-h-[350px]">
+              {cert.status === "PENDING" ? (
+                <div className="p-8 text-center space-y-4 max-w-md m-auto">
+                  <div className="inline-flex p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <Clock size={32} className="animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">
+                    Sertifikat Sedang Dalam Antrean Konsensus Blockchain
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Sertifikat Anda telah tersimpan di antrean sistem dan menunggu validasi on-chain oleh node validator. Desain sertifikat resmi akan ditampilkan begitu proses sinkronisasi berhasil.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center shrink-0 m-auto">
+                  <CertificateTemplate
+                    studentName={cert.studentName}
+                    studentId={cert.studentId || (cert as any).studentId}
+                    courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
+                    certificateId={cert.certId || cert.id}
+                    program={cert.program}
+                    majority={cert.majority}
+                    issuedAt={cert.issuedAt}
+                    qrCodeBase64={qrCodeBase64}
+                    layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                    paperSize={layoutSettings.certificatePaperSize || "A4"}
+                    paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                    paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                    instructorName={layoutSettings.instructorName}
+                    instructorNip={layoutSettings.instructorNip}
+                    bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                    layoutConfig={layoutSettings.layoutConfig}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -290,11 +315,17 @@ export default function CertificateDetailPage() {
                       ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
                       : cert.status === "SUPERSEDED"
                       ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                      : cert.status === "PENDING"
+                      ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
                       : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                   }`}
                 >
-                  <FileCheck size={12} />
-                  {cert.status}
+                  {cert.status === "PENDING" ? (
+                    <Clock size={12} className="animate-pulse" />
+                  ) : (
+                    <FileCheck size={12} />
+                  )}
+                  {cert.status === "PENDING" ? "PENDING SYNC" : cert.status}
                 </span>
               </div>
 

@@ -682,9 +682,14 @@ export async function autoSyncFabricWallet(): Promise<void> {
 // --- SYNC PENDING CERTIFICATES TO BLOCKCHAIN ---
 export async function syncPendingCertificatesToFabric() {
   const { db } = require("../config/db");
+  const axios = require("axios");
+
   const pendingCerts = await db.certificate.findMany({
     where: {
-      blockchainSyncStatus: { in: ["PENDING_SYNC", "FAILED"] },
+      OR: [
+        { blockchainSyncStatus: { in: ["PENDING_SYNC", "FAILED", "PENDING"] } },
+        { status: "PENDING" },
+      ],
       status: { not: "REVOKED" },
     },
     orderBy: { issuedAt: "asc" },
@@ -707,6 +712,39 @@ export async function syncPendingCertificatesToFabric() {
           cert.revocationReason || "Superseded during ledger sync"
         );
       } else {
+        let finalCid = cert.cid;
+
+        // If CID is empty or pending, upload to Pinata IPFS
+        if ((!finalCid || finalCid.startsWith("PENDING")) && process.env.PINATA_JWT) {
+          try {
+            const pinataJwt = process.env.PINATA_JWT.replace(/^["']|["']$/g, "").trim();
+            const pinRes = await axios.post(
+              "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+              {
+                pinataMetadata: { name: `Cert_${cert.studentId}_${cert.certId.substring(0, 8)}.json` },
+                pinataContent: {
+                  certId: cert.certId,
+                  studentName: cert.studentName,
+                  studentId: cert.studentId,
+                  program: cert.program,
+                  majority: cert.majority,
+                  hash: cert.hash,
+                  issuedAt: cert.issuedAt,
+                },
+              },
+              {
+                headers: { Authorization: `Bearer ${pinataJwt}` },
+                timeout: 5000,
+              }
+            );
+            if (pinRes.data?.IpfsHash) {
+              finalCid = pinRes.data.IpfsHash;
+            }
+          } catch (ipfsErr: any) {
+            console.warn(`[Sync IPFS Notice ${cert.certId}]:`, ipfsErr.message);
+          }
+        }
+
         const fabricRecord: CertificateRecord = {
           certId: cert.certId,
           studentId: cert.studentId,
@@ -714,16 +752,19 @@ export async function syncPendingCertificatesToFabric() {
           program: cert.program,
           majority: cert.majority,
           score: "",
-          cid: cert.cid,
+          cid: finalCid || `Qm${cert.hash.substring(0, 44)}`,
           hash: cert.hash,
-          status: cert.status,
+          status: "ISSUED",
           issuedAt: cert.issuedAt,
           courseId: cert.courseId || null,
         };
+
         const txResult = await issueCertificateOnFabric(fabricRecord, "admin", "admin");
         await db.certificate.update({
           where: { id: cert.id },
           data: {
+            status: "ISSUED",
+            cid: finalCid || cert.cid,
             blockchainSyncStatus: "SYNCED",
             blockchainTxId: txResult?.txId || `TX_SYNC_${Date.now()}`,
             syncedAt: new Date(),
