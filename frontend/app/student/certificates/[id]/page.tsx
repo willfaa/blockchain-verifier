@@ -163,7 +163,7 @@ export default function CertificateDetailPage() {
   }
 
   const ipfsGateway =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080";
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
   const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`;
 
   const API_BASE = getApiBase();

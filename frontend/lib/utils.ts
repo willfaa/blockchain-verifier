@@ -27,14 +27,19 @@ export const getApiBase = () => {
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
 
-    // 1. Dynamic Tunnel configured in UI (localStorage)
+    const isTunnelOffline = sessionStorage.getItem("tunnel_offline") === "true";
+
+    // 1. Dynamic Tunnel configured explicitly in Admin Dashboard (localStorage)
     const customTunnel = localStorage.getItem("chainnesa_custom_tunnel");
-    if (customTunnel && customTunnel.trim()) {
+    if (!isTunnelOffline && customTunnel && customTunnel.trim()) {
       return customTunnel.trim().replace(/\/$/, "");
     }
 
-    // 2. Local Machine (localhost)
+    // 2. Local Machine (localhost development)
     if (isLocal) {
+      if (isTunnelOffline) {
+        return window.location.origin;
+      }
       const localBase =
         process.env.NEXT_PUBLIC_API_BASE ||
         process.env.NEXT_PUBLIC_API_URL ||
@@ -42,33 +47,27 @@ export const getApiBase = () => {
       return localBase.replace(/\/$/, "");
     }
 
-    // 3. Environment Variable (NEXT_PUBLIC_API_BASE, e.g. Ngrok or Localtunnel)
-    const envBase = process.env.NEXT_PUBLIC_API_BASE;
-    if (
-      envBase &&
-      envBase.trim() &&
-      !envBase.includes("localhost") &&
-      !envBase.includes("127.0.0.1")
-    ) {
-      return envBase.trim().replace(/\/$/, "");
-    }
-
-    // 4. Default Fallback: Vercel Serverless Cloud
+    // 3. Production on Vercel / Cloud:
+    // When running on public domain (e.g. www.willfaa.web.id or *.vercel.app),
+    // ALWAYS use native Serverless API routes on window.location.origin.
     return window.location.origin;
   }
 
   // Server-side Rendering (SSR / Node.js on Vercel):
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NEXT_PUBLIC_CLIENT_URL) {
+    return process.env.NEXT_PUBLIC_CLIENT_URL.replace(/\/$/, "");
   }
-  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
-    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`.replace(/\/$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
   }
 
   return (
     process.env.NEXT_PUBLIC_API_BASE ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:4000"
+    "http://localhost:3000"
   ).replace(/\/$/, "");
 };
 
@@ -77,7 +76,7 @@ export const getAvatarUrl = (path: string | null | undefined) => {
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
   if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
-    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
+    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
     return `${gateway}/ipfs/${cleanPath}`;
   }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
@@ -89,7 +88,7 @@ export const getAssetUrl = (path: string | null | undefined) => {
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
   if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
-    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://ipfs.io";
+    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
     return `${gateway}/ipfs/${cleanPath}`;
   }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;

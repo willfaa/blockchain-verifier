@@ -63,64 +63,46 @@ export default async function VerificationPage({
   const apiBase = getApiBase();
   const IPFS_GATEWAY =
     process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
-  try {
-    const res = await fetch(`${apiBase}/api/certificates/${id}/verify`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(3500),
-      headers: {
-        "ngrok-skip-browser-warning": "true",
-        "Bypass-Tunnel-Reminder": "true",
-      },
-    });
 
-    if (!res.ok) {
-      // Fallback to /api/certificates/:id
-      const fallbackRes = await fetch(`${apiBase}/api/certificates/${id}`, {
+  // 1. Direct Supabase Cloud Fetch (Instant ~30ms, Zero Port/Tunnel Dependency)
+  try {
+    const cloudCert = await fetchCertificateFromSupabase(id);
+    if (cloudCert) {
+      cert = cloudCert;
+      cert.source = (cloudCert.source as any) || "mirror_database";
+    }
+  } catch (cloudErr: any) {
+    console.warn("Direct Cloud Lookup Note:", cloudErr?.message);
+  }
+
+  // 2. If not found in cloud, attempt API fallback
+  if (!cert) {
+    try {
+      const res = await fetch(`${apiBase}/api/certificates/${id}/verify`, {
         cache: "no-store",
-        signal: AbortSignal.timeout(3500),
+        signal: AbortSignal.timeout(2000),
         headers: {
           "ngrok-skip-browser-warning": "true",
           "Bypass-Tunnel-Reminder": "true",
         },
       });
-      if (fallbackRes.ok) {
-        const fbData = await fallbackRes.json();
-        if (fbData.ok && (fbData.record || fbData.data)) {
-          cert = fbData.record || fbData.data;
-          cert!.source = fbData.source || "mirror_database";
-        }
-      }
-    } else {
-      const text = await res.text();
-      try {
-        const data = JSON.parse(text);
+
+      if (res.ok) {
+        const data = await res.json();
         if (data.ok && (data.record || data.data)) {
           cert = data.record || data.data;
           cert!.source = data.source || "blockchain";
           cert!.isChainVerified = data.isChainVerified;
         }
-      } catch (parseErr) {}
-    }
-  } catch (err: any) {
-    console.warn("Backend API Unreachable. Activating Direct Cloud Resilience Fallback...");
-  }
-
-  // --- DIRECT CLOUD RESILIENCE FALLBACK (When Laptop/Ngrok is OFF) ---
-  if (!cert) {
-    try {
-      const cloudCert = await fetchCertificateFromSupabase(id);
-      if (cloudCert) {
-        cert = cloudCert;
-        error = null;
       }
-    } catch (cloudErr: any) {
-      console.error("Direct Cloud Fallback Error:", cloudErr);
+    } catch (err: any) {
+      // Graceful fallback
     }
   }
 
   if (cert) {
     try {
-      const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000";
+      const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "https://www.willfaa.web.id";
       const verificationUrl = `${clientUrl}/verify/${cert.certId}`;
       qrCodeBase64 = await QRCode.toDataURL(verificationUrl);
     } catch (e) {}

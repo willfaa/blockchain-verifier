@@ -281,7 +281,7 @@ export default function CourseLearningPage() {
               }
               certificateUrl={
                 course.enrollment?.certificate?.cid
-                  ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "http://localhost:8080"}/ipfs/${course.enrollment.certificate.cid}`
+                  ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud"}/ipfs/${course.enrollment.certificate.cid}`
                   : null
               }
               onClaimSuccess={() => fetchCourseData()}

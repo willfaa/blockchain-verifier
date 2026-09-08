@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ShieldAlert, Lock, ArrowRight } from "lucide-react";
-import { getApiBase } from "@/lib/utils";
+import api from "@/lib/api";
 
 export default function HiddenAdminLogin() {
   const { login } = useAuth();
@@ -20,30 +20,25 @@ export default function HiddenAdminLogin() {
 
     try {
       // Hardcode role: 'admin' agar backend memvalidasi tabel users dengan benar
-      const res = await fetch(`${getApiBase()}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({ identifier, password, role: "admin" }),
+      const res = await api.post("/auth/login", {
+        identifier,
+        password,
+        role: "admin",
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Access Denied");
+      if (!res.data.ok) {
+        throw new Error(res.data.error || "Access Denied");
       }
 
       // Jika role yang dikembalikan bukan admin, tolak
-      if (data.user.role !== "admin") {
+      if (res.data.user.role !== "admin") {
         throw new Error("Unauthorized access level.");
       }
 
       // Login sukses, redirect ke admin console
-      login(data.user, "/admin/dashboard");
+      login(res.data.user, "/admin/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || "Access Denied");
     } finally {
       setLoading(false);
     }

@@ -157,12 +157,21 @@ cd ~/fabric-samples/test-network
 docker pause $(docker ps -q)
 docker unpause $(docker ps -q)
 
-NGROK for Blockchain (Alternatif VPS untuk expose localhost ke public)
-cd backend
-npm run dev
-npx ngrok http 4000
-change NEXT_PUBLIC_API_BASE di vercel dgn link forwarding ngrok terbaru
+MODE 1: SERVERLESS CLOUD MODE (DEFAULT & 100% STANDALONE 24/7)
+Aplikasi di www.willfaa.web.id kini berjalan 100% Serverless Cloud (Next.js + Supabase Direct + Pinata IPFS).
+- TIDAK PERLU forward port, TIDAK PERLU ngrok, dan TIDAK PERLU laptop/WSL/Docker menyala.
+- Semua fungsi (Login/Register, Kursus, Ujian, Tugas, Penerbitan Sertifikat, Verifikasi QR/Hash, Profil, Dashboard Siswa/Guru/Admin) hidup 24/7 tanpa backend port 4000.
+- Di Vercel Settings, biarkan NEXT_PUBLIC_API_BASE kosong (atau hapus) agar otomatis menggunakan Serverless Cloud mode bawaan domain.
 
-npx localtunnel --port 4000 --subdomain unesa-blockchain-backend
-NEXT_PUBLIC_API_BASE juga ganti ke link localtunnel terbaru
-npm run sync:fabric
+MODE 2: LOCAL FABRIC BLOCKCHAIN BRIDGE (OPSIONAL KETIKA INGIN SINKRONISASI KE WSL)
+Jika Anda ingin menyinkronkan sertifikat pending ke Hyperledger Fabric ledger di WSL:
+1. Jalankan Fabric di WSL (network.sh up).
+2. Jalankan backend di terminal:
+   cd backend
+   npm run dev
+3. Buka tunnel di terminal baru:
+   npx ngrok http 4000
+4. Buka Admin Dashboard (https://www.willfaa.web.id/admin/dashboard) -> klik "Hubungkan Tunnel Ngrok" -> tempel URL ngrok -> Klik Simpan.
+5. Klik "Sinkronkan Antrean ke Blockchain" untuk menembakkan seluruh sertifikat pending ke Ledger Fabric.
+6. Saat ngrok/laptop dimatikan, aplikasi di web otomatis kembali ke Serverless Cloud Mode secara instan tanpa lag atau error.
+

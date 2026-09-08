@@ -2,8 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
-
-import { getApiBase } from "@/lib/utils";
+import api from "@/lib/api";
 
 interface VerifyResult {
   ok?: boolean;
@@ -59,19 +58,18 @@ export default function VerifyPage() {
     setResult(null);
 
     try {
-      const backendUrl = `${getApiBase()}/api/certificates`;
-      const res = await fetch(`${backendUrl}/${certId}/verify`, {
-        method: "GET",
-        headers: { 
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true"
-        },
-      });
-
-      const data = await res.json();
+      let data: any = null;
+      try {
+        const res = await api.get(`/certificates/${encodeURIComponent(certId.trim())}/verify`);
+        data = res.data;
+      } catch (primaryErr: any) {
+        // Fallback to /certificates/:id direct lookup
+        const fallbackRes = await api.get(`/certificates/${encodeURIComponent(certId.trim())}`);
+        data = fallbackRes.data;
+      }
 
       // backend may return 200 with ok=false (revoked, superseded, etc.)
-      if (!res.ok || data?.ok === false) {
+      if (!data || data?.ok === false) {
         setErrorMsg(data?.error || data?.reason || "Verification failed");
         return;
       }
@@ -86,7 +84,7 @@ export default function VerifyPage() {
           : payload.note,
       });
     } catch (err: any) {
-      setErrorMsg(err.message || "Network error");
+      setErrorMsg(err.response?.data?.error || err.message || "Network error");
     } finally {
       setLoading(false);
     }

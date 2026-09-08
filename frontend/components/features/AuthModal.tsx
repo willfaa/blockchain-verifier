@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { getApiBase } from "@/lib/utils";
+import api from "@/lib/api";
 
 type AuthMode = "login" | "register";
 
@@ -43,29 +43,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setErrorV(null);
 
     try {
-      const res = await fetch(`${getApiBase()}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({
-          identifier: loginId,
-          password: loginPass,
-          role,
-        }),
+      const res = await api.post("/auth/login", {
+        identifier: loginId,
+        password: loginPass,
+        role,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
+      if (!res.data.ok) {
+        throw new Error(res.data.error || "Login failed");
       }
 
       // Login success -> update state without redirect
-      login(data.user, null);
+      login(res.data.user, null);
       onClose();
     } catch (err: any) {
-      setErrorV(err.message);
+      setErrorV(err.response?.data?.error || err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -92,25 +84,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         payload.lectureMajority = regLectureMajority;
       }
 
-      const res = await fetch(`${getApiBase()}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const res = await api.post("/auth/register", payload);
 
-      if (!res.ok) {
-        throw new Error(data.error || "Registration failed");
+      if (!res.data.ok) {
+        throw new Error(res.data.error || "Registration failed");
       }
 
       // Auto login after register without redirect
-      login(data.user, null);
+      login(res.data.user, null);
       onClose();
     } catch (err: any) {
-      setErrorV(err.message);
+      setErrorV(err.response?.data?.error || err.message || "Registration failed");
     } finally {
       setLoading(false);
     }

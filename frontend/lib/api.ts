@@ -1,15 +1,35 @@
 // frontend/lib/api.ts
 import axios from "axios";
-
 import { getApiBase } from "./utils";
 
 const api = axios.create({
-  timeout: 8000,
+  timeout: 15000,
 });
 
 api.interceptors.request.use(
   (config) => {
-    config.baseURL = `${getApiBase()}/api`;
+    const isClient = typeof window !== "undefined";
+    const isTunnelOffline = isClient && sessionStorage.getItem("tunnel_offline") === "true";
+
+    if (isTunnelOffline) {
+      config.baseURL = `${window.location.origin}/api`;
+      config.timeout = 15000;
+    } else {
+      const base = getApiBase();
+      config.baseURL = `${base}/api`;
+
+      // If pointing to external tunnel, use shorter timeout (3.5s) to fail fast on dead tunnels
+      const isExternalTunnel =
+        isClient &&
+        base &&
+        !base.startsWith(window.location.origin) &&
+        !base.includes("localhost") &&
+        !base.includes("127.0.0.1");
+
+      if (isExternalTunnel) {
+        config.timeout = 3500;
+      }
+    }
     
     // Always inject tunnel bypass & JSON accept headers
     if (!config.headers) {
@@ -20,7 +40,7 @@ api.interceptors.request.use(
     config.headers["bypass-tunnel-reminder"] = "1";
     config.headers["Accept"] = "application/json";
 
-    if (typeof window !== "undefined") {
+    if (isClient) {
       const storedData = localStorage.getItem("chainnesa_user");
       if (storedData) {
         try {
@@ -66,13 +86,12 @@ api.interceptors.response.use(
     if (isTunnelDead && config && !config._isRetry && typeof window !== "undefined") {
       const isExternalBase =
         config.baseURL &&
-        !config.baseURL.startsWith(window.location.origin) &&
-        !config.baseURL.includes("localhost") &&
-        !config.baseURL.includes("127.0.0.1");
+        !config.baseURL.startsWith(window.location.origin);
 
       if (isExternalBase) {
         sessionStorage.setItem("tunnel_offline", "true");
         config._isRetry = true;
+        config.timeout = 15000;
         config.baseURL = `${window.location.origin}/api`;
         console.warn(`[Tunnel Offline] Auto-switching request to Vercel Serverless Cloud: ${config.url}`);
         return api(config);
