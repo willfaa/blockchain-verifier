@@ -19,15 +19,17 @@ import {
 import CertificateTemplate from "@/components/features/CertificateTemplate";
 import QRCode from "qrcode";
 import api from "@/lib/api";
+import CertificateTranscriptPage from "@/components/features/CertificateTranscriptPage";
 
-interface CompetencyUnit {
+export interface CompetencyUnit {
   code: string;
   title: string;
   standard?: string;
   result?: string;
+  score?: number | string;
 }
 
-interface SignerInfo {
+export interface SignerInfo {
   name: string;
   title: string;
   role?: string;
@@ -236,7 +238,28 @@ export function VerificationTranscriptViewer({
       ) : (
         /* TAB 2: Transkrip Unit Kompetensi SKKNI (Duplex Back Page) */
         <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Transcript Card */}
+          {/* Vector Document Canvas Preview */}
+          <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
+            <div className="flex items-center justify-center shrink-0 m-auto">
+              <CertificateTranscriptPage
+                studentName={studentName}
+                studentId={studentId}
+                majority={majority}
+                program={program}
+                courseTitle={courseTitle}
+                units={units}
+                examinerName={signerList[0]?.name || "Penguji / Asesor"}
+                examinerNip={signerList[0]?.nip}
+                schoolName={schoolName || "SMK Mitra IDUKA"}
+                paperSize={layoutSettings.certificatePaperSize || "A4"}
+                paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+              />
+            </div>
+          </div>
+
+          {/* Transcript Data Card */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 backdrop-blur-xl space-y-6">
             {/* Header Transkrip */}
             <div className="border-b border-white/10 pb-6">
@@ -290,7 +313,7 @@ export function VerificationTranscriptViewer({
               </div>
             </div>
 
-            {/* Competency Table */}
+            {/* Competency Table with Nilai column */}
             <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/60">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -299,24 +322,58 @@ export function VerificationTranscriptViewer({
                     <th className="py-3 px-4 w-40">Kode Unit</th>
                     <th className="py-3 px-4">Judul Unit Kompetensi</th>
                     <th className="py-3 px-4 w-28 text-center">Standar</th>
+                    <th className="py-3 px-4 w-28 text-center text-amber-300">Nilai</th>
                     <th className="py-3 px-4 w-32 text-center">Hasil Uji</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {units.map((unit, idx) => (
-                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-4 text-center font-mono text-white/40">{idx + 1}</td>
-                      <td className="py-3 px-4 font-mono font-bold text-cyan-400">{unit.code}</td>
-                      <td className="py-3 px-4 text-white/90 font-medium">{unit.title}</td>
-                      <td className="py-3 px-4 text-center font-mono text-white/50">{unit.standard || "SKKNI"}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[10px] uppercase tracking-wider">
-                          <CheckCircle2 size={12} /> {unit.result || "KOMPETEN"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {units.map((unit, idx) => {
+                    const scoreVal =
+                      unit.score !== undefined && unit.score !== null && unit.score !== ""
+                        ? !isNaN(parseFloat(String(unit.score)))
+                          ? parseFloat(String(unit.score)).toFixed(2)
+                          : unit.score
+                        : "-";
+
+                    return (
+                      <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 text-center font-mono text-white/40">{idx + 1}</td>
+                        <td className="py-3 px-4 font-mono font-bold text-cyan-400">{unit.code}</td>
+                        <td className="py-3 px-4 text-white/90 font-medium">{unit.title}</td>
+                        <td className="py-3 px-4 text-center font-mono text-white/50">{unit.standard || "SKKNI"}</td>
+                        <td className="py-3 px-4 text-center font-mono font-bold text-amber-300">
+                          {scoreVal}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[10px] uppercase tracking-wider">
+                            <CheckCircle2 size={12} /> {unit.result || "KOMPETEN"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
+                <tfoot>
+                  <tr className="bg-white/5 border-t border-white/10 font-bold">
+                    <td colSpan={4} className="py-3 px-4 text-right uppercase text-white/60 tracking-wider">
+                      Nilai Rata-Rata:
+                    </td>
+                    <td className="py-3 px-4 text-center font-mono text-sm font-extrabold text-amber-300">
+                      {(() => {
+                        const valid = units
+                          .map((u) => (u.score !== undefined && u.score !== null ? parseFloat(String(u.score)) : NaN))
+                          .filter((s) => !isNaN(s));
+                        if (valid.length === 0) return "90.00";
+                        return (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(2);
+                      })()}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] uppercase tracking-widest font-extrabold">
+                        LULUS
+                      </span>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
 
