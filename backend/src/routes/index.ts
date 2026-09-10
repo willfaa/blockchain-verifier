@@ -24,15 +24,20 @@ router.get("/system/status", async (req, res) => {
   if (process.env.FABRIC_ENABLED === "true") {
     try {
       const { checkFabricReady } = require("../fabric/client");
-      await checkFabricReady("admin", "admin");
-      isFabricOnline = true;
+      const ready = await checkFabricReady("admin", "admin");
+      isFabricOnline = Boolean(ready);
     } catch (e) {
-      // offline
+      isFabricOnline = false;
     }
   }
   return res.json({
     ok: true,
     blockchainOnline: isFabricOnline,
+    system: {
+      uptime: Math.floor(process.uptime()),
+      fabricEnabled: process.env.FABRIC_ENABLED === "true",
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 

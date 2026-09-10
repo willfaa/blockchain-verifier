@@ -6,9 +6,25 @@ const api = axios.create({
   timeout: 15000,
 });
 
+export const clearTunnelOffline = () => {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("tunnel_offline");
+    sessionStorage.removeItem("tunnel_offline_at");
+  }
+};
+
 api.interceptors.request.use(
   (config) => {
     const isClient = typeof window !== "undefined";
+    
+    // Auto-expire tunnel_offline after 15 seconds to allow automatic re-discovery
+    if (isClient && sessionStorage.getItem("tunnel_offline") === "true") {
+      const offlineAt = Number(sessionStorage.getItem("tunnel_offline_at") || 0);
+      if (Date.now() - offlineAt > 15000) {
+        clearTunnelOffline();
+      }
+    }
+
     const isTunnelOffline = isClient && sessionStorage.getItem("tunnel_offline") === "true";
 
     if (isTunnelOffline) {
@@ -18,7 +34,7 @@ api.interceptors.request.use(
       const base = getApiBase();
       config.baseURL = `${base}/api`;
 
-      // If pointing to external tunnel, use shorter timeout (3.5s) to fail fast on dead tunnels
+      // If pointing to external tunnel, use 12s timeout to accommodate Ngrok/TLS/Fabric negotiation
       const isExternalTunnel =
         isClient &&
         base &&
@@ -27,7 +43,7 @@ api.interceptors.request.use(
         !base.includes("127.0.0.1");
 
       if (isExternalTunnel) {
-        config.timeout = 3500;
+        config.timeout = 12000;
       }
     }
     
@@ -90,6 +106,7 @@ api.interceptors.response.use(
 
       if (isExternalBase) {
         sessionStorage.setItem("tunnel_offline", "true");
+        sessionStorage.setItem("tunnel_offline_at", String(Date.now()));
         config._isRetry = true;
         config.timeout = 15000;
         config.baseURL = `${window.location.origin}/api`;

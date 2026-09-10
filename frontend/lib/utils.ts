@@ -27,7 +27,15 @@ export const getApiBase = () => {
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
 
-    const isTunnelOffline = sessionStorage.getItem("tunnel_offline") === "true";
+    let isTunnelOffline = sessionStorage.getItem("tunnel_offline") === "true";
+    if (isTunnelOffline) {
+      const offlineAt = Number(sessionStorage.getItem("tunnel_offline_at") || 0);
+      if (Date.now() - offlineAt > 15000) {
+        sessionStorage.removeItem("tunnel_offline");
+        sessionStorage.removeItem("tunnel_offline_at");
+        isTunnelOffline = false;
+      }
+    }
 
     // 1. Dynamic Tunnel configured explicitly in Admin Dashboard (localStorage)
     const customTunnel = localStorage.getItem("chainnesa_custom_tunnel");

@@ -92,7 +92,28 @@ app.use("/uploads", express.static(uploadsPath));
 if (process.env.VERCEL) {
   const bundledUploadsPath = path.join(process.cwd(), "backend", "uploads");
   app.use("/uploads", express.static(bundledUploadsPath));
-}
+// --- PUBLIC SYSTEM STATUS / HEALTH CHECK (FAST PING FOR TUNNEL / NGROK) ---
+app.get(["/api/system/status", "/system/status"], async (req, res) => {
+  let isFabricOnline = false;
+  if (process.env.FABRIC_ENABLED === "true") {
+    try {
+      const { checkFabricReady } = require("./fabric/client");
+      const ready = await checkFabricReady("admin", "admin");
+      isFabricOnline = Boolean(ready);
+    } catch (e) {
+      isFabricOnline = false;
+    }
+  }
+  return res.json({
+    ok: true,
+    blockchainOnline: isFabricOnline,
+    system: {
+      uptime: Math.floor(process.uptime()),
+      fabricEnabled: process.env.FABRIC_ENABLED === "true",
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
 
 // --- ROUTE MOUNTING (STRICT PRIORITY) ---
 

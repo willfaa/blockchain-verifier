@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import api from "@/lib/api";
+import api, { clearTunnelOffline } from "@/lib/api";
 import {
   Users,
   FileText,
@@ -57,6 +57,9 @@ export default function AdminDashboard() {
   const [customTunnel, setCustomTunnel] = useState("");
   const [tunnelInput, setTunnelInput] = useState("");
   const [showTunnelModal, setShowTunnelModal] = useState(false);
+  const [tunnelStatus, setTunnelStatus] = useState<"CONNECTED" | "FABRIC_OFFLINE" | "TUNNEL_DEAD" | "STANDALONE_CLOUD">("STANDALONE_CLOUD");
+  const [tunnelLatency, setTunnelLatency] = useState<number | null>(null);
+  const [isTestingTunnel, setIsTestingTunnel] = useState(false);
 
   // Form State for Supersede
   const [correctedName, setCorrectedName] = useState("");
@@ -72,12 +75,74 @@ export default function AdminDashboard() {
       const saved = localStorage.getItem("chainnesa_custom_tunnel") || "";
       setCustomTunnel(saved);
       setTunnelInput(saved);
+      if (saved) {
+        setTunnelStatus("CONNECTED");
+      }
     }
   }, []);
 
+  // Proactive direct tunnel test
+  const handleTestTunnel = async (targetUrl?: string) => {
+    const url = (targetUrl || customTunnel || "").trim().replace(/\/$/, "");
+    if (!url) {
+      toast.info("Mode Serverless Cloud (Tidak ada URL Tunnel yang tersimpan)");
+      return;
+    }
+
+    setIsTestingTunnel(true);
+    clearTunnelOffline();
+    toast.loading(`Menguji koneksi ke ${url}...`, { id: "manual_tunnel_test" });
+
+    const startTime = Date.now();
+    try {
+      const res = await fetch(`${url}/api/system/status`, {
+        headers: {
+          "ngrok-skip-browser-warning": "69420",
+          "Bypass-Tunnel-Reminder": "true",
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      const latency = Date.now() - startTime;
+      if (res.ok) {
+        const data = await res.json();
+        setTunnelLatency(latency);
+        clearTunnelOffline();
+
+        if (data.blockchainOnline) {
+          setTunnelStatus("CONNECTED");
+          toast.success(`⚡ Terhubung ke Ngrok & Hyperledger Fabric ONLINE! (Ping: ${latency}ms)`, {
+            id: "manual_tunnel_test",
+          });
+        } else {
+          setTunnelStatus("FABRIC_OFFLINE");
+          toast.warning(`Backend Express terhubung (${latency}ms), namun Fabric node di WSL belum ONLINE`, {
+            id: "manual_tunnel_test",
+          });
+        }
+        fetchStats(false);
+      } else {
+        setTunnelStatus("TUNNEL_DEAD");
+        toast.error(`Endpoint merespon dengan status ${res.status}. Pastikan URL tunnel benar.`, {
+          id: "manual_tunnel_test",
+        });
+      }
+    } catch (err: any) {
+      setTunnelStatus("TUNNEL_DEAD");
+      toast.error(`Gagal menghubungi ${url}. Pastikan backend dan Ngrok sedang aktif.`, {
+        id: "manual_tunnel_test",
+      });
+    } finally {
+      setIsTestingTunnel(false);
+    }
+  };
+
   // Fetch stats and integrity checks from backend
   const fetchStats = useCallback(async (isManual: boolean = false) => {
-    if (isManual) setIsSyncing(true);
+    if (isManual) {
+      setIsSyncing(true);
+      clearTunnelOffline();
+    }
     try {
       const timestamp = Date.now();
       const noCacheConfig = {
@@ -87,6 +152,33 @@ export default function AdminDashboard() {
           Expires: "0",
         },
       };
+
+      // Probe tunnel status if configured
+      const activeTunnel = typeof window !== "undefined" ? localStorage.getItem("chainnesa_custom_tunnel") || "" : "";
+      if (activeTunnel) {
+        try {
+          const tStart = Date.now();
+          const tRes = await fetch(`${activeTunnel}/api/system/status`, {
+            headers: {
+              "ngrok-skip-browser-warning": "69420",
+              "Bypass-Tunnel-Reminder": "true",
+            },
+            signal: AbortSignal.timeout(4000),
+          });
+          if (tRes.ok) {
+            const tData = await tRes.json();
+            setTunnelLatency(Date.now() - tStart);
+            clearTunnelOffline();
+            setTunnelStatus(tData.blockchainOnline ? "CONNECTED" : "FABRIC_OFFLINE");
+          } else {
+            setTunnelStatus("TUNNEL_DEAD");
+          }
+        } catch {
+          setTunnelStatus("TUNNEL_DEAD");
+        }
+      } else {
+        setTunnelStatus("STANDALONE_CLOUD");
+      }
 
       const [statsRes, discRes, reqRes, syncStatsRes] = await Promise.allSettled([
         api.get(`/admin/stats?_t=${timestamp}`, noCacheConfig),
@@ -100,10 +192,13 @@ export default function AdminDashboard() {
         setIsBackendConnected(true);
         setStats(data);
         setLastSyncedAt(new Date());
+        if (data?.system?.health?.blockchain === "ONLINE") {
+          setTunnelStatus("CONNECTED");
+        }
         if (isManual) {
           const blockchainStatus = data?.system?.health?.blockchain;
           if (blockchainStatus === "ONLINE") {
-            toast.success("Sinkronisasi Realtime Berhasil: Semua Service & Blockchain ONLINE!");
+            toast.success("Sinkronisasi Realtime Berhasil: Semua Service & Blockchain ONLINE! ⚡");
           } else {
             toast.info("Status tersinkronisasi. Blockchain: " + (blockchainStatus || "OFFLINE"));
           }
@@ -191,9 +286,7 @@ export default function AdminDashboard() {
   const handleManualLedgerSync = async () => {
     setIsSyncingLedger(true);
     try {
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("tunnel_offline");
-      }
+      clearTunnelOffline();
       const res = await api.post("/certificates/sync-ledger");
       if (res.data.ok) {
         toast.success(res.data.message || "Sinkronisasi antrean ke Blockchain berhasil!");
@@ -212,37 +305,47 @@ export default function AdminDashboard() {
     const cleanUrl = tunnelInput.trim().replace(/\/$/, "");
     if (cleanUrl) {
       localStorage.setItem("chainnesa_custom_tunnel", cleanUrl);
-      sessionStorage.removeItem("tunnel_offline");
+      clearTunnelOffline();
       setCustomTunnel(cleanUrl);
       setShowTunnelModal(false);
 
       toast.loading("Menguji koneksi ke endpoint Ngrok...", { id: "tunnel_test" });
       try {
+        const startTime = Date.now();
         const testRes = await fetch(`${cleanUrl}/api/system/status`, {
           headers: {
             "ngrok-skip-browser-warning": "69420",
             "Bypass-Tunnel-Reminder": "true",
           },
+          signal: AbortSignal.timeout(8000),
         });
+        const latency = Date.now() - startTime;
         if (testRes.ok) {
           const testData = await testRes.json();
+          setTunnelLatency(latency);
+          clearTunnelOffline();
           if (testData.blockchainOnline) {
-            toast.success("Terkoneksi ke Backend & Blockchain Hyperledger Fabric ONLINE! ⚡", { id: "tunnel_test" });
+            setTunnelStatus("CONNECTED");
+            toast.success(`Terkoneksi ke Backend & Blockchain Hyperledger Fabric ONLINE! ⚡ (${latency}ms)`, { id: "tunnel_test" });
           } else {
-            toast.success("Backend Express terhubung via Ngrok (Namun container Fabric di WSL belum online)", { id: "tunnel_test" });
+            setTunnelStatus("FABRIC_OFFLINE");
+            toast.success(`Backend Express terhubung via Ngrok (${latency}ms) - Namun node Fabric di WSL belum aktif`, { id: "tunnel_test" });
           }
         } else {
-          toast.success("Endpoint Ngrok tersimpan. Menyinkronkan status...", { id: "tunnel_test" });
+          setTunnelStatus("TUNNEL_DEAD");
+          toast.warning(`Endpoint Ngrok tersimpan, namun server merespon dengan status ${testRes.status}`, { id: "tunnel_test" });
         }
       } catch (err: any) {
-        toast.error(`Gagal menghubungi ${cleanUrl}. Pastikan 'npm run dev' di folder backend sudah berjalan.`, { id: "tunnel_test" });
+        setTunnelStatus("TUNNEL_DEAD");
+        toast.error(`Gagal menghubungi ${cleanUrl}. Pastikan 'npm run dev' di backend sudah berjalan dan Ngrok aktif.`, { id: "tunnel_test" });
       }
 
       setTimeout(() => fetchStats(true), 300);
     } else {
       localStorage.removeItem("chainnesa_custom_tunnel");
-      sessionStorage.removeItem("tunnel_offline");
+      clearTunnelOffline();
       setCustomTunnel("");
+      setTunnelStatus("STANDALONE_CLOUD");
       setShowTunnelModal(false);
       toast.info("Kembali ke Serverless Cloud Mode");
       setTimeout(() => fetchStats(true), 300);
@@ -251,9 +354,11 @@ export default function AdminDashboard() {
 
   const handleResetTunnel = () => {
     localStorage.removeItem("chainnesa_custom_tunnel");
-    sessionStorage.removeItem("tunnel_offline");
+    clearTunnelOffline();
     setCustomTunnel("");
     setTunnelInput("");
+    setTunnelStatus("STANDALONE_CLOUD");
+    setTunnelLatency(null);
     setShowTunnelModal(false);
     toast.info("Menggunakan Serverless Cloud Mode bawaan Vercel");
     setTimeout(() => fetchStats(true), 200);
@@ -382,16 +487,27 @@ export default function AdminDashboard() {
     },
     {
       name: "Blockchain (Hyperledger Fabric)",
-      status: isBackendConnected ? (isFabricOnline ? "ONLINE" : isCloudResilience ? "STANDBY" : "OFFLINE") : "OFFLINE",
+      status: isBackendConnected
+        ? isFabricOnline || tunnelStatus === "CONNECTED"
+          ? "ONLINE"
+          : isCloudResilience
+          ? "STANDBY"
+          : "OFFLINE"
+        : "OFFLINE",
       desc: isBackendConnected
-        ? isFabricOnline
+        ? isFabricOnline || tunnelStatus === "CONNECTED"
           ? "Consensus Ledger (Channel: chainnesa)"
           : isCloudResilience
           ? "Mirror Cryptographic Proof (Sync on Local Connect)"
           : "Mirror Queue Mode (Sync on Connect)"
         : "Unreachable (Backend Offline)",
       icon: Cpu,
-      color: isBackendConnected && isFabricOnline ? "text-neon-pink" : isCloudResilience ? "text-amber-400" : "text-rose-400",
+      color:
+        isBackendConnected && (isFabricOnline || tunnelStatus === "CONNECTED")
+          ? "text-neon-pink"
+          : isCloudResilience
+          ? "text-amber-400"
+          : "text-rose-400",
     },
   ];
 
@@ -490,11 +606,124 @@ export default function AdminDashboard() {
             <p className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  allOnline ? "bg-emerald-400 animate-pulse" : isFabricOnline ? "bg-amber-400 animate-pulse" : "bg-cyan-400 animate-pulse"
+                  allOnline ? "bg-emerald-400 animate-pulse" : isFabricOnline || tunnelStatus === "CONNECTED" ? "bg-emerald-400 animate-pulse" : "bg-cyan-400 animate-pulse"
                 }`}
               />
-              {allOnline ? "All Systems Operational" : isFabricOnline ? "Partial Online" : "Mirror Cloud Mode Active"}
+              {allOnline
+                ? "All Systems Operational"
+                : isFabricOnline || tunnelStatus === "CONNECTED"
+                ? "Fabric Consensus Online"
+                : "Mirror Cloud Mode Active"}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* TUNNEL & BLOCKCHAIN REALTIME CONNECTION STATUS BAR */}
+      <div
+        className={`p-5 rounded-3xl border transition-all ${
+          tunnelStatus === "CONNECTED" || isFabricOnline
+            ? "bg-emerald-500/[0.04] border-emerald-500/30 text-emerald-300"
+            : tunnelStatus === "FABRIC_OFFLINE"
+            ? "bg-amber-500/[0.04] border-amber-500/30 text-amber-300"
+            : tunnelStatus === "TUNNEL_DEAD"
+            ? "bg-rose-500/[0.04] border-rose-500/30 text-rose-300"
+            : "bg-cyan-500/[0.03] border-cyan-500/20 text-cyan-300"
+        } backdrop-blur-xl shadow-xl`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div
+              className={`p-3 rounded-2xl ${
+                tunnelStatus === "CONNECTED" || isFabricOnline
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : tunnelStatus === "FABRIC_OFFLINE"
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : tunnelStatus === "TUNNEL_DEAD"
+                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+              }`}
+            >
+              {tunnelStatus === "CONNECTED" || isFabricOnline ? (
+                <Zap size={20} className="animate-pulse" />
+              ) : tunnelStatus === "FABRIC_OFFLINE" ? (
+                <AlertTriangle size={20} />
+              ) : tunnelStatus === "TUNNEL_DEAD" ? (
+                <WifiOff size={20} />
+              ) : (
+                <ShieldCheck size={20} />
+              )}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-sm text-white">
+                  {tunnelStatus === "CONNECTED" || isFabricOnline
+                    ? "⚡ Hyperledger Fabric Peer & Backend Express ONLINE"
+                    : tunnelStatus === "FABRIC_OFFLINE"
+                    ? "⚠️ Ngrok Terhubung (Namun Peer Fabric di WSL belum aktif)"
+                    : tunnelStatus === "TUNNEL_DEAD"
+                    ? "🔴 Ngrok Tunnel Terputus / Tidak Terjangkau"
+                    : "🌐 Serverless Cloud Resilience Mode (24/7 Standalone)"}
+                </span>
+                {tunnelLatency !== null && (tunnelStatus === "CONNECTED" || isFabricOnline) && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
+                    Ping: {tunnelLatency}ms
+                  </span>
+                )}
+                {customTunnel && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 text-[10px] font-mono">
+                    Ngrok / Custom Tunnel
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-1 font-mono">
+                {customTunnel ? (
+                  <>
+                    Target URL: <span className="text-cyan-300 underline underline-offset-2">{customTunnel}</span>
+                    <span className="mx-2 text-white/20">|</span>
+                    Channel: <span className="text-neon-purple font-bold">chainnesa</span>
+                  </>
+                ) : (
+                  "Berjalan mandiri di Cloud Vercel. Database Supabase & IPFS Pinata aktif. Hubungkan tunnel Ngrok untuk mengeksekusi konsensus Hyperledger Fabric lokal."
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            {customTunnel && (
+              <button
+                type="button"
+                onClick={() => handleTestTunnel()}
+                disabled={isTestingTunnel}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5 border border-white/10 disabled:opacity-50"
+                title="Uji respon endpoint Ngrok sekarang"
+              >
+                <RefreshCw size={13} className={isTestingTunnel ? "animate-spin text-cyan-400" : ""} />
+                <span>{isTestingTunnel ? "Menguji..." : "Uji Koneksi"}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setTunnelInput(customTunnel);
+                setShowTunnelModal(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-cyan-500/10"
+            >
+              <Link2 size={13} />
+              <span>{customTunnel ? "Konfigurasi URL" : "Hubungkan Ngrok"}</span>
+            </button>
+            {customTunnel && (
+              <button
+                type="button"
+                onClick={handleResetTunnel}
+                className="px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all border border-rose-500/20"
+                title="Kembali ke Serverless Cloud Mode"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
       </div>
