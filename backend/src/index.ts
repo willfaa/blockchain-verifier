@@ -92,6 +92,8 @@ app.use("/uploads", express.static(uploadsPath));
 if (process.env.VERCEL) {
   const bundledUploadsPath = path.join(process.cwd(), "backend", "uploads");
   app.use("/uploads", express.static(bundledUploadsPath));
+}
+
 // --- PUBLIC SYSTEM STATUS / HEALTH CHECK (FAST PING FOR TUNNEL / NGROK) ---
 app.get(["/api/system/status", "/system/status"], async (req, res) => {
   let isFabricOnline = false;
