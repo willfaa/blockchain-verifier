@@ -24,31 +24,37 @@ import { toast } from "sonner";
 import { getApiBase } from "@/lib/utils";
 import { getIpfsGatewayUrl } from "@/lib/ipfs";
 import CertificateTemplate from "@/components/features/CertificateTemplate";
+import CertificateTranscriptPage from "@/components/features/CertificateTranscriptPage";
 import QRCode from "qrcode";
 
 interface CertificateDetail {
   id: string;
   certId: string;
-  cid: string;
-  status: string;
-  issuedAt: string;
-  hash: string;
   studentName: string;
   studentId?: string;
-  program?: string;
-  majority?: string;
+  program: string;
+  majority: string;
+  issuedAt: string;
+  cid: string;
+  hash: string;
+  status: string;
   supersededBy?: string;
-  supersededFrom?: string;
-  course: {
+  course?: {
     title: string;
-    id: string;
+    certificateTemplate?: string | null;
   };
+  competencyUnits?: any[];
+  signers?: any[];
+  schoolName?: string;
 }
 
-export default function CertificateDetailPage() {
-  const { id } = useParams();
+export default function StudentCertificateDetailPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const [cert, setCert] = useState<CertificateDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"front" | "transcript">("front");
   const [aspectRatio, setAspectRatio] = useState<string>("aspect-[1.414/1]");
   const [layoutSettings, setLayoutSettings] = useState<any>({});
   const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
@@ -263,7 +269,37 @@ export default function CertificateDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Preview */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
+            {/* Dual Tab Switcher */}
+            {cert.status !== "PENDING" && (
+              <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-2xl border border-white/10 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("front")}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === "front"
+                      ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <Award size={15} />
+                  <span>Halaman 1 (Sertifikat Utama)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("transcript")}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === "transcript"
+                      ? "bg-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/20"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <FileCheck size={15} />
+                  <span>Halaman 2 (Transkrip Nilai)</span>
+                </button>
+              </div>
+            )}
+
             <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl min-h-[350px]">
               {cert.status === "PENDING" ? (
                 <div className="p-8 text-center space-y-4 max-w-md m-auto">
@@ -279,24 +315,42 @@ export default function CertificateDetailPage() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center shrink-0 m-auto">
-                  <CertificateTemplate
-                    studentName={cert.studentName}
-                    studentId={cert.studentId || (cert as any).studentId}
-                    courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
-                    certificateId={cert.certId || cert.id}
-                    program={cert.program}
-                    majority={cert.majority}
-                    issuedAt={cert.issuedAt}
-                    qrCodeBase64={qrCodeBase64}
-                    layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                    paperSize={layoutSettings.certificatePaperSize || "A4"}
-                    paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                    paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                    instructorName={layoutSettings.instructorName}
-                    instructorNip={layoutSettings.instructorNip}
-                    bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
-                    layoutConfig={layoutSettings.layoutConfig}
-                  />
+                  {activeTab === "front" ? (
+                    <CertificateTemplate
+                      studentName={cert.studentName}
+                      studentId={cert.studentId || (cert as any).studentId}
+                      courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
+                      certificateId={cert.certId || cert.id}
+                      program={cert.program}
+                      majority={cert.majority}
+                      issuedAt={cert.issuedAt}
+                      qrCodeBase64={qrCodeBase64}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                      instructorName={layoutSettings.instructorName}
+                      instructorNip={layoutSettings.instructorNip}
+                      bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                      layoutConfig={layoutSettings.layoutConfig}
+                    />
+                  ) : (
+                    <CertificateTranscriptPage
+                      studentName={cert.studentName}
+                      studentId={cert.studentId || (cert as any).studentId}
+                      majority={cert.majority || "Teknik Komputer dan Jaringan"}
+                      program={cert.program || cert.course?.title}
+                      courseTitle={cert.course?.title}
+                      units={cert.competencyUnits}
+                      examinerName={layoutSettings.instructorName || "Penguji / Asesor"}
+                      examinerNip={layoutSettings.instructorNip}
+                      schoolName={cert.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                    />
+                  )}
                 </div>
               )}
             </div>
