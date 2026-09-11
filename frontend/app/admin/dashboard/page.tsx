@@ -793,27 +793,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setTunnelInput(customTunnel);
-                setShowTunnelModal(true);
-              }}
-              className="px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-white/10 text-white"
-              title="Hubungkan tunnel Ngrok / Localtunnel dari laptop lokal"
-            >
-              <Link2 size={14} className={customTunnel ? "text-cyan-400" : "text-slate-400"} />
-              <span>{customTunnel ? "Node Terhubung (Ngrok)" : "Hubungkan Tunnel Ngrok"}</span>
-            </button>
-
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={handleManualLedgerSync}
               disabled={isSyncingLedger || !isBackendConnected || (!isFabricOnline && !customTunnel) || (syncStats?.pendingCount || 0) === 0}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
                 (isFabricOnline || customTunnel) && (syncStats?.pendingCount || 0) > 0
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-cyan-500/20 animate-pulse hover:opacity-90"
+                  ? "bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-cyan-500/20 animate-pulse hover:opacity-90 cursor-pointer"
                   : "bg-white/5 border border-white/10 text-white/60"
               }`}
               title={
@@ -829,7 +816,7 @@ export default function AdminDashboard() {
               ) : (
                 <Send size={14} />
               )}
-              <span>{isSyncingLedger ? "Menyinkronkan..." : "Sinkronkan Antrean ke Blockchain"}</span>
+              <span>{isSyncingLedger ? "Menyinkronkan Antrean..." : "Sinkronkan Antrean ke Blockchain"}</span>
             </button>
           </div>
         </div>
