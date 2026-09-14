@@ -181,16 +181,18 @@ const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
   courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK) REKAYASA PERANGKAT LUNAK", x: 877, y: 765, width: 1000, height: 60, fontSize: 38, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
   
   // Signer 1 (Internal Sekolah) - Left Bottom
+  instructorSignature: { id: "instructorSignature", type: "image", label: "Tanda Tangan Signer 1 (PNG)", x: 350, y: 935, width: 150, height: 70, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
   instructorName: { id: "instructorName", type: "text", label: "Nama Kepala Sekolah (Signer 1)", text: "Drs. H. Mulyono, M.Pd.", x: 350, y: 990, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 20 },
   instructorLine: { id: "instructorLine", type: "line", label: "Garis TTD Kepala Sekolah", x: 350, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 21 },
   instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Signer 1", text: "KEPALA SEKOLAH / PENGUJI", x: 350, y: 1045, width: 320, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
   instructorNip: { id: "instructorNip", type: "text", label: "NIP Kepala Sekolah", text: "NIP: 197204121998021003", x: 350, y: 1075, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 23 },
   
   // Signer 2 (Eksternal / Mitra DUDI) - Center Bottom
-  signer2Name: { id: "signer2Name", type: "text", label: "Nama Asesor DUDI (Signer 2)", text: "Ir. Hendra Kusuma, M.Kom.", x: 877, y: 990, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 24 },
-  signer2Line: { id: "signer2Line", type: "line", label: "Garis TTD Asesor DUDI", x: 877, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 25 },
-  signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Asesor DUDI", text: "ASESOR MITRA INDUSTRI (DUDI)", x: 877, y: 1045, width: 340, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 26 },
-  signer2Nip: { id: "signer2Nip", type: "text", label: "Instansi / REG Asesor DUDI", text: "PT. TELKOM INDONESIA TBK", x: 877, y: 1075, width: 340, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 27 },
+  signer2Signature: { id: "signer2Signature", type: "image", label: "Tanda Tangan Signer 2 (PNG)", x: 877, y: 935, width: 150, height: 70, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: false, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 23.5 },
+  signer2Name: { id: "signer2Name", type: "text", label: "Nama Asesor DUDI (Signer 2)", text: "Ir. Hendra Kusuma, M.Kom.", x: 877, y: 990, width: 360, height: 38, fontSize: 24, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: false, align: "center", locked: false, zIndex: 24 },
+  signer2Line: { id: "signer2Line", type: "line", label: "Garis TTD Asesor DUDI", x: 877, y: 1030, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: false, locked: false, zIndex: 25 },
+  signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Asesor DUDI", text: "ASESOR MITRA INDUSTRI (DUDI)", x: 877, y: 1045, width: 340, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 26 },
+  signer2Nip: { id: "signer2Nip", type: "text", label: "Instansi / REG Asesor DUDI", text: "PT. TELKOM INDONESIA TBK", x: 877, y: 1075, width: 340, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 27 },
 
   // QR Code - Right Bottom
   qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 1404, y: 980, width: 130, height: 130, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 28 },
@@ -213,10 +215,16 @@ const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
   courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK)", x: 620, y: 785, width: 750, height: 55, fontSize: 32, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
   qrCode: { id: "qrCode", type: "image", label: "QR Code Verifikasi", x: 620, y: 1100, width: 140, height: 140, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, lockAspectRatio: true, locked: false, zIndex: 20 },
   scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "PINDAI VERIFIKASI", x: 620, y: 1205, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
+  instructorSignature: { id: "instructorSignature", type: "image", label: "Tanda Tangan Kepala Sekolah (PNG)", x: 620, y: 1385, width: 150, height: 70, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 21.5 },
   instructorName: { id: "instructorName", type: "text", label: "Nama Kepala Sekolah", text: "Drs. H. Mulyono, M.Pd.", x: 620, y: 1440, width: 360, height: 38, fontSize: 22, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: true, align: "center", locked: false, zIndex: 22 },
   instructorLine: { id: "instructorLine", type: "line", label: "Garis Tanda Tangan", x: 620, y: 1480, width: 280, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: true, locked: false, zIndex: 23 },
   instructorTitle: { id: "instructorTitle", type: "text", label: "Jabatan Kepala Sekolah", text: "KEPALA SEKOLAH / PENGUJI", x: 620, y: 1500, width: 280, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 24 },
   instructorNip: { id: "instructorNip", type: "text", label: "NIP Kepala Sekolah", text: "NIP: 197204121998021003", x: 620, y: 1530, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 25 },
+  signer2Signature: { id: "signer2Signature", type: "image", label: "Tanda Tangan Signer 2 (PNG)", x: 620, y: 1585, width: 150, height: 70, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: false, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 26 },
+  signer2Name: { id: "signer2Name", type: "text", label: "Nama Asesor DUDI (Signer 2)", text: "Ir. Hendra Kusuma, M.Kom.", x: 620, y: 1640, width: 360, height: 38, fontSize: 22, fontFamily: "Arial", color: "#f8fafc", bold: true, italic: true, visible: false, align: "center", locked: false, zIndex: 27 },
+  signer2Line: { id: "signer2Line", type: "line", label: "Garis TTD Asesor DUDI", x: 620, y: 1680, width: 280, height: 2, fontSize: 0, fontFamily: "Arial", color: "#475569", bold: false, italic: false, visible: false, locked: false, zIndex: 28 },
+  signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Asesor DUDI", text: "ASESOR MITRA INDUSTRI (DUDI)", x: 620, y: 1700, width: 280, height: 24, fontSize: 14, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 29 },
+  signer2Nip: { id: "signer2Nip", type: "text", label: "Instansi / REG Asesor DUDI", text: "PT. TELKOM INDONESIA TBK", x: 620, y: 1730, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 30 },
 };
 
 const MAX_HISTORY = 40;
@@ -1299,6 +1307,205 @@ export default function CertificateEditor({
     reader.readAsDataURL(file);
   };
 
+  // Tambah custom layer tanda tangan PNG
+  const handleAddSignatureLayer = (file?: File) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const id = `customSignature_${Date.now()}`;
+        const newEl: LayoutElement = {
+          id,
+          type: "image",
+          label: "Tanda Tangan PNG",
+          imageUrl: dataUrl,
+          x: Math.round(canvasWidth / 2),
+          y: Math.round(canvasHeight * 0.8),
+          width: 150,
+          height: 70,
+          fontSize: 0,
+          fontFamily: "Arial",
+          color: "#ffffff",
+          bold: false,
+          italic: false,
+          visible: true,
+          lockAspectRatio: true,
+          isCustom: true,
+          opacity: 100,
+          locked: false,
+          zIndex: Object.keys(elements).length + 10,
+        };
+        setElements((prev) => {
+          const next = { ...prev, [id]: newEl };
+          pushHistory(next);
+          return next;
+        });
+        setSelectedIds([id]);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const id = `customSignature_${Date.now()}`;
+      const newEl: LayoutElement = {
+        id,
+        type: "image",
+        label: "Tanda Tangan PNG Baru",
+        imageUrl: "",
+        x: Math.round(canvasWidth / 2),
+        y: Math.round(canvasHeight * 0.8),
+        width: 150,
+        height: 70,
+        fontSize: 0,
+        fontFamily: "Arial",
+        color: "#ffffff",
+        bold: false,
+        italic: false,
+        visible: true,
+        lockAspectRatio: true,
+        isCustom: true,
+        opacity: 100,
+        locked: false,
+        zIndex: Object.keys(elements).length + 10,
+      };
+      setElements((prev) => {
+        const next = { ...prev, [id]: newEl };
+        pushHistory(next);
+        return next;
+      });
+      setSelectedIds([id]);
+    }
+  };
+
+  // Tambah cluster penandatangan lengkap (Signature + Nama + Garis + Jabatan + NIP)
+  const handleAddSignerCluster = () => {
+    let nextNum = 2;
+    while (
+      elements[`signer${nextNum}Name`] ||
+      elements[`signer${nextNum}Signature`] ||
+      elements[`signer${nextNum}Title`]
+    ) {
+      nextNum++;
+    }
+
+    const currentSignersCount = Object.keys(elements).filter(
+      (k) => (k.startsWith("signer") && k.endsWith("Name")) || k === "instructorName"
+    ).length;
+
+    const targetX = Math.min(
+      canvasWidth - 250,
+      Math.max(250, Math.round((canvasWidth / (currentSignersCount + 1)) * currentSignersCount))
+    );
+    const targetY = layout === "VERTICAL" ? 1440 : 990;
+
+    const sigKey = `signer${nextNum}Signature`;
+    const nameKey = `signer${nextNum}Name`;
+    const lineKey = `signer${nextNum}Line`;
+    const titleKey = `signer${nextNum}Title`;
+    const nipKey = `signer${nextNum}Nip`;
+
+    const newElements: Record<string, LayoutElement> = {
+      [sigKey]: {
+        id: sigKey,
+        type: "image",
+        label: `Tanda Tangan Signer ${nextNum} (PNG)`,
+        x: targetX,
+        y: targetY - 55,
+        width: 150,
+        height: 70,
+        fontSize: 0,
+        fontFamily: "Arial",
+        color: "#ffffff",
+        bold: false,
+        italic: false,
+        visible: true,
+        imageUrl: "",
+        lockAspectRatio: true,
+        locked: false,
+        zIndex: 20 + nextNum,
+      },
+      [nameKey]: {
+        id: nameKey,
+        type: "text",
+        label: `Nama Penandatangan ${nextNum}`,
+        text: `Nama Penandatangan ${nextNum}`,
+        x: targetX,
+        y: targetY,
+        width: 360,
+        height: 38,
+        fontSize: 22,
+        fontFamily: "Arial",
+        color: "#f8fafc",
+        bold: true,
+        italic: true,
+        visible: true,
+        align: "center",
+        locked: false,
+        zIndex: 21 + nextNum,
+      },
+      [lineKey]: {
+        id: lineKey,
+        type: "line",
+        label: `Garis TTD Signer ${nextNum}`,
+        x: targetX,
+        y: targetY + 40,
+        width: 260,
+        height: 2,
+        fontSize: 0,
+        fontFamily: "Arial",
+        color: "#475569",
+        bold: false,
+        italic: false,
+        visible: true,
+        locked: false,
+        zIndex: 22 + nextNum,
+      },
+      [titleKey]: {
+        id: titleKey,
+        type: "text",
+        label: `Jabatan Signer ${nextNum}`,
+        text: "ASESOR MITRA INDUSTRI (DUDI)",
+        x: targetX,
+        y: targetY + 55,
+        width: 340,
+        height: 24,
+        fontSize: 14,
+        fontFamily: "Arial",
+        color: "#cbd5e1",
+        bold: true,
+        italic: false,
+        visible: true,
+        align: "center",
+        locked: false,
+        zIndex: 23 + nextNum,
+      },
+      [nipKey]: {
+        id: nipKey,
+        type: "text",
+        label: `NIP / Instansi Signer ${nextNum}`,
+        text: "PT. MITRA INDUSTRI",
+        x: targetX,
+        y: targetY + 85,
+        width: 340,
+        height: 24,
+        fontSize: 12,
+        fontFamily: "Courier New",
+        color: "#38bdf8",
+        bold: false,
+        italic: false,
+        visible: true,
+        align: "center",
+        locked: false,
+        zIndex: 24 + nextNum,
+      },
+    };
+
+    setElements((prev) => {
+      const updated = { ...prev, ...newElements };
+      pushHistory(updated);
+      return updated;
+    });
+    setSelectedIds([nameKey]);
+  };
+
   // Hapus custom layer
   const handleDeleteLayer = (id: string) => {
     setElements((prev) => {
@@ -1439,6 +1646,24 @@ export default function CertificateEditor({
     return <Minus size={16} className="text-white/40 shrink-0" />;
   };
 
+  // Dynamic extraction of signer keys
+  const allElementKeys = Object.keys(elements);
+  const signerCategoryKeys = allElementKeys.filter((k) => {
+    if (elements[k]?.groupId) return false;
+    return (
+      k.startsWith("instructor") ||
+      k.startsWith("signer") ||
+      k.toLowerCase().includes("signature") ||
+      k.toLowerCase().includes("ttd") ||
+      (elements[k]?.label && (
+        elements[k].label.toLowerCase().includes("tanda tangan") ||
+        elements[k].label.toLowerCase().includes("penandatangan") ||
+        elements[k].label.toLowerCase().includes("instruktur") ||
+        elements[k].label.toLowerCase().includes("asesor")
+      ))
+    );
+  });
+
   // Group elements for organized sidebar display
   const standardCategories = [
     {
@@ -1458,8 +1683,22 @@ export default function CertificateEditor({
     },
     {
       key: "instructor",
-      title: "Penandatangan (Sekolah & DUDI)",
-      keys: ["instructorName", "instructorLine", "instructorTitle", "instructorNip", "signer2Name", "signer2Line", "signer2Title", "signer2Nip"],
+      title: "Penandatangan & TTD Digital",
+      keys:
+        signerCategoryKeys.length > 0
+          ? signerCategoryKeys
+          : [
+              "instructorSignature",
+              "instructorName",
+              "instructorLine",
+              "instructorTitle",
+              "instructorNip",
+              "signer2Signature",
+              "signer2Name",
+              "signer2Line",
+              "signer2Title",
+              "signer2Nip",
+            ],
     },
     {
       key: "verification",
@@ -1468,7 +1707,17 @@ export default function CertificateEditor({
     },
   ];
 
-  const customKeys = Object.keys(elements).filter((k) => elements[k]?.isCustom);
+  const standardUsedKeys = new Set([
+    "universityLogo", "universityTitle", "certificateTitle", "certificateNumber", "certIdLabel",
+    "presentedTo", "studentName", "schoolName", "majorProgram", "studentId",
+    "courseSubtitle", "courseTitle",
+    "issuedDateTitle", "issuedDateBox", "qrCode", "scanToVerifyLabel",
+    ...signerCategoryKeys,
+  ]);
+
+  const customKeys = Object.keys(elements).filter(
+    (k) => elements[k]?.isCustom && !standardUsedKeys.has(k)
+  );
   const primarySelectedEl = selectedIds.length === 1 ? elements[selectedIds[0]] : null;
 
   // Render elements in ascending zIndex order (REAL STACKING ORDER)
@@ -1639,33 +1888,33 @@ export default function CertificateEditor({
           </div>
         </div>
 
-        {/* Action Toolbar: Tambah Teks, Gambar, dan Shape */}
+        {/* Action Toolbar: Tambah Teks, Gambar, Shape, dan Penandatangan */}
         <div className="p-3 border-b border-white/10 space-y-2 bg-slate-950/40">
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-4 gap-1">
             <button
               type="button"
               onClick={handleAddTextLayer}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-cyan-500/40 transition-colors"
+              className="flex items-center justify-center gap-1 py-2 px-1 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-cyan-500/40 transition-colors"
             >
-              <Plus size={12} className="text-cyan-400" />
+              <Plus size={11} className="text-cyan-400" />
               <span>+ Teks</span>
             </button>
             <button
               type="button"
               onClick={() => layerUploadRef.current?.click()}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-neon-purple/40 transition-colors"
+              className="flex items-center justify-center gap-1 py-2 px-1 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-neon-purple/40 transition-colors"
               title="Upload Gambar (Bisa dijadikan Logo, Ornamen, maupun Full Background)"
             >
-              <Upload size={12} className="text-neon-purple" />
+              <Upload size={11} className="text-neon-purple" />
               <span>+ Gambar</span>
             </button>
             <div className="relative group">
               <button
                 type="button"
-                className="w-full flex items-center justify-center gap-1 py-2 px-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-amber-500/40 transition-colors"
+                className="w-full flex items-center justify-center gap-1 py-2 px-1 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-amber-500/40 transition-colors"
                 title="Tambah Bentuk Geometris (Kotak, Lingkaran, Badge)"
               >
-                <Shapes size={12} className="text-amber-400" />
+                <Shapes size={11} className="text-amber-400" />
                 <span>+ Shape</span>
               </button>
               {/* Dropdown Options for Shape */}
@@ -1701,6 +1950,34 @@ export default function CertificateEditor({
                 >
                   <Circle size={13} className="text-amber-400" />
                   <span>Lingkaran</span>
+                </button>
+              </div>
+            </div>
+            <div className="relative group">
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-1 py-2 px-1 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 hover:border-emerald-500/40 transition-colors"
+                title="Tambah Penandatangan Baru atau Tanda Tangan PNG"
+              >
+                <Boxes size={11} className="text-emerald-400" />
+                <span>+ Signer</span>
+              </button>
+              <div className="absolute right-0 top-full mt-1 w-52 bg-slate-900 border border-white/10 rounded-xl shadow-xl p-1 z-30 hidden group-hover:flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={handleAddSignerCluster}
+                  className="flex items-center gap-2 px-2 py-1.5 text-xs text-white hover:bg-white/10 rounded-lg text-left"
+                >
+                  <Boxes size={13} className="text-emerald-400" />
+                  <span>+ Paket Penandatangan Lengkap</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddSignatureLayer()}
+                  className="flex items-center gap-2 px-2 py-1.5 text-xs text-white hover:bg-white/10 rounded-lg text-left"
+                >
+                  <ImageIcon size={13} className="text-cyan-400" />
+                  <span>+ Layer Tanda Tangan Saja</span>
                 </button>
               </div>
             </div>
@@ -2552,6 +2829,15 @@ export default function CertificateEditor({
                               alt={el.label || "Layer image"}
                               className="w-full h-full object-contain"
                             />
+                          ) : el.id.includes("Signature") || el.label?.toLowerCase().includes("tanda tangan") ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-cyan-400/50 bg-cyan-950/20 rounded-xl text-cyan-300 p-1 text-center select-none">
+                              <span className="text-[10px] font-bold uppercase tracking-wider">
+                                ✍️ {el.label || "Tanda Tangan PNG"}
+                              </span>
+                              <span className="text-[8px] text-cyan-400/60 mt-0.5">
+                                Belum ada PNG (Ganti Berkas)
+                              </span>
+                            </div>
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center border-2 border-cyan-500/50 bg-cyan-950/40 rounded-2xl text-cyan-300 p-2 text-center">
                               <ImageIcon size={el.width ? el.width / 3 : 36} />
@@ -3160,6 +3446,39 @@ export default function CertificateEditor({
 
                   {primarySelectedEl.id !== "qrCode" && (
                     <>
+                      {/* Quick Size Presets */}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                          Preset Ukuran
+                        </span>
+                        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => updateElement(primarySelectedEl.id, { width: 120, height: 55 })}
+                            className="px-1.5 py-0.5 text-[10px] bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded"
+                            title="Kecil (120x55 px)"
+                          >
+                            120x55
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateElement(primarySelectedEl.id, { width: 150, height: 70 })}
+                            className="px-1.5 py-0.5 text-[10px] bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded"
+                            title="Standar TTD (150x70 px)"
+                          >
+                            150x70
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateElement(primarySelectedEl.id, { width: 180, height: 85 })}
+                            className="px-1.5 py-0.5 text-[10px] bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded"
+                            title="Besar (180x85 px)"
+                          >
+                            180x85
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
                           Latar Penuh
@@ -3177,17 +3496,29 @@ export default function CertificateEditor({
 
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
-                          Berkas
+                          Berkas Gambar / PNG
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => imageUploadRef.current?.click()}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-white/5 hover:bg-white/15 text-white/80 hover:text-white rounded-lg text-xs font-semibold border border-white/10 whitespace-nowrap"
-                          title="Ganti Berkas Gambar Ini"
-                        >
-                          <Upload size={12} />
-                          <span>Ganti File</span>
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => imageUploadRef.current?.click()}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg text-xs font-semibold border border-cyan-500/40 whitespace-nowrap shadow-sm"
+                            title="Upload atau Ganti Berkas PNG Transparan"
+                          >
+                            <Upload size={12} />
+                            <span>{primarySelectedEl.imageUrl ? "Ganti PNG" : "Unggah PNG"}</span>
+                          </button>
+                          {primarySelectedEl.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => updateElement(primarySelectedEl.id, { imageUrl: "" })}
+                              className="p-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg border border-rose-500/30"
+                              title="Hapus gambar dari layer ini"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </>
                   )}

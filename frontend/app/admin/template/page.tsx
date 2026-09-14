@@ -17,6 +17,14 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  UserCheck,
+  PenTool,
+  Check,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import CertificateEditor, {
@@ -24,6 +32,14 @@ import CertificateEditor, {
   CertificateLayoutConfig,
 } from "@/components/features/CertificateEditor";
 import CertificateTemplate from "@/components/features/CertificateTemplate";
+
+export interface InstructorSetting {
+  id: string;
+  name: string;
+  title: string;
+  nip: string;
+  signatureUrl?: string | null;
+}
 
 const PAPER_PRESETS: Record<
   string,
@@ -75,6 +91,22 @@ export default function CertificateTemplatePage() {
   const [paperHeightCm, setPaperHeightCm] = useState<number>(21.0);
   const [instructorName, setInstructorName] = useState("");
   const [instructorNip, setInstructorNip] = useState("");
+  const [instructors, setInstructors] = useState<InstructorSetting[]>([
+    {
+      id: "signer1",
+      name: "Drs. H. Mulyono, M.Pd.",
+      title: "KEPALA SEKOLAH / PENGUJI INTERNAL",
+      nip: "197204121998021003",
+      signatureUrl: null,
+    },
+    {
+      id: "signer2",
+      name: "Ir. Hendra Kusuma, M.Kom.",
+      title: "ASESOR MITRA INDUSTRI (DUDI)",
+      nip: "PT. TELKOM INDONESIA TBK",
+      signatureUrl: null,
+    },
+  ]);
   const [bgPath, setBgPath] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState(Date.now());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -178,10 +210,27 @@ export default function CertificateTemplatePage() {
       }
 
       if (detailsRes.data.ok && detailsRes.data.data) {
-        setInstructorName(detailsRes.data.data.instructorName);
-        setInstructorNip(detailsRes.data.data.instructorNip);
+        const dName = detailsRes.data.data.instructorName || "";
+        const dNip = detailsRes.data.data.instructorNip || "";
+        setInstructorName(dName);
+        setInstructorNip(dNip);
         setBgPath(detailsRes.data.data.certificateTemplate);
+
+        if (Array.isArray(detailsRes.data.data.instructors) && detailsRes.data.data.instructors.length > 0) {
+          setInstructors(detailsRes.data.data.instructors);
+        } else if (dName) {
+          setInstructors([
+            {
+              id: "signer1",
+              name: dName,
+              title: "KEPALA SEKOLAH / PENGUJI INTERNAL",
+              nip: dNip,
+              signatureUrl: null,
+            },
+          ]);
+        }
       }
+
       if (configRes.data.ok && configRes.data.config) {
         setLayoutConfig(configRes.data.config);
       }
@@ -194,21 +243,172 @@ export default function CertificateTemplatePage() {
     }
   };
 
-  const handleSaveDetails = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddInstructorBox = () => {
+    const nextIdx = instructors.length + 1;
+    const newInstructor: InstructorSetting = {
+      id: `signer${nextIdx}`,
+      name: "",
+      title: nextIdx === 2 ? "ASESOR MITRA INDUSTRI (DUDI)" : `ASESOR / PENANDATANGAN ${nextIdx}`,
+      nip: "",
+      signatureUrl: null,
+    };
+    setInstructors((prev) => [...prev, newInstructor]);
+    toast.info(`Kotak Penandatangan ${nextIdx} ditambahkan.`);
+  };
+
+  const handleRemoveInstructorBox = (index: number) => {
+    if (instructors.length <= 1) {
+      toast.warning("Minimal harus ada 1 penandatangan utama");
+      return;
+    }
+    setInstructors((prev) => prev.filter((_, i) => i !== index));
+    toast.info("Penandatangan dihapus");
+  };
+
+  const handleUpdateInstructorField = (
+    index: number,
+    field: keyof InstructorSetting,
+    value: string
+  ) => {
+    setInstructors((prev) => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], [field]: value };
+      }
+      return next;
+    });
+  };
+
+  const handleInstructorSignatureUpload = (
+    index: number,
+    file: File
+  ) => {
+    if (!file.type.includes("png") && !file.type.includes("webp") && !file.type.includes("image")) {
+      toast.error("Harap unggah file gambar berformat PNG atau WebP transparan");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setInstructors((prev) => {
+        const next = [...prev];
+        if (next[index]) {
+          next[index] = { ...next[index], signatureUrl: dataUrl };
+        }
+        return next;
+      });
+
+      // Update in layoutConfig directly if elements exist
+      if (layoutConfig) {
+        const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
+        if (hasElements) {
+          const sigKey = index === 0 ? "instructorSignature" : `signer${index + 1}Signature`;
+          if (hasElements[sigKey]) {
+            hasElements[sigKey] = {
+              ...hasElements[sigKey],
+              imageUrl: dataUrl,
+              visible: true,
+            };
+          }
+        }
+      }
+
+      toast.success(`Tanda tangan PNG untuk Penandatangan ${index + 1} berhasil dipasang`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveInstructorSignature = (index: number) => {
+    setInstructors((prev) => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], signatureUrl: null };
+      }
+      return next;
+    });
+
+    if (layoutConfig) {
+      const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
+      if (hasElements) {
+        const sigKey = index === 0 ? "instructorSignature" : `signer${index + 1}Signature`;
+        if (hasElements[sigKey]) {
+          hasElements[sigKey] = {
+            ...hasElements[sigKey],
+            imageUrl: "",
+          };
+        }
+      }
+    }
+
+    toast.info("Tanda tangan dihapus");
+  };
+
+  const handleSaveAllInstructors = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setSaving(true);
     try {
+      const primaryName = instructors[0]?.name || instructorName;
+      const primaryNip = instructors[0]?.nip || instructorNip;
+
+      // 1. Simpan detail instruktur & daftar tanda tangan ke API settings
       const res = await api.post("/admin/settings/details", {
-        instructorName,
-        instructorNip,
+        instructorName: primaryName,
+        instructorNip: primaryNip,
+        instructors,
       });
+
+      // 2. Sinkronisasi otomatis ke layoutConfig
+      if (layoutConfig) {
+        const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
+        if (hasElements) {
+          instructors.forEach((inst, idx) => {
+            const isFirst = idx === 0;
+            const sigKey = isFirst ? "instructorSignature" : `signer${idx + 1}Signature`;
+            const nameKey = isFirst ? "instructorName" : `signer${idx + 1}Name`;
+            const titleKey = isFirst ? "instructorTitle" : `signer${idx + 1}Title`;
+            const nipKey = isFirst ? "instructorNip" : `signer${idx + 1}Nip`;
+
+            if (hasElements[sigKey]) {
+              hasElements[sigKey] = {
+                ...hasElements[sigKey],
+                imageUrl: inst.signatureUrl || hasElements[sigKey].imageUrl || "",
+                visible: true,
+              };
+            }
+            if (hasElements[nameKey] && inst.name) {
+              hasElements[nameKey] = {
+                ...hasElements[nameKey],
+                text: inst.name,
+                visible: true,
+              };
+            }
+            if (hasElements[titleKey] && inst.title) {
+              hasElements[titleKey] = {
+                ...hasElements[titleKey],
+                text: inst.title,
+                visible: true,
+              };
+            }
+            if (hasElements[nipKey] && inst.nip) {
+              hasElements[nipKey] = {
+                ...hasElements[nipKey],
+                text: inst.nip,
+                visible: true,
+              };
+            }
+          });
+
+          await api.post("/admin/settings/layout-config", { config: layoutConfig });
+        }
+      }
+
       if (res.data.ok) {
-        toast.success("Detail instruktur berhasil diperbarui");
+        toast.success("Daftar penandatangan & tanda tangan digital berhasil disimpan!");
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Gagal menyimpan detail instruktur");
+      toast.error("Gagal menyimpan daftar penandatangan");
     } finally {
       setSaving(false);
     }
@@ -427,20 +627,20 @@ export default function CertificateTemplatePage() {
         </button>
       </div>
 
-      {/* Grid Pengaturan — 3 Kolom Responsif */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Dimensi Kertas (Float CM) */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between">
+      {/* Grid Pengaturan — 2 Kolom: Dimensi & Template Background */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Dimensi & Orientasi Kertas */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between space-y-6">
           <div>
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div className="flex items-center gap-3">
                 <Maximize2 size={18} className="text-neon-blue" />
                 <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                  Dimensi Kertas (CM)
+                  Dimensi & Orientasi Kertas
                 </h3>
               </div>
               <span className="text-[10px] font-mono text-neon-blue bg-neon-blue/10 px-2.5 py-0.5 rounded-lg border border-neon-blue/20">
-                {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm
+                {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm ({paperSize})
               </span>
             </div>
 
@@ -467,6 +667,37 @@ export default function CertificateTemplatePage() {
                     </span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Orientasi Cetak */}
+            <div className="space-y-2 mt-4 pt-4 border-t border-white/5">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Orientasi Layout
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleOrientationChange("HORIZONTAL")}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2 ${
+                    layout === "HORIZONTAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30 bg-white/[0.02]"
+                  }`}
+                >
+                  <span>Landscape (Horizontal)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOrientationChange("VERTICAL")}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2 ${
+                    layout === "VERTICAL"
+                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
+                      : "border-white/10 text-white/60 hover:border-white/30 bg-white/[0.02]"
+                  }`}
+                >
+                  <span>Portrait (Vertikal)</span>
+                </button>
               </div>
             </div>
 
@@ -517,108 +748,317 @@ export default function CertificateTemplatePage() {
           <button
             type="button"
             onClick={handleCustomDimensionsApply}
-            className="mt-4 w-full py-2.5 bg-neon-blue/15 hover:bg-neon-blue text-neon-blue hover:text-slate-950 border border-neon-blue/30 text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+            className="w-full py-2.5 bg-neon-blue/15 hover:bg-neon-blue text-neon-blue hover:text-slate-950 border border-neon-blue/30 text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
           >
             Terapkan Dimensi
           </button>
         </div>
 
-        {/* Orientasi Cetak */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between">
+        {/* Template Background Image */}
+        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl flex flex-col justify-between space-y-6">
           <div>
-            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-              <FileText size={18} className="text-neon-pink" />
-              <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                Orientasi Cetak
-              </h3>
-            </div>
-            <div className="space-y-3 mt-4">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Orientasi Layout ({paperSize})
-              </p>
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleOrientationChange("HORIZONTAL")}
-                  className={`py-3 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 text-left flex items-center justify-between ${
-                    layout === "HORIZONTAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  <span>Horizontal (Landscape)</span>
-                  <span className="text-[10px] opacity-70">29.7 × 21.0</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOrientationChange("VERTICAL")}
-                  className={`py-3 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 text-left flex items-center justify-between ${
-                    layout === "VERTICAL"
-                      ? "bg-neon-pink text-white border-neon-pink shadow-[0_0_15px_#ff4081]"
-                      : "border-white/10 text-white/60 hover:border-white/30"
-                  }`}
-                >
-                  <span>Vertikal (Portrait)</span>
-                  <span className="text-[10px] opacity-70">21.0 × 29.7</span>
-                </button>
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <div className="flex items-center gap-3">
+                <ImageIcon size={18} className="text-cyan-400" />
+                <h3 className="font-bold text-white text-xs uppercase tracking-widest">
+                  Template Background Sertifikat
+                </h3>
               </div>
+              {bgPath ? (
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-0.5 rounded-lg border border-emerald-500/20 flex items-center gap-1">
+                  <CheckCircle2 size={11} /> Kustom Aktif
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono text-white/40 bg-white/5 px-2.5 py-0.5 rounded-lg border border-white/10">
+                  Tema Vektor Dasar
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-3 mt-4">
+              <p className="text-white/60 text-xs leading-relaxed">
+                Unggah desain sertifikat yang sudah jadi dari Corel/Canva/Illustrator (PNG/JPG resolusi tinggi). Anda dapat mengatur posisi QR dan teks dinamis secara presisi di canvas bawah.
+              </p>
+
+              <div className="mt-4 p-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-3">
+                <input
+                  type="file"
+                  id="bgUploadInput"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("bgUploadInput")?.click()}
+                  disabled={uploading}
+                  className="px-4 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all"
+                >
+                  <Upload size={14} />
+                  <span>{uploading ? "Mengunggah Background..." : "Pilih Berkas Background"}</span>
+                </button>
+                <p className="text-[10px] text-white/40">
+                  Mendukung file PNG / JPG hingga 10MB
+                </p>
+              </div>
+
+              {bgPath && (
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <ImageIcon size={16} className="text-cyan-400 shrink-0" />
+                    <span className="text-xs text-white/80 font-mono truncate">
+                      {bgPath.split("/").pop()}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveTemplate}
+                    disabled={removingTemplate}
+                    className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+                    title="Hapus gambar background"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[11px] text-white/50 mt-4">
-            💡 Tambahkan gambar background, ornamen, atau tanda tangan langsung di <b>Editor Tata Letak</b> di bawah.
+
+          <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[11px] text-white/50">
+            💡 Tips: Anda juga bisa menambahkan ornamen dan logo langsung di <b>Editor Tata Letak Interaktif</b> di bawah.
+          </div>
+        </div>
+      </div>
+
+      {/* Bagian Khusus: Daftar Penandatangan & Tanda Tangan Digital (Multi-Signer & PNG) */}
+      <div className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border-transparent shadow-2xl space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-neon-purple/20 border border-neon-purple/40 text-neon-purple">
+                <UserCheck size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                Daftar Penandatangan & Tanda Tangan Digital
+              </h2>
+              <span className="text-[10px] font-mono text-neon-purple bg-neon-purple/10 px-3 py-1 rounded-lg border border-neon-purple/30 font-bold">
+                {instructors.length} Penandatangan
+              </span>
+            </div>
+            <p className="text-white/40 text-xs">
+              Tambahkan 1, 2, atau lebih instruktur/asesor penguji. Unggah file tanda tangan PNG transparan untuk setiap penandatangan agar tampil otomatis pada sertifikat dan dapat diatur posisinya di editor layer.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={handleAddInstructorBox}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-neon-purple/15 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/40 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              <Plus size={15} />
+              <span>Tambah Penandatangan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSaveAllInstructors()}
+              disabled={saving}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-neon-purple/20 active:scale-95 disabled:opacity-50"
+            >
+              <Save size={15} />
+              <span>{saving ? "Menyimpan..." : "Simpan Semua Penandatangan"}</span>
+            </button>
           </div>
         </div>
 
-        {/* Detail Instruktur Global */}
-        <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl">
-          <form
-            onSubmit={handleSaveDetails}
-            className="space-y-4 h-full flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                <Save size={18} className="text-neon-purple" />
-                <h3 className="font-bold text-white text-xs uppercase tracking-widest">
-                  Detail Instruktur (Global)
-                </h3>
-              </div>
+        {/* Grid Added Boxes untuk Setiap Penandatangan */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {instructors.map((inst, idx) => {
+            const isFirst = idx === 0;
+            const isSecond = idx === 1;
+            const fileInputId = `signature_upload_input_${inst.id || idx}`;
 
-              <div className="space-y-3 mt-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                    Nama Kepala Instruktur / Dekan
-                  </label>
-                  <input
-                    type="text"
-                    value={instructorName}
-                    onChange={(e) => setInstructorName(e.target.value)}
-                    placeholder="contoh: Dr. Budi Santoso, M.T."
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                  />
+            return (
+              <div
+                key={inst.id || `signer_${idx}`}
+                className="glass-panel p-5 rounded-3xl border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between space-y-4 relative group"
+              >
+                {/* Header Card Box */}
+                <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 border border-white/15 text-[11px] font-bold text-white/90 flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      {isFirst
+                        ? "Penandatangan 1 (Utama)"
+                        : isSecond
+                        ? "Penandatangan 2 (Mitra DUDI)"
+                        : `Penandatangan ${idx + 1}`}
+                    </span>
+                  </div>
+
+                  {instructors.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveInstructorBox(idx)}
+                      className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                      title={`Hapus Penandatangan ${idx + 1}`}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                    NIP / ID Registrasi Instruktur
-                  </label>
-                  <input
-                    type="text"
-                    value={instructorNip}
-                    onChange={(e) => setInstructorNip(e.target.value)}
-                    placeholder="contoh: 198706152010121002"
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-semibold focus:outline-none focus:border-neon-purple/50 transition-all text-sm"
-                  />
+
+                {/* Form Input Fields */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                      Nama Lengkap & Gelar
+                    </label>
+                    <input
+                      type="text"
+                      value={inst.name}
+                      onChange={(e) =>
+                        handleUpdateInstructorField(idx, "name", e.target.value)
+                      }
+                      placeholder={
+                        isFirst
+                          ? "contoh: Dr. Budi Santoso, M.T."
+                          : "contoh: Ir. Hendra Kusuma, M.Kom."
+                      }
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-semibold text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                      Jabatan / Peran
+                    </label>
+                    <input
+                      type="text"
+                      value={inst.title}
+                      onChange={(e) =>
+                        handleUpdateInstructorField(idx, "title", e.target.value)
+                      }
+                      placeholder={
+                        isFirst
+                          ? "contoh: KEPALA SEKOLAH / PENGUJI INTERNAL"
+                          : "contoh: ASESOR MITRA INDUSTRI (DUDI)"
+                      }
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                      NIP / ID Registrasi / Instansi
+                    </label>
+                    <input
+                      type="text"
+                      value={inst.nip}
+                      onChange={(e) =>
+                        handleUpdateInstructorField(idx, "nip", e.target.value)
+                      }
+                      placeholder={
+                        isFirst
+                          ? "contoh: 197204121998021003"
+                          : "contoh: PT. TELKOM INDONESIA TBK"
+                      }
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
+                    />
+                  </div>
+
+                  {/* Tanda Tangan Digital Area */}
+                  <div className="pt-2 border-t border-white/5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                        <PenTool size={12} className="text-cyan-400" />
+                        <span>Tanda Tangan PNG</span>
+                      </label>
+                      {inst.signatureUrl && (
+                        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+                          <Check size={10} /> PNG Terpasang
+                        </span>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      id={fileInputId}
+                      accept="image/png, image/webp"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleInstructorSignatureUpload(idx, e.target.files[0]);
+                        }
+                      }}
+                      className="hidden"
+                    />
+
+                    {inst.signatureUrl ? (
+                      <div className="p-3 rounded-2xl bg-slate-950/80 border border-white/10 flex flex-col items-center justify-center gap-2">
+                        {/* Checkerboard Pattern Container for Transparency */}
+                        <div
+                          className="w-full h-20 rounded-xl flex items-center justify-center p-2 overflow-hidden border border-white/5"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%)",
+                            backgroundSize: "16px 16px",
+                            backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                          }}
+                        >
+                          <img
+                            src={inst.signatureUrl}
+                            alt={`TTD ${inst.name}`}
+                            className="max-h-full max-w-full object-contain filter drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full pt-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              document.getElementById(fileInputId)?.click()
+                            }
+                            className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Upload size={11} />
+                            <span>Ganti File PNG</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveInstructorSignature(idx)}
+                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl border border-rose-500/20 transition-colors"
+                            title="Hapus Tanda Tangan"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() =>
+                          document.getElementById(fileInputId)?.click()
+                        }
+                        className="p-4 rounded-2xl border border-dashed border-white/15 hover:border-cyan-400/40 bg-white/[0.02] hover:bg-cyan-500/[0.03] cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 transition-all group/upload"
+                      >
+                        <div className="p-2 rounded-xl bg-white/5 group-hover/upload:bg-cyan-500/10 text-white/40 group-hover/upload:text-cyan-400 transition-colors">
+                          <Upload size={14} />
+                        </div>
+                        <span className="text-[10px] font-bold text-white/70 group-hover/upload:text-cyan-300 uppercase tracking-wider">
+                          Unggah File PNG TTD
+                        </span>
+                        <span className="text-[9px] text-white/30">
+                          Disarankan PNG transparan
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full py-3 bg-neon-purple hover:shadow-[0_0_20px_rgba(176,38,255,0.4)] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 mt-4"
-            >
-              {saving ? "Menyimpan Detail..." : "Simpan Detail Instruktur"}
-            </button>
-          </form>
+            );
+          })}
         </div>
       </div>
 

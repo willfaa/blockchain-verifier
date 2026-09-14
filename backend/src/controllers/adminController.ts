@@ -605,17 +605,50 @@ export const deleteAdminCourse = async (req: Request, res: Response) => {
 // 2. Certificate Template settings
 export const getCertificateDetails = async (req: Request, res: Response) => {
   try {
-    const [nameSetting, nipSetting, templateSetting] = await Promise.all([
+    const [nameSetting, nipSetting, templateSetting, instructorsJsonSetting] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_template" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_instructors_json" } }),
     ]);
+
+    const legacyName = nameSetting?.value || "Drs. H. Mulyono, M.Pd.";
+    const legacyNip = nipSetting?.value || "197204121998021003";
+
+    let instructors = [];
+    if (instructorsJsonSetting?.value) {
+      try {
+        instructors = JSON.parse(instructorsJsonSetting.value);
+      } catch (e) {
+        instructors = [];
+      }
+    }
+
+    if (!instructors || instructors.length === 0) {
+      instructors = [
+        {
+          id: "signer1",
+          name: legacyName,
+          title: "KEPALA SEKOLAH / PENGUJI INTERNAL",
+          nip: legacyNip,
+          signatureUrl: null,
+        },
+        {
+          id: "signer2",
+          name: "Ir. Hendra Kusuma, M.Kom.",
+          title: "ASESOR MITRA INDUSTRI (DUDI)",
+          nip: "PT. TELKOM INDONESIA TBK",
+          signatureUrl: null,
+        },
+      ];
+    }
 
     return safeResponse(res, 200, {
       ok: true,
       data: {
-        instructorName: nameSetting?.value || "Budi Headmaster, M.T.",
-        instructorNip: nipSetting?.value || "198706152010121002",
+        instructorName: legacyName,
+        instructorNip: legacyNip,
+        instructors,
         certificateTemplate: templateSetting?.value || null,
       }
     });
@@ -626,22 +659,44 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
 
 export const updateCertificateDetails = async (req: Request, res: Response) => {
   try {
-    const { instructorName, instructorNip } = req.body;
+    const { instructorName, instructorNip, instructors } = req.body;
     
-    if (instructorName !== undefined) {
+    if (Array.isArray(instructors)) {
       await db.systemSetting.upsert({
-        where: { key: "default_certificate_instructor_name" },
-        update: { value: instructorName },
-        create: { key: "default_certificate_instructor_name", value: instructorName }
+        where: { key: "default_certificate_instructors_json" },
+        update: { value: JSON.stringify(instructors) },
+        create: { key: "default_certificate_instructors_json", value: JSON.stringify(instructors) }
       });
-    }
+      if (instructors.length > 0 && instructors[0].name) {
+        await db.systemSetting.upsert({
+          where: { key: "default_certificate_instructor_name" },
+          update: { value: instructors[0].name },
+          create: { key: "default_certificate_instructor_name", value: instructors[0].name }
+        });
+      }
+      if (instructors.length > 0 && instructors[0].nip) {
+        await db.systemSetting.upsert({
+          where: { key: "default_certificate_instructor_nip" },
+          update: { value: instructors[0].nip },
+          create: { key: "default_certificate_instructor_nip", value: instructors[0].nip }
+        });
+      }
+    } else {
+      if (instructorName !== undefined) {
+        await db.systemSetting.upsert({
+          where: { key: "default_certificate_instructor_name" },
+          update: { value: instructorName },
+          create: { key: "default_certificate_instructor_name", value: instructorName }
+        });
+      }
 
-    if (instructorNip !== undefined) {
-      await db.systemSetting.upsert({
-        where: { key: "default_certificate_instructor_nip" },
-        update: { value: instructorNip },
-        create: { key: "default_certificate_instructor_nip", value: instructorNip }
-      });
+      if (instructorNip !== undefined) {
+        await db.systemSetting.upsert({
+          where: { key: "default_certificate_instructor_nip" },
+          update: { value: instructorNip },
+          create: { key: "default_certificate_instructor_nip", value: instructorNip }
+        });
+      }
     }
 
     return safeResponse(res, 200, { ok: true, message: "Certificate details updated successfully" });
@@ -698,7 +753,17 @@ export const deleteCertificateTemplateBackground = async (req: Request, res: Res
 
 export const getCertificateTemplatePreview = async (req: Request, res: Response) => {
   try {
-    const [layoutSetting, paperSizeSetting, widthCmSetting, heightCmSetting, nameSetting, nipSetting, templateSetting, layoutConfigSetting] = await Promise.all([
+    const [
+      layoutSetting,
+      paperSizeSetting,
+      widthCmSetting,
+      heightCmSetting,
+      nameSetting,
+      nipSetting,
+      templateSetting,
+      layoutConfigSetting,
+      instructorsJsonSetting,
+    ] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "certificate_layout" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_paper_size" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_paper_width_cm" } }),
@@ -707,6 +772,7 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_template" } }),
       db.systemSetting.findUnique({ where: { key: "certificate_layout_config" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_instructors_json" } }),
     ]);
 
     const layout = (layoutSetting?.value as "HORIZONTAL" | "VERTICAL") || "HORIZONTAL";
@@ -717,6 +783,15 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
     let layoutConfig = undefined;
     if (layoutConfigSetting?.value) {
       try { layoutConfig = JSON.parse(layoutConfigSetting.value); } catch (e) { /* ignore */ }
+    }
+
+    let signers: any[] = [];
+    if (instructorsJsonSetting?.value) {
+      try {
+        signers = JSON.parse(instructorsJsonSetting.value);
+      } catch (e) {
+        signers = [];
+      }
     }
 
     const issuedAt = new Intl.DateTimeFormat("en-GB", {
@@ -740,6 +815,7 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
       instructorName,
       instructorNip,
       instructorMajor: "Teknik Informatika",
+      signers,
       layout,
       paperSize,
       paperWidthCm,

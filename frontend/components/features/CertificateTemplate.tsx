@@ -5,6 +5,14 @@ import React from "react";
 import { QrCode } from "lucide-react";
 import { LayoutElement, BackgroundConfig, CertificateLayoutConfig } from "./CertificateEditor";
 
+export interface InstructorInfo {
+  id: string;
+  name: string;
+  title?: string;
+  nip?: string;
+  signatureUrl?: string | null;
+}
+
 export interface CertificateProps {
   studentName?: string;
   courseName?: string;
@@ -18,6 +26,7 @@ export interface CertificateProps {
   certId?: string;
   instructorName?: string;
   instructorNip?: string;
+  instructors?: InstructorInfo[];
   layout?: "HORIZONTAL" | "VERTICAL";
   paperSize?: string;
   paperWidthCm?: number;
@@ -65,6 +74,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
   certId,
   instructorName = "Dr. Budi Santoso, M.T.",
   instructorNip = "198706152010121002",
+  instructors,
   layout = "HORIZONTAL",
   paperSize = "A4",
   paperWidthCm: customWidthCm,
@@ -116,23 +126,47 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
 
   // If custom layout elements are provided, render purely data-driven layers
   if (elements && Object.keys(elements).length > 0) {
+    const s1 = instructors?.[0];
+    const s2 = instructors?.[1];
+    const s3 = instructors?.[2];
+
     const dynamicValues: Record<string, string> = {
       universityTitle: "UNIVERSITAS NEGERI SURABAYA",
-      certificateTitle: "CERTIFICATE OF COMPLETION",
+      certificateTitle: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN",
       certIdLabel: `ID: ${finalId}`,
-      presentedTo: "PROUDLY PRESENTED TO",
+      certificateNumber: `No: UKK/${finalId.substring(0, 8).toUpperCase()}`,
+      presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
+      schoolName: "SMK NEGERI 1 SURABAYA",
       majorProgram: `${majority.toUpperCase()} - ${program.toUpperCase()}`,
-      studentId: `Student ID : ${studentId}`,
-      courseSubtitle: "Has successfully completed the educational and training program requirements on the topic of:",
+      studentId: `NISN / ID : ${studentId}`,
+      courseSubtitle: "Telah memenuhi standar kelulusan dan kompetensi pada skema:",
       courseTitle: courseName,
-      instructorName: instructorName,
-      instructorTitle: "HEAD INSTRUCTOR",
-      instructorNip: `Instructor ID: ${instructorNip}`,
+      instructorName: s1?.name || instructorName,
+      instructorTitle: s1?.title || "KEPALA SEKOLAH / PENGUJI",
+      instructorNip: s1?.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : (instructorNip ? (instructorNip.startsWith("NIP") ? instructorNip : `NIP: ${instructorNip}`) : ""),
+      signer1Name: s1?.name || instructorName,
+      signer1Title: s1?.title || "KEPALA SEKOLAH / PENGUJI",
+      signer1Nip: s1?.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : (instructorNip ? (instructorNip.startsWith("NIP") ? instructorNip : `NIP: ${instructorNip}`) : ""),
+      signer2Name: s2?.name || "Ir. Hendra Kusuma, M.Kom.",
+      signer2Title: s2?.title || "ASESOR MITRA INDUSTRI (DUDI)",
+      signer2Nip: s2?.nip || "PT. TELKOM INDONESIA TBK",
+      signer3Name: s3?.name || "",
+      signer3Title: s3?.title || "",
+      signer3Nip: s3?.nip || "",
       issuedDateTitle: "DATE ISSUED",
       issuedDateBox: finalDate,
-      scanToVerifyLabel: "SCAN TO VERIFY",
+      scanToVerifyLabel: "PINDAI VERIFIKASI",
     };
+
+    if (instructors && instructors.length > 0) {
+      instructors.forEach((inst, idx) => {
+        const num = idx + 1;
+        dynamicValues[`signer${num}Name`] = inst.name;
+        dynamicValues[`signer${num}Title`] = inst.title || "";
+        dynamicValues[`signer${num}Nip`] = inst.nip || "";
+      });
+    }
 
     // Sort elements by zIndex for exact stacking order
     const sortedElements = Object.entries(elements).sort(
@@ -332,6 +366,23 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
 
             const imgW = el.width || 100;
             const imgH = el.height || 100;
+
+            let imageSrc = el.imageUrl;
+            if (!imageSrc || imageSrc === "DEFAULT_LOGO") {
+              if (key === "instructorSignature" || el.id === "instructorSignature" || key === "signer1Signature" || el.id === "signer1Signature") {
+                imageSrc = s1?.signatureUrl || undefined;
+              } else if (key === "signer2Signature" || el.id === "signer2Signature") {
+                imageSrc = s2?.signatureUrl || undefined;
+              } else if (key === "signer3Signature" || el.id === "signer3Signature") {
+                imageSrc = s3?.signatureUrl || undefined;
+              } else if (key.startsWith("signer") && key.endsWith("Signature")) {
+                const num = parseInt(key.replace("signer", "").replace("Signature", ""), 10);
+                if (!isNaN(num) && instructors && instructors[num - 1]) {
+                  imageSrc = instructors[num - 1].signatureUrl || undefined;
+                }
+              }
+            }
+
             return (
               <div
                 key={el.id || key}
@@ -346,11 +397,11 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
                 }}
                 className="flex items-center justify-center overflow-hidden"
               >
-                {el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" ? (
-                  <img src={el.imageUrl} alt={el.label || "Layer Image"} className="w-full h-full object-contain" />
+                {imageSrc && imageSrc !== "DEFAULT_LOGO" ? (
+                  <img src={imageSrc} alt={el.label || "Layer Image"} className="w-full h-full object-contain" />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center border-2 border-cyan-500/50 bg-cyan-950/40 rounded-2xl text-cyan-300 p-2 text-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{el.label || "Logo"}</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center border border-dashed border-white/20 bg-white/[0.02] rounded-xl text-white/40 p-2 text-center">
+                    <span className="text-[9px] font-bold uppercase tracking-wider">{el.label || "Gambar / TTD"}</span>
                   </div>
                 )}
               </div>
