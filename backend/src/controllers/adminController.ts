@@ -605,11 +605,20 @@ export const deleteAdminCourse = async (req: Request, res: Response) => {
 // 2. Certificate Template settings
 export const getCertificateDetails = async (req: Request, res: Response) => {
   try {
-    const [nameSetting, nipSetting, templateSetting, instructorsJsonSetting] = await Promise.all([
+    const [
+      nameSetting,
+      nipSetting,
+      templateSetting,
+      instructorsJsonSetting,
+      transcriptTemplateSetting,
+      transcriptConfigSetting,
+    ] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_template" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructors_json" } }),
+      db.systemSetting.findUnique({ where: { key: "default_transcript_template" } }),
+      db.systemSetting.findUnique({ where: { key: "default_transcript_config" } }),
     ]);
 
     const legacyName = nameSetting?.value || "Drs. H. Mulyono, M.Pd.";
@@ -643,6 +652,15 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       ];
     }
 
+    let transcriptConfig = null;
+    if (transcriptConfigSetting?.value) {
+      try {
+        transcriptConfig = JSON.parse(transcriptConfigSetting.value);
+      } catch (e) {
+        transcriptConfig = null;
+      }
+    }
+
     return safeResponse(res, 200, {
       ok: true,
       data: {
@@ -650,6 +668,8 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
         instructorNip: legacyNip,
         instructors,
         certificateTemplate: templateSetting?.value || null,
+        transcriptTemplate: transcriptTemplateSetting?.value || null,
+        transcriptConfig,
       }
     });
   } catch (error: any) {
@@ -659,8 +679,16 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
 
 export const updateCertificateDetails = async (req: Request, res: Response) => {
   try {
-    const { instructorName, instructorNip, instructors } = req.body;
+    const { instructorName, instructorNip, instructors, transcriptConfig } = req.body;
     
+    if (transcriptConfig !== undefined) {
+      await db.systemSetting.upsert({
+        where: { key: "default_transcript_config" },
+        update: { value: JSON.stringify(transcriptConfig) },
+        create: { key: "default_transcript_config", value: JSON.stringify(transcriptConfig) }
+      });
+    }
+
     if (Array.isArray(instructors)) {
       await db.systemSetting.upsert({
         where: { key: "default_certificate_instructors_json" },
@@ -726,7 +754,7 @@ export const updateCertificateTemplateBackground = async (req: Request, res: Res
 
     return safeResponse(res, 200, {
       ok: true,
-      message: "Default template background updated successfully",
+      message: "Default certificate template background updated successfully",
       path: templatePath
     });
   } catch (error: any) {
@@ -748,6 +776,52 @@ export const deleteCertificateTemplateBackground = async (req: Request, res: Res
   } catch (error: any) {
     console.error("[deleteCertificateTemplateBackground Error]", error.message);
     return safeResponse(res, 500, { error: "Failed to remove template background" });
+  }
+};
+
+export const updateTranscriptTemplateBackground = async (req: Request, res: Response) => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    let templatePath = "";
+
+    if (files && files["transcriptTemplate"] && files["transcriptTemplate"][0]) {
+      templatePath = `/uploads/courses/${req.user.id}/${files["transcriptTemplate"][0].filename}`;
+    } else if (req.file) {
+      templatePath = `/uploads/courses/${req.user.id}/${req.file.filename}`;
+    } else {
+      return safeResponse(res, 400, { error: "No transcript image file provided" });
+    }
+
+    await db.systemSetting.upsert({
+      where: { key: "default_transcript_template" },
+      update: { value: templatePath },
+      create: { key: "default_transcript_template", value: templatePath }
+    });
+
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Transcript template background updated successfully",
+      path: templatePath
+    });
+  } catch (error: any) {
+    console.error("[updateTranscriptTemplateBackground Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to update transcript template background" });
+  }
+};
+
+export const deleteTranscriptTemplateBackground = async (req: Request, res: Response) => {
+  try {
+    await db.systemSetting.deleteMany({
+      where: { key: "default_transcript_template" },
+    });
+
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Transcript template background removed.",
+    });
+  } catch (error: any) {
+    console.error("[deleteTranscriptTemplateBackground Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to remove transcript template background" });
   }
 };
 

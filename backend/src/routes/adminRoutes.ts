@@ -21,6 +21,8 @@ import {
   updateCertificateDetails,
   updateCertificateTemplateBackground,
   deleteCertificateTemplateBackground,
+  updateTranscriptTemplateBackground,
+  deleteTranscriptTemplateBackground,
   getCertificateTemplatePreview,
   getCertificateLayoutConfig,
   updateCertificateLayoutConfig,
@@ -113,6 +115,15 @@ router.post(
   updateCertificateTemplateBackground
 );
 router.delete("/settings/template", deleteCertificateTemplateBackground);
+
+// Transcript Template (Page 2) Background Endpoints
+router.post(
+  "/settings/transcript-template",
+  upload.fields([{ name: "transcriptTemplate", maxCount: 1 }]),
+  updateTranscriptTemplateBackground
+);
+router.delete("/settings/transcript-template", deleteTranscriptTemplateBackground);
+
 router.get("/settings/template-preview", getCertificateTemplatePreview);
 router.get("/settings/layout-config", getCertificateLayoutConfig);
 router.post("/settings/layout-config", updateCertificateLayoutConfig);
