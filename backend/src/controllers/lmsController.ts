@@ -1748,6 +1748,25 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
       year: "numeric",
     }).format(new Date());
 
+    const [configSetting, instructorsSetting] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: "certificate_layout_config" } }),
+      db.systemSetting.findUnique({ where: { key: "default_certificate_instructors_json" } }),
+    ]);
+
+    let layoutConfig = undefined;
+    if (configSetting?.value) {
+      try {
+        layoutConfig = JSON.parse(configSetting.value);
+      } catch (e) {}
+    }
+
+    let signers = undefined;
+    if (instructorsSetting?.value) {
+      try {
+        signers = JSON.parse(instructorsSetting.value);
+      } catch (e) {}
+    }
+
     const dummyData = {
       name: "JOHN DOE",
       studentId: "usr-9a8b7c6d-5e4f-3a2b",
@@ -1761,6 +1780,8 @@ export const getCourseCertificatePreview = async (req: Request, res: Response) =
       instructorNip: course.user?.nip || "-",
       instructorMajor: course.user?.majority || "Department of Informatics",
       customTemplatePath: course.certificateTemplate || undefined,
+      layoutConfig,
+      signers,
     };
 
     const imgBuffer = await generateCertificateImage(dummyData);
@@ -1787,6 +1808,28 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       } catch (e) {}
     }
 
+    let instructors = [];
+    if (map["default_certificate_instructors_json"]) {
+      try {
+        instructors = JSON.parse(map["default_certificate_instructors_json"]);
+      } catch (e) {}
+    }
+
+    const legacyName = map["default_certificate_instructor_name"] || "Budi Headmaster, M.T.";
+    const legacyNip = map["default_certificate_instructor_nip"] || "198706152010121002";
+
+    if (!instructors || instructors.length === 0) {
+      instructors = [
+        {
+          id: "signer1",
+          name: legacyName,
+          title: "KEPALA SEKOLAH / PENGUJI INTERNAL",
+          nip: legacyNip,
+          signatureUrl: null,
+        },
+      ];
+    }
+
     const payload = {
       certificateLayout: map["certificate_layout"] || "HORIZONTAL",
       certificatePaperSize: map["certificate_paper_size"] || "A4",
@@ -1796,11 +1839,13 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       paperHeightCm: map["certificate_paper_height_cm"]
         ? parseFloat(map["certificate_paper_height_cm"])
         : 21.0,
-      instructorName: map["default_certificate_instructor_name"] || "Budi Headmaster, M.T.",
-      instructorNip: map["default_certificate_instructor_nip"] || "198706152010121002",
+      instructorName: legacyName,
+      instructorNip: legacyNip,
+      instructors: instructors,
       certificateTemplate: map["default_certificate_template"] || null,
       bgPath: map["default_certificate_template"] || null,
       layoutConfig: layoutConfig,
+      schoolName: map["default_certificate_school_name"] || "SMK Mitra IDUKA",
     };
 
     return res.json({

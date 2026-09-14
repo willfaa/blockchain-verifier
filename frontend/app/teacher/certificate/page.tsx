@@ -25,6 +25,11 @@ import {
   Calendar,
   UserCheck,
   CheckCircle2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
+  Eye,
 } from "lucide-react";
 import {
   Select,
@@ -44,6 +49,7 @@ export default function SmartIssueCertificatePage() {
   const [loadingUnits, setLoadingUnits] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [previewTab, setPreviewTab] = useState<"front" | "transcript">("front");
+  const [previewZoom, setPreviewZoom] = useState<number>(75);
 
   // Search State
   const [searchStudentId, setSearchStudentId] = useState("");
@@ -64,44 +70,39 @@ export default function SmartIssueCertificatePage() {
   const [examinerNip, setExaminerNip] = useState("");
   const [certificateNumber, setCertificateNumber] = useState("");
 
-  // Admin Layout Settings State
+  // Admin / Public LMS Layout Settings State
   const [layoutSettings, setLayoutSettings] = useState<any>({});
 
-  // 1. Fetch Teacher's Courses and Admin Layout Settings on Mount
+  // 1. Fetch Teacher's Courses and LMS Layout Settings on Mount
   useEffect(() => {
     const initData = async () => {
       try {
-        const [coursesRes, settingsRes, detailsRes, configRes] = await Promise.allSettled([
+        const [coursesRes, settingsRes] = await Promise.allSettled([
           api.get("/lms/teacher/my-courses"),
-          api.get("/admin/settings"),
-          api.get("/admin/settings/details"),
-          api.get("/admin/settings/layout-config"),
+          api.get("/lms/settings"),
         ]);
 
         if (coursesRes.status === "fulfilled" && coursesRes.value?.data?.ok) {
           setCourses(coursesRes.value.data.data || []);
         }
 
-        const mergedSettings: any = {};
         if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
-          Object.assign(mergedSettings, settingsRes.value.data.settings);
-        }
-        if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.data) {
-          Object.assign(mergedSettings, detailsRes.value.data.data);
-        }
-        if (configRes.status === "fulfilled" && configRes.value?.data?.config) {
-          mergedSettings.layoutConfig = configRes.value.data.config;
-        }
+          const s = settingsRes.value.data.settings;
+          setLayoutSettings(s);
 
-        // Set default examiner from instructor settings if available
-        if (mergedSettings.instructorName && !examinerName) {
-          setExaminerName(mergedSettings.instructorName);
-        }
-        if (mergedSettings.instructorNip && !examinerNip) {
-          setExaminerNip(mergedSettings.instructorNip);
-        }
+          // Set default examiner from instructors or instructorName
+          if (Array.isArray(s.instructors) && s.instructors.length > 0) {
+            setExaminerName((prev) => prev || s.instructors[0].name);
+            setExaminerNip((prev) => prev || s.instructors[0].nip);
+          } else {
+            if (s.instructorName) setExaminerName((prev) => prev || s.instructorName);
+            if (s.instructorNip) setExaminerNip((prev) => prev || s.instructorNip);
+          }
 
-        setLayoutSettings(mergedSettings);
+          if (s.schoolName) {
+            setSchoolOrigin((prev) => prev || s.schoolName);
+          }
+        }
       } catch (err) {
         console.error("Failed to initialize teacher issuance data:", err);
       }
@@ -286,14 +287,23 @@ export default function SmartIssueCertificatePage() {
           result: u.result || "KOMPETEN",
         })),
         averageScore: averageScore,
-        signers: [
-          {
-            name: examinerName || layoutSettings.instructorName || "Kepala Sekolah",
-            title: "Penguji / Asesor Uji Kompetensi Keahlian",
-            nip: examinerNip || layoutSettings.instructorNip || "-",
-            role: "PENGUJI",
-          },
-        ],
+        signers:
+          Array.isArray(layoutSettings.instructors) && layoutSettings.instructors.length > 0
+            ? layoutSettings.instructors.map((inst: any, idx: number) => ({
+                name: (idx === 0 && examinerName) ? examinerName : inst.name,
+                title: inst.title || (idx === 0 ? "Penguji / Asesor Uji Kompetensi Keahlian" : "Mitra Industri"),
+                nip: (idx === 0 && examinerNip) ? examinerNip : (inst.nip || "-"),
+                role: idx === 0 ? "PENGUJI" : "MITRA",
+                signatureUrl: inst.signatureUrl || undefined,
+              }))
+            : [
+                {
+                  name: examinerName || layoutSettings.instructorName || "Kepala Sekolah",
+                  title: "Penguji / Asesor Uji Kompetensi Keahlian",
+                  nip: examinerNip || layoutSettings.instructorNip || "-",
+                  role: "PENGUJI",
+                },
+              ],
       };
 
       const res = await api.post("/certificates/issue", payload);
@@ -706,53 +716,113 @@ export default function SmartIssueCertificatePage() {
       {/* DUAL TAB PREVIEW & CONFIRMATION MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-5xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-6xl w-full max-h-[96vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                  <Award className="text-cyan-400" size={20} />
-                  Pratinjau Sertifikat Resmi ({pageMode === "DOUBLE" ? "2 Halaman Duplex" : "1 Halaman"})
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Pastikan seluruh data nama, nilai, dan layout visual sudah sesuai sebelum dicetak ke blockchain.
+            <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 bg-slate-900/90">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    <Award size={18} />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    Pratinjau Sertifikat Resmi ({pageMode === "DOUBLE" ? "2 Halaman Duplex" : "1 Halaman"})
+                  </h3>
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">
+                    {layoutSettings.paperWidthCm || 29.7} × {layoutSettings.paperHeightCm || 21.0} cm ({layoutSettings.certificatePaperSize || "A4"})
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Periksa seluruh data nama, nilai kompetensi, tanda tangan digital, dan posisi visual sebelum dicetak ke ledger blockchain.
                 </p>
               </div>
 
-              {/* Dual Tab Toggle if 2-Page Mode */}
-              {pageMode === "DOUBLE" && (
-                <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-white/10 shrink-0">
+              <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-xl border border-white/10">
                   <button
                     type="button"
-                    onClick={() => setPreviewTab("front")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      previewTab === "front"
-                        ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                        : "text-slate-400 hover:text-white"
-                    }`}
+                    onClick={() => setPreviewZoom((z) => Math.max(30, z - 10))}
+                    className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
+                    title="Zoom Out"
                   >
-                    <Award size={14} />
-                    Halaman 1 (Depan)
+                    <ZoomOut size={15} />
                   </button>
+                  <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                    {previewZoom}%
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setPreviewTab("transcript")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      previewTab === "transcript"
-                        ? "bg-fuchsia-500 text-white shadow-md shadow-fuchsia-500/20"
-                        : "text-slate-400 hover:text-white"
-                    }`}
+                    onClick={() => setPreviewZoom((z) => Math.min(180, z + 10))}
+                    className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
+                    title="Zoom In"
                   >
-                    <FileText size={14} />
-                    Halaman 2 (Transkrip)
+                    <ZoomIn size={15} />
+                  </button>
+                  <div className="w-px h-4 bg-white/15 mx-1" />
+                  <button
+                    type="button"
+                    onClick={() => setPreviewZoom(75)}
+                    className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
+                    title="Reset Ukuran (Fit)"
+                  >
+                    <RotateCcw size={13} />
                   </button>
                 </div>
-              )}
+
+                {/* Dual Tab Toggle if 2-Page Mode */}
+                {pageMode === "DOUBLE" && (
+                  <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTab("front")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        previewTab === "front"
+                          ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Award size={13} />
+                      <span>Halaman 1 (Depan)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTab("transcript")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        previewTab === "transcript"
+                          ? "bg-fuchsia-500 text-white shadow-md shadow-fuchsia-500/20"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <FileText size={13} />
+                      <span>Halaman 2 (Transkrip)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Modal Body: Vector Canvas Preview */}
-            <div className="flex-1 overflow-auto p-4 sm:p-8 bg-slate-950 flex items-center justify-center custom-scrollbar">
-              <div className="transform scale-[0.58] sm:scale-[0.70] md:scale-[0.80] lg:scale-[0.90] origin-center shrink-0 my-[-60px] sm:my-[-30px]">
+            <div
+              onWheel={(e) => {
+                if (e.ctrlKey || e.metaKey) {
+                  e.preventDefault();
+                  if (e.deltaY < 0) {
+                    setPreviewZoom((z) => Math.min(180, z + 10));
+                  } else {
+                    setPreviewZoom((z) => Math.max(30, z - 10));
+                  }
+                }
+              }}
+              className="flex-1 overflow-auto p-6 sm:p-10 bg-slate-950 flex items-center justify-center custom-scrollbar relative"
+            >
+              <div
+                style={{
+                  transform: `scale(${previewZoom / 100})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.12s ease-out",
+                }}
+                className="shrink-0 flex items-center justify-center select-none"
+              >
                 {previewTab === "front" ? (
                   <CertificateTemplate
                     studentName={foundStudent?.name}
@@ -765,9 +835,10 @@ export default function SmartIssueCertificatePage() {
                     paperSize={layoutSettings.certificatePaperSize || "A4"}
                     paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                     paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                    instructorName={layoutSettings.instructorName || examinerName}
-                    instructorNip={layoutSettings.instructorNip || examinerNip}
-                    bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                    instructorName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName}
+                    instructorNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip}
+                    instructors={layoutSettings.instructors}
+                    bgPath={selectedCourse?.certificateTemplate || layoutSettings.certificateTemplate || layoutSettings.bgPath}
                     layoutConfig={layoutSettings.layoutConfig}
                   />
                 ) : (
@@ -779,9 +850,9 @@ export default function SmartIssueCertificatePage() {
                     courseTitle={selectedCourse?.title}
                     units={competencyUnits}
                     averageScore={averageScore}
-                    examinerName={examinerName || layoutSettings.instructorName || "Penguji / Asesor"}
-                    examinerNip={examinerNip || layoutSettings.instructorNip}
-                    schoolName={schoolOrigin || selectedCourse?.schoolName || "SMK Mitra IDUKA"}
+                    examinerName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName || "Penguji / Asesor"}
+                    examinerNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip || "-"}
+                    schoolName={schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
                     paperSize={layoutSettings.certificatePaperSize || "A4"}
                     paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                     paperHeightCm={layoutSettings.paperHeightCm || 21.0}
@@ -792,34 +863,36 @@ export default function SmartIssueCertificatePage() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-5 border-t border-white/10 bg-slate-900 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 flex items-center justify-between gap-4 shrink-0">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
                 disabled={loadingIssue}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
               >
                 Kembali & Edit
               </button>
 
-              <button
-                type="button"
-                onClick={handleIssue}
-                disabled={loadingIssue}
-                className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
-              >
-                {loadingIssue ? (
-                  <>
-                    <Loader2 className="animate-spin" size={16} />
-                    Menerbitkan & Minting Blockchain...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={16} />
-                    Konfirmasi & Terbitkan ke Blockchain
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleIssue}
+                  disabled={loadingIssue}
+                  className="px-7 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
+                >
+                  {loadingIssue ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      Menerbitkan & Minting Blockchain...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={16} />
+                      Konfirmasi & Terbitkan ke Blockchain
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
