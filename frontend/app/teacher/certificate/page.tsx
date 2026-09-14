@@ -11,25 +11,16 @@ import {
   CheckCircle,
   AlertCircle,
   Hash,
-  User,
   BookOpen,
-  GraduationCap,
   FileText,
-  Layers,
   Sparkles,
   Plus,
   Trash2,
-  Calculator,
-  RefreshCw,
-  Building,
-  Calendar,
-  UserCheck,
   CheckCircle2,
   ZoomIn,
   ZoomOut,
-  RotateCcw,
   Maximize2,
-  Eye,
+  X,
 } from "lucide-react";
 import {
   Select,
@@ -49,7 +40,9 @@ export default function SmartIssueCertificatePage() {
   const [loadingUnits, setLoadingUnits] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [previewTab, setPreviewTab] = useState<"front" | "transcript">("front");
-  const [previewZoom, setPreviewZoom] = useState<number>(75);
+  const [previewZoom, setPreviewZoom] = useState<number>(55);
+  const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
+  const [fullscreenZoom, setFullscreenZoom] = useState<number>(70);
 
   // Search State
   const [searchStudentId, setSearchStudentId] = useState("");
@@ -192,10 +185,10 @@ export default function SmartIssueCertificatePage() {
           setBirthPlaceDate(student.birthPlaceDate);
         }
       } else {
-        setSearchError("Student ID not found in database.");
+        setSearchError("Data siswa tidak ditemukan di database.");
       }
     } catch (err: any) {
-      setSearchError(err.response?.data?.error || "Student not found in registry.");
+      setSearchError(err.response?.data?.error || "Siswa tidak ditemukan dalam registri.");
     } finally {
       setLoadingSearch(false);
     }
@@ -329,6 +322,30 @@ export default function SmartIssueCertificatePage() {
   };
 
   const isFormValid = Boolean(foundStudent && courseId);
+
+  // Canvas & Paper Dimension Computations for Modal Preview
+  const dpi = 150;
+  const cmToPx = dpi / 2.54;
+  const rawPaperSize = (layoutSettings.certificatePaperSize || "A4").toUpperCase();
+  const defaultPreset =
+    rawPaperSize === "F4"
+      ? { width: 33.0, height: 21.5 }
+      : rawPaperSize === "LETTER"
+      ? { width: 27.94, height: 21.59 }
+      : { width: 29.7, height: 21.0 };
+  const rawW = layoutSettings.paperWidthCm || defaultPreset.width;
+  const rawH = layoutSettings.paperHeightCm || defaultPreset.height;
+  const isVertical = (layoutSettings.certificateLayout || "HORIZONTAL") === "VERTICAL";
+  const paperWidthCm = isVertical ? Math.min(rawW, rawH) : Math.max(rawW, rawH);
+  const paperHeightCm = isVertical ? Math.max(rawW, rawH) : Math.min(rawW, rawH);
+  const canvasPxW = Math.round(paperWidthCm * cmToPx);
+  const canvasPxH = Math.round(paperHeightCm * cmToPx);
+
+  const scaledW = Math.round((canvasPxW * previewZoom) / 100);
+  const scaledH = Math.round((canvasPxH * previewZoom) / 100);
+
+  const fullscreenScaledW = Math.round((canvasPxW * fullscreenZoom) / 100);
+  const fullscreenScaledH = Math.round((canvasPxH * fullscreenZoom) / 100);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
@@ -728,7 +745,7 @@ export default function SmartIssueCertificatePage() {
                     Pratinjau Sertifikat Resmi ({pageMode === "DOUBLE" ? "2 Halaman Duplex" : "1 Halaman"})
                   </h3>
                   <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">
-                    {layoutSettings.paperWidthCm || 29.7} × {layoutSettings.paperHeightCm || 21.0} cm ({layoutSettings.certificatePaperSize || "A4"})
+                    {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm ({layoutSettings.certificatePaperSize || "A4"}) · {isVertical ? "Portrait" : "Landscape"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -736,14 +753,14 @@ export default function SmartIssueCertificatePage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
-                {/* Zoom Controls */}
+              <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+                {/* Zoom Controls Toolbar */}
                 <div className="flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-xl border border-white/10">
                   <button
                     type="button"
-                    onClick={() => setPreviewZoom((z) => Math.max(30, z - 10))}
+                    onClick={() => setPreviewZoom((z) => Math.max(20, z - 5))}
                     className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
-                    title="Zoom Out"
+                    title="Perkecil (Zoom Out)"
                   >
                     <ZoomOut size={15} />
                   </button>
@@ -752,22 +769,44 @@ export default function SmartIssueCertificatePage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setPreviewZoom((z) => Math.min(180, z + 10))}
+                    onClick={() => setPreviewZoom((z) => Math.min(200, z + 5))}
                     className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
-                    title="Zoom In"
+                    title="Perbesar (Zoom In)"
                   >
                     <ZoomIn size={15} />
                   </button>
                   <div className="w-px h-4 bg-white/15 mx-1" />
                   <button
                     type="button"
-                    onClick={() => setPreviewZoom(75)}
-                    className="p-1 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors"
-                    title="Reset Ukuran (Fit)"
+                    onClick={() => setPreviewZoom(55)}
+                    className="px-2 py-0.5 text-[10px] font-bold text-slate-300 hover:text-cyan-400 rounded transition-colors"
+                    title="Reset Ukuran (Fit Screen)"
                   >
-                    <RotateCcw size={13} />
+                    Fit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewZoom(100)}
+                    className="px-2 py-0.5 text-[10px] font-bold text-slate-300 hover:text-cyan-400 rounded transition-colors"
+                    title="100% Ukuran Asli"
+                  >
+                    100%
                   </button>
                 </div>
+
+                {/* Fullscreen Modal Trigger */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFullscreenZoom(65);
+                    setIsFullscreenPreview(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-semibold transition-colors"
+                  title="Buka Layar Penuh (Fullscreen)"
+                >
+                  <Maximize2 size={13} className="text-cyan-400" />
+                  <span className="hidden sm:inline">Layar Penuh</span>
+                </button>
 
                 {/* Dual Tab Toggle if 2-Page Mode */}
                 {pageMode === "DOUBLE" && (
@@ -807,21 +846,227 @@ export default function SmartIssueCertificatePage() {
                 if (e.ctrlKey || e.metaKey) {
                   e.preventDefault();
                   if (e.deltaY < 0) {
-                    setPreviewZoom((z) => Math.min(180, z + 10));
+                    setPreviewZoom((z) => Math.min(200, z + 5));
                   } else {
-                    setPreviewZoom((z) => Math.max(30, z - 10));
+                    setPreviewZoom((z) => Math.max(20, z - 5));
                   }
                 }
               }}
-              className="flex-1 overflow-auto p-6 sm:p-10 bg-slate-950 flex items-center justify-center custom-scrollbar relative"
+              className="flex-1 overflow-auto p-4 sm:p-8 bg-slate-950/95 flex flex-col items-center justify-start custom-scrollbar relative min-h-[380px] max-h-[72vh]"
+            >
+              {/* Scaled bounding box - strictly eliminates overflow bugs */}
+              <div
+                style={{
+                  width: `${scaledW}px`,
+                  height: `${scaledH}px`,
+                  minWidth: `${scaledW}px`,
+                  minHeight: `${scaledH}px`,
+                  transition: "width 0.12s ease-out, height 0.12s ease-out",
+                }}
+                className="relative shrink-0 shadow-2xl rounded-lg overflow-hidden border border-white/10 m-auto"
+              >
+                <div
+                  style={{
+                    width: `${canvasPxW}px`,
+                    height: `${canvasPxH}px`,
+                    transform: `scale(${previewZoom / 100})`,
+                    transformOrigin: "top left",
+                    transition: "transform 0.12s ease-out",
+                  }}
+                  className="absolute top-0 left-0 select-none pointer-events-auto"
+                >
+                  {previewTab === "front" ? (
+                    <CertificateTemplate
+                      studentName={foundStudent?.name}
+                      studentId={foundStudent?.studentId || foundStudent?.nim || foundStudent?.nisn}
+                      courseName={selectedCourse?.title || "Program Keahlian"}
+                      program={foundStudent?.studyProgram || foundStudent?.program || selectedCourse?.title || "Program Keahlian"}
+                      majority={foundStudent?.majority || "Teknik Informatika"}
+                      issuedAt={new Date().toISOString()}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                      instructorName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName}
+                      instructorNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip}
+                      instructors={layoutSettings.instructors}
+                      bgPath={selectedCourse?.certificateTemplate || layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                      layoutConfig={layoutSettings.layoutConfig}
+                    />
+                  ) : (
+                    <CertificateTranscriptPage
+                      studentName={foundStudent?.name}
+                      studentId={foundStudent?.studentId || foundStudent?.nim || foundStudent?.nisn}
+                      majority={foundStudent?.majority || "Teknik Komputer dan Jaringan"}
+                      program={foundStudent?.studyProgram || foundStudent?.program || selectedCourse?.title}
+                      courseTitle={selectedCourse?.title}
+                      units={competencyUnits}
+                      averageScore={averageScore}
+                      examinerName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName || "Penguji / Asesor"}
+                      examinerNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip || "-"}
+                      schoolName={schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="w-full flex items-center justify-between text-[11px] text-slate-500 mt-4 px-2 select-none">
+                <span>💡 Gunakan <b>Ctrl + Scroll Mouse</b> untuk zoom cepat.</span>
+                <span>Ukuran Efektif: <b>{scaledW} × {scaledH} px</b> ({previewZoom}%)</span>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 flex items-center justify-between gap-4 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                disabled={loadingIssue}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              >
+                Kembali & Edit
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleIssue}
+                  disabled={loadingIssue}
+                  className="px-7 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
+                >
+                  {loadingIssue ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      Menerbitkan & Minting Blockchain...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={16} />
+                      Konfirmasi & Terbitkan ke Blockchain
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN LIGHTBOX PREVIEW MODAL */}
+      {isFullscreenPreview && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md flex flex-col p-4 sm:p-6 animate-in fade-in duration-200 select-none"
+          onClick={() => setIsFullscreenPreview(false)}
+        >
+          {/* Header Lightbox */}
+          <div
+            className="flex items-center justify-between w-full pb-4 border-b border-white/10 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                <Award size={18} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  Inspeksi Layar Penuh {previewTab === "front" ? "Sertifikat (Halaman 1)" : "Transkrip Nilai (Halaman 2)"}
+                </h3>
+                <span className="text-[11px] font-mono text-cyan-400">
+                  {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm ({layoutSettings.certificatePaperSize || "A4"})
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Zoom Controls di Fullscreen */}
+              <div className="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setFullscreenZoom((z) => Math.max(20, z - 5))}
+                  className="p-1 text-white/60 hover:text-cyan-400 rounded-lg"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <span className="text-xs font-mono text-white/90 w-14 text-center font-bold">
+                  {fullscreenZoom}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFullscreenZoom((z) => Math.min(200, z + 5))}
+                  className="p-1 text-white/60 hover:text-cyan-400 rounded-lg"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={16} />
+                </button>
+                <div className="w-px h-4 bg-white/20 mx-1" />
+                <button
+                  type="button"
+                  onClick={() => setFullscreenZoom(70)}
+                  className="px-2 py-0.5 text-xs text-white/70 hover:text-white rounded"
+                  title="Reset Fit"
+                >
+                  Fit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFullscreenZoom(100)}
+                  className="px-2 py-0.5 text-xs text-white/70 hover:text-white rounded"
+                  title="100% Size"
+                >
+                  100%
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsFullscreenPreview(false)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              >
+                <X size={14} />
+                <span>Tutup (Esc)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Body Lightbox Viewport */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onWheel={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                  setFullscreenZoom((z) => Math.min(200, z + 5));
+                } else {
+                  setFullscreenZoom((z) => Math.max(20, z - 5));
+                }
+              }
+            }}
+            className="flex-1 overflow-auto p-6 flex items-center justify-center custom-scrollbar"
+          >
+            <div
+              style={{
+                width: `${fullscreenScaledW}px`,
+                height: `${fullscreenScaledH}px`,
+                minWidth: `${fullscreenScaledW}px`,
+                minHeight: `${fullscreenScaledH}px`,
+                transition: "width 0.12s ease-out, height 0.12s ease-out",
+              }}
+              className="relative shrink-0 shadow-2xl rounded-lg overflow-hidden border border-white/10 m-auto"
             >
               <div
                 style={{
-                  transform: `scale(${previewZoom / 100})`,
-                  transformOrigin: "center center",
+                  width: `${canvasPxW}px`,
+                  height: `${canvasPxH}px`,
+                  transform: `scale(${fullscreenZoom / 100})`,
+                  transformOrigin: "top left",
                   transition: "transform 0.12s ease-out",
                 }}
-                className="shrink-0 flex items-center justify-center select-none"
+                className="absolute top-0 left-0 select-none"
               >
                 {previewTab === "front" ? (
                   <CertificateTemplate
@@ -859,39 +1104,6 @@ export default function SmartIssueCertificatePage() {
                     layout={layoutSettings.certificateLayout || "HORIZONTAL"}
                   />
                 )}
-              </div>
-            </div>
-
-            {/* Modal Footer Actions */}
-            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 flex items-center justify-between gap-4 shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                disabled={loadingIssue}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
-              >
-                Kembali & Edit
-              </button>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleIssue}
-                  disabled={loadingIssue}
-                  className="px-7 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
-                >
-                  {loadingIssue ? (
-                    <>
-                      <Loader2 className="animate-spin" size={16} />
-                      Menerbitkan & Minting Blockchain...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 size={16} />
-                      Konfirmasi & Terbitkan ke Blockchain
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </div>
