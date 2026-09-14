@@ -831,49 +831,49 @@ export default function CertificateTemplatePage() {
       </div>
 
       {/* Bagian Khusus: Daftar Penandatangan & Tanda Tangan Digital (Multi-Signer & PNG) */}
-      <div className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border-transparent shadow-2xl space-y-6">
+      <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-neon-purple/20 border border-neon-purple/40 text-neon-purple">
-                <UserCheck size={20} />
+              <div className="p-1.5 rounded-lg bg-neon-purple/20 border border-neon-purple/40 text-neon-purple">
+                <UserCheck size={18} />
               </div>
-              <h2 className="text-xl font-bold text-white tracking-tight">
+              <h2 className="text-lg font-bold text-white tracking-tight">
                 Daftar Penandatangan & Tanda Tangan Digital
               </h2>
-              <span className="text-[10px] font-mono text-neon-purple bg-neon-purple/10 px-3 py-1 rounded-lg border border-neon-purple/30 font-bold">
+              <span className="text-[10px] font-mono text-neon-purple bg-neon-purple/10 px-2.5 py-0.5 rounded-lg border border-neon-purple/30 font-bold">
                 {instructors.length} Penandatangan
               </span>
             </div>
             <p className="text-white/40 text-xs">
-              Tambahkan 1, 2, atau lebih instruktur/asesor penguji. Unggah file tanda tangan PNG transparan untuk setiap penandatangan agar tampil otomatis pada sertifikat dan dapat diatur posisinya di editor layer.
+              Tambahkan instruktur / asesor penguji dan unggah tanda tangan PNG transparan agar otomatis tampil pada sertifikat.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
             <button
               type="button"
               onClick={handleAddInstructorBox}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-neon-purple/15 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/40 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all"
+              className="px-3.5 py-2 bg-neon-purple/15 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/40 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
             >
-              <Plus size={15} />
+              <Plus size={14} />
               <span>Tambah Penandatangan</span>
             </button>
             <button
               type="button"
               onClick={() => handleSaveAllInstructors()}
               disabled={saving}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-neon-purple/20 active:scale-95 disabled:opacity-50"
+              className="px-4 py-2 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-neon-purple/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              <Save size={15} />
-              <span>{saving ? "Menyimpan..." : "Simpan Semua Penandatangan"}</span>
+              <Save size={14} />
+              <span>{saving ? "Menyimpan..." : "Simpan Penandatangan"}</span>
             </button>
           </div>
         </div>
 
         {/* Grid Added Boxes untuk Setiap Penandatangan */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {instructors.map((inst, idx) => {
             const isFirst = idx === 0;
             const isSecond = idx === 1;
@@ -882,12 +882,12 @@ export default function CertificateTemplatePage() {
             return (
               <div
                 key={inst.id || `signer_${idx}`}
-                className="glass-panel p-5 rounded-3xl border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between space-y-4 relative group"
+                className="glass-panel p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between space-y-4 relative group"
               >
                 {/* Header Card Box */}
                 <div className="flex items-center justify-between pb-3 border-b border-white/5">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-slate-900 border border-white/15 text-[11px] font-bold text-white/90 flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-slate-900 border border-white/15 text-[10px] font-bold text-white/90 flex items-center justify-center">
                       {idx + 1}
                     </span>
                     <span className="text-xs font-bold text-white uppercase tracking-wider">
@@ -903,10 +903,10 @@ export default function CertificateTemplatePage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveInstructorBox(idx)}
-                      className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                      className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                       title={`Hapus Penandatangan ${idx + 1}`}
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>
@@ -997,10 +997,10 @@ export default function CertificateTemplatePage() {
                     />
 
                     {inst.signatureUrl ? (
-                      <div className="p-3 rounded-2xl bg-slate-950/80 border border-white/10 flex flex-col items-center justify-center gap-2">
+                      <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/10 flex flex-col items-center justify-center gap-2">
                         {/* Checkerboard Pattern Container for Transparency */}
                         <div
-                          className="w-full h-20 rounded-xl flex items-center justify-center p-2 overflow-hidden border border-white/5"
+                          className="w-full h-16 rounded-lg flex items-center justify-center p-1.5 overflow-hidden border border-white/5"
                           style={{
                             backgroundImage:
                               "linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%)",
@@ -1015,21 +1015,21 @@ export default function CertificateTemplatePage() {
                           />
                         </div>
 
-                        <div className="flex items-center gap-2 w-full pt-1">
+                        <div className="flex items-center gap-2 w-full pt-0.5">
                           <button
                             type="button"
                             onClick={() =>
                               document.getElementById(fileInputId)?.click()
                             }
-                            className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-wider border border-white/10 transition-colors flex items-center justify-center gap-1"
+                            className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/10 transition-colors flex items-center justify-center gap-1"
                           >
                             <Upload size={11} />
-                            <span>Ganti File PNG</span>
+                            <span>Ganti PNG</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveInstructorSignature(idx)}
-                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl border border-rose-500/20 transition-colors"
+                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg border border-rose-500/20 transition-colors"
                             title="Hapus Tanda Tangan"
                           >
                             <Trash2 size={13} />
@@ -1041,17 +1041,19 @@ export default function CertificateTemplatePage() {
                         onClick={() =>
                           document.getElementById(fileInputId)?.click()
                         }
-                        className="p-4 rounded-2xl border border-dashed border-white/15 hover:border-cyan-400/40 bg-white/[0.02] hover:bg-cyan-500/[0.03] cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 transition-all group/upload"
+                        className="py-3 px-3 rounded-xl border border-dashed border-white/15 hover:border-cyan-400/40 bg-white/[0.02] hover:bg-cyan-500/[0.03] cursor-pointer flex items-center justify-center gap-2.5 transition-all group/upload"
                       >
-                        <div className="p-2 rounded-xl bg-white/5 group-hover/upload:bg-cyan-500/10 text-white/40 group-hover/upload:text-cyan-400 transition-colors">
-                          <Upload size={14} />
+                        <div className="p-1.5 rounded-lg bg-white/5 group-hover/upload:bg-cyan-500/10 text-white/40 group-hover/upload:text-cyan-400 transition-colors">
+                          <Upload size={13} />
                         </div>
-                        <span className="text-[10px] font-bold text-white/70 group-hover/upload:text-cyan-300 uppercase tracking-wider">
-                          Unggah File PNG TTD
-                        </span>
-                        <span className="text-[9px] text-white/30">
-                          Disarankan PNG transparan
-                        </span>
+                        <div className="text-left">
+                          <p className="text-[11px] font-semibold text-white/80 group-hover/upload:text-cyan-300">
+                            Pilih File PNG TTD
+                          </p>
+                          <p className="text-[9px] text-white/30">
+                            Disarankan format PNG transparan
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
