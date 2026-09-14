@@ -33,6 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    const isAuthPage =
+      typeof window !== "undefined" &&
+      (window.location.pathname.includes("/login") ||
+        window.location.pathname.includes("/anadminlog") ||
+        window.location.pathname.includes("/register"));
+
     const storedUser = localStorage.getItem("chainnesa_user");
     if (storedUser) {
       try {
@@ -40,25 +46,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(parsedUser);
         setRole(parsedUser.role);
 
-        // Fetch fresh user data from database to auto-heal stale avatar/name/profile URLs
-        api
-          .get("/auth/me")
-          .then((res) => {
-            if (res.data.ok && res.data.data) {
-              const freshUser = {
-                ...parsedUser,
-                ...res.data.data,
-              };
-              setUser(freshUser);
-              localStorage.setItem("chainnesa_user", JSON.stringify(freshUser));
-            }
-          })
-          .catch((err) => {
-            console.warn("Failed to sync user session on mount:", err.message);
-          });
+        // Only fetch fresh user data if NOT on auth pages
+        if (!isAuthPage) {
+          api
+            .get("/auth/me")
+            .then((res) => {
+              if (res.data.ok && res.data.data) {
+                const freshUser = {
+                  ...parsedUser,
+                  ...res.data.data,
+                };
+                setUser(freshUser);
+                localStorage.setItem("chainnesa_user", JSON.stringify(freshUser));
+              }
+            })
+            .catch((err) => {
+              console.warn("Session expired or failed to sync user session on mount:", err.message);
+              localStorage.removeItem("chainnesa_user");
+              setUser(null);
+              setRole(null);
+            });
+        }
       } catch (e) {
         console.error("Failed to parse user session", e);
         localStorage.removeItem("chainnesa_user");
+        setUser(null);
+        setRole(null);
       }
     }
     setIsLoading(false);

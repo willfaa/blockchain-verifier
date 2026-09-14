@@ -39,7 +39,7 @@ export default function AdminLayout({
     // Only verify AFTER loading is complete
     if (!isLoading) {
       if (!user || user.role !== "admin") {
-        router.push("/login");
+        router.push("/anadminlog?error=session_expired");
       }
     }
   }, [user, isLoading, router]);

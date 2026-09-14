@@ -57,16 +57,20 @@ api.interceptors.request.use(
     config.headers["Accept"] = "application/json";
 
     if (isClient) {
-      const storedData = localStorage.getItem("chainnesa_user");
-      if (storedData) {
-        try {
-          const parsed = JSON.parse(storedData);
-          const token = parsed.token;
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+      // Do not inject stale Authorization header on login/register endpoints
+      const isAuthUrl = config.url?.includes("/auth/login") || config.url?.includes("/auth/register");
+      if (!isAuthUrl) {
+        const storedData = localStorage.getItem("chainnesa_user");
+        if (storedData) {
+          try {
+            const parsed = JSON.parse(storedData);
+            const token = parsed.token;
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          } catch (e) {
+            console.error("Error parsing token", e);
           }
-        } catch (e) {
-          console.error("Error parsing token", e);
         }
       }
     }
@@ -119,11 +123,18 @@ api.interceptors.response.use(
       // Token expired, missing, or overwritten session
       if (typeof window !== "undefined") {
         console.warn("Session expired or Unauthorized (401). Logging out...");
-        if (!window.location.pathname.includes("/login")) {
-          localStorage.removeItem("chainnesa_user");
+        localStorage.removeItem("chainnesa_user");
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath.includes("/login") || currentPath.includes("/anadminlog") || currentPath.includes("/register");
+        
+        if (!isAuthPage) {
           const isOverwrite = error.response.data?.code === "SESSION_OVERWRITTEN";
           const errorParam = isOverwrite ? "session_overwritten" : "session_expired";
-          window.location.href = `/login?error=${errorParam}`;
+          if (currentPath.startsWith("/admin")) {
+            window.location.href = `/anadminlog?error=${errorParam}`;
+          } else {
+            window.location.href = `/login?error=${errorParam}`;
+          }
         }
       }
     }

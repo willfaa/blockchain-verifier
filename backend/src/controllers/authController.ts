@@ -93,10 +93,10 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // STRICT ROLE CHECK
-    // Prevent students from logging in via Teacher/Admin forms
+    // Enforce portal isolation: Students, Teachers, and Admins must use their respective portals
     if (req.body.role && user.role !== req.body.role) {
       return res.status(403).json({
-        error: `Access Denied: You are not a ${req.body.role}. Please switch to the ${user.role} login.`,
+        error: `Access Denied: You cannot login as ${req.body.role} with this account. Please use the appropriate login portal.`,
       });
     }
 
