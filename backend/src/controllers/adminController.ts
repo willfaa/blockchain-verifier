@@ -612,6 +612,7 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       instructorsJsonSetting,
       transcriptTemplateSetting,
       transcriptConfigSetting,
+      transcriptLayoutSetting,
     ] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
@@ -619,6 +620,7 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructors_json" } }),
       db.systemSetting.findUnique({ where: { key: "default_transcript_template" } }),
       db.systemSetting.findUnique({ where: { key: "default_transcript_config" } }),
+      db.systemSetting.findUnique({ where: { key: "transcript_layout_config" } }),
     ]);
 
     const legacyName = nameSetting?.value || "Drs. H. Mulyono, M.Pd.";
@@ -661,6 +663,15 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       }
     }
 
+    let transcriptLayoutConfig = null;
+    if (transcriptLayoutSetting?.value) {
+      try {
+        transcriptLayoutConfig = JSON.parse(transcriptLayoutSetting.value);
+      } catch (e) {
+        transcriptLayoutConfig = null;
+      }
+    }
+
     return safeResponse(res, 200, {
       ok: true,
       data: {
@@ -670,6 +681,7 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
         certificateTemplate: templateSetting?.value || null,
         transcriptTemplate: transcriptTemplateSetting?.value || null,
         transcriptConfig,
+        transcriptLayoutConfig,
       }
     });
   } catch (error: any) {
@@ -907,7 +919,7 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
   }
 };
 
-// --- Certificate Layout Config (Visual Editor) ---
+// --- Certificate Layout Config (Visual Editor - Page 1) ---
 export const getCertificateLayoutConfig = async (req: Request, res: Response) => {
   try {
     const setting = await db.systemSetting.findUnique({
@@ -952,6 +964,54 @@ export const resetCertificateLayoutConfig = async (req: Request, res: Response) 
   } catch (error: any) {
     console.error("[resetCertificateLayoutConfig Error]", error.message);
     return safeResponse(res, 500, { error: "Failed to reset layout config" });
+  }
+};
+
+// --- Transcript Layout Config (Visual Editor - Page 2) ---
+export const getTranscriptLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    const setting = await db.systemSetting.findUnique({
+      where: { key: "transcript_layout_config" },
+    });
+    let config = null;
+    if (setting?.value) {
+      try { config = JSON.parse(setting.value); } catch (e) { /* ignore */ }
+    }
+    return safeResponse(res, 200, { ok: true, config });
+  } catch (error: any) {
+    console.error("[getTranscriptLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to fetch transcript layout config" });
+  }
+};
+
+export const updateTranscriptLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    const { config } = req.body;
+    if (!config || typeof config !== "object") {
+      return safeResponse(res, 400, { error: "Invalid config object" });
+    }
+    const jsonStr = JSON.stringify(config);
+    await db.systemSetting.upsert({
+      where: { key: "transcript_layout_config" },
+      update: { value: jsonStr },
+      create: { key: "transcript_layout_config", value: jsonStr },
+    });
+    return safeResponse(res, 200, { ok: true, message: "Transcript layout config saved successfully" });
+  } catch (error: any) {
+    console.error("[updateTranscriptLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to save transcript layout config" });
+  }
+};
+
+export const resetTranscriptLayoutConfig = async (req: Request, res: Response) => {
+  try {
+    await db.systemSetting.deleteMany({
+      where: { key: "transcript_layout_config" },
+    });
+    return safeResponse(res, 200, { ok: true, message: "Transcript layout config reset to default" });
+  } catch (error: any) {
+    console.error("[resetTranscriptLayoutConfig Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to reset transcript layout config" });
   }
 };
 

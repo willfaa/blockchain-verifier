@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
       } catch (e) {}
     }
 
+    let transcriptLayoutConfig = null;
+    if (settings["transcript_layout_config"]) {
+      try {
+        transcriptLayoutConfig = JSON.parse(settings["transcript_layout_config"]);
+      } catch (e) {}
+    }
+
     let instructors = [];
     if (settings["default_certificate_instructors_json"]) {
       try {
@@ -47,7 +54,10 @@ export async function GET(request: NextRequest) {
       instructors: instructors,
       certificateTemplate: settings["default_certificate_template"] || null,
       bgPath: settings["default_certificate_template"] || null,
+      transcriptTemplate: settings["default_transcript_template"] || null,
+      transcriptBgPath: settings["default_transcript_template"] || null,
       layoutConfig: layoutConfig,
+      transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: settings["default_certificate_school_name"] || "SMK Mitra IDUKA",
     };
 

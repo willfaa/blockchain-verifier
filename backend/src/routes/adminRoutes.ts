@@ -27,6 +27,9 @@ import {
   getCertificateLayoutConfig,
   updateCertificateLayoutConfig,
   resetCertificateLayoutConfig,
+  getTranscriptLayoutConfig,
+  updateTranscriptLayoutConfig,
+  resetTranscriptLayoutConfig,
   getBidangList,
   createBidang,
   updateBidang,
@@ -128,6 +131,11 @@ router.get("/settings/template-preview", getCertificateTemplatePreview);
 router.get("/settings/layout-config", getCertificateLayoutConfig);
 router.post("/settings/layout-config", updateCertificateLayoutConfig);
 router.delete("/settings/layout-config", resetCertificateLayoutConfig);
+
+// Page 2 Transcript Visual Layout Config Endpoints
+router.get("/settings/transcript-layout-config", getTranscriptLayoutConfig);
+router.post("/settings/transcript-layout-config", updateTranscriptLayoutConfig);
+router.delete("/settings/transcript-layout-config", resetTranscriptLayoutConfig);
 
 /**
  * EXPERTISE FIELDS CRUD (BIDANG, PROGRAM, KONSENTRASI KEAHLIAN)

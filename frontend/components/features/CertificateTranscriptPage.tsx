@@ -3,6 +3,11 @@
 
 import React from "react";
 import { getApiBase } from "@/lib/utils";
+import {
+  LayoutElement,
+  BackgroundConfig,
+  CertificateLayoutConfig,
+} from "./CertificateEditor";
 
 export interface CompetencyItem {
   code?: string;
@@ -35,6 +40,8 @@ export interface TranscriptProps {
   subHeaderTitle?: string;
   footerNote?: string;
   signatureUrl?: string | null;
+  layoutConfig?: CertificateLayoutConfig | Record<string, LayoutElement> | null;
+  backgroundConfig?: BackgroundConfig;
 }
 
 const DPI = 150;
@@ -84,11 +91,43 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   subHeaderTitle,
   footerNote,
   signatureUrl,
+  layoutConfig,
+  backgroundConfig,
 }) => {
+  // Extract custom layout configuration
+  const hasWrapped =
+    layoutConfig && "elements" in layoutConfig && layoutConfig.elements;
+  const wrappedConfig = hasWrapped
+    ? (layoutConfig as CertificateLayoutConfig)
+    : null;
+  const elements = (
+    hasWrapped ? (layoutConfig as any).elements : layoutConfig
+  ) as Record<string, LayoutElement> | undefined;
+
+  const canvasBgColor = wrappedConfig?.canvasBgColor || "#ffffff";
+
+  const bgCfg: BackgroundConfig =
+    backgroundConfig ||
+    wrappedConfig?.backgroundConfig || {
+      scaleX: 100,
+      scaleY: 100,
+      offsetX: 0,
+      offsetY: 0,
+      lockAspectRatio: true,
+      fitMode: "custom",
+      opacity: 100,
+    };
+
   // Compute paper dimensions
   const preset = PAPER_PRESETS_CM[paperSize.toUpperCase()] || PAPER_PRESETS_CM.A4;
-  let widthCm = customWidthCm || preset.width;
-  let heightCm = customHeightCm || preset.height;
+  let widthCm =
+    customWidthCm ||
+    (hasWrapped ? (layoutConfig as any).paperWidthCm : undefined) ||
+    preset.width;
+  let heightCm =
+    customHeightCm ||
+    (hasWrapped ? (layoutConfig as any).paperHeightCm : undefined) ||
+    preset.height;
 
   if (layout === "VERTICAL" && widthCm > heightCm) {
     const temp = widthCm;
@@ -142,6 +181,381 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   const finalHeaderTitle = headerTitle || `KOMPETENSI KEAHLIAN ${(majority || program || "TEKNOLOGI INFORMASI").toUpperCase()}`;
   const finalSubHeaderTitle = subHeaderTitle || "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)";
   const finalFooterNote = footerNote || "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA";
+
+  // If custom layout elements are defined, render fully customized dynamic canvas
+  if (elements && Object.keys(elements).length > 0) {
+    const dynamicValues: Record<string, string> = {
+      headerTitle: finalHeaderTitle,
+      subHeaderTitle: finalSubHeaderTitle,
+      courseSubtitle: courseTitle
+        ? `Skema Sertifikasi: ${courseTitle}`
+        : "Skema Sertifikasi: Rekayasa Perangkat Lunak & Sistem Terdistribusi",
+      studentNameMeta: `Nama : ${studentName}`,
+      studentIdMeta: `NIS / ID : ${studentId}`,
+      schoolNameMeta: `Satuan Pendidikan : ${schoolName || "SMK NEGERI 1 SURABAYA"}`,
+      majorProgramMeta: `Program Keahlian : ${(majority || program || "REKAYASA PERANGKAT LUNAK").toUpperCase()}`,
+      footerNote: finalFooterNote,
+      blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
+      signer1Title: examinerTitle || "Kepala Sekolah / Ketua Tim Penguji",
+      signer1Name: examinerName || "Sonny Michael Wijaya, S.Kom",
+      signer1Nip: examinerNip
+        ? examinerNip.startsWith("NIP")
+          ? examinerNip
+          : `NIP: ${examinerNip}`
+        : "NIP: 197204121998021003",
+      signer2Title: "Asesor Industri (Mitra DUDI)",
+      signer2Name: "Ir. Hendra Kusuma, M.Kom.",
+      signer2Nip: "PT. TELKOM INDONESIA TBK",
+    };
+
+    const sortedElements = Object.entries(elements).sort(
+      ([, a], [, b]) => (a.zIndex || 0) - (b.zIndex || 0)
+    );
+
+    return (
+      <div
+        className="relative overflow-hidden shadow-2xl font-sans mx-auto select-none"
+        style={{
+          width: `${canvasWidth}px`,
+          height: `${canvasHeight}px`,
+          backgroundColor: canvasBgColor,
+        }}
+      >
+        {/* Background template image */}
+        {resolvedBg && (
+          <div
+            className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-0"
+            style={{ opacity: (bgCfg.opacity ?? 100) / 100 }}
+          >
+            {bgCfg.fitMode === "stretch" ? (
+              <img src={resolvedBg} alt="Background Transkrip" className="w-full h-full object-fill" crossOrigin="anonymous" />
+            ) : bgCfg.fitMode === "cover" ? (
+              <img src={resolvedBg} alt="Background Transkrip" className="w-full h-full object-cover" crossOrigin="anonymous" />
+            ) : bgCfg.fitMode === "contain" ? (
+              <img src={resolvedBg} alt="Background Transkrip" className="w-full h-full object-contain" crossOrigin="anonymous" />
+            ) : (
+              <img
+                src={resolvedBg}
+                alt="Background Transkrip"
+                style={{
+                  width: `${bgCfg.scaleX ?? 100}%`,
+                  height: `${bgCfg.scaleY ?? 100}%`,
+                  transform: `translate(${bgCfg.offsetX ?? 0}px, ${bgCfg.offsetY ?? 0}px)`,
+                  objectFit: "fill",
+                }}
+                crossOrigin="anonymous"
+              />
+            )}
+          </div>
+        )}
+
+        {/* Dynamic Render Elements */}
+        {sortedElements.map(([key, el]) => {
+          if (!el || el.visible === false) return null;
+
+          if (el.type === "text") {
+            const text = dynamicValues[key] !== undefined ? dynamicValues[key] : (el.text || "");
+            if (!text) return null;
+
+            return (
+              <div
+                key={el.id || key}
+                style={{
+                  position: "absolute",
+                  left: `${el.x}px`,
+                  top: `${el.y}px`,
+                  transform: el.align === "center" ? "translateX(-50%)" : el.align === "right" ? "translateX(-100%)" : "none",
+                  fontFamily: el.fontFamily || "Arial",
+                  fontSize: `${el.fontSize || 14}px`,
+                  color: el.colorMode === "gradient" ? "transparent" : el.color || "#0f172a",
+                  backgroundImage:
+                    el.colorMode === "gradient"
+                      ? `linear-gradient(to right, ${el.color}, ${el.gradientColor2 || "#0284c7"})`
+                      : undefined,
+                  WebkitBackgroundClip: el.colorMode === "gradient" ? "text" : undefined,
+                  filter: el.hasGlow
+                    ? `drop-shadow(0 0 ${el.glowBlur || 12}px ${el.glowColor || el.color})`
+                    : undefined,
+                  fontWeight: el.bold ? "bold" : "normal",
+                  fontStyle: el.italic ? "italic" : "normal",
+                  textAlign: el.align || "left",
+                  whiteSpace: "nowrap",
+                  zIndex: el.zIndex !== undefined ? el.zIndex : 10,
+                }}
+              >
+                {text}
+              </div>
+            );
+          }
+
+          if (el.type === "shape") {
+            const w = el.width || 200;
+            const h = el.height || 100;
+            return (
+              <div
+                key={el.id || key}
+                style={{
+                  position: "absolute",
+                  left: `${el.x - w / 2}px`,
+                  top: `${el.y - h / 2}px`,
+                  width: `${w}px`,
+                  height: `${h}px`,
+                  backgroundColor: el.fillType === "none" ? "transparent" : el.color,
+                  backgroundImage:
+                    el.fillType === "gradient"
+                      ? `linear-gradient(to bottom right, ${el.color}, ${el.gradientColor2 || "#38bdf8"})`
+                      : undefined,
+                  border: el.borderWidth ? `${el.borderWidth}px solid ${el.borderColor || "transparent"}` : "none",
+                  borderRadius:
+                    el.shapeType === "circle"
+                      ? "9999px"
+                      : el.borderRadius !== undefined
+                      ? `${el.borderRadius}px`
+                      : el.shapeType === "badge"
+                      ? "9999px"
+                      : el.shapeType === "rounded-rect"
+                      ? "16px"
+                      : "0px",
+                  opacity: el.opacity !== undefined ? el.opacity / 100 : 1,
+                  zIndex: el.zIndex !== undefined ? el.zIndex : 5,
+                }}
+              />
+            );
+          }
+
+          if (el.type === "line") {
+            const w = el.width || 260;
+            const h = el.height || 2;
+            return (
+              <div
+                key={el.id || key}
+                style={{
+                  position: "absolute",
+                  left: `${el.x - w / 2}px`,
+                  top: `${el.y - h / 2}px`,
+                  width: `${w}px`,
+                  height: `${h}px`,
+                  backgroundColor: el.color || "#334155",
+                  zIndex: el.zIndex !== undefined ? el.zIndex : 10,
+                }}
+              />
+            );
+          }
+
+          if (el.type === "image") {
+            const w = el.width || 140;
+            const h = el.height || 70;
+            let imgSrc = el.imageUrl;
+
+            if (key === "signer1Signature" && resolvedSig) {
+              imgSrc = resolvedSig;
+            } else if (imgSrc) {
+              imgSrc = resolveTranscriptBgUrl(imgSrc) || imgSrc;
+            }
+
+            if (!imgSrc) return null;
+
+            return (
+              <div
+                key={el.id || key}
+                style={{
+                  position: "absolute",
+                  left: `${el.x - w / 2}px`,
+                  top: `${el.y - h / 2}px`,
+                  width: `${w}px`,
+                  height: `${h}px`,
+                  opacity: el.opacity !== undefined ? el.opacity / 100 : 1,
+                  zIndex: el.zIndex !== undefined ? el.zIndex : 15,
+                }}
+                className="flex items-center justify-center pointer-events-none"
+              >
+                <img src={imgSrc} alt={el.label || "Signature"} className="w-full h-full object-contain" crossOrigin="anonymous" />
+              </div>
+            );
+          }
+
+          if (el.type === "table") {
+            const w = el.width || Math.min(1550, Math.round(canvasWidth * 0.9));
+            const h = el.height || 430;
+
+            return (
+              <div
+                key={el.id || key}
+                style={{
+                  position: "absolute",
+                  left: `${el.x - w / 2}px`,
+                  top: `${el.y - h / 2}px`,
+                  width: `${w}px`,
+                  minHeight: `${h}px`,
+                  zIndex: el.zIndex !== undefined ? el.zIndex : 15,
+                  fontFamily: el.fontFamily || "Arial",
+                }}
+                className="overflow-hidden rounded-xl border shadow-sm"
+              >
+                <table
+                  className="w-full border-collapse text-left"
+                  style={{
+                    backgroundColor: el.tableRowBg || "#ffffff",
+                    borderColor: el.tableBorderColor || "#cbd5e1",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        backgroundColor: el.tableHeaderBg || "#0f172a",
+                        color: el.tableHeaderColor || "#ffffff",
+                        fontSize: `${el.tableHeaderFontSize || 14}px`,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      <th
+                        className="py-2.5 px-3 border-r text-center w-12"
+                        style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                      >
+                        NO
+                      </th>
+                      {el.showCodeColumn !== false && (
+                        <th
+                          className="py-2.5 px-3 border-r w-48 font-mono"
+                          style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                        >
+                          KODE UNIT
+                        </th>
+                      )}
+                      <th
+                        className="py-2.5 px-3 border-r"
+                        style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                      >
+                        JUDUL UNIT KOMPETENSI
+                      </th>
+                      {el.showStandardColumn !== false && (
+                        <th
+                          className="py-2.5 px-3 border-r text-center w-36"
+                          style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                        >
+                          STANDAR
+                        </th>
+                      )}
+                      {el.showScoreColumn !== false && (
+                        <th
+                          className="py-2.5 px-3 text-center w-24"
+                          style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                        >
+                          NILAI
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody
+                    style={{
+                      fontSize: `${el.tableFontSize || 13}px`,
+                      color: el.tableTextColor || "#0f172a",
+                    }}
+                  >
+                    {displayUnits.map((row, idx) => {
+                      const formattedScore =
+                        row.score !== undefined && row.score !== null && row.score !== ""
+                          ? !isNaN(parseFloat(String(row.score)))
+                            ? parseFloat(String(row.score)).toFixed(2)
+                            : row.score
+                          : "-";
+
+                      return (
+                        <tr
+                          key={idx}
+                          className="border-t"
+                          style={{
+                            borderColor: el.tableBorderColor || "#cbd5e1",
+                            backgroundColor:
+                              idx % 2 === 1
+                                ? el.tableRowAltBg || "#f8fafc"
+                                : el.tableRowBg || "#ffffff",
+                          }}
+                        >
+                          <td
+                            className="py-2 px-3 border-r text-center font-bold"
+                            style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                          >
+                            {idx + 1}
+                          </td>
+                          {el.showCodeColumn !== false && (
+                            <td
+                              className="py-2 px-3 border-r font-mono text-[11px]"
+                              style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                            >
+                              {row.code || `UNIT-${idx + 1}`}
+                            </td>
+                          )}
+                          <td
+                            className="py-2 px-3 border-r font-medium"
+                            style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                          >
+                            {row.title}
+                          </td>
+                          {el.showStandardColumn !== false && (
+                            <td
+                              className="py-2 px-3 border-r text-center text-[11px] font-semibold text-slate-500"
+                              style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                            >
+                              {row.standard || "SKKNI"}
+                            </td>
+                          )}
+                          {el.showScoreColumn !== false && (
+                            <td
+                              className="py-2 px-3 text-center font-bold font-mono"
+                              style={{
+                                borderColor: el.tableBorderColor || "#cbd5e1",
+                                color: el.tableScoreColor || el.tableTextColor || "#0f172a",
+                              }}
+                            >
+                              {formattedScore}
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+
+                    {el.showAverageRow !== false && (
+                      <tr
+                        className="border-t font-bold"
+                        style={{
+                          borderColor: el.tableBorderColor || "#cbd5e1",
+                          backgroundColor: el.tableRowAltBg || "#f1f5f9",
+                        }}
+                      >
+                        <td
+                          colSpan={
+                            1 +
+                            (el.showCodeColumn !== false ? 1 : 0) +
+                            1 +
+                            (el.showStandardColumn !== false ? 1 : 0)
+                          }
+                          className="py-2.5 px-4 text-right tracking-wider uppercase text-[11px] border-r"
+                          style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                        >
+                          NILAI RATA-RATA / PREDIKAT
+                        </td>
+                        {el.showScoreColumn !== false && (
+                          <td
+                            className="py-2 px-3 text-center font-bold font-mono"
+                            style={{ color: el.tableScoreColor || "#059669" }}
+                          >
+                            {calculatedAvg}
+                          </td>
+                        )}
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    );
+  }
 
   return (
     <div

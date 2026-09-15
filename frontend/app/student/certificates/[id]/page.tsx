@@ -349,6 +349,8 @@ export default function StudentCertificateDetailPage() {
                       paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                      bgPath={layoutSettings.transcriptTemplate || layoutSettings.transcriptBgPath}
+                      layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   )}
                 </div>

@@ -50,6 +50,7 @@ import {
   Circle,
   RectangleHorizontal,
   Badge,
+  Table,
 } from "lucide-react";
 
 export interface CustomGroup {
@@ -60,7 +61,7 @@ export interface CustomGroup {
 
 export interface LayoutElement {
   id: string;
-  type: "text" | "line" | "image" | "shape";
+  type: "text" | "line" | "image" | "shape" | "table";
   text?: string;
   label?: string;
   x: number;
@@ -93,6 +94,22 @@ export interface LayoutElement {
   hasGlow?: boolean;
   glowColor?: string;
   glowBlur?: number;
+
+  // Fitur Tabel Kompetensi Transkrip Halaman 2
+  tableHeaderBg?: string;
+  tableHeaderColor?: string;
+  tableRowBg?: string;
+  tableRowAltBg?: string;
+  tableBorderColor?: string;
+  tableTextColor?: string;
+  tableScoreColor?: string;
+  tableFontSize?: number;
+  tableHeaderFontSize?: number;
+  tableDensity?: "compact" | "normal" | "spacious";
+  showScoreColumn?: boolean;
+  showStandardColumn?: boolean;
+  showCodeColumn?: boolean;
+  showAverageRow?: boolean;
 }
 
 export interface BackgroundConfig {
@@ -126,6 +143,7 @@ interface CertificateEditorProps {
   paperHeightCm?: number;
   layout: "HORIZONTAL" | "VERTICAL";
   bgPath: string | null;
+  pageType?: "certificate" | "transcript";
   onSave: (config: CertificateLayoutConfig) => Promise<void>;
   onReset: () => Promise<void>;
   isSaving: boolean;
@@ -165,7 +183,7 @@ const DEFAULT_BG_CONFIG: BackgroundConfig = {
   canvasBgColor: "#0B0F19",
 };
 
-// Tata letak default Horizontal (Landscape ~1754 x 1240 px, Center X = 877)
+// Tata letak default Horizontal Halaman 1 (Landscape ~1754 x 1240 px, Center X = 877)
 const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
   universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 877, y: 220, width: 700, height: 35, fontSize: 24, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
@@ -199,7 +217,7 @@ const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
   scanToVerifyLabel: { id: "scanToVerifyLabel", type: "text", label: "Label Scan to Verify", text: "PINDAI VERIFIKASI", x: 1404, y: 1080, width: 180, height: 24, fontSize: 12, fontFamily: "Arial", color: "#0ea5e9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 29 },
 };
 
-// Tata letak default Vertikal (Portrait ~1240 x 1754 px, Center X = 620)
+// Tata letak default Vertikal Halaman 1 (Portrait ~1240 x 1754 px, Center X = 620)
 const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
   universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 620, y: 235, width: 600, height: 35, fontSize: 22, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
@@ -227,6 +245,124 @@ const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
   signer2Nip: { id: "signer2Nip", type: "text", label: "Instansi / REG Asesor DUDI", text: "PT. TELKOM INDONESIA TBK", x: 620, y: 1730, width: 320, height: 24, fontSize: 12, fontFamily: "Courier New", color: "#38bdf8", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 30 },
 };
 
+// Tata letak default Horizontal Halaman 2 (Transkrip Nilai Landscape ~1754 x 1240 px, Center X = 877)
+export const DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
+  headerTitle: { id: "headerTitle", type: "text", label: "Judul Utama Header", text: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK", x: 877, y: 70, width: 1450, height: 40, fontSize: 24, fontFamily: "Arial", color: "#0284c7", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 10 },
+  subHeaderTitle: { id: "subHeaderTitle", type: "text", label: "Sub-Judul Header", text: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)", x: 877, y: 115, width: 1450, height: 35, fontSize: 18, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
+  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Skema / Keterangan Pelatihan", text: "Skema Sertifikasi: Rekayasa Perangkat Lunak & Sistem Terdistribusi", x: 877, y: 155, width: 1100, height: 25, fontSize: 14, fontFamily: "Arial", color: "#64748b", bold: false, italic: true, visible: true, align: "center", locked: false, zIndex: 12 },
+  
+  // Kotak Info Peserta & Sekolah
+  studentMetaBox: { id: "studentMetaBox", type: "shape", label: "Kotak Data Siswa & Lembaga", shapeType: "rounded-rect", x: 877, y: 240, width: 1550, height: 95, color: "#f8fafc", fillType: "solid", borderColor: "#cbd5e1", borderWidth: 1, borderRadius: 14, fontSize: 0, fontFamily: "Arial", bold: false, italic: false, visible: true, locked: false, zIndex: 13 },
+  studentNameMeta: { id: "studentNameMeta", type: "text", label: "Metadata Nama Siswa", text: "Nama : John Doe", x: 180, y: 220, width: 450, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 14 },
+  studentIdMeta: { id: "studentIdMeta", type: "text", label: "Metadata NIS / ID", text: "NIS / ID : 2024150042", x: 180, y: 255, width: 450, height: 25, fontSize: 13, fontFamily: "Courier New", color: "#0284c7", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 14 },
+  schoolNameMeta: { id: "schoolNameMeta", type: "text", label: "Metadata Satuan Pendidikan", text: "Satuan Pendidikan : SMK NEGERI 1 SURABAYA", x: 1570, y: 220, width: 550, height: 25, fontSize: 13, fontFamily: "Arial", color: "#334155", bold: true, italic: false, visible: true, align: "right", locked: false, zIndex: 14 },
+  majorProgramMeta: { id: "majorProgramMeta", type: "text", label: "Metadata Program Keahlian", text: "Program Keahlian : REKAYASA PERANGKAT LUNAK", x: 1570, y: 255, width: 550, height: 25, fontSize: 13, fontFamily: "Arial", color: "#64748b", bold: false, italic: false, visible: true, align: "right", locked: false, zIndex: 14 },
+
+  // Tabel Kompetensi SKKNI
+  tableCompetencies: {
+    id: "tableCompetencies",
+    type: "table",
+    label: "Tabel Unit Kompetensi SKKNI",
+    x: 877,
+    y: 550,
+    width: 1550,
+    height: 430,
+    fontSize: 13,
+    tableFontSize: 13,
+    tableHeaderFontSize: 14,
+    fontFamily: "Arial",
+    color: "#0f172a",
+    tableHeaderBg: "#0f172a",
+    tableHeaderColor: "#ffffff",
+    tableRowBg: "#ffffff",
+    tableRowAltBg: "#f8fafc",
+    tableBorderColor: "#cbd5e1",
+    tableTextColor: "#0f172a",
+    tableScoreColor: "#0f172a",
+    bold: false,
+    italic: false,
+    visible: true,
+    locked: false,
+    zIndex: 15,
+    showScoreColumn: true,
+    showStandardColumn: true,
+    showCodeColumn: true,
+    showAverageRow: true,
+  },
+
+  // Footer & Signatures
+  footerNote: { id: "footerNote", type: "text", label: "Catatan Kaki Transkrip", text: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA", x: 420, y: 1130, width: 750, height: 25, fontSize: 11, fontFamily: "Courier New", color: "#475569", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 16 },
+  blockchainHashNote: { id: "blockchainHashNote", type: "text", label: "Keterangan Kunci Blockchain", text: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain", x: 420, y: 1158, width: 750, height: 20, fontSize: 10, fontFamily: "Courier New", color: "#94a3b8", bold: false, italic: false, visible: true, align: "left", locked: false, zIndex: 17 },
+
+  // Signer 1 (Internal) - Right Bottom
+  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Kepala Sekolah / Ketua Tim Penguji", x: 1420, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
+  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 1420, y: 1090, width: 140, height: 65, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
+  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 1420, y: 1130, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: true, locked: false, zIndex: 20 },
+  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Sonny Michael Wijaya, S.Kom", x: 1420, y: 1150, width: 340, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
+  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP Penandatangan 1", text: "NIP: 197204121998021003", x: 1420, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+
+  // Signer 2 (Eksternal / DUDI) - Center Bottom (Opsional)
+  signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Penandatangan 2", text: "Asesor Industri (Mitra DUDI)", x: 877, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 23 },
+  signer2Signature: { id: "signer2Signature", type: "image", label: "Tanda Tangan Penandatangan 2", x: 877, y: 1090, width: 140, height: 65, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: false, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 24 },
+  signer2Line: { id: "signer2Line", type: "line", label: "Garis Tanda Tangan 2", x: 877, y: 1130, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: false, locked: false, zIndex: 25 },
+  signer2Name: { id: "signer2Name", type: "text", label: "Nama Penandatangan 2", text: "Ir. Hendra Kusuma, M.Kom.", x: 877, y: 1150, width: 340, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 26 },
+  signer2Nip: { id: "signer2Nip", type: "text", label: "NIP / Instansi Signer 2", text: "PT. TELKOM INDONESIA TBK", x: 877, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 27 },
+};
+
+// Tata letak default Vertikal Halaman 2 (Transkrip Nilai Portrait ~1240 x 1754 px, Center X = 620)
+export const DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
+  headerTitle: { id: "headerTitle", type: "text", label: "Judul Utama Header", text: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK", x: 620, y: 80, width: 1100, height: 40, fontSize: 22, fontFamily: "Arial", color: "#0284c7", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 10 },
+  subHeaderTitle: { id: "subHeaderTitle", type: "text", label: "Sub-Judul Header", text: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)", x: 620, y: 125, width: 1100, height: 35, fontSize: 16, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
+  courseSubtitle: { id: "courseSubtitle", type: "text", label: "Skema / Keterangan Pelatihan", text: "Skema Sertifikasi: Rekayasa Perangkat Lunak", x: 620, y: 165, width: 950, height: 25, fontSize: 13, fontFamily: "Arial", color: "#64748b", bold: false, italic: true, visible: true, align: "center", locked: false, zIndex: 12 },
+  
+  // Kotak Info Peserta & Sekolah
+  studentMetaBox: { id: "studentMetaBox", type: "shape", label: "Kotak Data Siswa & Lembaga", shapeType: "rounded-rect", x: 620, y: 260, width: 1120, height: 110, color: "#f8fafc", fillType: "solid", borderColor: "#cbd5e1", borderWidth: 1, borderRadius: 14, fontSize: 0, fontFamily: "Arial", bold: false, italic: false, visible: true, locked: false, zIndex: 13 },
+  studentNameMeta: { id: "studentNameMeta", type: "text", label: "Metadata Nama Siswa", text: "Nama : John Doe", x: 100, y: 225, width: 450, height: 25, fontSize: 13, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 14 },
+  studentIdMeta: { id: "studentIdMeta", type: "text", label: "Metadata NIS / ID", text: "NIS / ID : 2024150042", x: 100, y: 255, width: 450, height: 25, fontSize: 12, fontFamily: "Courier New", color: "#0284c7", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 14 },
+  schoolNameMeta: { id: "schoolNameMeta", type: "text", label: "Metadata Satuan Pendidikan", text: "Satuan Pendidikan : SMK NEGERI 1 SURABAYA", x: 100, y: 285, width: 500, height: 25, fontSize: 12, fontFamily: "Arial", color: "#334155", bold: true, italic: false, visible: true, align: "left", locked: false, zIndex: 14 },
+  majorProgramMeta: { id: "majorProgramMeta", type: "text", label: "Metadata Program Keahlian", text: "Program Keahlian : REKAYASA PERANGKAT LUNAK", x: 1140, y: 225, width: 500, height: 25, fontSize: 12, fontFamily: "Arial", color: "#64748b", bold: false, italic: false, visible: true, align: "right", locked: false, zIndex: 14 },
+
+  // Tabel Kompetensi SKKNI
+  tableCompetencies: {
+    id: "tableCompetencies",
+    type: "table",
+    label: "Tabel Unit Kompetensi SKKNI",
+    x: 620,
+    y: 750,
+    width: 1120,
+    height: 720,
+    fontSize: 12,
+    tableFontSize: 12,
+    tableHeaderFontSize: 13,
+    fontFamily: "Arial",
+    color: "#0f172a",
+    tableHeaderBg: "#0f172a",
+    tableHeaderColor: "#ffffff",
+    tableRowBg: "#ffffff",
+    tableRowAltBg: "#f8fafc",
+    tableBorderColor: "#cbd5e1",
+    tableTextColor: "#0f172a",
+    tableScoreColor: "#0f172a",
+    bold: false,
+    italic: false,
+    visible: true,
+    locked: false,
+    zIndex: 15,
+    showScoreColumn: true,
+    showStandardColumn: true,
+    showCodeColumn: true,
+    showAverageRow: true,
+  },
+
+  // Footer & Signer
+  footerNote: { id: "footerNote", type: "text", label: "Catatan Kaki Transkrip", text: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA", x: 620, y: 1500, width: 1000, height: 25, fontSize: 10, fontFamily: "Courier New", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
+  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Kepala Sekolah / Ketua Tim Penguji", x: 620, y: 1560, width: 340, height: 25, fontSize: 12, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
+  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 620, y: 1610, width: 140, height: 60, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
+  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 620, y: 1650, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: true, locked: false, zIndex: 20 },
+  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Sonny Michael Wijaya, S.Kom", x: 620, y: 1670, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
+  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP Penandatangan 1", text: "NIP: 197204121998021003", x: 620, y: 1695, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+};
+
 const MAX_HISTORY = 40;
 
 export default function CertificateEditor({
@@ -236,11 +372,15 @@ export default function CertificateEditor({
   paperHeightCm: initialHeightCm,
   layout,
   bgPath,
+  pageType = "certificate",
   onSave,
   onReset,
   isSaving,
 }: CertificateEditorProps) {
-  const defaultElements = layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS;
+  const isTranscript = pageType === "transcript";
+  const defaultElements = isTranscript
+    ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
+    : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
 
   // Elements & Custom Groups state
   const [elements, setElements] = useState<Record<string, LayoutElement>>(defaultElements);
@@ -257,9 +397,12 @@ export default function CertificateEditor({
   const [historyIndex, setHistoryIndex] = useState<number>(0);
 
   // Background template, Canvas Base Color, and Follow Template Design switch
-  const [bgConfig, setBgConfig] = useState<BackgroundConfig>(DEFAULT_BG_CONFIG);
-  const [canvasBgColor, setCanvasBgColor] = useState<string>("#0B0F19");
-  const [showDecorativeFrame, setShowDecorativeFrame] = useState<boolean>(true);
+  const [bgConfig, setBgConfig] = useState<BackgroundConfig>({
+    ...DEFAULT_BG_CONFIG,
+    canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+  });
+  const [canvasBgColor, setCanvasBgColor] = useState<string>(isTranscript ? "#ffffff" : "#0B0F19");
+  const [showDecorativeFrame, setShowDecorativeFrame] = useState<boolean>(!isTranscript);
   const [followTemplateDesign, setFollowTemplateDesign] = useState<boolean>(true);
   const [layoutMode, setLayoutMode] = useState<"STANDARD" | "QR_ONLY">("STANDARD");
 
@@ -355,7 +498,9 @@ export default function CertificateEditor({
   useEffect(() => {
     if (prevLayoutRef.current !== layout) {
       prevLayoutRef.current = layout;
-      const targetDefault = layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS;
+      const targetDefault = isTranscript
+        ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
+        : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
 
       setElements((prev) => {
         const next: Record<string, LayoutElement> = {};
@@ -378,7 +523,7 @@ export default function CertificateEditor({
             let newX = el.x;
             let newY = el.y;
 
-            if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape") {
+            if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
               newX = newCenterX;
             } else {
               const maxW = canvasWidth - 100;
@@ -396,7 +541,7 @@ export default function CertificateEditor({
         return next;
       });
     }
-  }, [layout, canvasWidth, canvasHeight, pushHistory]);
+  }, [layout, canvasWidth, canvasHeight, isTranscript, pushHistory]);
 
   // Track Shift Key & Keyboard Shortcuts
   useEffect(() => {
@@ -523,11 +668,14 @@ export default function CertificateEditor({
 
   // Sinkronisasi konfigurasi awal
   useEffect(() => {
+    const fallbackDefaults = isTranscript
+      ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
+      : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
+
     if (initialConfig) {
       const hasWrappedElements = "elements" in initialConfig && (initialConfig as any).elements;
       const loadedElements = (hasWrappedElements ? (initialConfig as any).elements : initialConfig) as Record<string, LayoutElement>;
 
-      const fallbackDefaults = layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS;
       const merged: Record<string, LayoutElement> = { ...fallbackDefaults };
       Object.keys(loadedElements).forEach((k) => {
         merged[k] = { ...(merged[k] || {}), ...loadedElements[k] };
@@ -552,7 +700,11 @@ export default function CertificateEditor({
           setLayoutMode(wrapped.layoutMode);
         }
         if (wrapped.backgroundConfig) {
-          setBgConfig({ ...DEFAULT_BG_CONFIG, ...wrapped.backgroundConfig });
+          setBgConfig({
+            ...DEFAULT_BG_CONFIG,
+            canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+            ...wrapped.backgroundConfig,
+          });
           if (wrapped.backgroundConfig.canvasBgColor) {
             setCanvasBgColor(wrapped.backgroundConfig.canvasBgColor);
           }
@@ -565,18 +717,20 @@ export default function CertificateEditor({
       setHistory([{ elements: merged, customGroups: initialCustomGroups }]);
       setHistoryIndex(0);
     } else {
-      const fallbackDefaults = layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS;
       setElements(fallbackDefaults);
       setCustomGroups({});
       setLayoutMode("STANDARD");
       setHistory([{ elements: fallbackDefaults, customGroups: {} }]);
       setHistoryIndex(0);
-      setBgConfig(DEFAULT_BG_CONFIG);
-      setCanvasBgColor("#0B0F19");
-      setShowDecorativeFrame(true);
+      setBgConfig({
+        ...DEFAULT_BG_CONFIG,
+        canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+      });
+      setCanvasBgColor(isTranscript ? "#ffffff" : "#0B0F19");
+      setShowDecorativeFrame(!isTranscript);
       setFollowTemplateDesign(true);
     }
-  }, [initialConfig, layout]);
+  }, [initialConfig, layout, isTranscript]);
 
   // Sinkronisasi perubahan props dimensi
   useEffect(() => {
@@ -743,18 +897,18 @@ export default function CertificateEditor({
 
   // Hitung bounding box top-left presisi tinggi
   const getBoxPosition = (el: LayoutElement) => {
-    const renderW = el.width || 300;
-    const renderH = el.height || 40;
+    const renderW = el.width || (el.type === "table" ? 1550 : 300);
+    const renderH = el.height || (el.type === "table" ? 430 : 40);
     let boxX = el.x;
     let boxY = el.y;
 
-    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       boxX = el.x - renderW / 2;
     } else if (el.align === "right") {
       boxX = el.x - renderW;
     }
 
-    if (el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       boxY = el.y - renderH / 2;
     }
 
@@ -826,18 +980,18 @@ export default function CertificateEditor({
 
   const handleDrag = (id: string, dX: number, dY: number, el: LayoutElement) => {
     if (!dragTrackerRef.current || el.locked) return;
-    const renderW = el.width || 300;
-    const renderH = el.height || 40;
+    const renderW = el.width || (el.type === "table" ? 1550 : 300);
+    const renderH = el.height || (el.type === "table" ? 430 : 40);
     let currentCenterX = dX;
     let currentCenterY = dY;
 
-    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       currentCenterX = dX + renderW / 2;
     } else if (el.align === "right") {
       currentCenterX = dX + renderW;
     }
 
-    if (el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       currentCenterY = dY + renderH / 2;
     }
 
@@ -857,18 +1011,18 @@ export default function CertificateEditor({
     dragTrackerRef.current = null;
     setGuidelines({});
 
-    const renderW = el.width || 300;
-    const renderH = el.height || 40;
+    const renderW = el.width || (el.type === "table" ? 1550 : 300);
+    const renderH = el.height || (el.type === "table" ? 430 : 40);
     let finalCenterX = dX;
     let finalCenterY = dY;
 
-    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       finalCenterX = dX + renderW / 2;
     } else if (el.align === "right") {
       finalCenterX = dX + renderW;
     }
 
-    if (el.type === "image" || el.type === "line" || el.type === "shape") {
+    if (el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table") {
       finalCenterY = dY + renderH / 2;
     }
 
@@ -976,9 +1130,9 @@ export default function CertificateEditor({
       const id = selectedIds[0];
       const el = elements[id];
       if (!el || el.locked) return;
-      const w = el.width || 300;
+      const w = el.width || (el.type === "table" ? 1550 : 300);
       const targetX =
-        el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+        el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
           ? 100 + w / 2
           : 100;
       updateElement(id, { x: Math.round(targetX) });
@@ -988,8 +1142,8 @@ export default function CertificateEditor({
     const lefts = selectedIds.map((id) => {
       const el = elements[id];
       if (!el) return 0;
-      const w = el.width || 300;
-      return el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+      const w = el.width || (el.type === "table" ? 1550 : 300);
+      return el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
         ? el.x - w / 2
         : el.x;
     });
@@ -1000,9 +1154,9 @@ export default function CertificateEditor({
       selectedIds.forEach((id) => {
         const el = next[id];
         if (el && !el.locked) {
-          const w = el.width || 300;
+          const w = el.width || (el.type === "table" ? 1550 : 300);
           const newX =
-            el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+            el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
               ? minLeft + w / 2
               : minLeft;
           next[id] = { ...el, x: Math.round(newX) };
@@ -1026,7 +1180,8 @@ export default function CertificateEditor({
             el.align === "center" ||
             el.type === "image" ||
             el.type === "line" ||
-            el.type === "shape"
+            el.type === "shape" ||
+            el.type === "table"
           ) {
             next[id] = { ...el, x: targetX };
           } else if (el.align === "left") {
@@ -1049,9 +1204,9 @@ export default function CertificateEditor({
       const id = selectedIds[0];
       const el = elements[id];
       if (!el || el.locked) return;
-      const w = el.width || 300;
+      const w = el.width || (el.type === "table" ? 1550 : 300);
       const targetX =
-        el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+        el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
           ? canvasWidth - 100 - w / 2
           : canvasWidth - 100;
       updateElement(id, { x: Math.round(targetX) });
@@ -1061,8 +1216,8 @@ export default function CertificateEditor({
     const rights = selectedIds.map((id) => {
       const el = elements[id];
       if (!el) return canvasWidth;
-      const w = el.width || 300;
-      return el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+      const w = el.width || (el.type === "table" ? 1550 : 300);
+      return el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
         ? el.x + w / 2
         : el.x + w;
     });
@@ -1073,9 +1228,9 @@ export default function CertificateEditor({
       selectedIds.forEach((id) => {
         const el = next[id];
         if (el && !el.locked) {
-          const w = el.width || 300;
+          const w = el.width || (el.type === "table" ? 1550 : 300);
           const newX =
-            el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape"
+            el.align === "center" || el.type === "image" || el.type === "line" || el.type === "shape" || el.type === "table"
               ? maxRight - w / 2
               : maxRight - w;
           next[id] = { ...el, x: Math.round(newX) };
@@ -1207,6 +1362,48 @@ export default function CertificateEditor({
       zIndex: 5,
     };
 
+    setElements((prev) => {
+      const next = { ...prev, [id]: newEl };
+      pushHistory(next);
+      return next;
+    });
+    setSelectedIds([id]);
+  };
+
+  // Tambah Tabel Transkrip Kompetensi SKKNI
+  const handleAddTableLayer = () => {
+    const id = `tableCompetencies_${Date.now()}`;
+    const newEl: LayoutElement = {
+      id,
+      type: "table",
+      label: "Tabel Unit Kompetensi SKKNI",
+      x: Math.round(canvasWidth / 2),
+      y: Math.round(canvasHeight / 2),
+      width: Math.min(1550, Math.round(canvasWidth * 0.9)),
+      height: 430,
+      fontSize: 13,
+      tableFontSize: 13,
+      tableHeaderFontSize: 14,
+      fontFamily: "Arial",
+      color: "#0f172a",
+      tableHeaderBg: "#0f172a",
+      tableHeaderColor: "#ffffff",
+      tableRowBg: "#ffffff",
+      tableRowAltBg: "#f8fafc",
+      tableBorderColor: "#cbd5e1",
+      tableTextColor: "#0f172a",
+      tableScoreColor: "#0f172a",
+      bold: false,
+      italic: false,
+      visible: true,
+      isCustom: true,
+      locked: false,
+      zIndex: Object.keys(elements).length + 10,
+      showScoreColumn: true,
+      showStandardColumn: true,
+      showCodeColumn: true,
+      showAverageRow: true,
+    };
     setElements((prev) => {
       const next = { ...prev, [id]: newEl };
       pushHistory(next);
@@ -1620,6 +1817,9 @@ export default function CertificateEditor({
         />
       );
     }
+    if (el.type === "table") {
+      return <Table size={15} className="text-emerald-400 shrink-0" />;
+    }
     if (el.type === "shape") {
       if (el.shapeType === "circle") return <Circle size={15} className="text-amber-400 shrink-0" />;
       if (el.shapeType === "badge") return <Badge size={15} className="text-amber-400 shrink-0" />;
@@ -1707,6 +1907,48 @@ export default function CertificateEditor({
     },
   ];
 
+  const transcriptCategories = [
+    {
+      key: "header",
+      title: "Header & Judul Halaman 2",
+      keys: ["headerTitle", "subHeaderTitle", "courseSubtitle"],
+    },
+    {
+      key: "recipient",
+      title: "Data Siswa & Lembaga",
+      keys: ["studentMetaBox", "studentNameMeta", "studentIdMeta", "schoolNameMeta", "majorProgramMeta"],
+    },
+    {
+      key: "table",
+      title: "Tabel Kompetensi SKKNI",
+      keys: ["tableCompetencies"],
+    },
+    {
+      key: "footer",
+      title: "Catatan Kaki & Blockchain",
+      keys: ["footerNote", "blockchainHashNote"],
+    },
+    {
+      key: "instructor",
+      title: "Penandatangan (Asesor & Kepsek)",
+      keys:
+        signerCategoryKeys.length > 0
+          ? signerCategoryKeys
+          : [
+              "signer1Title",
+              "signer1Signature",
+              "signer1Line",
+              "signer1Name",
+              "signer1Nip",
+              "signer2Title",
+              "signer2Signature",
+              "signer2Line",
+              "signer2Name",
+              "signer2Nip",
+            ],
+    },
+  ];
+
   const standardUsedKeys = new Set([
     "universityLogo", "universityTitle", "certificateTitle", "certificateNumber", "certIdLabel",
     "presentedTo", "studentName", "schoolName", "majorProgram", "studentId",
@@ -1715,8 +1957,19 @@ export default function CertificateEditor({
     ...signerCategoryKeys,
   ]);
 
+  const transcriptUsedKeys = new Set([
+    "headerTitle", "subHeaderTitle", "courseSubtitle",
+    "studentMetaBox", "studentNameMeta", "studentIdMeta", "schoolNameMeta", "majorProgramMeta",
+    "tableCompetencies",
+    "footerNote", "blockchainHashNote",
+    ...signerCategoryKeys,
+  ]);
+
+  const activeCategories = isTranscript ? transcriptCategories : standardCategories;
+  const activeUsedKeys = isTranscript ? transcriptUsedKeys : standardUsedKeys;
+
   const customKeys = Object.keys(elements).filter(
-    (k) => elements[k]?.isCustom && !standardUsedKeys.has(k)
+    (k) => elements[k]?.isCustom && !activeUsedKeys.has(k)
   );
   const primarySelectedEl = selectedIds.length === 1 ? elements[selectedIds[0]] : null;
 
@@ -1888,9 +2141,9 @@ export default function CertificateEditor({
           </div>
         </div>
 
-        {/* Action Toolbar: Tambah Teks, Gambar, Shape, dan Penandatangan */}
+        {/* Action Toolbar: Tambah Teks, Gambar, Shape, Tabel, dan Penandatangan */}
         <div className="p-3 border-b border-white/10 space-y-2 bg-slate-950/40">
-          <div className="grid grid-cols-4 gap-1">
+          <div className={`grid ${isTranscript ? "grid-cols-5" : "grid-cols-4"} gap-1`}>
             <button
               type="button"
               onClick={handleAddTextLayer}
@@ -1953,6 +2206,19 @@ export default function CertificateEditor({
                 </button>
               </div>
             </div>
+
+            {isTranscript && (
+              <button
+                type="button"
+                onClick={handleAddTableLayer}
+                className="flex items-center justify-center gap-1 py-2 px-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30 hover:border-emerald-500/60 transition-colors"
+                title="Tambah / Pulihkan Tabel Unit Kompetensi SKKNI"
+              >
+                <Table size={11} className="text-emerald-400" />
+                <span>+ Tabel</span>
+              </button>
+            )}
+
             <div className="relative group">
               <button
                 type="button"
@@ -2122,8 +2388,8 @@ export default function CertificateEditor({
             </div>
           )}
 
-          {/* Standard Categories with Folder Accordion & Bulk Eye Toggle */}
-          {standardCategories.map((cat) => {
+          {/* Standard & Transcript Categories with Folder Accordion & Bulk Eye Toggle */}
+          {activeCategories.map((cat) => {
             const memberKeys = cat.keys.filter((k) => !elements[k]?.groupId);
             if (memberKeys.length === 0) return null;
             const isCollapsed = !!collapsedCategories[cat.key];
@@ -2656,14 +2922,20 @@ export default function CertificateEditor({
                         el.align === "center" ||
                         el.type === "image" ||
                         el.type === "line" ||
-                        el.type === "shape"
+                        el.type === "shape" ||
+                        el.type === "table"
                       ) {
                         newCenterX = position.x + newW / 2;
                       } else if (el.align === "right") {
                         newCenterX = position.x + newW;
                       }
 
-                      if (el.type === "image" || el.type === "line" || el.type === "shape") {
+                      if (
+                        el.type === "image" ||
+                        el.type === "line" ||
+                        el.type === "shape" ||
+                        el.type === "table"
+                      ) {
                         newCenterY = position.y + newH / 2;
                       }
 
@@ -2782,6 +3054,134 @@ export default function CertificateEditor({
                           }}
                           className="pointer-events-none shadow-sm"
                         />
+                      )}
+
+                      {/* Table Element Render (Tabel Kompetensi Transkrip Halaman 2) */}
+                      {el.type === "table" && (
+                        <div
+                          className="w-full h-full flex flex-col pointer-events-none rounded-xl overflow-hidden shadow-sm border select-none"
+                          style={{
+                            borderColor: el.tableBorderColor || "#cbd5e1",
+                            backgroundColor: el.tableRowBg || "#ffffff",
+                            fontFamily: el.fontFamily || "Arial",
+                          }}
+                        >
+                          <table className="w-full border-collapse text-left" style={{ height: "100%" }}>
+                            <thead>
+                              <tr
+                                style={{
+                                  backgroundColor: el.tableHeaderBg || "#0f172a",
+                                  color: el.tableHeaderColor || "#ffffff",
+                                  fontSize: `${el.tableHeaderFontSize || 14}px`,
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                <th className="py-2.5 px-3 border-r text-center w-12" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                  NO
+                                </th>
+                                {el.showCodeColumn !== false && (
+                                  <th className="py-2.5 px-3 border-r w-48 font-mono" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                    KODE UNIT
+                                  </th>
+                                )}
+                                <th className="py-2.5 px-3 border-r" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                  JUDUL UNIT KOMPETENSI
+                                </th>
+                                {el.showStandardColumn !== false && (
+                                  <th className="py-2.5 px-3 border-r text-center w-36" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                    STANDAR
+                                  </th>
+                                )}
+                                {el.showScoreColumn !== false && (
+                                  <th className="py-2.5 px-3 text-center w-24" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                    NILAI
+                                  </th>
+                                )}
+                              </tr>
+                            </thead>
+                            <tbody
+                              style={{
+                                fontSize: `${el.tableFontSize || 13}px`,
+                                color: el.tableTextColor || "#0f172a",
+                              }}
+                            >
+                              {[
+                                { no: "1", code: "J.620100.004.01", title: "Menerapkan Prinsip-prinsip Keselamatan dan Kesehatan Kerja Lingkungan", standard: "SKKNI", score: "88" },
+                                { no: "2", code: "J.620100.005.02", title: "Menulis Kode dengan Prinsip Terstruktur & Clean Architecture", standard: "SKKNI", score: "92" },
+                                { no: "3", code: "J.620100.012.01", title: "Mengimplementasikan Rancangan Entitas dan Basis Data Relasional", standard: "SKKNI", score: "90" },
+                                { no: "4", code: "J.620100.017.02", title: "Membuat Desain Antarmuka Pengguna (UI/UX) Terintegrasi Modern", standard: "SKKNI", score: "95" },
+                                { no: "5", code: "J.620100.025.02", title: "Melakukan Pengujian Unit Perangkat Lunak (Automated Testing)", standard: "SKKNI", score: "89" },
+                              ].map((row, idx) => (
+                                <tr
+                                  key={row.no}
+                                  className="border-t"
+                                  style={{
+                                    borderColor: el.tableBorderColor || "#cbd5e1",
+                                    backgroundColor: idx % 2 === 1 ? (el.tableRowAltBg || "#f8fafc") : (el.tableRowBg || "#ffffff"),
+                                  }}
+                                >
+                                  <td className="py-2 px-3 border-r text-center font-bold" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                    {row.no}
+                                  </td>
+                                  {el.showCodeColumn !== false && (
+                                    <td className="py-2 px-3 border-r font-mono text-[11px]" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                      {row.code}
+                                    </td>
+                                  )}
+                                  <td className="py-2 px-3 border-r font-medium truncate" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                    {row.title}
+                                  </td>
+                                  {el.showStandardColumn !== false && (
+                                    <td className="py-2 px-3 border-r text-center text-[11px] font-semibold text-slate-500" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                      {row.standard}
+                                    </td>
+                                  )}
+                                  {el.showScoreColumn !== false && (
+                                    <td
+                                      className="py-2 px-3 text-center font-bold font-mono"
+                                      style={{
+                                        borderColor: el.tableBorderColor || "#cbd5e1",
+                                        color: el.tableScoreColor || el.tableTextColor || "#0f172a",
+                                      }}
+                                    >
+                                      {row.score}
+                                    </td>
+                                  )}
+                                </tr>
+                              ))}
+                              {el.showAverageRow !== false && (
+                                <tr
+                                  className="border-t font-bold"
+                                  style={{
+                                    borderColor: el.tableBorderColor || "#cbd5e1",
+                                    backgroundColor: el.tableRowAltBg || "#f1f5f9",
+                                  }}
+                                >
+                                  <td
+                                    colSpan={
+                                      1 +
+                                      (el.showCodeColumn !== false ? 1 : 0) +
+                                      1 +
+                                      (el.showStandardColumn !== false ? 1 : 0)
+                                    }
+                                    className="py-2 px-4 text-right tracking-wider uppercase text-[11px] border-r"
+                                    style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                                  >
+                                    NILAI RATA-RATA / PREDIKAT
+                                  </td>
+                                  {el.showScoreColumn !== false && (
+                                    <td
+                                      className="py-2 px-3 text-center font-bold font-mono text-emerald-600"
+                                      style={{ color: el.tableScoreColor || "#059669" }}
+                                    >
+                                      90.8
+                                    </td>
+                                  )}
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
 
                       {/* Line Element Render */}
@@ -3594,6 +3994,174 @@ export default function CertificateEditor({
                           title={swatch.name}
                         />
                       ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Table Properties (Khusus Tabel Transkrip Halaman 2) */}
+              {primarySelectedEl.type === "table" && (
+                <div className="flex items-center gap-3.5 flex-nowrap">
+                  {/* Header Color & Background */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Header Bg & Teks
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-white/10">
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableHeaderBg || "#0f172a"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableHeaderBg: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Warna Latar Header Tabel"
+                      />
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableHeaderColor || "#ffffff"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableHeaderColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Warna Teks Header Tabel"
+                      />
+                      <span className="text-[10px] text-white/50 font-mono">Hdr</span>
+                    </div>
+                  </div>
+
+                  {/* Row Bg & Row Alt Bg */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Baris (Ganjil/Genap)
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-white/10">
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableRowBg || "#ffffff"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableRowBg: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Latar Baris Ganjil"
+                      />
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableRowAltBg || "#f8fafc"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableRowAltBg: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Latar Baris Genap (Belang)"
+                      />
+                      <span className="text-[10px] text-white/50 font-mono">Row</span>
+                    </div>
+                  </div>
+
+                  {/* Border & Text Color */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Garis, Teks, & Nilai
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-white/10">
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableBorderColor || "#cbd5e1"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableBorderColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Warna Garis Tabel"
+                      />
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableTextColor || "#0f172a"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableTextColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Warna Teks Isi Tabel"
+                      />
+                      <input
+                        type="color"
+                        value={primarySelectedEl.tableScoreColor || "#0f172a"}
+                        onChange={(e) => updateElement(primarySelectedEl.id, { tableScoreColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                        title="Warna Angka Nilai"
+                      />
+                      <span className="text-[10px] text-white/50 font-mono">Clr</span>
+                    </div>
+                  </div>
+
+                  {/* Ukuran Font Header & Isi */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Ukuran Font
+                    </span>
+                    <div className="flex items-center gap-1 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-white/10">
+                      <div className="flex items-center">
+                        <span className="text-[9px] text-white/40 mr-1">H:</span>
+                        <input
+                          type="number"
+                          min="9"
+                          max="28"
+                          value={primarySelectedEl.tableHeaderFontSize || 14}
+                          onChange={(e) => updateElement(primarySelectedEl.id, { tableHeaderFontSize: Number(e.target.value) })}
+                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none"
+                          title="Ukuran Font Header"
+                        />
+                      </div>
+                      <div className="w-px h-3 bg-white/20" />
+                      <div className="flex items-center">
+                        <span className="text-[9px] text-white/40 mr-1">B:</span>
+                        <input
+                          type="number"
+                          min="8"
+                          max="24"
+                          value={primarySelectedEl.tableFontSize || 13}
+                          onChange={(e) => updateElement(primarySelectedEl.id, { tableFontSize: Number(e.target.value) })}
+                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none"
+                          title="Ukuran Font Isi Baris"
+                        />
+                      </div>
+                      <span className="text-[10px] text-white/40 font-mono">px</span>
+                    </div>
+                  </div>
+
+                  {/* Toggle Kolom */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Tampilkan Kolom
+                    </span>
+                    <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { showCodeColumn: primarySelectedEl.showCodeColumn === false })}
+                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                          primarySelectedEl.showCodeColumn !== false ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-white/40"
+                        }`}
+                        title="Toggle Kolom Kode Unit"
+                      >
+                        Kode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { showStandardColumn: primarySelectedEl.showStandardColumn === false })}
+                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                          primarySelectedEl.showStandardColumn !== false ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-white/40"
+                        }`}
+                        title="Toggle Kolom Standar SKKNI"
+                      >
+                        Standar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { showScoreColumn: primarySelectedEl.showScoreColumn === false })}
+                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                          primarySelectedEl.showScoreColumn !== false ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-white/40"
+                        }`}
+                        title="Toggle Kolom Nilai Angka"
+                      >
+                        Nilai
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { showAverageRow: primarySelectedEl.showAverageRow === false })}
+                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                          primarySelectedEl.showAverageRow !== false ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-white/40"
+                        }`}
+                        title="Toggle Baris Nilai Rata-rata"
+                      >
+                        Rata²
+                      </button>
                     </div>
                   </div>
                 </div>

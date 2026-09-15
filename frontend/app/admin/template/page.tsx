@@ -137,6 +137,10 @@ export default function CertificateTemplatePage() {
   const [uploadingTranscript, setUploadingTranscript] = useState(false);
   const [removingTranscript, setRemovingTranscript] = useState(false);
   const [savingTranscriptConfig, setSavingTranscriptConfig] = useState(false);
+  const [transcriptLayoutConfig, setTranscriptLayoutConfig] = useState<
+    CertificateLayoutConfig | Record<string, LayoutElement> | null
+  >(null);
+  const [savingTranscriptLayoutConfig, setSavingTranscriptLayoutConfig] = useState(false);
   const [transcriptConfig, setTranscriptConfig] = useState<TranscriptConfigSetting>({
     headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
     subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
@@ -227,10 +231,11 @@ export default function CertificateTemplatePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [settingsRes, detailsRes, configRes] = await Promise.all([
+      const [settingsRes, detailsRes, configRes, transcriptLayoutRes] = await Promise.all([
         api.get("/admin/settings"),
         api.get("/admin/settings/details"),
         api.get("/admin/settings/layout-config"),
+        api.get("/admin/settings/transcript-layout-config"),
       ]);
 
       if (settingsRes.data.ok && settingsRes.data.settings) {
@@ -282,6 +287,11 @@ export default function CertificateTemplatePage() {
       if (configRes.data.ok && configRes.data.config) {
         setLayoutConfig(configRes.data.config);
       }
+
+      if (transcriptLayoutRes.data.ok && transcriptLayoutRes.data.config) {
+        setTranscriptLayoutConfig(transcriptLayoutRes.data.config);
+      }
+
       await loadPreview();
     } catch (err) {
       console.error(err);
@@ -677,6 +687,50 @@ export default function CertificateTemplatePage() {
       toast.error("Gagal mereset konfigurasi tata letak");
     } finally {
       setSavingConfig(false);
+    }
+  };
+
+  const handleSaveTranscriptLayoutConfig = async (config: CertificateLayoutConfig) => {
+    setSavingTranscriptLayoutConfig(true);
+    try {
+      const res = await api.post("/admin/settings/transcript-layout-config", { config });
+      if (res.data.ok) {
+        toast.success("Konfigurasi tata letak transkrip (Halaman 2) berhasil disimpan");
+        setTranscriptLayoutConfig(config);
+        setPreviewKey(Date.now());
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (err.response?.status === 413) {
+        toast.error("Ukuran data gambar terlalu besar. Silakan gunakan gambar dengan resolusi yang lebih efisien.");
+      } else {
+        toast.error(err.response?.data?.error || "Gagal menyimpan konfigurasi tata letak transkrip");
+      }
+    } finally {
+      setSavingTranscriptLayoutConfig(false);
+    }
+  };
+
+  const handleResetTranscriptLayoutConfig = async () => {
+    if (
+      !window.confirm(
+        "Apakah Anda yakin ingin mereset layout transkrip (Halaman 2) ke pengaturan default? Semua posisi tabel dan layer kustom akan dikembalikan.",
+      )
+    )
+      return;
+    setSavingTranscriptLayoutConfig(true);
+    try {
+      const res = await api.delete("/admin/settings/transcript-layout-config");
+      if (res.data.ok) {
+        toast.success("Tata letak transkrip berhasil direset ke default");
+        setTranscriptLayoutConfig(null);
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mereset konfigurasi tata letak transkrip");
+    } finally {
+      setSavingTranscriptLayoutConfig(false);
     }
   };
 
@@ -1421,6 +1475,33 @@ export default function CertificateTemplatePage() {
               </button>
             </div>
           </div>
+
+          {/* Editor Tata Letak Visual Halaman 2 (Transkrip Nilai SKKNI) */}
+          <div className="mt-12 space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                Editor Tata Letak Visual (Halaman 2 - Transkrip Nilai SKKNI)
+              </h2>
+              <p className="text-white/40 text-xs mt-2">
+                Geser posisi tabel kompetensi SKKNI, atur ukuran lebar/tinggi tabel, kustomisasi warna header, baris bergantian, teks, border, sembunyikan/tampilkan kolom, dan atur tata letak penandatangan.
+              </p>
+            </div>
+
+            <div className="w-full">
+              <CertificateEditor
+                pageType="transcript"
+                initialConfig={transcriptLayoutConfig}
+                paperSize={paperSize}
+                paperWidthCm={paperWidthCm}
+                paperHeightCm={paperHeightCm}
+                layout={layout}
+                bgPath={fullTranscriptBgUrl}
+                onSave={handleSaveTranscriptLayoutConfig}
+                onReset={handleResetTranscriptLayoutConfig}
+                isSaving={savingTranscriptLayoutConfig}
+              />
+            </div>
+          </div>
         </div>
       )}
 
@@ -1626,6 +1707,7 @@ export default function CertificateTemplatePage() {
                   headerTitle={transcriptConfig.headerTitle}
                   subHeaderTitle={transcriptConfig.subHeaderTitle}
                   footerNote={transcriptConfig.footerNote}
+                  layoutConfig={transcriptLayoutConfig}
                 />
               </div>
             )}
@@ -1836,6 +1918,7 @@ export default function CertificateTemplatePage() {
                   headerTitle={transcriptConfig.headerTitle}
                   subHeaderTitle={transcriptConfig.subHeaderTitle}
                   footerNote={transcriptConfig.footerNote}
+                  layoutConfig={transcriptLayoutConfig}
                 />
               </div>
             )}

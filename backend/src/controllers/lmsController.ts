@@ -1839,6 +1839,15 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       }
     }
 
+    let transcriptLayoutConfig = null;
+    if (map["transcript_layout_config"]) {
+      try {
+        transcriptLayoutConfig = JSON.parse(map["transcript_layout_config"]);
+      } catch (e) {
+        transcriptLayoutConfig = null;
+      }
+    }
+
     const payload = {
       certificateLayout: map["certificate_layout"] || "HORIZONTAL",
       certificatePaperSize: map["certificate_paper_size"] || "A4",
@@ -1856,6 +1865,7 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       transcriptTemplate: map["default_transcript_template"] || null,
       transcriptConfig: transcriptConfig,
       layoutConfig: layoutConfig,
+      transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: map["default_certificate_school_name"] || "SMK Mitra IDUKA",
     };
 

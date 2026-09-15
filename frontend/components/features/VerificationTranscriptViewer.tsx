@@ -97,7 +97,8 @@ export function VerificationTranscriptViewer({
       api.get("/admin/settings"),
       api.get("/admin/settings/details"),
       api.get("/admin/settings/layout-config"),
-    ]).then(([settingsRes, detailsRes, configRes]) => {
+      api.get("/admin/settings/transcript-layout-config"),
+    ]).then(([settingsRes, detailsRes, configRes, transcriptConfigRes]) => {
       const merged: any = {};
       if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
         Object.assign(merged, settingsRes.value.data.settings);
@@ -107,6 +108,9 @@ export function VerificationTranscriptViewer({
       }
       if (configRes.status === "fulfilled" && configRes.value?.data?.config) {
         merged.layoutConfig = configRes.value.data.config;
+      }
+      if (transcriptConfigRes.status === "fulfilled" && transcriptConfigRes.value?.data?.config) {
+        merged.transcriptLayoutConfig = transcriptConfigRes.value.data.config;
       }
       setLayoutSettings(merged);
     });
@@ -255,6 +259,8 @@ export function VerificationTranscriptViewer({
                 paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                 paperHeightCm={layoutSettings.paperHeightCm || 21.0}
                 layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                bgPath={layoutSettings.transcriptTemplate}
+                layoutConfig={layoutSettings.transcriptLayoutConfig}
               />
             </div>
           </div>
