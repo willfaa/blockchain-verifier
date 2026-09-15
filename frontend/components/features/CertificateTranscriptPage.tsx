@@ -405,7 +405,8 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                         backgroundColor: el.tableHeaderBg || "#0f172a",
                         color: el.tableHeaderColor || "#ffffff",
                         fontSize: `${el.tableHeaderFontSize || 14}px`,
-                        fontWeight: "bold",
+                        fontWeight: el.bold !== undefined ? (el.bold ? "bold" : "normal") : "bold",
+                        fontStyle: el.italic ? "italic" : "normal",
                       }}
                     >
                       <th
@@ -450,6 +451,8 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                     style={{
                       fontSize: `${el.tableFontSize || 13}px`,
                       color: el.tableTextColor || "#0f172a",
+                      fontWeight: el.bold ? "bold" : "normal",
+                      fontStyle: el.italic ? "italic" : "normal",
                     }}
                   >
                     {displayUnits.map((row, idx) => {

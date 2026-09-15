@@ -755,6 +755,31 @@ export default function CertificateEditor({
     [pushHistory]
   );
 
+  // Handler Reset Layout khusus halaman aktif saat ini
+  const handleInternalReset = () => {
+    const fallbackDefaults = isTranscript
+      ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
+      : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
+
+    setElements(fallbackDefaults);
+    setCustomGroups({});
+    setLayoutMode("STANDARD");
+    setHistory([{ elements: fallbackDefaults, customGroups: {} }]);
+    setHistoryIndex(0);
+    setBgConfig({
+      ...DEFAULT_BG_CONFIG,
+      canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+    });
+    setCanvasBgColor(isTranscript ? "#ffffff" : "#0B0F19");
+    setShowDecorativeFrame(!isTranscript);
+    setFollowTemplateDesign(true);
+    setSelectedIds([]);
+
+    if (onReset) {
+      onReset();
+    }
+  };
+
   // Group & Ungroup Handlers
   const handleGroupSelected = () => {
     if (selectedIds.length < 2) return;
@@ -2632,8 +2657,9 @@ export default function CertificateEditor({
             </span>
 
             <button
-              onClick={onReset}
+              onClick={handleInternalReset}
               className="px-3.5 py-1.5 text-xs font-bold text-white/60 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/5"
+              title="Kembalikan tata letak halaman ini ke pengaturan default"
             >
               Reset
             </button>
@@ -3073,7 +3099,8 @@ export default function CertificateEditor({
                                   backgroundColor: el.tableHeaderBg || "#0f172a",
                                   color: el.tableHeaderColor || "#ffffff",
                                   fontSize: `${el.tableHeaderFontSize || 14}px`,
-                                  fontWeight: "bold",
+                                  fontWeight: el.bold !== undefined ? (el.bold ? "bold" : "normal") : "bold",
+                                  fontStyle: el.italic ? "italic" : "normal",
                                 }}
                               >
                                 <th className="py-2.5 px-3 border-r text-center w-12" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
@@ -3103,6 +3130,8 @@ export default function CertificateEditor({
                               style={{
                                 fontSize: `${el.tableFontSize || 13}px`,
                                 color: el.tableTextColor || "#0f172a",
+                                fontWeight: el.bold ? "bold" : "normal",
+                                fontStyle: el.italic ? "italic" : "normal",
                               }}
                             >
                               {[
@@ -4001,7 +4030,96 @@ export default function CertificateEditor({
 
               {/* Table Properties (Khusus Tabel Transkrip Halaman 2) */}
               {primarySelectedEl.type === "table" && (
-                <div className="flex items-center gap-3.5 flex-nowrap">
+                <div className="flex items-center gap-3.5 flex-nowrap overflow-x-auto max-w-full pb-1">
+                  {/* Jenis Font Tabel (Font Family) */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Font Tabel
+                    </span>
+                    <select
+                      value={primarySelectedEl.fontFamily || "Arial"}
+                      onChange={(e) => updateElement(primarySelectedEl.id, { fontFamily: e.target.value })}
+                      className="bg-slate-950 border border-white/10 text-xs text-white px-2 py-1 rounded-lg outline-none cursor-pointer"
+                      title="Pilih Jenis Font untuk Seluruh Isi Tabel Transkrip"
+                    >
+                      <option value="Arial">Arial</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                      <option value="Courier New">Courier New</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Verdana">Verdana</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Inter">Inter</option>
+                    </select>
+                  </div>
+
+                  {/* Gaya Font: Tebal & Miring */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Gaya Teks
+                    </span>
+                    <div className="flex items-center gap-0.5 bg-slate-950 rounded-lg p-0.5 border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { bold: !primarySelectedEl.bold })}
+                        className={`px-2 py-0.5 text-xs font-serif rounded ${
+                          primarySelectedEl.bold
+                            ? "bg-cyan-500 text-slate-950 font-bold"
+                            : "text-white/50 hover:text-white"
+                        }`}
+                        title="Tebalkan Teks Tabel"
+                      >
+                        B
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElement(primarySelectedEl.id, { italic: !primarySelectedEl.italic })}
+                        className={`px-2 py-0.5 text-xs font-serif rounded ${
+                          primarySelectedEl.italic
+                            ? "bg-cyan-500 text-slate-950 italic"
+                            : "text-white/50 hover:text-white"
+                        }`}
+                        title="Miringkan Teks Tabel"
+                      >
+                        I
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Ukuran Font Header & Isi */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
+                      Ukuran Font (Hdr & Isi)
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded-lg border border-white/10">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] text-white/40">Hdr:</span>
+                        <input
+                          type="number"
+                          min="8"
+                          max="36"
+                          value={primarySelectedEl.tableHeaderFontSize || 14}
+                          onChange={(e) => updateElement(primarySelectedEl.id, { tableHeaderFontSize: Number(e.target.value) })}
+                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none border-b border-white/10"
+                          title="Ukuran Font Header Tabel"
+                        />
+                      </div>
+                      <div className="w-px h-3 bg-white/20" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] text-white/40">Isi:</span>
+                        <input
+                          type="number"
+                          min="8"
+                          max="32"
+                          value={primarySelectedEl.tableFontSize || 13}
+                          onChange={(e) => updateElement(primarySelectedEl.id, { tableFontSize: Number(e.target.value) })}
+                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none border-b border-white/10"
+                          title="Ukuran Font Baris Isi Tabel"
+                        />
+                      </div>
+                      <span className="text-[10px] text-white/40 font-mono">px</span>
+                    </div>
+                  </div>
+
                   {/* Header Color & Background */}
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
@@ -4050,7 +4168,7 @@ export default function CertificateEditor({
                     </div>
                   </div>
 
-                  {/* Border & Text Color */}
+                  {/* Border, Text, & Score Color */}
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
                       Garis, Teks, & Nilai
@@ -4081,38 +4199,84 @@ export default function CertificateEditor({
                     </div>
                   </div>
 
-                  {/* Ukuran Font Header & Isi */}
+                  {/* Preset Tema Cepat Tabel */}
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap">
-                      Ukuran Font
+                      Preset Tema Tabel
                     </span>
-                    <div className="flex items-center gap-1 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-white/10">
-                      <div className="flex items-center">
-                        <span className="text-[9px] text-white/40 mr-1">H:</span>
-                        <input
-                          type="number"
-                          min="9"
-                          max="28"
-                          value={primarySelectedEl.tableHeaderFontSize || 14}
-                          onChange={(e) => updateElement(primarySelectedEl.id, { tableHeaderFontSize: Number(e.target.value) })}
-                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none"
-                          title="Ukuran Font Header"
-                        />
-                      </div>
-                      <div className="w-px h-3 bg-white/20" />
-                      <div className="flex items-center">
-                        <span className="text-[9px] text-white/40 mr-1">B:</span>
-                        <input
-                          type="number"
-                          min="8"
-                          max="24"
-                          value={primarySelectedEl.tableFontSize || 13}
-                          onChange={(e) => updateElement(primarySelectedEl.id, { tableFontSize: Number(e.target.value) })}
-                          className="w-7 bg-transparent text-xs text-white font-mono text-center outline-none"
-                          title="Ukuran Font Isi Baris"
-                        />
-                      </div>
-                      <span className="text-[10px] text-white/40 font-mono">px</span>
+                    <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateElement(primarySelectedEl.id, {
+                            tableHeaderBg: "#0f172a",
+                            tableHeaderColor: "#ffffff",
+                            tableRowBg: "#ffffff",
+                            tableRowAltBg: "#f8fafc",
+                            tableBorderColor: "#cbd5e1",
+                            tableTextColor: "#0f172a",
+                            tableScoreColor: "#0f172a",
+                          })
+                        }
+                        className="px-1.5 py-0.5 text-[9px] font-bold bg-slate-800 text-cyan-300 rounded border border-white/10 hover:bg-slate-700"
+                        title="Tema Navy Formal (Default)"
+                      >
+                        Navy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateElement(primarySelectedEl.id, {
+                            tableHeaderBg: "#064e3b",
+                            tableHeaderColor: "#ffffff",
+                            tableRowBg: "#ffffff",
+                            tableRowAltBg: "#ecfdf5",
+                            tableBorderColor: "#a7f3d0",
+                            tableTextColor: "#064e3b",
+                            tableScoreColor: "#059669",
+                          })
+                        }
+                        className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-950 text-emerald-300 rounded border border-emerald-500/30 hover:bg-emerald-900"
+                        title="Tema Emerald Hijau"
+                      >
+                        Emerald
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateElement(primarySelectedEl.id, {
+                            tableHeaderBg: "#78350f",
+                            tableHeaderColor: "#ffffff",
+                            tableRowBg: "#fffbeb",
+                            tableRowAltBg: "#fef3c7",
+                            tableBorderColor: "#fde68a",
+                            tableTextColor: "#78350f",
+                            tableScoreColor: "#b45309",
+                          })
+                        }
+                        className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-950 text-amber-300 rounded border border-amber-500/30 hover:bg-amber-900"
+                        title="Tema Gold Mewah"
+                      >
+                        Gold
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateElement(primarySelectedEl.id, {
+                            tableHeaderBg: "#18181b",
+                            tableHeaderColor: "#ffffff",
+                            tableRowBg: "#ffffff",
+                            tableRowAltBg: "#f4f4f5",
+                            tableBorderColor: "#e4e4e7",
+                            tableTextColor: "#18181b",
+                            tableScoreColor: "#18181b",
+                          })
+                        }
+                        className="px-1.5 py-0.5 text-[9px] font-bold bg-zinc-800 text-zinc-300 rounded border border-white/10 hover:bg-zinc-700"
+                        title="Tema Minimal Bersih"
+                      >
+                        Clean
+                      </button>
                     </div>
                   </div>
 

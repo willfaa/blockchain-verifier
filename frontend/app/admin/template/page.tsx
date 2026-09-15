@@ -165,11 +165,11 @@ export default function CertificateTemplatePage() {
   }, [isFullscreenPreview]);
 
   const handleZoomIn = () => {
-    setPreviewZoom((z) => Math.min(300, z + 15));
+    setPreviewZoom((z) => Math.min(300, z + 5));
   };
 
   const handleZoomOut = () => {
-    setPreviewZoom((z) => Math.max(30, z - 15));
+    setPreviewZoom((z) => Math.max(30, z - 5));
   };
 
   const handleResetZoom = () => {
@@ -177,11 +177,11 @@ export default function CertificateTemplatePage() {
   };
 
   const handleFullscreenZoomIn = () => {
-    setFullscreenZoom((z) => Math.min(300, z + 15));
+    setFullscreenZoom((z) => Math.min(300, z + 5));
   };
 
   const handleFullscreenZoomOut = () => {
-    setFullscreenZoom((z) => Math.max(30, z - 15));
+    setFullscreenZoom((z) => Math.max(30, z - 5));
   };
 
   const handleFullscreenResetZoom = () => {
@@ -670,7 +670,7 @@ export default function CertificateTemplatePage() {
   const handleResetConfig = async () => {
     if (
       !window.confirm(
-        "Apakah Anda yakin ingin mereset layout ke pengaturan default? Semua posisi kustom dan layer tambahan akan dikembalikan.",
+        "Apakah Anda yakin ingin mereset layout Halaman 1 (Sertifikat) ke pengaturan default? Semua posisi kustom dan layer tambahan pada Halaman 1 akan dikembalikan.",
       )
     )
       return;
@@ -678,13 +678,13 @@ export default function CertificateTemplatePage() {
     try {
       const res = await api.delete("/admin/settings/layout-config");
       if (res.data.ok) {
-        toast.success("Tata letak berhasil direset ke default");
+        toast.success("Tata letak Halaman 1 (Sertifikat) berhasil direset ke default");
         setLayoutConfig(null);
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Gagal mereset konfigurasi tata letak");
+      toast.error("Gagal mereset konfigurasi tata letak Halaman 1");
     } finally {
       setSavingConfig(false);
     }
@@ -714,7 +714,7 @@ export default function CertificateTemplatePage() {
   const handleResetTranscriptLayoutConfig = async () => {
     if (
       !window.confirm(
-        "Apakah Anda yakin ingin mereset layout transkrip (Halaman 2) ke pengaturan default? Semua posisi tabel dan layer kustom akan dikembalikan.",
+        "Apakah Anda yakin ingin mereset layout transkrip (Halaman 2) ke pengaturan default? Semua posisi tabel dan layer kustom pada Halaman 2 akan dikembalikan.",
       )
     )
       return;
@@ -722,13 +722,13 @@ export default function CertificateTemplatePage() {
     try {
       const res = await api.delete("/admin/settings/transcript-layout-config");
       if (res.data.ok) {
-        toast.success("Tata letak transkrip berhasil direset ke default");
+        toast.success("Tata letak transkrip (Halaman 2) berhasil direset ke default");
         setTranscriptLayoutConfig(null);
         setPreviewKey(Date.now());
       }
     } catch (err) {
       console.error(err);
-      toast.error("Gagal mereset konfigurasi tata letak transkrip");
+      toast.error("Gagal mereset konfigurasi tata letak transkrip (Halaman 2)");
     } finally {
       setSavingTranscriptLayoutConfig(false);
     }
@@ -1627,9 +1627,9 @@ export default function CertificateTemplatePage() {
               if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 if (e.deltaY < 0) {
-                  setPreviewZoom((z) => Math.min(300, z + 10));
+                  setPreviewZoom((z) => Math.min(300, z + 5));
                 } else {
-                  setPreviewZoom((z) => Math.max(30, z - 10));
+                  setPreviewZoom((z) => Math.max(30, z - 5));
                 }
               }
             }}
@@ -1836,9 +1836,9 @@ export default function CertificateTemplatePage() {
               if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 if (e.deltaY < 0) {
-                  setFullscreenZoom((z) => Math.min(300, z + 10));
+                  setFullscreenZoom((z) => Math.min(300, z + 5));
                 } else {
-                  setFullscreenZoom((z) => Math.max(30, z - 10));
+                  setFullscreenZoom((z) => Math.max(30, z - 5));
                 }
               }
             }}
