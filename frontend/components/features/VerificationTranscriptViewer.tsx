@@ -216,6 +216,10 @@ export function VerificationTranscriptViewer({
                 paperHeightCm={layoutSettings.paperHeightCm || 21.0}
                 instructorName={layoutSettings.instructorName || signerList[0]?.name}
                 instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
+                instructors={layoutSettings.instructors || signerList}
+                institutionLogo={layoutSettings.institutionLogo}
+                institutionName={layoutSettings.institutionName}
+                institutionSubtext={layoutSettings.institutionSubtext}
                 bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
                 layoutConfig={layoutSettings.layoutConfig}
               />
@@ -252,9 +256,12 @@ export function VerificationTranscriptViewer({
                 program={program}
                 courseTitle={courseTitle}
                 units={units}
-                examinerName={signerList[0]?.name || "Penguji / Asesor"}
-                examinerNip={signerList[0]?.nip}
-                schoolName={schoolName || "SMK Mitra IDUKA"}
+                examinerName={signerList[0]?.name || layoutSettings.instructorName || "Penguji / Asesor"}
+                examinerNip={signerList[0]?.nip || layoutSettings.instructorNip}
+                institutionLogo={layoutSettings.institutionLogo}
+                institutionName={layoutSettings.institutionName}
+                institutionSubtext={layoutSettings.institutionSubtext}
+                schoolName={layoutSettings.institutionName || schoolName || "SMK Mitra IDUKA"}
                 paperSize={layoutSettings.certificatePaperSize || "A4"}
                 paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                 paperHeightCm={layoutSettings.paperHeightCm || 21.0}

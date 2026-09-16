@@ -331,6 +331,10 @@ export default function StudentCertificateDetailPage() {
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}
                       instructorName={layoutSettings.instructorName}
                       instructorNip={layoutSettings.instructorNip}
+                      instructors={layoutSettings.instructors}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
                       bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
                       layoutConfig={layoutSettings.layoutConfig}
                     />
@@ -344,7 +348,10 @@ export default function StudentCertificateDetailPage() {
                       units={cert.competencyUnits}
                       examinerName={layoutSettings.instructorName || "Penguji / Asesor"}
                       examinerNip={layoutSettings.instructorNip}
-                      schoolName={cert.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
+                      schoolName={layoutSettings.institutionName || cert.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
                       paperSize={layoutSettings.certificatePaperSize || "A4"}
                       paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}

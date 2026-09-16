@@ -890,6 +890,9 @@ export default function SmartIssueCertificatePage() {
                       instructorName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName}
                       instructorNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip}
                       instructors={layoutSettings.instructors}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
                       bgPath={selectedCourse?.certificateTemplate || layoutSettings.certificateTemplate || layoutSettings.bgPath}
                       layoutConfig={layoutSettings.layoutConfig}
                     />
@@ -904,7 +907,10 @@ export default function SmartIssueCertificatePage() {
                       averageScore={averageScore}
                       examinerName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName || "Penguji / Asesor"}
                       examinerNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip || "-"}
-                      schoolName={schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
+                      schoolName={layoutSettings.institutionName || schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
                       paperSize={layoutSettings.certificatePaperSize || "A4"}
                       paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}
@@ -1085,6 +1091,9 @@ export default function SmartIssueCertificatePage() {
                     instructorName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName}
                     instructorNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip}
                     instructors={layoutSettings.instructors}
+                    institutionLogo={layoutSettings.institutionLogo}
+                    institutionName={layoutSettings.institutionName}
+                    institutionSubtext={layoutSettings.institutionSubtext}
                     bgPath={selectedCourse?.certificateTemplate || layoutSettings.certificateTemplate || layoutSettings.bgPath}
                     layoutConfig={layoutSettings.layoutConfig}
                   />
@@ -1099,7 +1108,10 @@ export default function SmartIssueCertificatePage() {
                     averageScore={averageScore}
                     examinerName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName || "Penguji / Asesor"}
                     examinerNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip || "-"}
-                    schoolName={schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                    institutionLogo={layoutSettings.institutionLogo}
+                    institutionName={layoutSettings.institutionName}
+                    institutionSubtext={layoutSettings.institutionSubtext}
+                    schoolName={layoutSettings.institutionName || schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
                     paperSize={layoutSettings.certificatePaperSize || "A4"}
                     paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                     paperHeightCm={layoutSettings.paperHeightCm || 21.0}

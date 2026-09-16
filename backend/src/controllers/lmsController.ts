@@ -1866,7 +1866,10 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       transcriptConfig: transcriptConfig,
       layoutConfig: layoutConfig,
       transcriptLayoutConfig: transcriptLayoutConfig,
-      schoolName: map["default_certificate_school_name"] || "SMK Mitra IDUKA",
+      schoolName: map["institution_name"] || map["default_certificate_school_name"] || "SMK Mitra IDUKA",
+      institutionLogo: map["institution_logo"] || null,
+      institutionName: map["institution_name"] || "UNIVERSITAS NEGERI SURABAYA",
+      institutionSubtext: map["institution_subtext"] || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
     };
 
     return res.json({

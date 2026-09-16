@@ -132,6 +132,14 @@ export default function CertificateTemplatePage() {
   >(null);
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // Institution Identity & Logo State
+  const [institutionLogo, setInstitutionLogo] = useState<string | null>(null);
+  const [institutionName, setInstitutionName] = useState<string>("UNIVERSITAS NEGERI SURABAYA");
+  const [institutionSubtext, setInstitutionSubtext] = useState<string>("FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [removingLogo, setRemovingLogo] = useState(false);
+  const [savingInstitution, setSavingInstitution] = useState(false);
+
   // Page 2 (Transcript) State
   const [transcriptBgPath, setTranscriptBgPath] = useState<string | null>(null);
   const [uploadingTranscript, setUploadingTranscript] = useState(false);
@@ -261,6 +269,9 @@ export default function CertificateTemplatePage() {
         setInstructorNip(dNip);
         setBgPath(d.certificateTemplate);
         setTranscriptBgPath(d.transcriptTemplate || null);
+        if (d.institutionLogo) setInstitutionLogo(d.institutionLogo);
+        if (d.institutionName) setInstitutionName(d.institutionName);
+        if (d.institutionSubtext) setInstitutionSubtext(d.institutionSubtext);
 
         if (d.transcriptConfig) {
           setTranscriptConfig((prev) => ({
@@ -338,7 +349,7 @@ export default function CertificateTemplatePage() {
     });
   };
 
-  const handleInstructorSignatureUpload = (
+  const handleInstructorSignatureUpload = async (
     index: number,
     file: File
   ) => {
@@ -346,6 +357,32 @@ export default function CertificateTemplatePage() {
       toast.error("Harap unggah file gambar berformat PNG atau WebP transparan");
       return;
     }
+    const signerId = instructors[index]?.id || `signer${index + 1}`;
+    const formData = new FormData();
+    formData.append("signature", file);
+    formData.append("signerId", signerId);
+
+    try {
+      const res = await api.post("/admin/settings/signatures", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data.ok && (res.data.url || res.data.path)) {
+        const uploadedUrl = res.data.url || res.data.path;
+        setInstructors((prev) => {
+          const next = [...prev];
+          if (next[index]) {
+            next[index] = { ...next[index], signatureUrl: uploadedUrl };
+          }
+          return next;
+        });
+        toast.success(`Tanda tangan digital Signer ${index + 1} berhasil diunggah ke Supabase Storage!`);
+        setPreviewKey(Date.now());
+        return;
+      }
+    } catch (err) {
+      console.warn("Direct signatures upload fallback to data URL:", err);
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -357,21 +394,8 @@ export default function CertificateTemplatePage() {
         return next;
       });
 
-      if (layoutConfig) {
-        const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
-        if (hasElements) {
-          const sigKey = index === 0 ? "instructorSignature" : `signer${index + 1}Signature`;
-          if (hasElements[sigKey]) {
-            hasElements[sigKey] = {
-              ...hasElements[sigKey],
-              imageUrl: dataUrl,
-              visible: true,
-            };
-          }
-        }
-      }
-
-      toast.success(`Tanda tangan PNG untuk Penandatangan ${index + 1} berhasil dipasang`);
+      toast.success(`Tanda tangan Signer ${index + 1} berhasil dipasang`);
+      setPreviewKey(Date.now());
     };
     reader.readAsDataURL(file);
   };
@@ -385,20 +409,77 @@ export default function CertificateTemplatePage() {
       return next;
     });
 
-    if (layoutConfig) {
-      const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
-      if (hasElements) {
-        const sigKey = index === 0 ? "instructorSignature" : `signer${index + 1}Signature`;
-        if (hasElements[sigKey]) {
-          hasElements[sigKey] = {
-            ...hasElements[sigKey],
-            imageUrl: "",
-          };
+    toast.info("Tanda tangan dihapus");
+  };
+
+  const handleInstitutionLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setUploadingLogo(true);
+      const formData = new FormData();
+      formData.append("institutionLogo", file);
+      try {
+        const res = await api.post("/admin/settings/logo", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        if (res.data.ok && (res.data.url || res.data.path)) {
+          const newLogoUrl = res.data.url || res.data.path;
+          setInstitutionLogo(newLogoUrl);
+          toast.success("Logo lembaga berhasil diunggah ke Supabase Storage!");
+          setPreviewKey(Date.now());
         }
+      } catch (err: any) {
+        console.error(err);
+        toast.error("Gagal mengunggah logo lembaga");
+      } finally {
+        setUploadingLogo(false);
       }
     }
+  };
 
-    toast.info("Tanda tangan dihapus");
+  const handleRemoveInstitutionLogo = async () => {
+    setRemovingLogo(true);
+    try {
+      const res = await api.delete("/admin/settings/logo");
+      if (res.data.ok) {
+        setInstitutionLogo(null);
+        toast.success("Logo lembaga dihapus. Kembali ke logo default.");
+        setPreviewKey(Date.now());
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Gagal menghapus logo lembaga");
+    } finally {
+      setRemovingLogo(false);
+    }
+  };
+
+  const handleSaveInstitutionDetails = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSavingInstitution(true);
+    try {
+      const primaryName = instructors[0]?.name || instructorName;
+      const primaryNip = instructors[0]?.nip || instructorNip;
+
+      const res = await api.post("/admin/settings/details", {
+        instructorName: primaryName,
+        instructorNip: primaryNip,
+        instructors,
+        institutionLogo,
+        institutionName,
+        institutionSubtext,
+      });
+
+      if (res.data.ok) {
+        toast.success("Identitas lembaga berhasil disimpan!");
+        setPreviewKey(Date.now());
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menyimpan identitas lembaga");
+    } finally {
+      setSavingInstitution(false);
+    }
   };
 
   const handleSaveAllInstructors = async (e?: React.FormEvent) => {
@@ -412,51 +493,10 @@ export default function CertificateTemplatePage() {
         instructorName: primaryName,
         instructorNip: primaryNip,
         instructors,
+        institutionLogo,
+        institutionName,
+        institutionSubtext,
       });
-
-      if (layoutConfig) {
-        const hasElements = "elements" in layoutConfig ? (layoutConfig as any).elements : layoutConfig;
-        if (hasElements) {
-          instructors.forEach((inst, idx) => {
-            const isFirst = idx === 0;
-            const sigKey = isFirst ? "instructorSignature" : `signer${idx + 1}Signature`;
-            const nameKey = isFirst ? "instructorName" : `signer${idx + 1}Name`;
-            const titleKey = isFirst ? "instructorTitle" : `signer${idx + 1}Title`;
-            const nipKey = isFirst ? "instructorNip" : `signer${idx + 1}Nip`;
-
-            if (hasElements[sigKey]) {
-              hasElements[sigKey] = {
-                ...hasElements[sigKey],
-                imageUrl: inst.signatureUrl || hasElements[sigKey].imageUrl || "",
-                visible: true,
-              };
-            }
-            if (hasElements[nameKey] && inst.name) {
-              hasElements[nameKey] = {
-                ...hasElements[nameKey],
-                text: inst.name,
-                visible: true,
-              };
-            }
-            if (hasElements[titleKey] && inst.title) {
-              hasElements[titleKey] = {
-                ...hasElements[titleKey],
-                text: inst.title,
-                visible: true,
-              };
-            }
-            if (hasElements[nipKey] && inst.nip) {
-              hasElements[nipKey] = {
-                ...hasElements[nipKey],
-                text: inst.nip,
-                visible: true,
-              };
-            }
-          });
-
-          await api.post("/admin/settings/layout-config", { config: layoutConfig });
-        }
-      }
 
       if (res.data.ok) {
         toast.success("Daftar penandatangan & tanda tangan digital berhasil disimpan!");
@@ -820,6 +860,122 @@ export default function CertificateTemplatePage() {
       {/* ======================================================== */}
       {activeConfigTab === "front" && (
         <div className="space-y-12 animate-in fade-in duration-300">
+          {/* Bagian Khusus: Identitas & Logo Lembaga / Satuan Pendidikan */}
+          <div className="glass-panel p-6 rounded-3xl border-transparent shadow-xl space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400">
+                    <Award size={18} />
+                  </div>
+                  <h2 className="text-lg font-bold text-white tracking-tight">
+                    Logo & Identitas Lembaga / Satuan Pendidikan
+                  </h2>
+                  <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-bold">
+                    Konfigurasi Dinamis Cloud
+                  </span>
+                </div>
+                <p className="text-white/40 text-xs">
+                  Atur logo resmi universitas/sekolah dan nama institusi agar otomatis tersinkron ke Halaman 1 & Halaman 2 tanpa hardcode.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveInstitutionDetails}
+                disabled={savingInstitution}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Save size={14} />
+                <span>{savingInstitution ? "Menyimpan..." : "Simpan Identitas Lembaga"}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              {/* Logo Preview & Upload */}
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] space-y-3 text-center">
+                <div className="w-24 h-24 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center p-2 relative overflow-hidden shadow-inner group">
+                  {institutionLogo ? (
+                    <img
+                      src={resolveUploadUrl(institutionLogo) || ""}
+                      alt="Logo Lembaga"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      src="/assets/unesa-logo.png"
+                      alt="Logo Default"
+                      className="w-full h-full object-contain opacity-70"
+                    />
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    id="institutionLogoUploadInput"
+                    accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                    onChange={handleInstitutionLogoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("institutionLogoUploadInput")?.click()}
+                    disabled={uploadingLogo}
+                    className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Upload size={12} />
+                    <span>{uploadingLogo ? "Mengunggah..." : "Unggah Logo"}</span>
+                  </button>
+
+                  {institutionLogo && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveInstitutionLogo}
+                      disabled={removingLogo}
+                      className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
+                      title="Reset ke Logo Default"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+                <span className="text-[9px] text-white/40">
+                  PNG transparan / SVG (Otomatis masuk ke Supabase Storage)
+                </span>
+              </div>
+
+              {/* Form Input Nama Lembaga & Sub-Judul */}
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                    Nama Lembaga / Universitas / Satuan Pendidikan (Header Utama)
+                  </label>
+                  <input
+                    type="text"
+                    value={institutionName}
+                    onChange={(e) => setInstitutionName(e.target.value)}
+                    placeholder="contoh: UNIVERSITAS NEGERI SURABAYA atau SMK NEGERI 1 SURABAYA"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-bold text-xs focus:outline-none focus:border-amber-400/50 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+                    Sub-Judul / Fakultas / Jurusan / Unit LSP (Header Sekunder)
+                  </label>
+                  <input
+                    type="text"
+                    value={institutionSubtext}
+                    onChange={(e) => setInstitutionSubtext(e.target.value)}
+                    placeholder="contoh: FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white font-medium text-xs focus:outline-none focus:border-amber-400/50 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Grid Pengaturan — 2 Kolom: Dimensi & Template Background */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Dimensi & Orientasi Kertas */}
@@ -1270,6 +1426,9 @@ export default function CertificateTemplatePage() {
                 paperHeightCm={paperHeightCm}
                 layout={layout}
                 bgPath={fullBgUrl}
+                institutionLogo={resolveUploadUrl(institutionLogo)}
+                institutionName={institutionName}
+                institutionSubtext={institutionSubtext}
                 onSave={handleSaveConfig}
                 onReset={handleResetConfig}
                 isSaving={savingConfig}
@@ -1496,6 +1655,9 @@ export default function CertificateTemplatePage() {
                 paperHeightCm={paperHeightCm}
                 layout={layout}
                 bgPath={fullTranscriptBgUrl}
+                institutionLogo={resolveUploadUrl(institutionLogo)}
+                institutionName={institutionName}
+                institutionSubtext={institutionSubtext}
                 onSave={handleSaveTranscriptLayoutConfig}
                 onReset={handleResetTranscriptLayoutConfig}
                 isSaving={savingTranscriptLayoutConfig}
@@ -1669,6 +1831,9 @@ export default function CertificateTemplatePage() {
                     instructorName={instructorName}
                     instructorNip={instructorNip}
                     instructors={instructors}
+                    institutionLogo={resolveUploadUrl(institutionLogo)}
+                    institutionName={institutionName}
+                    institutionSubtext={institutionSubtext}
                     layout={layout}
                     paperSize={paperSize}
                     paperWidthCm={paperWidthCm}
@@ -1697,7 +1862,10 @@ export default function CertificateTemplatePage() {
                   examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
                   examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
-                  schoolName="SMK Mitra IDUKA"
+                  institutionLogo={resolveUploadUrl(institutionLogo)}
+                  institutionName={institutionName}
+                  institutionSubtext={institutionSubtext}
+                  schoolName={institutionName || "SMK Mitra IDUKA"}
                   paperSize={paperSize}
                   paperWidthCm={paperWidthCm}
                   paperHeightCm={paperHeightCm}
@@ -1879,6 +2047,9 @@ export default function CertificateTemplatePage() {
                     instructorName={instructorName}
                     instructorNip={instructorNip}
                     instructors={instructors}
+                    institutionLogo={resolveUploadUrl(institutionLogo)}
+                    institutionName={institutionName}
+                    institutionSubtext={institutionSubtext}
                     layout={layout}
                     paperSize={paperSize}
                     paperWidthCm={paperWidthCm}
@@ -1908,7 +2079,10 @@ export default function CertificateTemplatePage() {
                   examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
                   examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
-                  schoolName="SMK Mitra IDUKA"
+                  institutionLogo={resolveUploadUrl(institutionLogo)}
+                  institutionName={institutionName}
+                  institutionSubtext={institutionSubtext}
+                  schoolName={institutionName || "SMK Mitra IDUKA"}
                   paperSize={paperSize}
                   paperWidthCm={paperWidthCm}
                   paperHeightCm={paperHeightCm}

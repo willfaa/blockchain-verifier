@@ -465,16 +465,49 @@ export async function updateUserProfileInSupabase(userId: string, updates: any) 
   }
 }
 
-export async function uploadAvatarToSupabase(
-  fileBuffer: ArrayBuffer,
-  fileName: string,
-  contentType: string,
-  userId: string
-) {
+export async function ensureSupabaseBucket(bucket: string = "lms"): Promise<boolean> {
   try {
-    const remotePath = `avatars/${userId}/${fileName}`;
-    const url = `${SUPABASE_API_URL}/storage/v1/object/lms/${remotePath}`;
-    const res = await fetch(url, {
+    const checkRes = await fetch(`${SUPABASE_API_URL}/storage/v1/bucket/${bucket}`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    });
+    if (checkRes.ok) return true;
+
+    // If bucket doesn't exist, create it as a public bucket
+    const createRes = await fetch(`${SUPABASE_API_URL}/storage/v1/bucket`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: bucket,
+        name: bucket,
+        public: true,
+        file_size_limit: 52428800, // 50MB
+      }),
+    });
+    return createRes.ok;
+  } catch (err: any) {
+    console.warn(`[Supabase] Auto-create bucket '${bucket}' error:`, err.message);
+    return false;
+  }
+}
+
+export async function uploadToSupabaseStorage(
+  fileBuffer: ArrayBuffer | Buffer,
+  remotePath: string,
+  contentType: string = "image/png",
+  bucket: string = "lms"
+): Promise<string | null> {
+  try {
+    const cleanedPath = remotePath.replace(/\\/g, "/").replace(/^\/+/, "");
+    const uploadUrl = `${SUPABASE_API_URL}/storage/v1/object/${bucket}/${cleanedPath}`;
+
+    let res = await fetch(uploadUrl, {
       method: "POST",
       headers: {
         apikey: SUPABASE_KEY,
@@ -482,14 +515,70 @@ export async function uploadAvatarToSupabase(
         "Content-Type": contentType,
         "x-upsert": "true",
       },
-      body: fileBuffer,
+      body: fileBuffer as any,
     });
-    if (res.ok) {
-      return `${SUPABASE_API_URL}/storage/v1/object/public/lms/${remotePath}`;
+
+    // If bucket not found, create bucket and retry upload
+    if (res.status === 400 || res.status === 404) {
+      const errJson = await res.clone().json().catch(() => ({}));
+      if (errJson.error === "Bucket not found" || errJson.message === "Bucket not found") {
+        console.log(`[Supabase Storage] Bucket '${bucket}' not found. Creating bucket...`);
+        await ensureSupabaseBucket(bucket);
+        res = await fetch(uploadUrl, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": contentType,
+            "x-upsert": "true",
+          },
+          body: fileBuffer as any,
+        });
+      }
     }
+
+    if (res.ok) {
+      const publicUrl = `${SUPABASE_API_URL}/storage/v1/object/public/${bucket}/${cleanedPath}`;
+      console.log(`[Supabase Storage] Upload successful: ${publicUrl}`);
+      return publicUrl;
+    }
+
+    const errText = await res.text();
+    console.error(`[Supabase Storage] Upload failed (${res.status}):`, errText);
     return null;
   } catch (err: any) {
     console.error("[Supabase Storage Error]:", err.message);
     return null;
   }
+}
+
+export async function deleteFromSupabaseStorage(
+  remotePath: string,
+  bucket: string = "lms"
+): Promise<boolean> {
+  try {
+    const cleanedPath = remotePath.replace(/\\/g, "/").replace(/^\/+/, "");
+    const url = `${SUPABASE_API_URL}/storage/v1/object/${bucket}/${cleanedPath}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    });
+    return res.ok;
+  } catch (err: any) {
+    console.error("[Supabase Storage Delete Error]:", err.message);
+    return false;
+  }
+}
+
+export async function uploadAvatarToSupabase(
+  fileBuffer: ArrayBuffer,
+  fileName: string,
+  contentType: string,
+  userId: string
+) {
+  const remotePath = `avatars/${userId}/${fileName}`;
+  return uploadToSupabaseStorage(fileBuffer, remotePath, contentType, "lms");
 }

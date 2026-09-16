@@ -4,6 +4,7 @@ import { db } from "../config/db";
 import bcrypt from "bcryptjs";
 import { generateCertificateImage } from "../services/imageGenerator";
 import path from "path";
+import { uploadFileToSupabase } from "../utils/supabaseStorage";
 
 /**
  * SAFETY GUARD: Ensures only one response is sent per request.
@@ -613,6 +614,9 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       transcriptTemplateSetting,
       transcriptConfigSetting,
       transcriptLayoutSetting,
+      institutionLogoSetting,
+      institutionNameSetting,
+      institutionSubtextSetting,
     ] = await Promise.all([
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_name" } }),
       db.systemSetting.findUnique({ where: { key: "default_certificate_instructor_nip" } }),
@@ -621,6 +625,9 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       db.systemSetting.findUnique({ where: { key: "default_transcript_template" } }),
       db.systemSetting.findUnique({ where: { key: "default_transcript_config" } }),
       db.systemSetting.findUnique({ where: { key: "transcript_layout_config" } }),
+      db.systemSetting.findUnique({ where: { key: "institution_logo" } }),
+      db.systemSetting.findUnique({ where: { key: "institution_name" } }),
+      db.systemSetting.findUnique({ where: { key: "institution_subtext" } }),
     ]);
 
     const legacyName = nameSetting?.value || "Drs. H. Mulyono, M.Pd.";
@@ -682,6 +689,9 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
         transcriptTemplate: transcriptTemplateSetting?.value || null,
         transcriptConfig,
         transcriptLayoutConfig,
+        institutionLogo: institutionLogoSetting?.value || null,
+        institutionName: institutionNameSetting?.value || "UNIVERSITAS NEGERI SURABAYA",
+        institutionSubtext: institutionSubtextSetting?.value || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
       }
     });
   } catch (error: any) {
@@ -691,8 +701,40 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
 
 export const updateCertificateDetails = async (req: Request, res: Response) => {
   try {
-    const { instructorName, instructorNip, instructors, transcriptConfig } = req.body;
+    const {
+      instructorName,
+      instructorNip,
+      instructors,
+      transcriptConfig,
+      institutionLogo,
+      institutionName,
+      institutionSubtext,
+    } = req.body;
     
+    if (institutionLogo !== undefined) {
+      await db.systemSetting.upsert({
+        where: { key: "institution_logo" },
+        update: { value: institutionLogo || "" },
+        create: { key: "institution_logo", value: institutionLogo || "" }
+      });
+    }
+
+    if (institutionName !== undefined) {
+      await db.systemSetting.upsert({
+        where: { key: "institution_name" },
+        update: { value: institutionName },
+        create: { key: "institution_name", value: institutionName }
+      });
+    }
+
+    if (institutionSubtext !== undefined) {
+      await db.systemSetting.upsert({
+        where: { key: "institution_subtext" },
+        update: { value: institutionSubtext },
+        create: { key: "institution_subtext", value: institutionSubtext }
+      });
+    }
+
     if (transcriptConfig !== undefined) {
       await db.systemSetting.upsert({
         where: { key: "default_transcript_config" },
@@ -748,14 +790,36 @@ export const updateCertificateDetails = async (req: Request, res: Response) => {
 export const updateCertificateTemplateBackground = async (req: Request, res: Response) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-    let templatePath = "";
+    let localFilePath = "";
+    let mimeType = "image/png";
+    let filename = "";
 
     if (files && files["certificateTemplate"] && files["certificateTemplate"][0]) {
-      templatePath = `/uploads/courses/${req.user.id}/${files["certificateTemplate"][0].filename}`;
+      localFilePath = files["certificateTemplate"][0].path;
+      mimeType = files["certificateTemplate"][0].mimetype;
+      filename = files["certificateTemplate"][0].filename;
     } else if (req.file) {
-      templatePath = `/uploads/courses/${req.user.id}/${req.file.filename}`;
+      localFilePath = req.file.path;
+      mimeType = req.file.mimetype;
+      filename = req.file.filename;
     } else {
       return safeResponse(res, 400, { error: "No image file provided" });
+    }
+
+    let templatePath = "";
+    try {
+      templatePath = await uploadFileToSupabase(
+        localFilePath,
+        "lms",
+        `templates/certificate-bg-${Date.now()}-${filename}`,
+        mimeType
+      );
+    } catch (e: any) {
+      console.warn("[adminController] Supabase template upload fallback to local:", e.message);
+    }
+
+    if (!templatePath) {
+      templatePath = `/uploads/courses/${req.user.id}/${filename}`;
     }
 
     await db.systemSetting.upsert({
@@ -767,7 +831,8 @@ export const updateCertificateTemplateBackground = async (req: Request, res: Res
     return safeResponse(res, 200, {
       ok: true,
       message: "Default certificate template background updated successfully",
-      path: templatePath
+      path: templatePath,
+      url: templatePath,
     });
   } catch (error: any) {
     console.error("[updateCertificateTemplateBackground Error]", error.message);
@@ -794,14 +859,36 @@ export const deleteCertificateTemplateBackground = async (req: Request, res: Res
 export const updateTranscriptTemplateBackground = async (req: Request, res: Response) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-    let templatePath = "";
+    let localFilePath = "";
+    let mimeType = "image/png";
+    let filename = "";
 
     if (files && files["transcriptTemplate"] && files["transcriptTemplate"][0]) {
-      templatePath = `/uploads/courses/${req.user.id}/${files["transcriptTemplate"][0].filename}`;
+      localFilePath = files["transcriptTemplate"][0].path;
+      mimeType = files["transcriptTemplate"][0].mimetype;
+      filename = files["transcriptTemplate"][0].filename;
     } else if (req.file) {
-      templatePath = `/uploads/courses/${req.user.id}/${req.file.filename}`;
+      localFilePath = req.file.path;
+      mimeType = req.file.mimetype;
+      filename = req.file.filename;
     } else {
       return safeResponse(res, 400, { error: "No transcript image file provided" });
+    }
+
+    let templatePath = "";
+    try {
+      templatePath = await uploadFileToSupabase(
+        localFilePath,
+        "lms",
+        `templates/transcript-bg-${Date.now()}-${filename}`,
+        mimeType
+      );
+    } catch (e: any) {
+      console.warn("[adminController] Supabase transcript upload fallback to local:", e.message);
+    }
+
+    if (!templatePath) {
+      templatePath = `/uploads/courses/${req.user.id}/${filename}`;
     }
 
     await db.systemSetting.upsert({
@@ -813,7 +900,8 @@ export const updateTranscriptTemplateBackground = async (req: Request, res: Resp
     return safeResponse(res, 200, {
       ok: true,
       message: "Transcript template background updated successfully",
-      path: templatePath
+      path: templatePath,
+      url: templatePath,
     });
   } catch (error: any) {
     console.error("[updateTranscriptTemplateBackground Error]", error.message);
@@ -834,6 +922,74 @@ export const deleteTranscriptTemplateBackground = async (req: Request, res: Resp
   } catch (error: any) {
     console.error("[deleteTranscriptTemplateBackground Error]", error.message);
     return safeResponse(res, 500, { error: "Failed to remove transcript template background" });
+  }
+};
+
+export const updateInstitutionLogo = async (req: Request, res: Response) => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    let localFilePath = "";
+    let mimeType = "image/png";
+    let filename = "";
+
+    if (files && files["institutionLogo"] && files["institutionLogo"][0]) {
+      localFilePath = files["institutionLogo"][0].path;
+      mimeType = files["institutionLogo"][0].mimetype;
+      filename = files["institutionLogo"][0].filename;
+    } else if (req.file) {
+      localFilePath = req.file.path;
+      mimeType = req.file.mimetype;
+      filename = req.file.filename;
+    } else {
+      return safeResponse(res, 400, { error: "No logo file provided" });
+    }
+
+    let logoUrl = "";
+    try {
+      logoUrl = await uploadFileToSupabase(
+        localFilePath,
+        "lms",
+        `logos/institution-logo-${Date.now()}-${filename}`,
+        mimeType
+      );
+    } catch (e: any) {
+      console.warn("[adminController] Supabase logo upload fallback to local:", e.message);
+    }
+
+    if (!logoUrl) {
+      logoUrl = `/uploads/courses/${req.user.id}/${filename}`;
+    }
+
+    await db.systemSetting.upsert({
+      where: { key: "institution_logo" },
+      update: { value: logoUrl },
+      create: { key: "institution_logo", value: logoUrl }
+    });
+
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Logo lembaga berhasil diunggah",
+      path: logoUrl,
+      url: logoUrl,
+    });
+  } catch (error: any) {
+    console.error("[updateInstitutionLogo Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to update institution logo" });
+  }
+};
+
+export const deleteInstitutionLogo = async (req: Request, res: Response) => {
+  try {
+    await db.systemSetting.deleteMany({
+      where: { key: "institution_logo" },
+    });
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Logo lembaga berhasil dihapus. Kembali ke default.",
+    });
+  } catch (error: any) {
+    console.error("[deleteInstitutionLogo Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to remove institution logo" });
   }
 };
 

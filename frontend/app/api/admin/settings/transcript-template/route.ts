@@ -4,18 +4,20 @@ import { upsertSystemSetting, deleteSystemSetting, uploadToSupabaseStorage } fro
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("certificateTemplate") as File | null;
+    const file =
+      (formData.get("transcriptTemplate") as File | null) ||
+      (formData.get("file") as File | null);
 
     if (!file) {
       return NextResponse.json(
-        { ok: false, error: "No template file provided" },
+        { ok: false, error: "No transcript template file provided" },
         { status: 400 }
       );
     }
 
     const bytes = await file.arrayBuffer();
     const fileExt = file.name ? file.name.split(".").pop() : "png";
-    const remoteFileName = `certificate-bg-${Date.now()}.${fileExt}`;
+    const remoteFileName = `transcript-bg-${Date.now()}.${fileExt}`;
     const remotePath = `templates/${remoteFileName}`;
 
     // Upload directly to Supabase Storage bucket ('lms')
@@ -32,17 +34,17 @@ export async function POST(request: NextRequest) {
       storedPath = `data:${file.type || "image/png"};base64,${buffer.toString("base64")}`;
     }
 
-    await upsertSystemSetting("default_certificate_template", storedPath);
+    await upsertSystemSetting("default_transcript_template", storedPath);
 
     return NextResponse.json({
       ok: true,
-      message: "Template background uploaded successfully to Supabase Storage",
+      message: "Transcript template background uploaded successfully to Supabase Storage",
       path: storedPath,
     });
   } catch (error: any) {
-    console.error("[Serverless Template Upload Error]:", error);
+    console.error("[Serverless Transcript Template Upload Error]:", error);
     return NextResponse.json(
-      { ok: false, error: error.message || "Failed to upload template" },
+      { ok: false, error: error.message || "Failed to upload transcript template" },
       { status: 500 }
     );
   }
@@ -50,15 +52,15 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await deleteSystemSetting("default_certificate_template");
+    await deleteSystemSetting("default_transcript_template");
     return NextResponse.json({
       ok: true,
-      message: "Template background removed. Reverted to procedural theme.",
+      message: "Transcript template background removed.",
     });
   } catch (error: any) {
-    console.error("[Serverless Template DELETE Error]:", error);
+    console.error("[Serverless Transcript Template DELETE Error]:", error);
     return NextResponse.json(
-      { ok: false, error: error.message || "Failed to remove template" },
+      { ok: false, error: error.message || "Failed to remove transcript template" },
       { status: 500 }
     );
   }

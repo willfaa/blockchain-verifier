@@ -32,6 +32,9 @@ export interface CertificateProps {
   paperWidthCm?: number;
   paperHeightCm?: number;
   bgPath?: string | null;
+  institutionLogo?: string | null;
+  institutionName?: string | null;
+  institutionSubtext?: string | null;
   layoutConfig?: CertificateLayoutConfig | Record<string, LayoutElement> | null;
   backgroundConfig?: BackgroundConfig;
 }
@@ -80,6 +83,9 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
   paperWidthCm: customWidthCm,
   paperHeightCm: customHeightCm,
   bgPath,
+  institutionLogo,
+  institutionName,
+  institutionSubtext,
   layoutConfig,
   backgroundConfig,
 }) => {
@@ -106,23 +112,13 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
     opacity: 100,
   };
 
-  // Dimensions
-  const preset = PAPER_PRESETS_CM[paperSize.toUpperCase()] || PAPER_PRESETS_CM.A4;
-  let widthCm = customWidthCm || (hasWrapped ? (layoutConfig as any).paperWidthCm : undefined) || preset.width;
-  let heightCm = customHeightCm || (hasWrapped ? (layoutConfig as any).paperHeightCm : undefined) || preset.height;
+  const preset = PAPER_PRESETS_CM[paperSize?.toUpperCase()] || PAPER_PRESETS_CM.A4;
+  const widthCm = customWidthCm || wrappedConfig?.paperWidthCm || preset.width;
+  const heightCm = customHeightCm || wrappedConfig?.paperHeightCm || preset.height;
 
-  if (layout === "VERTICAL" && widthCm > heightCm) {
-    const temp = widthCm;
-    widthCm = heightCm;
-    heightCm = temp;
-  } else if (layout === "HORIZONTAL" && widthCm < heightCm) {
-    const temp = widthCm;
-    widthCm = heightCm;
-    heightCm = temp;
-  }
-
-  const canvasWidth = Math.round(widthCm * CM_TO_PX);
-  const canvasHeight = Math.round(heightCm * CM_TO_PX);
+  const isVertical = layout === "VERTICAL";
+  const canvasWidth = Math.round((isVertical ? heightCm : widthCm) * CM_TO_PX);
+  const canvasHeight = Math.round((isVertical ? widthCm : heightCm) * CM_TO_PX);
 
   // If custom layout elements are provided, render purely data-driven layers
   if (elements && Object.keys(elements).length > 0) {
@@ -131,13 +127,13 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
     const s3 = instructors?.[2];
 
     const dynamicValues: Record<string, string> = {
-      universityTitle: "UNIVERSITAS NEGERI SURABAYA",
+      universityTitle: institutionName || "UNIVERSITAS NEGERI SURABAYA",
       certificateTitle: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN",
       certIdLabel: `ID: ${finalId}`,
       certificateNumber: `No: UKK/${finalId.substring(0, 8).toUpperCase()}`,
       presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
-      schoolName: "SMK NEGERI 1 SURABAYA",
+      schoolName: institutionName || "SMK NEGERI 1 SURABAYA",
       majorProgram: `${majority.toUpperCase()} - ${program.toUpperCase()}`,
       studentId: `NISN / ID : ${studentId}`,
       courseSubtitle: "Telah memenuhi standar kelulusan dan kompetensi pada skema:",
@@ -368,7 +364,9 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
             const imgH = el.height || 100;
 
             let imageSrc = el.imageUrl;
-            if (!imageSrc || imageSrc === "DEFAULT_LOGO") {
+            if (key === "universityLogo" || el.id === "universityLogo") {
+              imageSrc = institutionLogo || (el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" ? el.imageUrl : "/assets/unesa-logo.png");
+            } else if (!imageSrc || imageSrc === "DEFAULT_LOGO") {
               if (key === "instructorSignature" || el.id === "instructorSignature" || key === "signer1Signature" || el.id === "signer1Signature") {
                 imageSrc = s1?.signatureUrl || undefined;
               } else if (key === "signer2Signature" || el.id === "signer2Signature") {

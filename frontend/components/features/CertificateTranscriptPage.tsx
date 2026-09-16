@@ -29,6 +29,9 @@ export interface TranscriptProps {
   examinerTitle?: string;
   examinerNip?: string;
   schoolName?: string;
+  institutionLogo?: string | null;
+  institutionName?: string | null;
+  institutionSubtext?: string | null;
   issuedDate?: string;
   paperSize?: string;
   paperWidthCm?: number;
@@ -80,6 +83,9 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   examinerTitle = "Penguji / Asesor Uji Kompetensi",
   examinerNip,
   schoolName,
+  institutionLogo,
+  institutionName,
+  institutionSubtext,
   issuedDate,
   paperSize = "A4",
   paperWidthCm: customWidthCm,
@@ -192,7 +198,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
         : "Skema Sertifikasi: Rekayasa Perangkat Lunak & Sistem Terdistribusi",
       studentNameMeta: `Nama : ${studentName}`,
       studentIdMeta: `NIS / ID : ${studentId}`,
-      schoolNameMeta: `Satuan Pendidikan : ${schoolName || "SMK NEGERI 1 SURABAYA"}`,
+      schoolNameMeta: `Satuan Pendidikan : ${institutionName || schoolName || "SMK NEGERI 1 SURABAYA"}`,
       majorProgramMeta: `Program Keahlian : ${(majority || program || "REKAYASA PERANGKAT LUNAK").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",

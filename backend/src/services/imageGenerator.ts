@@ -311,6 +311,18 @@ export const generateCertificateImage = async (
     }
   }
 
+  // Resolve dynamic institution logo & name
+  let dynamicInstitutionLogo: string | null = null;
+  let dynamicInstitutionName: string = "UNIVERSITAS NEGERI SURABAYA";
+  try {
+    const [logoSet, nameSet] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: "institution_logo" } }),
+      db.systemSetting.findUnique({ where: { key: "institution_name" } }),
+    ]);
+    if (logoSet?.value) dynamicInstitutionLogo = logoSet.value;
+    if (nameSet?.value) dynamicInstitutionName = nameSet.value;
+  } catch (e) {}
+
   // --- 1. DRAW BACKGROUND (CUSTOM OR DEFAULT) ---
   let customImg = null;
   let activeTemplatePath = data.customTemplatePath;
@@ -662,17 +674,21 @@ export const generateCertificateImage = async (
           imgSource.includes("unesa-logo.png") ||
           key === "universityLogo"
         ) {
-          const possiblePaths = [
-            path.join(process.cwd(), "assets", "unesa-logo.png"),
-            path.resolve(__dirname, "../../assets/unesa-logo.png"),
-            path.resolve(__dirname, "../assets/unesa-logo.png"),
-            path.resolve(__dirname, "../../../assets/unesa-logo.png"),
-            path.join(process.cwd(), "../frontend/public/assets/unesa-logo.png"),
-          ];
-          for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-              imgSource = p;
-              break;
+          if (dynamicInstitutionLogo) {
+            imgSource = dynamicInstitutionLogo;
+          } else {
+            const possiblePaths = [
+              path.join(process.cwd(), "assets", "unesa-logo.png"),
+              path.resolve(__dirname, "../../assets/unesa-logo.png"),
+              path.resolve(__dirname, "../assets/unesa-logo.png"),
+              path.resolve(__dirname, "../../../assets/unesa-logo.png"),
+              path.join(process.cwd(), "../frontend/public/assets/unesa-logo.png"),
+            ];
+            for (const p of possiblePaths) {
+              if (fs.existsSync(p)) {
+                imgSource = p;
+                break;
+              }
             }
           }
         } else if (imgSource.startsWith("/uploads/")) {
@@ -746,27 +762,47 @@ export const generateCertificateImage = async (
     }
   } else {
     // --- 2B. DYNAMIC METADATA OVERLAYS (FALLBACK WHEN NO LAYOUT CONFIG) ---
-    // Draw default logo
-    const logoPath = path.resolve(__dirname, "../../assets/unesa-logo.png");
+    // Draw institution logo
     const logoSize = 120;
     const logoY = isVertical ? 150 : 100;
-    try {
-      const logoImage = await loadImage(logoPath);
-      ctx.drawImage(logoImage, centerX - logoSize / 2, logoY, logoSize, logoSize);
-    } catch (err) {
-      ctx.beginPath();
-      ctx.arc(centerX, logoY + logoSize / 2, 50, 0, Math.PI * 2);
-      ctx.fillStyle = "#334155";
-      ctx.fill();
-      ctx.strokeStyle = "#94a3b8";
-      ctx.stroke();
+    let logoDrawn = false;
+
+    if (dynamicInstitutionLogo) {
+      try {
+        let loaded = null;
+        if (dynamicInstitutionLogo.startsWith("http://") || dynamicInstitutionLogo.startsWith("https://")) {
+          const resp = await axios.get(dynamicInstitutionLogo, { responseType: "arraybuffer", timeout: 10000 });
+          loaded = await loadImage(Buffer.from(resp.data));
+        } else if (fs.existsSync(dynamicInstitutionLogo)) {
+          loaded = await loadImage(dynamicInstitutionLogo);
+        }
+        if (loaded) {
+          ctx.drawImage(loaded, centerX - logoSize / 2, logoY, logoSize, logoSize);
+          logoDrawn = true;
+        }
+      } catch (e) {}
     }
 
-    // University Title
+    if (!logoDrawn) {
+      const logoPath = path.resolve(__dirname, "../../assets/unesa-logo.png");
+      try {
+        const logoImage = await loadImage(logoPath);
+        ctx.drawImage(logoImage, centerX - logoSize / 2, logoY, logoSize, logoSize);
+      } catch (err) {
+        ctx.beginPath();
+        ctx.arc(centerX, logoY + logoSize / 2, 50, 0, Math.PI * 2);
+        ctx.fillStyle = "#334155";
+        ctx.fill();
+        ctx.strokeStyle = "#94a3b8";
+        ctx.stroke();
+      }
+    }
+
+    // University / Institution Title
     ctx.textAlign = "center";
     ctx.fillStyle = "#cbd5e1";
     ctx.font = resolveCanvasFont("Arial", 24, true, false);
-    ctx.fillText("UNIVERSITAS NEGERI SURABAYA", centerX, logoY + logoSize + 40);
+    ctx.fillText(dynamicInstitutionName || "UNIVERSITAS NEGERI SURABAYA", centerX, logoY + logoSize + 40);
 
     if (isVertical) {
       // Certificate Title

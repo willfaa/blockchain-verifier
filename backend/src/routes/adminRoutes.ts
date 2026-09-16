@@ -23,6 +23,8 @@ import {
   deleteCertificateTemplateBackground,
   updateTranscriptTemplateBackground,
   deleteTranscriptTemplateBackground,
+  updateInstitutionLogo,
+  deleteInstitutionLogo,
   getCertificateTemplatePreview,
   getCertificateLayoutConfig,
   updateCertificateLayoutConfig,
@@ -126,6 +128,14 @@ router.post(
   updateTranscriptTemplateBackground
 );
 router.delete("/settings/transcript-template", deleteTranscriptTemplateBackground);
+
+// Institution / University / School Logo Endpoints
+router.post(
+  "/settings/logo",
+  upload.fields([{ name: "institutionLogo", maxCount: 1 }, { name: "logo", maxCount: 1 }]),
+  updateInstitutionLogo
+);
+router.delete("/settings/logo", deleteInstitutionLogo);
 
 router.get("/settings/template-preview", getCertificateTemplatePreview);
 router.get("/settings/layout-config", getCertificateLayoutConfig);

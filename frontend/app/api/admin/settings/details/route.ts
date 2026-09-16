@@ -47,6 +47,13 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    let transcriptConfig = null;
+    if (settings["default_transcript_config"]) {
+      try {
+        transcriptConfig = JSON.parse(settings["default_transcript_config"]);
+      } catch (e) {}
+    }
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -54,6 +61,11 @@ export async function GET(request: NextRequest) {
         instructorNip: legacyNip,
         instructors,
         certificateTemplate: settings["default_certificate_template"] || null,
+        transcriptTemplate: settings["default_transcript_template"] || null,
+        transcriptConfig,
+        institutionLogo: settings["institution_logo"] || null,
+        institutionName: settings["institution_name"] || "UNIVERSITAS NEGERI SURABAYA",
+        institutionSubtext: settings["institution_subtext"] || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
       },
     });
   } catch (error: any) {
@@ -68,7 +80,32 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { instructorName, instructorNip, instructors } = body;
+    const {
+      instructorName,
+      instructorNip,
+      instructors,
+      institutionLogo,
+      institutionName,
+      institutionSubtext,
+      transcriptConfig,
+    } = body;
+
+    if (institutionLogo !== undefined) {
+      await upsertSystemSetting("institution_logo", institutionLogo || "");
+    }
+    if (institutionName !== undefined) {
+      await upsertSystemSetting("institution_name", institutionName);
+    }
+    if (institutionSubtext !== undefined) {
+      await upsertSystemSetting("institution_subtext", institutionSubtext);
+    }
+
+    if (transcriptConfig !== undefined) {
+      await upsertSystemSetting(
+        "default_transcript_config",
+        JSON.stringify(transcriptConfig)
+      );
+    }
 
     if (Array.isArray(instructors)) {
       await upsertSystemSetting(
@@ -98,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      message: "Certificate details updated successfully",
+      message: "Certificate & institution details updated successfully",
     });
   } catch (error: any) {
     console.error("[Serverless Settings Details POST Error]:", error);
