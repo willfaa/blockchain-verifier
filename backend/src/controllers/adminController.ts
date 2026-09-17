@@ -1322,3 +1322,108 @@ export const deleteKonsentrasi = async (req: Request, res: Response) => {
     return safeResponse(res, 500, { error: "Failed to delete concentration" });
   }
 };
+
+// 6. Master Competency Units CRUD (SKKNI / IDUKA Bank)
+export const getMasterCompetencyUnits = async (req: Request, res: Response) => {
+  try {
+    const { konsentrasiId, konsentrasiKeahlianId } = req.query;
+    const targetKonsentrasiId = String(konsentrasiId || konsentrasiKeahlianId || "");
+
+    const whereClause: any = {};
+    if (targetKonsentrasiId) {
+      whereClause.konsentrasiKeahlianId = targetKonsentrasiId;
+    }
+
+    const data = await db.masterCompetencyUnit.findMany({
+      where: whereClause,
+      include: {
+        konsentrasiKeahlian: {
+          include: {
+            programKeahlian: {
+              include: {
+                bidangKeahlian: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
+
+    return safeResponse(res, 200, { ok: true, data });
+  } catch (error: any) {
+    console.error("[getMasterCompetencyUnits Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to fetch competency units" });
+  }
+};
+
+export const createMasterCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { code, title, standard, order, konsentrasiKeahlianId } = req.body;
+    if (!code || !title || !konsentrasiKeahlianId) {
+      return safeResponse(res, 400, {
+        error: "Code, Title, and Konsentrasi ID are required",
+      });
+    }
+
+    const currentCount = await db.masterCompetencyUnit.count({
+      where: { konsentrasiKeahlianId },
+    });
+
+    const created = await db.masterCompetencyUnit.create({
+      data: {
+        code: code.trim(),
+        title: title.trim(),
+        standard: standard ? standard.trim() : "SKKNI",
+        order: order !== undefined ? Number(order) : currentCount,
+        konsentrasiKeahlianId,
+      },
+      include: { konsentrasiKeahlian: true },
+    });
+
+    return safeResponse(res, 201, { ok: true, data: created });
+  } catch (error: any) {
+    console.error("[createMasterCompetencyUnit Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to create competency unit" });
+  }
+};
+
+export const updateMasterCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { code, title, standard, order, konsentrasiKeahlianId } = req.body;
+
+    const updateData: any = {};
+    if (code !== undefined) updateData.code = code.trim();
+    if (title !== undefined) updateData.title = title.trim();
+    if (standard !== undefined) updateData.standard = standard.trim();
+    if (order !== undefined) updateData.order = Number(order);
+    if (konsentrasiKeahlianId !== undefined) updateData.konsentrasiKeahlianId = konsentrasiKeahlianId;
+
+    const updated = await db.masterCompetencyUnit.update({
+      where: { id },
+      data: updateData,
+      include: { konsentrasiKeahlian: true },
+    });
+
+    return safeResponse(res, 200, { ok: true, data: updated });
+  } catch (error: any) {
+    console.error("[updateMasterCompetencyUnit Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to update competency unit" });
+  }
+};
+
+export const deleteMasterCompetencyUnit = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await db.masterCompetencyUnit.delete({ where: { id } });
+    return safeResponse(res, 200, {
+      ok: true,
+      message: "Competency unit deleted successfully",
+    });
+  } catch (error: any) {
+    console.error("[deleteMasterCompetencyUnit Error]", error.message);
+    return safeResponse(res, 500, { error: "Failed to delete competency unit" });
+  }
+};
+

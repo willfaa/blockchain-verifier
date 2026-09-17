@@ -1911,10 +1911,44 @@ export const getDepartments = async (req: Request, res: Response) => {
 export const getCourseCompetencyUnits = async (req: Request, res: Response) => {
   try {
     const { id: courseId } = req.params;
-    const units = await db.courseCompetencyUnit.findMany({
+    let units = await db.courseCompetencyUnit.findMany({
       where: { courseId },
       orderBy: { order: "asc" },
     });
+
+    if (units.length === 0) {
+      const course = await db.course.findUnique({
+        where: { id: courseId },
+        select: { studyProgram: true, title: true },
+      });
+
+      if (course?.studyProgram) {
+        const konsentrasi = await db.konsentrasiKeahlian.findFirst({
+          where: {
+            OR: [
+              { name: { equals: course.studyProgram, mode: "insensitive" } },
+              { name: { contains: course.studyProgram, mode: "insensitive" } },
+            ],
+          },
+          include: {
+            masterUnits: {
+              orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+            },
+          },
+        });
+
+        if (konsentrasi && konsentrasi.masterUnits.length > 0) {
+          units = konsentrasi.masterUnits.map((mu) => ({
+            id: mu.id,
+            courseId,
+            code: mu.code,
+            title: mu.title,
+            standard: mu.standard,
+            order: mu.order,
+          }));
+        }
+      }
+    }
 
     return res.json({ ok: true, data: units });
   } catch (err: any) {

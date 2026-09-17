@@ -347,10 +347,25 @@ model ProgramKeahlian {
 }
 
 model KonsentrasiKeahlian {
-  id                String          @id @default(uuid())
-  name              String          @unique
+  id                String                 @id @default(uuid())
+  name              String                 @unique
   programKeahlianId String
-  programKeahlian   ProgramKeahlian @relation(fields: [programKeahlianId], references: [id], onDelete: Cascade)
+  programKeahlian   ProgramKeahlian        @relation(fields: [programKeahlianId], references: [id], onDelete: Cascade)
+  masterUnits       MasterCompetencyUnit[]
 
   @@map("konsentrasi_keahlian")
+}
+
+model MasterCompetencyUnit {
+  id                    String              @id @default(uuid())
+  code                  String
+  title                 String
+  standard              String              @default("SKKNI")
+  order                 Int                 @default(0)
+  konsentrasiKeahlianId String
+  konsentrasiKeahlian   KonsentrasiKeahlian @relation(fields: [konsentrasiKeahlianId], references: [id], onDelete: Cascade)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@map("master_competency_units")
 }

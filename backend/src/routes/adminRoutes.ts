@@ -44,6 +44,10 @@ import {
   createKonsentrasi,
   updateKonsentrasi,
   deleteKonsentrasi,
+  getMasterCompetencyUnits,
+  createMasterCompetencyUnit,
+  updateMasterCompetencyUnit,
+  deleteMasterCompetencyUnit,
 } from "../controllers/adminController";
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
@@ -167,5 +171,11 @@ router.get("/departments/konsentrasi", getKonsentrasiList);
 router.post("/departments/konsentrasi", createKonsentrasi);
 router.put("/departments/konsentrasi/:id", updateKonsentrasi);
 router.delete("/departments/konsentrasi/:id", deleteKonsentrasi);
+
+// Master Competency Units (Level 4 - SKKNI / IDUKA Bank)
+router.get("/departments/units", getMasterCompetencyUnits);
+router.post("/departments/units", createMasterCompetencyUnit);
+router.put("/departments/units/:id", updateMasterCompetencyUnit);
+router.delete("/departments/units/:id", deleteMasterCompetencyUnit);
 
 export default router;

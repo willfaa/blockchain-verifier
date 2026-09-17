@@ -20,6 +20,7 @@ const getTable = (level: string) => {
   if (level === "bidang") return "bidang_keahlian";
   if (level === "program") return "program_keahlian";
   if (level === "konsentrasi") return "konsentrasi_keahlian";
+  if (level === "units" || level === "master-units") return "master_competency_units";
   return "bidang_keahlian";
 };
 
@@ -31,8 +32,21 @@ export async function GET(
   const level = slug[0] || "bidang";
   const table = getTable(level);
 
+  const searchParams = request.nextUrl.searchParams;
+  const konsentrasiId = searchParams.get("konsentrasiId") || searchParams.get("konsentrasiKeahlianId");
+
   try {
-    const res = await fetch(`${SUPABASE_API_URL}/rest/v1/${table}?select=*&order=name.asc`, {
+    let url = `${SUPABASE_API_URL}/rest/v1/${table}?select=*`;
+    if (level === "units" || level === "master-units") {
+      if (konsentrasiId) {
+        url += `&konsentrasiKeahlianId=eq.${encodeURIComponent(konsentrasiId)}`;
+      }
+      url += `&order=order.asc,createdAt.asc`;
+    } else {
+      url += `&order=name.asc`;
+    }
+
+    const res = await fetch(url, {
       headers: getHeaders(),
       cache: "no-store",
     });

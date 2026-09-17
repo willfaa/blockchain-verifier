@@ -103,6 +103,11 @@ export type ProgramKeahlian = $Result.DefaultSelection<Prisma.$ProgramKeahlianPa
  * 
  */
 export type KonsentrasiKeahlian = $Result.DefaultSelection<Prisma.$KonsentrasiKeahlianPayload>
+/**
+ * Model MasterCompetencyUnit
+ * 
+ */
+export type MasterCompetencyUnit = $Result.DefaultSelection<Prisma.$MasterCompetencyUnitPayload>
 
 /**
  * Enums
@@ -422,6 +427,16 @@ export class PrismaClient<
     * ```
     */
   get konsentrasiKeahlian(): Prisma.KonsentrasiKeahlianDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.masterCompetencyUnit`: Exposes CRUD operations for the **MasterCompetencyUnit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MasterCompetencyUnits
+    * const masterCompetencyUnits = await prisma.masterCompetencyUnit.findMany()
+    * ```
+    */
+  get masterCompetencyUnit(): Prisma.MasterCompetencyUnitDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -873,7 +888,8 @@ export namespace Prisma {
     SystemSetting: 'SystemSetting',
     BidangKeahlian: 'BidangKeahlian',
     ProgramKeahlian: 'ProgramKeahlian',
-    KonsentrasiKeahlian: 'KonsentrasiKeahlian'
+    KonsentrasiKeahlian: 'KonsentrasiKeahlian',
+    MasterCompetencyUnit: 'MasterCompetencyUnit'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -889,7 +905,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "courseCompetencyUnit" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian"
+      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "courseCompetencyUnit" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian" | "masterCompetencyUnit"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2225,6 +2241,80 @@ export namespace Prisma {
           }
         }
       }
+      MasterCompetencyUnit: {
+        payload: Prisma.$MasterCompetencyUnitPayload<ExtArgs>
+        fields: Prisma.MasterCompetencyUnitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MasterCompetencyUnitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MasterCompetencyUnitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          findFirst: {
+            args: Prisma.MasterCompetencyUnitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MasterCompetencyUnitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          findMany: {
+            args: Prisma.MasterCompetencyUnitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>[]
+          }
+          create: {
+            args: Prisma.MasterCompetencyUnitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          createMany: {
+            args: Prisma.MasterCompetencyUnitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MasterCompetencyUnitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>[]
+          }
+          delete: {
+            args: Prisma.MasterCompetencyUnitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          update: {
+            args: Prisma.MasterCompetencyUnitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          deleteMany: {
+            args: Prisma.MasterCompetencyUnitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MasterCompetencyUnitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MasterCompetencyUnitUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>[]
+          }
+          upsert: {
+            args: Prisma.MasterCompetencyUnitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MasterCompetencyUnitPayload>
+          }
+          aggregate: {
+            args: Prisma.MasterCompetencyUnitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMasterCompetencyUnit>
+          }
+          groupBy: {
+            args: Prisma.MasterCompetencyUnitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MasterCompetencyUnitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MasterCompetencyUnitCountArgs<ExtArgs>
+            result: $Utils.Optional<MasterCompetencyUnitCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2351,6 +2441,7 @@ export namespace Prisma {
     bidangKeahlian?: BidangKeahlianOmit
     programKeahlian?: ProgramKeahlianOmit
     konsentrasiKeahlian?: KonsentrasiKeahlianOmit
+    masterCompetencyUnit?: MasterCompetencyUnitOmit
   }
 
   /* Types for Logging */
@@ -2801,6 +2892,37 @@ export namespace Prisma {
    */
   export type ProgramKeahlianCountOutputTypeCountKonsentrasiKeahlianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: KonsentrasiKeahlianWhereInput
+  }
+
+
+  /**
+   * Count Type KonsentrasiKeahlianCountOutputType
+   */
+
+  export type KonsentrasiKeahlianCountOutputType = {
+    masterUnits: number
+  }
+
+  export type KonsentrasiKeahlianCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    masterUnits?: boolean | KonsentrasiKeahlianCountOutputTypeCountMasterUnitsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * KonsentrasiKeahlianCountOutputType without action
+   */
+  export type KonsentrasiKeahlianCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KonsentrasiKeahlianCountOutputType
+     */
+    select?: KonsentrasiKeahlianCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * KonsentrasiKeahlianCountOutputType without action
+   */
+  export type KonsentrasiKeahlianCountOutputTypeCountMasterUnitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MasterCompetencyUnitWhereInput
   }
 
 
@@ -22758,6 +22880,8 @@ export namespace Prisma {
     name?: boolean
     programKeahlianId?: boolean
     programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+    masterUnits?: boolean | KonsentrasiKeahlian$masterUnitsArgs<ExtArgs>
+    _count?: boolean | KonsentrasiKeahlianCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["konsentrasiKeahlian"]>
 
   export type KonsentrasiKeahlianSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -22783,6 +22907,8 @@ export namespace Prisma {
   export type KonsentrasiKeahlianOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "programKeahlianId", ExtArgs["result"]["konsentrasiKeahlian"]>
   export type KonsentrasiKeahlianInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
+    masterUnits?: boolean | KonsentrasiKeahlian$masterUnitsArgs<ExtArgs>
+    _count?: boolean | KonsentrasiKeahlianCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type KonsentrasiKeahlianIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     programKeahlian?: boolean | ProgramKeahlianDefaultArgs<ExtArgs>
@@ -22795,6 +22921,7 @@ export namespace Prisma {
     name: "KonsentrasiKeahlian"
     objects: {
       programKeahlian: Prisma.$ProgramKeahlianPayload<ExtArgs>
+      masterUnits: Prisma.$MasterCompetencyUnitPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -23195,6 +23322,7 @@ export namespace Prisma {
   export interface Prisma__KonsentrasiKeahlianClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     programKeahlian<T extends ProgramKeahlianDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProgramKeahlianDefaultArgs<ExtArgs>>): Prisma__ProgramKeahlianClient<$Result.GetResult<Prisma.$ProgramKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    masterUnits<T extends KonsentrasiKeahlian$masterUnitsArgs<ExtArgs> = {}>(args?: Subset<T, KonsentrasiKeahlian$masterUnitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -23628,6 +23756,30 @@ export namespace Prisma {
   }
 
   /**
+   * KonsentrasiKeahlian.masterUnits
+   */
+  export type KonsentrasiKeahlian$masterUnitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    where?: MasterCompetencyUnitWhereInput
+    orderBy?: MasterCompetencyUnitOrderByWithRelationInput | MasterCompetencyUnitOrderByWithRelationInput[]
+    cursor?: MasterCompetencyUnitWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MasterCompetencyUnitScalarFieldEnum | MasterCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
    * KonsentrasiKeahlian without action
    */
   export type KonsentrasiKeahlianDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -23643,6 +23795,1142 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: KonsentrasiKeahlianInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MasterCompetencyUnit
+   */
+
+  export type AggregateMasterCompetencyUnit = {
+    _count: MasterCompetencyUnitCountAggregateOutputType | null
+    _avg: MasterCompetencyUnitAvgAggregateOutputType | null
+    _sum: MasterCompetencyUnitSumAggregateOutputType | null
+    _min: MasterCompetencyUnitMinAggregateOutputType | null
+    _max: MasterCompetencyUnitMaxAggregateOutputType | null
+  }
+
+  export type MasterCompetencyUnitAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type MasterCompetencyUnitSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type MasterCompetencyUnitMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    title: string | null
+    standard: string | null
+    order: number | null
+    konsentrasiKeahlianId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MasterCompetencyUnitMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    title: string | null
+    standard: string | null
+    order: number | null
+    konsentrasiKeahlianId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MasterCompetencyUnitCountAggregateOutputType = {
+    id: number
+    code: number
+    title: number
+    standard: number
+    order: number
+    konsentrasiKeahlianId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MasterCompetencyUnitAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type MasterCompetencyUnitSumAggregateInputType = {
+    order?: true
+  }
+
+  export type MasterCompetencyUnitMinAggregateInputType = {
+    id?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    konsentrasiKeahlianId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MasterCompetencyUnitMaxAggregateInputType = {
+    id?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    konsentrasiKeahlianId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MasterCompetencyUnitCountAggregateInputType = {
+    id?: true
+    code?: true
+    title?: true
+    standard?: true
+    order?: true
+    konsentrasiKeahlianId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MasterCompetencyUnitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MasterCompetencyUnit to aggregate.
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MasterCompetencyUnits to fetch.
+     */
+    orderBy?: MasterCompetencyUnitOrderByWithRelationInput | MasterCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MasterCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MasterCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MasterCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MasterCompetencyUnits
+    **/
+    _count?: true | MasterCompetencyUnitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MasterCompetencyUnitAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MasterCompetencyUnitSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MasterCompetencyUnitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MasterCompetencyUnitMaxAggregateInputType
+  }
+
+  export type GetMasterCompetencyUnitAggregateType<T extends MasterCompetencyUnitAggregateArgs> = {
+        [P in keyof T & keyof AggregateMasterCompetencyUnit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMasterCompetencyUnit[P]>
+      : GetScalarType<T[P], AggregateMasterCompetencyUnit[P]>
+  }
+
+
+
+
+  export type MasterCompetencyUnitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MasterCompetencyUnitWhereInput
+    orderBy?: MasterCompetencyUnitOrderByWithAggregationInput | MasterCompetencyUnitOrderByWithAggregationInput[]
+    by: MasterCompetencyUnitScalarFieldEnum[] | MasterCompetencyUnitScalarFieldEnum
+    having?: MasterCompetencyUnitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MasterCompetencyUnitCountAggregateInputType | true
+    _avg?: MasterCompetencyUnitAvgAggregateInputType
+    _sum?: MasterCompetencyUnitSumAggregateInputType
+    _min?: MasterCompetencyUnitMinAggregateInputType
+    _max?: MasterCompetencyUnitMaxAggregateInputType
+  }
+
+  export type MasterCompetencyUnitGroupByOutputType = {
+    id: string
+    code: string
+    title: string
+    standard: string
+    order: number
+    konsentrasiKeahlianId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: MasterCompetencyUnitCountAggregateOutputType | null
+    _avg: MasterCompetencyUnitAvgAggregateOutputType | null
+    _sum: MasterCompetencyUnitSumAggregateOutputType | null
+    _min: MasterCompetencyUnitMinAggregateOutputType | null
+    _max: MasterCompetencyUnitMaxAggregateOutputType | null
+  }
+
+  type GetMasterCompetencyUnitGroupByPayload<T extends MasterCompetencyUnitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MasterCompetencyUnitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MasterCompetencyUnitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MasterCompetencyUnitGroupByOutputType[P]>
+            : GetScalarType<T[P], MasterCompetencyUnitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MasterCompetencyUnitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    konsentrasiKeahlianId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["masterCompetencyUnit"]>
+
+  export type MasterCompetencyUnitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    konsentrasiKeahlianId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["masterCompetencyUnit"]>
+
+  export type MasterCompetencyUnitSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    konsentrasiKeahlianId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["masterCompetencyUnit"]>
+
+  export type MasterCompetencyUnitSelectScalar = {
+    id?: boolean
+    code?: boolean
+    title?: boolean
+    standard?: boolean
+    order?: boolean
+    konsentrasiKeahlianId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MasterCompetencyUnitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "title" | "standard" | "order" | "konsentrasiKeahlianId" | "createdAt" | "updatedAt", ExtArgs["result"]["masterCompetencyUnit"]>
+  export type MasterCompetencyUnitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }
+  export type MasterCompetencyUnitIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }
+  export type MasterCompetencyUnitIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    konsentrasiKeahlian?: boolean | KonsentrasiKeahlianDefaultArgs<ExtArgs>
+  }
+
+  export type $MasterCompetencyUnitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MasterCompetencyUnit"
+    objects: {
+      konsentrasiKeahlian: Prisma.$KonsentrasiKeahlianPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      title: string
+      standard: string
+      order: number
+      konsentrasiKeahlianId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["masterCompetencyUnit"]>
+    composites: {}
+  }
+
+  type MasterCompetencyUnitGetPayload<S extends boolean | null | undefined | MasterCompetencyUnitDefaultArgs> = $Result.GetResult<Prisma.$MasterCompetencyUnitPayload, S>
+
+  type MasterCompetencyUnitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MasterCompetencyUnitFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MasterCompetencyUnitCountAggregateInputType | true
+    }
+
+  export interface MasterCompetencyUnitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MasterCompetencyUnit'], meta: { name: 'MasterCompetencyUnit' } }
+    /**
+     * Find zero or one MasterCompetencyUnit that matches the filter.
+     * @param {MasterCompetencyUnitFindUniqueArgs} args - Arguments to find a MasterCompetencyUnit
+     * @example
+     * // Get one MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MasterCompetencyUnitFindUniqueArgs>(args: SelectSubset<T, MasterCompetencyUnitFindUniqueArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MasterCompetencyUnit that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MasterCompetencyUnitFindUniqueOrThrowArgs} args - Arguments to find a MasterCompetencyUnit
+     * @example
+     * // Get one MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MasterCompetencyUnitFindUniqueOrThrowArgs>(args: SelectSubset<T, MasterCompetencyUnitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MasterCompetencyUnit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitFindFirstArgs} args - Arguments to find a MasterCompetencyUnit
+     * @example
+     * // Get one MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MasterCompetencyUnitFindFirstArgs>(args?: SelectSubset<T, MasterCompetencyUnitFindFirstArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MasterCompetencyUnit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitFindFirstOrThrowArgs} args - Arguments to find a MasterCompetencyUnit
+     * @example
+     * // Get one MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MasterCompetencyUnitFindFirstOrThrowArgs>(args?: SelectSubset<T, MasterCompetencyUnitFindFirstOrThrowArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MasterCompetencyUnits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MasterCompetencyUnits
+     * const masterCompetencyUnits = await prisma.masterCompetencyUnit.findMany()
+     * 
+     * // Get first 10 MasterCompetencyUnits
+     * const masterCompetencyUnits = await prisma.masterCompetencyUnit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const masterCompetencyUnitWithIdOnly = await prisma.masterCompetencyUnit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MasterCompetencyUnitFindManyArgs>(args?: SelectSubset<T, MasterCompetencyUnitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MasterCompetencyUnit.
+     * @param {MasterCompetencyUnitCreateArgs} args - Arguments to create a MasterCompetencyUnit.
+     * @example
+     * // Create one MasterCompetencyUnit
+     * const MasterCompetencyUnit = await prisma.masterCompetencyUnit.create({
+     *   data: {
+     *     // ... data to create a MasterCompetencyUnit
+     *   }
+     * })
+     * 
+     */
+    create<T extends MasterCompetencyUnitCreateArgs>(args: SelectSubset<T, MasterCompetencyUnitCreateArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MasterCompetencyUnits.
+     * @param {MasterCompetencyUnitCreateManyArgs} args - Arguments to create many MasterCompetencyUnits.
+     * @example
+     * // Create many MasterCompetencyUnits
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MasterCompetencyUnitCreateManyArgs>(args?: SelectSubset<T, MasterCompetencyUnitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MasterCompetencyUnits and returns the data saved in the database.
+     * @param {MasterCompetencyUnitCreateManyAndReturnArgs} args - Arguments to create many MasterCompetencyUnits.
+     * @example
+     * // Create many MasterCompetencyUnits
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MasterCompetencyUnits and only return the `id`
+     * const masterCompetencyUnitWithIdOnly = await prisma.masterCompetencyUnit.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MasterCompetencyUnitCreateManyAndReturnArgs>(args?: SelectSubset<T, MasterCompetencyUnitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MasterCompetencyUnit.
+     * @param {MasterCompetencyUnitDeleteArgs} args - Arguments to delete one MasterCompetencyUnit.
+     * @example
+     * // Delete one MasterCompetencyUnit
+     * const MasterCompetencyUnit = await prisma.masterCompetencyUnit.delete({
+     *   where: {
+     *     // ... filter to delete one MasterCompetencyUnit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MasterCompetencyUnitDeleteArgs>(args: SelectSubset<T, MasterCompetencyUnitDeleteArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MasterCompetencyUnit.
+     * @param {MasterCompetencyUnitUpdateArgs} args - Arguments to update one MasterCompetencyUnit.
+     * @example
+     * // Update one MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MasterCompetencyUnitUpdateArgs>(args: SelectSubset<T, MasterCompetencyUnitUpdateArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MasterCompetencyUnits.
+     * @param {MasterCompetencyUnitDeleteManyArgs} args - Arguments to filter MasterCompetencyUnits to delete.
+     * @example
+     * // Delete a few MasterCompetencyUnits
+     * const { count } = await prisma.masterCompetencyUnit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MasterCompetencyUnitDeleteManyArgs>(args?: SelectSubset<T, MasterCompetencyUnitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MasterCompetencyUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MasterCompetencyUnits
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MasterCompetencyUnitUpdateManyArgs>(args: SelectSubset<T, MasterCompetencyUnitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MasterCompetencyUnits and returns the data updated in the database.
+     * @param {MasterCompetencyUnitUpdateManyAndReturnArgs} args - Arguments to update many MasterCompetencyUnits.
+     * @example
+     * // Update many MasterCompetencyUnits
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MasterCompetencyUnits and only return the `id`
+     * const masterCompetencyUnitWithIdOnly = await prisma.masterCompetencyUnit.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MasterCompetencyUnitUpdateManyAndReturnArgs>(args: SelectSubset<T, MasterCompetencyUnitUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MasterCompetencyUnit.
+     * @param {MasterCompetencyUnitUpsertArgs} args - Arguments to update or create a MasterCompetencyUnit.
+     * @example
+     * // Update or create a MasterCompetencyUnit
+     * const masterCompetencyUnit = await prisma.masterCompetencyUnit.upsert({
+     *   create: {
+     *     // ... data to create a MasterCompetencyUnit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MasterCompetencyUnit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MasterCompetencyUnitUpsertArgs>(args: SelectSubset<T, MasterCompetencyUnitUpsertArgs<ExtArgs>>): Prisma__MasterCompetencyUnitClient<$Result.GetResult<Prisma.$MasterCompetencyUnitPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MasterCompetencyUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitCountArgs} args - Arguments to filter MasterCompetencyUnits to count.
+     * @example
+     * // Count the number of MasterCompetencyUnits
+     * const count = await prisma.masterCompetencyUnit.count({
+     *   where: {
+     *     // ... the filter for the MasterCompetencyUnits we want to count
+     *   }
+     * })
+    **/
+    count<T extends MasterCompetencyUnitCountArgs>(
+      args?: Subset<T, MasterCompetencyUnitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MasterCompetencyUnitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MasterCompetencyUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MasterCompetencyUnitAggregateArgs>(args: Subset<T, MasterCompetencyUnitAggregateArgs>): Prisma.PrismaPromise<GetMasterCompetencyUnitAggregateType<T>>
+
+    /**
+     * Group by MasterCompetencyUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MasterCompetencyUnitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MasterCompetencyUnitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MasterCompetencyUnitGroupByArgs['orderBy'] }
+        : { orderBy?: MasterCompetencyUnitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MasterCompetencyUnitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMasterCompetencyUnitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MasterCompetencyUnit model
+   */
+  readonly fields: MasterCompetencyUnitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MasterCompetencyUnit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MasterCompetencyUnitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    konsentrasiKeahlian<T extends KonsentrasiKeahlianDefaultArgs<ExtArgs> = {}>(args?: Subset<T, KonsentrasiKeahlianDefaultArgs<ExtArgs>>): Prisma__KonsentrasiKeahlianClient<$Result.GetResult<Prisma.$KonsentrasiKeahlianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MasterCompetencyUnit model
+   */
+  interface MasterCompetencyUnitFieldRefs {
+    readonly id: FieldRef<"MasterCompetencyUnit", 'String'>
+    readonly code: FieldRef<"MasterCompetencyUnit", 'String'>
+    readonly title: FieldRef<"MasterCompetencyUnit", 'String'>
+    readonly standard: FieldRef<"MasterCompetencyUnit", 'String'>
+    readonly order: FieldRef<"MasterCompetencyUnit", 'Int'>
+    readonly konsentrasiKeahlianId: FieldRef<"MasterCompetencyUnit", 'String'>
+    readonly createdAt: FieldRef<"MasterCompetencyUnit", 'DateTime'>
+    readonly updatedAt: FieldRef<"MasterCompetencyUnit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MasterCompetencyUnit findUnique
+   */
+  export type MasterCompetencyUnitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which MasterCompetencyUnit to fetch.
+     */
+    where: MasterCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * MasterCompetencyUnit findUniqueOrThrow
+   */
+  export type MasterCompetencyUnitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which MasterCompetencyUnit to fetch.
+     */
+    where: MasterCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * MasterCompetencyUnit findFirst
+   */
+  export type MasterCompetencyUnitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which MasterCompetencyUnit to fetch.
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MasterCompetencyUnits to fetch.
+     */
+    orderBy?: MasterCompetencyUnitOrderByWithRelationInput | MasterCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MasterCompetencyUnits.
+     */
+    cursor?: MasterCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MasterCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MasterCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MasterCompetencyUnits.
+     */
+    distinct?: MasterCompetencyUnitScalarFieldEnum | MasterCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * MasterCompetencyUnit findFirstOrThrow
+   */
+  export type MasterCompetencyUnitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which MasterCompetencyUnit to fetch.
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MasterCompetencyUnits to fetch.
+     */
+    orderBy?: MasterCompetencyUnitOrderByWithRelationInput | MasterCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MasterCompetencyUnits.
+     */
+    cursor?: MasterCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MasterCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MasterCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MasterCompetencyUnits.
+     */
+    distinct?: MasterCompetencyUnitScalarFieldEnum | MasterCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * MasterCompetencyUnit findMany
+   */
+  export type MasterCompetencyUnitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which MasterCompetencyUnits to fetch.
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MasterCompetencyUnits to fetch.
+     */
+    orderBy?: MasterCompetencyUnitOrderByWithRelationInput | MasterCompetencyUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MasterCompetencyUnits.
+     */
+    cursor?: MasterCompetencyUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MasterCompetencyUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MasterCompetencyUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MasterCompetencyUnits.
+     */
+    distinct?: MasterCompetencyUnitScalarFieldEnum | MasterCompetencyUnitScalarFieldEnum[]
+  }
+
+  /**
+   * MasterCompetencyUnit create
+   */
+  export type MasterCompetencyUnitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MasterCompetencyUnit.
+     */
+    data: XOR<MasterCompetencyUnitCreateInput, MasterCompetencyUnitUncheckedCreateInput>
+  }
+
+  /**
+   * MasterCompetencyUnit createMany
+   */
+  export type MasterCompetencyUnitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MasterCompetencyUnits.
+     */
+    data: MasterCompetencyUnitCreateManyInput | MasterCompetencyUnitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MasterCompetencyUnit createManyAndReturn
+   */
+  export type MasterCompetencyUnitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * The data used to create many MasterCompetencyUnits.
+     */
+    data: MasterCompetencyUnitCreateManyInput | MasterCompetencyUnitCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MasterCompetencyUnit update
+   */
+  export type MasterCompetencyUnitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MasterCompetencyUnit.
+     */
+    data: XOR<MasterCompetencyUnitUpdateInput, MasterCompetencyUnitUncheckedUpdateInput>
+    /**
+     * Choose, which MasterCompetencyUnit to update.
+     */
+    where: MasterCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * MasterCompetencyUnit updateMany
+   */
+  export type MasterCompetencyUnitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MasterCompetencyUnits.
+     */
+    data: XOR<MasterCompetencyUnitUpdateManyMutationInput, MasterCompetencyUnitUncheckedUpdateManyInput>
+    /**
+     * Filter which MasterCompetencyUnits to update
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * Limit how many MasterCompetencyUnits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MasterCompetencyUnit updateManyAndReturn
+   */
+  export type MasterCompetencyUnitUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * The data used to update MasterCompetencyUnits.
+     */
+    data: XOR<MasterCompetencyUnitUpdateManyMutationInput, MasterCompetencyUnitUncheckedUpdateManyInput>
+    /**
+     * Filter which MasterCompetencyUnits to update
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * Limit how many MasterCompetencyUnits to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MasterCompetencyUnit upsert
+   */
+  export type MasterCompetencyUnitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MasterCompetencyUnit to update in case it exists.
+     */
+    where: MasterCompetencyUnitWhereUniqueInput
+    /**
+     * In case the MasterCompetencyUnit found by the `where` argument doesn't exist, create a new MasterCompetencyUnit with this data.
+     */
+    create: XOR<MasterCompetencyUnitCreateInput, MasterCompetencyUnitUncheckedCreateInput>
+    /**
+     * In case the MasterCompetencyUnit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MasterCompetencyUnitUpdateInput, MasterCompetencyUnitUncheckedUpdateInput>
+  }
+
+  /**
+   * MasterCompetencyUnit delete
+   */
+  export type MasterCompetencyUnitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
+    /**
+     * Filter which MasterCompetencyUnit to delete.
+     */
+    where: MasterCompetencyUnitWhereUniqueInput
+  }
+
+  /**
+   * MasterCompetencyUnit deleteMany
+   */
+  export type MasterCompetencyUnitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MasterCompetencyUnits to delete
+     */
+    where?: MasterCompetencyUnitWhereInput
+    /**
+     * Limit how many MasterCompetencyUnits to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MasterCompetencyUnit without action
+   */
+  export type MasterCompetencyUnitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MasterCompetencyUnit
+     */
+    select?: MasterCompetencyUnitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MasterCompetencyUnit
+     */
+    omit?: MasterCompetencyUnitOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MasterCompetencyUnitInclude<ExtArgs> | null
   }
 
 
@@ -23925,6 +25213,20 @@ export namespace Prisma {
   };
 
   export type KonsentrasiKeahlianScalarFieldEnum = (typeof KonsentrasiKeahlianScalarFieldEnum)[keyof typeof KonsentrasiKeahlianScalarFieldEnum]
+
+
+  export const MasterCompetencyUnitScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    title: 'title',
+    standard: 'standard',
+    order: 'order',
+    konsentrasiKeahlianId: 'konsentrasiKeahlianId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MasterCompetencyUnitScalarFieldEnum = (typeof MasterCompetencyUnitScalarFieldEnum)[keyof typeof MasterCompetencyUnitScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -25455,6 +26757,7 @@ export namespace Prisma {
     name?: StringFilter<"KonsentrasiKeahlian"> | string
     programKeahlianId?: StringFilter<"KonsentrasiKeahlian"> | string
     programKeahlian?: XOR<ProgramKeahlianScalarRelationFilter, ProgramKeahlianWhereInput>
+    masterUnits?: MasterCompetencyUnitListRelationFilter
   }
 
   export type KonsentrasiKeahlianOrderByWithRelationInput = {
@@ -25462,6 +26765,7 @@ export namespace Prisma {
     name?: SortOrder
     programKeahlianId?: SortOrder
     programKeahlian?: ProgramKeahlianOrderByWithRelationInput
+    masterUnits?: MasterCompetencyUnitOrderByRelationAggregateInput
   }
 
   export type KonsentrasiKeahlianWhereUniqueInput = Prisma.AtLeast<{
@@ -25472,6 +26776,7 @@ export namespace Prisma {
     NOT?: KonsentrasiKeahlianWhereInput | KonsentrasiKeahlianWhereInput[]
     programKeahlianId?: StringFilter<"KonsentrasiKeahlian"> | string
     programKeahlian?: XOR<ProgramKeahlianScalarRelationFilter, ProgramKeahlianWhereInput>
+    masterUnits?: MasterCompetencyUnitListRelationFilter
   }, "id" | "name">
 
   export type KonsentrasiKeahlianOrderByWithAggregationInput = {
@@ -25490,6 +26795,78 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
     name?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
     programKeahlianId?: StringWithAggregatesFilter<"KonsentrasiKeahlian"> | string
+  }
+
+  export type MasterCompetencyUnitWhereInput = {
+    AND?: MasterCompetencyUnitWhereInput | MasterCompetencyUnitWhereInput[]
+    OR?: MasterCompetencyUnitWhereInput[]
+    NOT?: MasterCompetencyUnitWhereInput | MasterCompetencyUnitWhereInput[]
+    id?: StringFilter<"MasterCompetencyUnit"> | string
+    code?: StringFilter<"MasterCompetencyUnit"> | string
+    title?: StringFilter<"MasterCompetencyUnit"> | string
+    standard?: StringFilter<"MasterCompetencyUnit"> | string
+    order?: IntFilter<"MasterCompetencyUnit"> | number
+    konsentrasiKeahlianId?: StringFilter<"MasterCompetencyUnit"> | string
+    createdAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+    konsentrasiKeahlian?: XOR<KonsentrasiKeahlianScalarRelationFilter, KonsentrasiKeahlianWhereInput>
+  }
+
+  export type MasterCompetencyUnitOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    konsentrasiKeahlianId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    konsentrasiKeahlian?: KonsentrasiKeahlianOrderByWithRelationInput
+  }
+
+  export type MasterCompetencyUnitWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MasterCompetencyUnitWhereInput | MasterCompetencyUnitWhereInput[]
+    OR?: MasterCompetencyUnitWhereInput[]
+    NOT?: MasterCompetencyUnitWhereInput | MasterCompetencyUnitWhereInput[]
+    code?: StringFilter<"MasterCompetencyUnit"> | string
+    title?: StringFilter<"MasterCompetencyUnit"> | string
+    standard?: StringFilter<"MasterCompetencyUnit"> | string
+    order?: IntFilter<"MasterCompetencyUnit"> | number
+    konsentrasiKeahlianId?: StringFilter<"MasterCompetencyUnit"> | string
+    createdAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+    konsentrasiKeahlian?: XOR<KonsentrasiKeahlianScalarRelationFilter, KonsentrasiKeahlianWhereInput>
+  }, "id">
+
+  export type MasterCompetencyUnitOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    konsentrasiKeahlianId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MasterCompetencyUnitCountOrderByAggregateInput
+    _avg?: MasterCompetencyUnitAvgOrderByAggregateInput
+    _max?: MasterCompetencyUnitMaxOrderByAggregateInput
+    _min?: MasterCompetencyUnitMinOrderByAggregateInput
+    _sum?: MasterCompetencyUnitSumOrderByAggregateInput
+  }
+
+  export type MasterCompetencyUnitScalarWhereWithAggregatesInput = {
+    AND?: MasterCompetencyUnitScalarWhereWithAggregatesInput | MasterCompetencyUnitScalarWhereWithAggregatesInput[]
+    OR?: MasterCompetencyUnitScalarWhereWithAggregatesInput[]
+    NOT?: MasterCompetencyUnitScalarWhereWithAggregatesInput | MasterCompetencyUnitScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
+    code?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
+    title?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
+    standard?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
+    order?: IntWithAggregatesFilter<"MasterCompetencyUnit"> | number
+    konsentrasiKeahlianId?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MasterCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MasterCompetencyUnit"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -27006,24 +28383,28 @@ export namespace Prisma {
     id?: string
     name: string
     programKeahlian: ProgramKeahlianCreateNestedOneWithoutKonsentrasiKeahlianInput
+    masterUnits?: MasterCompetencyUnitCreateNestedManyWithoutKonsentrasiKeahlianInput
   }
 
   export type KonsentrasiKeahlianUncheckedCreateInput = {
     id?: string
     name: string
     programKeahlianId: string
+    masterUnits?: MasterCompetencyUnitUncheckedCreateNestedManyWithoutKonsentrasiKeahlianInput
   }
 
   export type KonsentrasiKeahlianUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     programKeahlian?: ProgramKeahlianUpdateOneRequiredWithoutKonsentrasiKeahlianNestedInput
+    masterUnits?: MasterCompetencyUnitUpdateManyWithoutKonsentrasiKeahlianNestedInput
   }
 
   export type KonsentrasiKeahlianUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     programKeahlianId?: StringFieldUpdateOperationsInput | string
+    masterUnits?: MasterCompetencyUnitUncheckedUpdateManyWithoutKonsentrasiKeahlianNestedInput
   }
 
   export type KonsentrasiKeahlianCreateManyInput = {
@@ -27041,6 +28422,82 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     programKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type MasterCompetencyUnitCreateInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    konsentrasiKeahlian: KonsentrasiKeahlianCreateNestedOneWithoutMasterUnitsInput
+  }
+
+  export type MasterCompetencyUnitUncheckedCreateInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    konsentrasiKeahlianId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MasterCompetencyUnitUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    konsentrasiKeahlian?: KonsentrasiKeahlianUpdateOneRequiredWithoutMasterUnitsNestedInput
+  }
+
+  export type MasterCompetencyUnitUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    konsentrasiKeahlianId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MasterCompetencyUnitCreateManyInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    konsentrasiKeahlianId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MasterCompetencyUnitUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MasterCompetencyUnitUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    konsentrasiKeahlianId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -28274,6 +29731,16 @@ export namespace Prisma {
     isNot?: ProgramKeahlianWhereInput
   }
 
+  export type MasterCompetencyUnitListRelationFilter = {
+    every?: MasterCompetencyUnitWhereInput
+    some?: MasterCompetencyUnitWhereInput
+    none?: MasterCompetencyUnitWhereInput
+  }
+
+  export type MasterCompetencyUnitOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type KonsentrasiKeahlianCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -28290,6 +29757,52 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     programKeahlianId?: SortOrder
+  }
+
+  export type KonsentrasiKeahlianScalarRelationFilter = {
+    is?: KonsentrasiKeahlianWhereInput
+    isNot?: KonsentrasiKeahlianWhereInput
+  }
+
+  export type MasterCompetencyUnitCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    konsentrasiKeahlianId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MasterCompetencyUnitAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type MasterCompetencyUnitMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    konsentrasiKeahlianId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MasterCompetencyUnitMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    title?: SortOrder
+    standard?: SortOrder
+    order?: SortOrder
+    konsentrasiKeahlianId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MasterCompetencyUnitSumOrderByAggregateInput = {
+    order?: SortOrder
   }
 
   export type CourseCreateNestedManyWithoutUserInput = {
@@ -29464,12 +30977,68 @@ export namespace Prisma {
     connect?: ProgramKeahlianWhereUniqueInput
   }
 
+  export type MasterCompetencyUnitCreateNestedManyWithoutKonsentrasiKeahlianInput = {
+    create?: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput> | MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput[] | MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput[]
+    connectOrCreate?: MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput[]
+    createMany?: MasterCompetencyUnitCreateManyKonsentrasiKeahlianInputEnvelope
+    connect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+  }
+
+  export type MasterCompetencyUnitUncheckedCreateNestedManyWithoutKonsentrasiKeahlianInput = {
+    create?: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput> | MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput[] | MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput[]
+    connectOrCreate?: MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput[]
+    createMany?: MasterCompetencyUnitCreateManyKonsentrasiKeahlianInputEnvelope
+    connect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+  }
+
   export type ProgramKeahlianUpdateOneRequiredWithoutKonsentrasiKeahlianNestedInput = {
     create?: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
     connectOrCreate?: ProgramKeahlianCreateOrConnectWithoutKonsentrasiKeahlianInput
     upsert?: ProgramKeahlianUpsertWithoutKonsentrasiKeahlianInput
     connect?: ProgramKeahlianWhereUniqueInput
     update?: XOR<XOR<ProgramKeahlianUpdateToOneWithWhereWithoutKonsentrasiKeahlianInput, ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput>, ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type MasterCompetencyUnitUpdateManyWithoutKonsentrasiKeahlianNestedInput = {
+    create?: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput> | MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput[] | MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput[]
+    connectOrCreate?: MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput[]
+    upsert?: MasterCompetencyUnitUpsertWithWhereUniqueWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpsertWithWhereUniqueWithoutKonsentrasiKeahlianInput[]
+    createMany?: MasterCompetencyUnitCreateManyKonsentrasiKeahlianInputEnvelope
+    set?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    disconnect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    delete?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    connect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    update?: MasterCompetencyUnitUpdateWithWhereUniqueWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpdateWithWhereUniqueWithoutKonsentrasiKeahlianInput[]
+    updateMany?: MasterCompetencyUnitUpdateManyWithWhereWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpdateManyWithWhereWithoutKonsentrasiKeahlianInput[]
+    deleteMany?: MasterCompetencyUnitScalarWhereInput | MasterCompetencyUnitScalarWhereInput[]
+  }
+
+  export type MasterCompetencyUnitUncheckedUpdateManyWithoutKonsentrasiKeahlianNestedInput = {
+    create?: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput> | MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput[] | MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput[]
+    connectOrCreate?: MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput[]
+    upsert?: MasterCompetencyUnitUpsertWithWhereUniqueWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpsertWithWhereUniqueWithoutKonsentrasiKeahlianInput[]
+    createMany?: MasterCompetencyUnitCreateManyKonsentrasiKeahlianInputEnvelope
+    set?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    disconnect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    delete?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    connect?: MasterCompetencyUnitWhereUniqueInput | MasterCompetencyUnitWhereUniqueInput[]
+    update?: MasterCompetencyUnitUpdateWithWhereUniqueWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpdateWithWhereUniqueWithoutKonsentrasiKeahlianInput[]
+    updateMany?: MasterCompetencyUnitUpdateManyWithWhereWithoutKonsentrasiKeahlianInput | MasterCompetencyUnitUpdateManyWithWhereWithoutKonsentrasiKeahlianInput[]
+    deleteMany?: MasterCompetencyUnitScalarWhereInput | MasterCompetencyUnitScalarWhereInput[]
+  }
+
+  export type KonsentrasiKeahlianCreateNestedOneWithoutMasterUnitsInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedCreateWithoutMasterUnitsInput>
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutMasterUnitsInput
+    connect?: KonsentrasiKeahlianWhereUniqueInput
+  }
+
+  export type KonsentrasiKeahlianUpdateOneRequiredWithoutMasterUnitsNestedInput = {
+    create?: XOR<KonsentrasiKeahlianCreateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedCreateWithoutMasterUnitsInput>
+    connectOrCreate?: KonsentrasiKeahlianCreateOrConnectWithoutMasterUnitsInput
+    upsert?: KonsentrasiKeahlianUpsertWithoutMasterUnitsInput
+    connect?: KonsentrasiKeahlianWhereUniqueInput
+    update?: XOR<XOR<KonsentrasiKeahlianUpdateToOneWithWhereWithoutMasterUnitsInput, KonsentrasiKeahlianUpdateWithoutMasterUnitsInput>, KonsentrasiKeahlianUncheckedUpdateWithoutMasterUnitsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -32731,11 +34300,13 @@ export namespace Prisma {
   export type KonsentrasiKeahlianCreateWithoutProgramKeahlianInput = {
     id?: string
     name: string
+    masterUnits?: MasterCompetencyUnitCreateNestedManyWithoutKonsentrasiKeahlianInput
   }
 
   export type KonsentrasiKeahlianUncheckedCreateWithoutProgramKeahlianInput = {
     id?: string
     name: string
+    masterUnits?: MasterCompetencyUnitUncheckedCreateNestedManyWithoutKonsentrasiKeahlianInput
   }
 
   export type KonsentrasiKeahlianCreateOrConnectWithoutProgramKeahlianInput = {
@@ -32811,6 +34382,36 @@ export namespace Prisma {
     create: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
   }
 
+  export type MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MasterCompetencyUnitCreateOrConnectWithoutKonsentrasiKeahlianInput = {
+    where: MasterCompetencyUnitWhereUniqueInput
+    create: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type MasterCompetencyUnitCreateManyKonsentrasiKeahlianInputEnvelope = {
+    data: MasterCompetencyUnitCreateManyKonsentrasiKeahlianInput | MasterCompetencyUnitCreateManyKonsentrasiKeahlianInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProgramKeahlianUpsertWithoutKonsentrasiKeahlianInput = {
     update: XOR<ProgramKeahlianUpdateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedUpdateWithoutKonsentrasiKeahlianInput>
     create: XOR<ProgramKeahlianCreateWithoutKonsentrasiKeahlianInput, ProgramKeahlianUncheckedCreateWithoutKonsentrasiKeahlianInput>
@@ -32832,6 +34433,76 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     bidangKeahlianId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type MasterCompetencyUnitUpsertWithWhereUniqueWithoutKonsentrasiKeahlianInput = {
+    where: MasterCompetencyUnitWhereUniqueInput
+    update: XOR<MasterCompetencyUnitUpdateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedUpdateWithoutKonsentrasiKeahlianInput>
+    create: XOR<MasterCompetencyUnitCreateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedCreateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type MasterCompetencyUnitUpdateWithWhereUniqueWithoutKonsentrasiKeahlianInput = {
+    where: MasterCompetencyUnitWhereUniqueInput
+    data: XOR<MasterCompetencyUnitUpdateWithoutKonsentrasiKeahlianInput, MasterCompetencyUnitUncheckedUpdateWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type MasterCompetencyUnitUpdateManyWithWhereWithoutKonsentrasiKeahlianInput = {
+    where: MasterCompetencyUnitScalarWhereInput
+    data: XOR<MasterCompetencyUnitUpdateManyMutationInput, MasterCompetencyUnitUncheckedUpdateManyWithoutKonsentrasiKeahlianInput>
+  }
+
+  export type MasterCompetencyUnitScalarWhereInput = {
+    AND?: MasterCompetencyUnitScalarWhereInput | MasterCompetencyUnitScalarWhereInput[]
+    OR?: MasterCompetencyUnitScalarWhereInput[]
+    NOT?: MasterCompetencyUnitScalarWhereInput | MasterCompetencyUnitScalarWhereInput[]
+    id?: StringFilter<"MasterCompetencyUnit"> | string
+    code?: StringFilter<"MasterCompetencyUnit"> | string
+    title?: StringFilter<"MasterCompetencyUnit"> | string
+    standard?: StringFilter<"MasterCompetencyUnit"> | string
+    order?: IntFilter<"MasterCompetencyUnit"> | number
+    konsentrasiKeahlianId?: StringFilter<"MasterCompetencyUnit"> | string
+    createdAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"MasterCompetencyUnit"> | Date | string
+  }
+
+  export type KonsentrasiKeahlianCreateWithoutMasterUnitsInput = {
+    id?: string
+    name: string
+    programKeahlian: ProgramKeahlianCreateNestedOneWithoutKonsentrasiKeahlianInput
+  }
+
+  export type KonsentrasiKeahlianUncheckedCreateWithoutMasterUnitsInput = {
+    id?: string
+    name: string
+    programKeahlianId: string
+  }
+
+  export type KonsentrasiKeahlianCreateOrConnectWithoutMasterUnitsInput = {
+    where: KonsentrasiKeahlianWhereUniqueInput
+    create: XOR<KonsentrasiKeahlianCreateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedCreateWithoutMasterUnitsInput>
+  }
+
+  export type KonsentrasiKeahlianUpsertWithoutMasterUnitsInput = {
+    update: XOR<KonsentrasiKeahlianUpdateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedUpdateWithoutMasterUnitsInput>
+    create: XOR<KonsentrasiKeahlianCreateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedCreateWithoutMasterUnitsInput>
+    where?: KonsentrasiKeahlianWhereInput
+  }
+
+  export type KonsentrasiKeahlianUpdateToOneWithWhereWithoutMasterUnitsInput = {
+    where?: KonsentrasiKeahlianWhereInput
+    data: XOR<KonsentrasiKeahlianUpdateWithoutMasterUnitsInput, KonsentrasiKeahlianUncheckedUpdateWithoutMasterUnitsInput>
+  }
+
+  export type KonsentrasiKeahlianUpdateWithoutMasterUnitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlian?: ProgramKeahlianUpdateOneRequiredWithoutKonsentrasiKeahlianNestedInput
+  }
+
+  export type KonsentrasiKeahlianUncheckedUpdateWithoutMasterUnitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    programKeahlianId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CourseCreateManyUserInput = {
@@ -33866,16 +35537,58 @@ export namespace Prisma {
   export type KonsentrasiKeahlianUpdateWithoutProgramKeahlianInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    masterUnits?: MasterCompetencyUnitUpdateManyWithoutKonsentrasiKeahlianNestedInput
   }
 
   export type KonsentrasiKeahlianUncheckedUpdateWithoutProgramKeahlianInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    masterUnits?: MasterCompetencyUnitUncheckedUpdateManyWithoutKonsentrasiKeahlianNestedInput
   }
 
   export type KonsentrasiKeahlianUncheckedUpdateManyWithoutProgramKeahlianInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type MasterCompetencyUnitCreateManyKonsentrasiKeahlianInput = {
+    id?: string
+    code: string
+    title: string
+    standard?: string
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MasterCompetencyUnitUpdateWithoutKonsentrasiKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MasterCompetencyUnitUncheckedUpdateWithoutKonsentrasiKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MasterCompetencyUnitUncheckedUpdateManyWithoutKonsentrasiKeahlianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    standard?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

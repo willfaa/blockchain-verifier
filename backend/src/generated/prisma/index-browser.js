@@ -333,6 +333,17 @@ exports.Prisma.KonsentrasiKeahlianScalarFieldEnum = {
   programKeahlianId: 'programKeahlianId'
 };
 
+exports.Prisma.MasterCompetencyUnitScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  title: 'title',
+  standard: 'standard',
+  order: 'order',
+  konsentrasiKeahlianId: 'konsentrasiKeahlianId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -386,7 +397,8 @@ exports.Prisma.ModelName = {
   SystemSetting: 'SystemSetting',
   BidangKeahlian: 'BidangKeahlian',
   ProgramKeahlian: 'ProgramKeahlian',
-  KonsentrasiKeahlian: 'KonsentrasiKeahlian'
+  KonsentrasiKeahlian: 'KonsentrasiKeahlian',
+  MasterCompetencyUnit: 'MasterCompetencyUnit'
 };
 
 /**
