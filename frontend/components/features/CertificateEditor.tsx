@@ -186,9 +186,12 @@ const DEFAULT_BG_CONFIG: BackgroundConfig = {
   canvasBgColor: "#0B0F19",
 };
 
+const DEFAULT_SUPABASE_LOGO =
+  "https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/logos/default-institution-logo.png";
+
 // Tata letak default Horizontal Halaman 1 (Landscape ~1754 x 1240 px, Center X = 877)
 const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
-  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
+  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 877, y: 220, width: 700, height: 35, fontSize: 24, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
   certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN", x: 877, y: 295, width: 1000, height: 80, fontSize: 52, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
   certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 877, y: 355, width: 500, height: 26, fontSize: 16, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
@@ -222,7 +225,7 @@ const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
 
 // Tata letak default Vertikal Halaman 1 (Portrait ~1240 x 1754 px, Center X = 620)
 const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
-  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "/assets/unesa-logo.png", lockAspectRatio: true, locked: false, zIndex: 10 },
+  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
   universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 620, y: 235, width: 600, height: 35, fontSize: 22, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
   certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI", x: 620, y: 310, width: 700, height: 70, fontSize: 44, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
   certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 620, y: 365, width: 450, height: 26, fontSize: 15, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
@@ -2243,19 +2246,17 @@ export default function CertificateEditor({
           >
             {el.visible ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
-          {el.isCustom && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteLayer(key);
-              }}
-              className="p-1 text-slate-500 hover:text-red-400 rounded"
-              title="Hapus layer"
-            >
-              <Trash2 size={13} />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteLayer(key);
+            }}
+            className="p-1 text-slate-500 hover:text-red-400 rounded transition-colors"
+            title="Hapus layer ini dari kanvas"
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
       </div>
     );
@@ -4609,22 +4610,21 @@ export default function CertificateEditor({
                 </div>
               )}
 
-              {/* Tombol Hapus Custom Layer */}
-              {primarySelectedEl.isCustom && (
-                <div className="flex flex-col gap-1 ml-auto shrink-0 pl-2">
-                  <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap opacity-0">
-                    Aksi
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteLayer(primarySelectedEl.id)}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-xs font-semibold border border-red-500/30 whitespace-nowrap"
-                  >
-                    <Trash2 size={12} />
-                    <span>Hapus Layer</span>
-                  </button>
-                </div>
-              )}
+              {/* Tombol Hapus Layer */}
+              <div className="flex flex-col gap-1 ml-auto shrink-0 pl-2">
+                <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest whitespace-nowrap opacity-0">
+                  Aksi
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteLayer(primarySelectedEl.id)}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-xs font-semibold border border-red-500/30 whitespace-nowrap transition-colors"
+                  title="Hapus layer ini dari kanvas"
+                >
+                  <Trash2 size={12} />
+                  <span>Hapus Layer</span>
+                </button>
+              </div>
             </div>
           ) : selectedIds.length > 1 ? (
             <div className="w-full flex items-center justify-between gap-4">

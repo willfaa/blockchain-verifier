@@ -365,7 +365,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
 
             let imageSrc = el.imageUrl;
             if (key === "universityLogo" || el.id === "universityLogo") {
-              imageSrc = institutionLogo || (el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" ? el.imageUrl : "/assets/unesa-logo.png");
+              imageSrc = institutionLogo || (el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" ? el.imageUrl : "https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/logos/default-institution-logo.png");
             } else if (!imageSrc || imageSrc === "DEFAULT_LOGO") {
               if (key === "instructorSignature" || el.id === "instructorSignature" || key === "signer1Signature" || el.id === "signer1Signature") {
                 imageSrc = s1?.signatureUrl || undefined;

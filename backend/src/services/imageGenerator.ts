@@ -677,19 +677,7 @@ export const generateCertificateImage = async (
           if (dynamicInstitutionLogo) {
             imgSource = dynamicInstitutionLogo;
           } else {
-            const possiblePaths = [
-              path.join(process.cwd(), "assets", "unesa-logo.png"),
-              path.resolve(__dirname, "../../assets/unesa-logo.png"),
-              path.resolve(__dirname, "../assets/unesa-logo.png"),
-              path.resolve(__dirname, "../../../assets/unesa-logo.png"),
-              path.join(process.cwd(), "../frontend/public/assets/unesa-logo.png"),
-            ];
-            for (const p of possiblePaths) {
-              if (fs.existsSync(p)) {
-                imgSource = p;
-                break;
-              }
-            }
+            imgSource = "https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/logos/default-institution-logo.png";
           }
         } else if (imgSource.startsWith("/uploads/")) {
           imgSource = path.join(process.cwd(), imgSource);
