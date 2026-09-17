@@ -12,14 +12,24 @@ import {
   RefreshCw,
   Folder,
   FolderOpen,
+  FileText,
   ChevronRight,
-  ChevronDown,
+  ChevronLeft,
   Search,
-  ListTree,
   FolderPlus,
-  Maximize2,
-  Minimize2,
+  LayoutGrid,
+  List as ListIcon,
+  Home,
+  ArrowUp,
+  MoreVertical,
   ShieldCheck,
+  Award,
+  Sparkles,
+  Info,
+  Check,
+  HardDrive,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,20 +66,27 @@ interface Bidang {
   programKeahlian?: Program[];
 }
 
-export default function ExpertiseFieldsTreePage() {
+export default function WindowsExplorerExpertisePage() {
   const [loading, setLoading] = useState(true);
 
-  // Raw database lists
+  // Raw Database Lists
   const [bidangList, setBidangList] = useState<Bidang[]>([]);
   const [programList, setProgramList] = useState<Program[]>([]);
   const [konsentrasiList, setKonsentrasiList] = useState<Konsentrasi[]>([]);
   const [unitsList, setUnitsList] = useState<MasterUnit[]>([]);
 
-  // Tree UI State
-  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
-  const [searchQuery, setSearchQuery] = useState("");
+  // Navigation State (Current Directory Path)
+  // currentPath: [] = Root (All Bidang), [bidangId] = Inside Bidang, [bidangId, programId] = Inside Program, [bidangId, programId, konsentrasiId] = Inside Jurusan
+  const [selectedBidangId, setSelectedBidangId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [selectedKonsentrasiId, setSelectedKonsentrasiId] = useState<string | null>(null);
 
-  // Modal State
+  // Explorer UI State
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  // Modals State
   const [modalType, setModalType] = useState<"bidang" | "program" | "konsentrasi" | "unit" | null>(null);
   const [editingItem, setEditingItem] = useState<any | null>(null);
 
@@ -98,218 +115,252 @@ export default function ExpertiseFieldsTreePage() {
         api.get("/admin/departments/units"),
       ]);
 
-      let bData: Bidang[] = [];
-      let pData: Program[] = [];
-      let kData: Konsentrasi[] = [];
-      let uData: MasterUnit[] = [];
-
       if (bidangRes.status === "fulfilled" && bidangRes.value.data.ok) {
-        bData = bidangRes.value.data.data || [];
-        setBidangList(bData);
+        setBidangList(bidangRes.value.data.data || []);
       }
       if (programRes.status === "fulfilled" && programRes.value.data.ok) {
-        pData = programRes.value.data.data || [];
-        setProgramList(pData);
+        setProgramList(programRes.value.data.data || []);
       }
       if (konsentrasiRes.status === "fulfilled" && konsentrasiRes.value.data.ok) {
-        kData = konsentrasiRes.value.data.data || [];
-        setKonsentrasiList(kData);
+        setKonsentrasiList(konsentrasiRes.value.data.data || []);
       }
       if (unitsRes.status === "fulfilled" && unitsRes.value.data.ok) {
-        uData = unitsRes.value.data.data || [];
-        setUnitsList(uData);
+        setUnitsList(unitsRes.value.data.data || []);
       }
-
-      // Default expand all Bidang and Programs
-      const defaultExpanded: Record<string, boolean> = {};
-      bData.forEach((b) => {
-        defaultExpanded[`bidang-${b.id}`] = true;
-      });
-      pData.forEach((p) => {
-        defaultExpanded[`program-${p.id}`] = true;
-      });
-      kData.forEach((k) => {
-        defaultExpanded[`konsentrasi-${k.id}`] = true;
-      });
-      setExpandedNodes((prev) => ({ ...defaultExpanded, ...prev }));
     } catch (err) {
       console.error("Failed to load expertise registry:", err);
-      toast.error("Gagal memuat hirarki keahlian.");
+      toast.error("Gagal memuat direktori keahlian.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Build the hierarchical tree structure
-  const treeData = useMemo(() => {
-    // Map units to konsentrasi
-    const unitsByKonsentrasi: Record<string, MasterUnit[]> = {};
-    unitsList.forEach((u) => {
-      const kId = u.konsentrasiKeahlianId;
-      if (!unitsByKonsentrasi[kId]) unitsByKonsentrasi[kId] = [];
-      unitsByKonsentrasi[kId].push(u);
-    });
+  // Resolved Hierarchy Elements
+  const currentBidang = useMemo(() => {
+    return bidangList.find((b) => b.id === selectedBidangId) || null;
+  }, [bidangList, selectedBidangId]);
 
-    // Map konsentrasi to program
-    const konsentrasiByProgram: Record<string, Konsentrasi[]> = {};
-    konsentrasiList.forEach((k) => {
-      const pId = k.programKeahlianId;
-      if (!konsentrasiByProgram[pId]) konsentrasiByProgram[pId] = [];
-      konsentrasiByProgram[pId].push({
-        ...k,
-        masterUnits: unitsByKonsentrasi[k.id] || [],
-      });
-    });
+  const currentProgram = useMemo(() => {
+    return programList.find((p) => p.id === selectedProgramId) || null;
+  }, [programList, selectedProgramId]);
 
-    // Map program to bidang
-    const programsByBidang: Record<string, Program[]> = {};
-    programList.forEach((p) => {
-      const bId = p.bidangKeahlianId;
-      if (!programsByBidang[bId]) programsByBidang[bId] = [];
-      programsByBidang[bId].push({
-        ...p,
-        konsentrasiKeahlian: konsentrasiByProgram[p.id] || [],
-      });
-    });
+  const currentKonsentrasi = useMemo(() => {
+    return konsentrasiList.find((k) => k.id === selectedKonsentrasiId) || null;
+  }, [konsentrasiList, selectedKonsentrasiId]);
 
-    // Final Tree
-    return bidangList.map((b) => ({
-      ...b,
-      programKeahlian: programsByBidang[b.id] || [],
-    }));
-  }, [bidangList, programList, konsentrasiList, unitsList]);
+  // Current Level Calculation: 0 = Root (Bidang), 1 = Inside Bidang (Programs), 2 = Inside Program (Konsentrasi), 3 = Inside Konsentrasi (Units)
+  const currentLevel = useMemo(() => {
+    if (selectedKonsentrasiId) return 3;
+    if (selectedProgramId) return 2;
+    if (selectedBidangId) return 1;
+    return 0;
+  }, [selectedBidangId, selectedProgramId, selectedKonsentrasiId]);
 
-  // Filtered tree based on search query
-  const filteredTree = useMemo(() => {
-    if (!searchQuery.trim()) return treeData;
+  // Items currently displayed in the main explorer pane
+  const currentFolderItems = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
 
-    const query = searchQuery.toLowerCase();
+    if (currentLevel === 0) {
+      // Show Bidang folders
+      return bidangList
+        .filter((b) => !q || b.name.toLowerCase().includes(q))
+        .map((b) => {
+          const childPrograms = programList.filter((p) => p.bidangKeahlianId === b.id);
+          const childKonsentrasiIds = childPrograms.flatMap((p) =>
+            konsentrasiList.filter((k) => k.programKeahlianId === p.id).map((k) => k.id)
+          );
+          const totalUnits = unitsList.filter((u) => childKonsentrasiIds.includes(u.konsentrasiKeahlianId)).length;
 
-    return treeData
-      .map((bidang) => {
-        const bidangMatch = bidang.name.toLowerCase().includes(query);
-
-        const filteredPrograms = (bidang.programKeahlian || [])
-          .map((program) => {
-            const programMatch = program.name.toLowerCase().includes(query);
-
-            const filteredKonsentrasi = (program.konsentrasiKeahlian || [])
-              .map((konsentrasi) => {
-                const konsentrasiMatch = konsentrasi.name.toLowerCase().includes(query);
-
-                const filteredUnits = (konsentrasi.masterUnits || []).filter(
-                  (u) =>
-                    u.code.toLowerCase().includes(query) ||
-                    u.title.toLowerCase().includes(query) ||
-                    u.standard.toLowerCase().includes(query)
-                );
-
-                if (konsentrasiMatch || filteredUnits.length > 0) {
-                  return {
-                    ...konsentrasi,
-                    masterUnits: filteredUnits.length > 0 ? filteredUnits : konsentrasi.masterUnits,
-                  };
-                }
-                return null;
-              })
-              .filter(Boolean) as Konsentrasi[];
-
-            if (programMatch || filteredKonsentrasi.length > 0) {
-              return {
-                ...program,
-                konsentrasiKeahlian: filteredKonsentrasi.length > 0 ? filteredKonsentrasi : program.konsentrasiKeahlian,
-              };
-            }
-            return null;
-          })
-          .filter(Boolean) as Program[];
-
-        if (bidangMatch || filteredPrograms.length > 0) {
           return {
-            ...bidang,
-            programKeahlian: filteredPrograms.length > 0 ? filteredPrograms : bidang.programKeahlian,
+            id: b.id,
+            type: "bidang" as const,
+            name: b.name,
+            childCount: childPrograms.length,
+            childLabel: `${childPrograms.length} Program`,
+            totalUnits,
+            raw: b,
           };
-        }
-        return null;
-      })
-      .filter(Boolean) as typeof treeData;
-  }, [treeData, searchQuery]);
+        });
+    }
 
-  // Expand / Collapse Helpers
-  const toggleNode = (nodeKey: string) => {
-    setExpandedNodes((prev) => ({
-      ...prev,
-      [nodeKey]: !prev[nodeKey],
-    }));
+    if (currentLevel === 1) {
+      // Show Program folders inside selected Bidang
+      return programList
+        .filter((p) => p.bidangKeahlianId === selectedBidangId && (!q || p.name.toLowerCase().includes(q)))
+        .map((p) => {
+          const childKonsentrasi = konsentrasiList.filter((k) => k.programKeahlianId === p.id);
+          const totalUnits = unitsList.filter((u) =>
+            childKonsentrasi.map((k) => k.id).includes(u.konsentrasiKeahlianId)
+          ).length;
+
+          return {
+            id: p.id,
+            type: "program" as const,
+            name: p.name,
+            childCount: childKonsentrasi.length,
+            childLabel: `${childKonsentrasi.length} Jurusan`,
+            totalUnits,
+            raw: p,
+          };
+        });
+    }
+
+    if (currentLevel === 2) {
+      // Show Konsentrasi / Jurusan folders inside selected Program
+      return konsentrasiList
+        .filter((k) => k.programKeahlianId === selectedProgramId && (!q || k.name.toLowerCase().includes(q)))
+        .map((k) => {
+          const childUnits = unitsList.filter((u) => u.konsentrasiKeahlianId === k.id);
+
+          return {
+            id: k.id,
+            type: "konsentrasi" as const,
+            name: k.name,
+            childCount: childUnits.length,
+            childLabel: `${childUnits.length} Unit SKKNI`,
+            totalUnits: childUnits.length,
+            raw: k,
+          };
+        });
+    }
+
+    if (currentLevel === 3) {
+      // Show Master Units (Files) inside selected Konsentrasi
+      return unitsList
+        .filter(
+          (u) =>
+            u.konsentrasiKeahlianId === selectedKonsentrasiId &&
+            (!q || u.code.toLowerCase().includes(q) || u.title.toLowerCase().includes(q) || u.standard.toLowerCase().includes(q))
+        )
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((u) => ({
+          id: u.id,
+          type: "unit" as const,
+          name: u.title,
+          code: u.code,
+          standard: u.standard,
+          order: u.order,
+          raw: u,
+        }));
+    }
+
+    return [];
+  }, [
+    currentLevel,
+    searchQuery,
+    bidangList,
+    programList,
+    konsentrasiList,
+    unitsList,
+    selectedBidangId,
+    selectedProgramId,
+    selectedKonsentrasiId,
+  ]);
+
+  // Navigation Handlers
+  const handleGoToRoot = () => {
+    setSelectedBidangId(null);
+    setSelectedProgramId(null);
+    setSelectedKonsentrasiId(null);
+    setSelectedItemId(null);
   };
 
-  const handleExpandAll = () => {
-    const allExp: Record<string, boolean> = {};
-    bidangList.forEach((b) => {
-      allExp[`bidang-${b.id}`] = true;
-    });
-    programList.forEach((p) => {
-      allExp[`program-${p.id}`] = true;
-    });
-    konsentrasiList.forEach((k) => {
-      allExp[`konsentrasi-${k.id}`] = true;
-    });
-    setExpandedNodes(allExp);
+  const handleGoToBidang = (bidangId: string) => {
+    setSelectedBidangId(bidangId);
+    setSelectedProgramId(null);
+    setSelectedKonsentrasiId(null);
+    setSelectedItemId(null);
   };
 
-  const handleCollapseAll = () => {
-    setExpandedNodes({});
+  const handleGoToProgram = (programId: string) => {
+    const prog = programList.find((p) => p.id === programId);
+    if (prog) setSelectedBidangId(prog.bidangKeahlianId);
+    setSelectedProgramId(programId);
+    setSelectedKonsentrasiId(null);
+    setSelectedItemId(null);
+  };
+
+  const handleGoToKonsentrasi = (konsentrasiId: string) => {
+    const kons = konsentrasiList.find((k) => k.id === konsentrasiId);
+    if (kons) {
+      setSelectedProgramId(kons.programKeahlianId);
+      const prog = programList.find((p) => p.id === kons.programKeahlianId);
+      if (prog) setSelectedBidangId(prog.bidangKeahlianId);
+    }
+    setSelectedKonsentrasiId(konsentrasiId);
+    setSelectedItemId(null);
+  };
+
+  const handleNavigateUp = () => {
+    if (currentLevel === 3) {
+      setSelectedKonsentrasiId(null);
+    } else if (currentLevel === 2) {
+      setSelectedProgramId(null);
+    } else if (currentLevel === 1) {
+      setSelectedBidangId(null);
+    }
+    setSelectedItemId(null);
+  };
+
+  const handleOpenItem = (item: any) => {
+    if (item.type === "bidang") {
+      handleGoToBidang(item.id);
+    } else if (item.type === "program") {
+      handleGoToProgram(item.id);
+    } else if (item.type === "konsentrasi") {
+      handleGoToKonsentrasi(item.id);
+    } else if (item.type === "unit") {
+      handleOpenEditUnit(item.raw);
+    }
   };
 
   // Modal Open Handlers
-  const handleOpenAddBidang = () => {
+  const handleOpenAdd = () => {
     setEditingItem(null);
-    setFormName("");
-    setModalType("bidang");
+    if (currentLevel === 0) {
+      setFormName("");
+      setModalType("bidang");
+    } else if (currentLevel === 1) {
+      setFormName("");
+      setFormBidangId(selectedBidangId || "");
+      setModalType("program");
+    } else if (currentLevel === 2) {
+      setFormName("");
+      setFormProgramId(selectedProgramId || "");
+      setModalType("konsentrasi");
+    } else if (currentLevel === 3) {
+      setFormUnitCode("");
+      setFormUnitTitle("");
+      setFormUnitStandard("SKKNI");
+      setFormUnitOrder(currentFolderItems.length);
+      setFormKonsentrasiId(selectedKonsentrasiId || "");
+      setModalType("unit");
+    }
   };
 
-  const handleOpenEditBidang = (b: Bidang) => {
-    setEditingItem(b);
-    setFormName(b.name);
-    setModalType("bidang");
-  };
+  const handleOpenEditItem = (item: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingItem(item.raw);
 
-  const handleOpenAddProgram = (bidangId?: string) => {
-    setEditingItem(null);
-    setFormName("");
-    setFormBidangId(bidangId || bidangList[0]?.id || "");
-    setModalType("program");
-  };
-
-  const handleOpenEditProgram = (p: Program) => {
-    setEditingItem(p);
-    setFormName(p.name);
-    setFormBidangId(p.bidangKeahlianId);
-    setModalType("program");
-  };
-
-  const handleOpenAddKonsentrasi = (programId?: string) => {
-    setEditingItem(null);
-    setFormName("");
-    setFormProgramId(programId || programList[0]?.id || "");
-    setModalType("konsentrasi");
-  };
-
-  const handleOpenEditKonsentrasi = (k: Konsentrasi) => {
-    setEditingItem(k);
-    setFormName(k.name);
-    setFormProgramId(k.programKeahlianId);
-    setModalType("konsentrasi");
-  };
-
-  const handleOpenAddUnit = (konsentrasiId?: string) => {
-    setEditingItem(null);
-    setFormUnitCode("");
-    setFormUnitTitle("");
-    setFormUnitStandard("SKKNI");
-    setFormUnitOrder(0);
-    setFormKonsentrasiId(konsentrasiId || konsentrasiList[0]?.id || "");
-    setModalType("unit");
+    if (item.type === "bidang") {
+      setFormName(item.raw.name);
+      setModalType("bidang");
+    } else if (item.type === "program") {
+      setFormName(item.raw.name);
+      setFormBidangId(item.raw.bidangKeahlianId);
+      setModalType("program");
+    } else if (item.type === "konsentrasi") {
+      setFormName(item.raw.name);
+      setFormProgramId(item.raw.programKeahlianId);
+      setModalType("konsentrasi");
+    } else if (item.type === "unit") {
+      setFormUnitCode(item.raw.code);
+      setFormUnitTitle(item.raw.title);
+      setFormUnitStandard(item.raw.standard || "SKKNI");
+      setFormUnitOrder(item.raw.order || 0);
+      setFormKonsentrasiId(item.raw.konsentrasiKeahlianId);
+      setModalType("unit");
+    }
   };
 
   const handleOpenEditUnit = (u: MasterUnit) => {
@@ -323,22 +374,37 @@ export default function ExpertiseFieldsTreePage() {
   };
 
   // Delete Action Handler
-  const handleDelete = async (type: "bidang" | "program" | "konsentrasi" | "units", id: string, name: string) => {
+  const handleDeleteItem = async (item: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+
     const typeLabel =
-      type === "bidang"
+      item.type === "bidang"
         ? "Bidang Keahlian"
-        : type === "program"
+        : item.type === "program"
         ? "Program Keahlian"
-        : type === "konsentrasi"
+        : item.type === "konsentrasi"
         ? "Konsentrasi Keahlian / Jurusan"
         : "Unit Kompetensi SKKNI";
 
-    if (!confirm(`Hapus ${typeLabel} "${name}"?\nSemua sub-item yang terkait di bawahnya juga akan terhapus secara otomatis.`)) {
+    const apiEndpoint =
+      item.type === "bidang"
+        ? "bidang"
+        : item.type === "program"
+        ? "program"
+        : item.type === "konsentrasi"
+        ? "konsentrasi"
+        : "units";
+
+    if (
+      !confirm(
+        `Hapus ${typeLabel} "${item.name || item.code}"?\nSemua sub-item yang terkait di bawahnya juga akan terhapus secara otomatis.`
+      )
+    ) {
       return;
     }
 
     try {
-      const res = await api.delete(`/admin/departments/${type}/${id}`);
+      const res = await api.delete(`/admin/departments/${apiEndpoint}/${item.id}`);
       if (res.data.ok) {
         toast.success(`${typeLabel} berhasil dihapus.`);
         fetchData();
@@ -365,7 +431,7 @@ export default function ExpertiseFieldsTreePage() {
           toast.success("Bidang Keahlian berhasil diperbarui.");
         } else {
           await api.post("/admin/departments/bidang", { name: formName.trim() });
-          toast.success("Bidang Keahlian baru berhasil ditambahkan.");
+          toast.success("Bidang Keahlian baru berhasil dibuat.");
         }
       } else if (modalType === "program") {
         if (!formName.trim() || !formBidangId) {
@@ -383,7 +449,7 @@ export default function ExpertiseFieldsTreePage() {
             name: formName.trim(),
             bidangKeahlianId: formBidangId,
           });
-          toast.success("Program Keahlian baru berhasil ditambahkan.");
+          toast.success("Program Keahlian baru berhasil dibuat.");
         }
       } else if (modalType === "konsentrasi") {
         if (!formName.trim() || !formProgramId) {
@@ -401,7 +467,7 @@ export default function ExpertiseFieldsTreePage() {
             name: formName.trim(),
             programKeahlianId: formProgramId,
           });
-          toast.success("Konsentrasi Keahlian baru berhasil ditambahkan.");
+          toast.success("Konsentrasi Keahlian baru berhasil dibuat.");
         }
       } else if (modalType === "unit") {
         if (!formUnitCode.trim() || !formUnitTitle.trim() || !formKonsentrasiId) {
@@ -421,7 +487,7 @@ export default function ExpertiseFieldsTreePage() {
           toast.success("Unit Kompetensi SKKNI berhasil diperbarui.");
         } else {
           await api.post("/admin/departments/units", payload);
-          toast.success("Unit Kompetensi SKKNI baru berhasil ditambahkan.");
+          toast.success("Unit Kompetensi SKKNI baru berhasil dibuat.");
         }
       }
 
@@ -434,23 +500,23 @@ export default function ExpertiseFieldsTreePage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 font-sans pb-24">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 font-sans pb-24">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-2xl bg-neon-purple/10 border border-neon-purple/30 text-neon-purple shadow-[0_0_15px_rgba(176,38,255,0.2)]">
-              <ListTree size={24} />
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+              <HardDrive size={24} />
             </div>
             <div>
               <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                Expertise <span className="text-neon-purple">Tree Directory</span>
-                <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded-full bg-neon-purple/20 text-neon-purple border border-neon-purple/40">
-                  4 Levels Hierarchy
+                Expertise <span className="text-cyan-400">Explorer</span>
+                <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
+                  Drive & Explorer View
                 </span>
               </h1>
               <p className="text-white/40 text-xs mt-1">
-                Kelola struktur direktori Bidang Keahlian, Program Keahlian, Konsentrasi Keahlian, dan Master Bank Unit SKKNI/IDUKA (SMK).
+                Jelajahi dan kelola hierarki Bidang Keahlian, Program, Jurusan, dan Master Bank Unit SKKNI layaknya File Explorer.
               </p>
             </div>
           </div>
@@ -460,439 +526,475 @@ export default function ExpertiseFieldsTreePage() {
           <button
             onClick={fetchData}
             className="p-3 bg-white/5 border border-white/10 hover:border-white/20 text-white rounded-2xl transition-all hover:bg-white/10"
-            title="Refresh Data"
+            title="Refresh Explorer"
           >
-            <RefreshCw size={18} className={loading ? "animate-spin text-neon-purple" : ""} />
+            <RefreshCw size={18} className={loading ? "animate-spin text-cyan-400" : ""} />
           </button>
+
           <button
-            onClick={handleOpenAddBidang}
-            className="flex items-center gap-2.5 bg-gradient-to-r from-neon-purple via-fuchsia-600 to-neon-blue text-white px-6 py-3 rounded-2xl font-bold uppercase tracking-wider text-[11px] shadow-[0_0_25px_rgba(176,38,255,0.3)] hover:shadow-[0_0_35px_rgba(176,38,255,0.5)] transition-all transform hover:-translate-y-0.5 active:scale-95"
+            onClick={handleOpenAdd}
+            className="flex items-center gap-2.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-slate-950 font-extrabold px-6 py-3 rounded-2xl uppercase tracking-wider text-[11px] shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] transition-all transform hover:-translate-y-0.5 active:scale-95"
           >
-            <FolderPlus size={16} /> Tambah Bidang Baru
+            <Plus size={16} />
+            {currentLevel === 0
+              ? "Tambah Bidang Keahlian"
+              : currentLevel === 1
+              ? "Tambah Program Keahlian"
+              : currentLevel === 2
+              ? "Tambah Jurusan / Konsentrasi"
+              : "Tambah Unit SKKNI Baru"}
           </button>
         </div>
       </div>
 
-      {/* 4-Level Stats Overview */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-neon-purple/10 to-transparent border border-neon-purple/20 flex items-center gap-3.5 shadow-lg">
-          <div className="p-2.5 rounded-xl bg-neon-purple/20 text-neon-purple">
-            <Briefcase size={20} />
+      {/* --- EXPLORER MAIN WINDOW (SPLIT VIEW) --- */}
+      <div className="rounded-3xl border border-white/10 bg-slate-950/80 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col min-h-[680px]">
+        {/* TOP TOOLBAR & ADDRESS BREADCRUMB BAR (WINDOWS EXPLORER / GDRIVE STYLE) */}
+        <div className="p-3.5 border-b border-white/10 bg-slate-900/90 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Navigation Buttons + Breadcrumb Address Bar */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={handleNavigateUp}
+              disabled={currentLevel === 0}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shrink-0"
+              title="Kembali ke folder induk (Up)"
+            >
+              <ArrowUp size={16} />
+            </button>
+
+            {/* Clickable Breadcrumbs Bar */}
+            <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-950 border border-white/10 text-xs overflow-x-auto custom-scrollbar flex-1 whitespace-nowrap shadow-inner">
+              <button
+                type="button"
+                onClick={handleGoToRoot}
+                className={`flex items-center gap-1.5 font-bold transition-colors ${
+                  currentLevel === 0 ? "text-cyan-400" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Home size={14} className="shrink-0" />
+                <span>Root</span>
+              </button>
+
+              {currentBidang && (
+                <>
+                  <ChevronRight size={13} className="text-slate-600 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => handleGoToBidang(currentBidang.id)}
+                    className={`font-bold truncate max-w-[180px] transition-colors ${
+                      currentLevel === 1 ? "text-cyan-400" : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {currentBidang.name}
+                  </button>
+                </>
+              )}
+
+              {currentProgram && (
+                <>
+                  <ChevronRight size={13} className="text-slate-600 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => handleGoToProgram(currentProgram.id)}
+                    className={`font-bold truncate max-w-[180px] transition-colors ${
+                      currentLevel === 2 ? "text-cyan-400" : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {currentProgram.name}
+                  </button>
+                </>
+              )}
+
+              {currentKonsentrasi && (
+                <>
+                  <ChevronRight size={13} className="text-slate-600 shrink-0" />
+                  <span className="text-cyan-400 font-bold truncate max-w-[220px]">
+                    {currentKonsentrasi.name}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Level 1: Bidang</p>
-            <p className="text-xl font-extrabold text-white font-mono">{bidangList.length}</p>
+
+          {/* Search Bar + View Mode Toggle */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari dalam folder..."
+                className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-all"
+              />
+              <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+            </div>
+
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-white/10">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  viewMode === "grid" ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-white"
+                }`}
+                title="Grid / Tile View"
+              >
+                <LayoutGrid size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  viewMode === "list" ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-white"
+                }`}
+                title="List / Details View"
+              >
+                <ListIcon size={15} />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-neon-blue/10 to-transparent border border-neon-blue/20 flex items-center gap-3.5 shadow-lg">
-          <div className="p-2.5 rounded-xl bg-neon-blue/20 text-neon-blue">
-            <Layers size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Level 2: Program</p>
-            <p className="text-xl font-extrabold text-white font-mono">{programList.length}</p>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-neon-pink/10 to-transparent border border-neon-pink/20 flex items-center gap-3.5 shadow-lg">
-          <div className="p-2.5 rounded-xl bg-neon-pink/20 text-neon-pink">
-            <BookOpen size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Level 3: Jurusan</p>
-            <p className="text-xl font-extrabold text-white font-mono">{konsentrasiList.length}</p>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center gap-3.5 shadow-lg">
-          <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
-            <ShieldCheck size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Level 4: Unit SKKNI</p>
-            <p className="text-xl font-extrabold text-white font-mono">{unitsList.length}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Control Bar: Search & Tree Expanding */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/60 border border-white/10 backdrop-blur-xl">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari bidang, program, jurusan, atau unit SKKNI..."
-            className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-neon-purple transition-all"
-          />
-          <Search size={16} className="absolute left-3.5 top-3 text-slate-500" />
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button
-            onClick={handleExpandAll}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
-          >
-            <Maximize2 size={13} /> Expand All
-          </button>
-          <button
-            onClick={handleCollapseAll}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
-          >
-            <Minimize2 size={13} /> Collapse All
-          </button>
-        </div>
-      </div>
-
-      {/* DIRECTORY TREE VIEW (WINDOWS EXPLORER STYLE) */}
-      {loading ? (
-        <div className="glass-panel p-16 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3">
-          <RefreshCw size={28} className="animate-spin text-neon-purple" />
-          <p className="text-xs font-mono text-neon-purple uppercase tracking-widest">
-            Memuat Struktur Direktori Keahlian...
-          </p>
-        </div>
-      ) : filteredTree.length === 0 ? (
-        <div className="glass-panel p-16 rounded-3xl border border-white/5 text-center space-y-4">
-          <Folder size={48} className="mx-auto text-white/20" />
-          <h3 className="text-lg font-bold text-white">Tidak Ada Data Ditemukan</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
-            {searchQuery
-              ? `Tidak ada hasil yang sesuai dengan kata kunci "${searchQuery}".`
-              : "Belum ada bidang keahlian yang dibuat. Klik tombol 'Tambah Bidang Baru' di atas untuk memulai."}
-          </p>
-        </div>
-      ) : (
-        <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl bg-slate-950/70 divide-y divide-white/5">
-          {filteredTree.map((bidang) => {
-            const bidangKey = `bidang-${bidang.id}`;
-            const isBidangExpanded = !!expandedNodes[bidangKey];
-            const programCount = bidang.programKeahlian?.length || 0;
-
-            return (
-              <div key={bidang.id} className="group/bidang transition-colors">
-                {/* --- LEVEL 1: BIDANG KEAHLIAN (ROOT FOLDER) --- */}
-                <div
-                  className={`flex items-center justify-between p-4 cursor-pointer select-none transition-all ${
-                    isBidangExpanded ? "bg-neon-purple/[0.04]" : "hover:bg-white/[0.02]"
-                  }`}
-                  onClick={() => toggleNode(bidangKey)}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleNode(bidangKey);
-                      }}
-                      className="p-1 text-slate-400 hover:text-white transition-colors"
-                    >
-                      {isBidangExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                    </button>
-
-                    <div className="p-2 rounded-xl bg-neon-purple/20 text-neon-purple border border-neon-purple/40">
-                      {isBidangExpanded ? <FolderOpen size={18} /> : <Folder size={18} />}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-white tracking-tight truncate">
-                          {bidang.name}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-neon-purple/10 text-neon-purple border border-neon-purple/30 font-semibold">
-                          Level 1 · Bidang Keahlian
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                          {programCount} Program
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Level 1 Actions */}
-                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAddProgram(bidang.id)}
-                      className="px-3 py-1.5 rounded-xl bg-neon-blue/10 hover:bg-neon-blue/20 text-neon-blue border border-neon-blue/30 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                      title="Tambah Program Keahlian di bawah Bidang ini"
-                    >
-                      <Plus size={13} /> Program
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditBidang(bidang)}
-                      className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
-                      title="Edit Nama Bidang"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete("bidang", bidang.id, bidang.name)}
-                      className="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors"
-                      title="Hapus Bidang Keahlian"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* --- LEVEL 2: PROGRAM KEAHLIAN (SUB-FOLDER) --- */}
-                {isBidangExpanded && (
-                  <div className="pl-6 md:pl-12 pr-4 pb-3 space-y-2 border-l-2 border-neon-purple/20 ml-6 my-1">
-                    {bidang.programKeahlian && bidang.programKeahlian.length > 0 ? (
-                      bidang.programKeahlian.map((program) => {
-                        const programKey = `program-${program.id}`;
-                        const isProgramExpanded = !!expandedNodes[programKey];
-                        const konsentrasiCount = program.konsentrasiKeahlian?.length || 0;
-
-                        return (
-                          <div
-                            key={program.id}
-                            className="rounded-2xl border border-white/5 bg-slate-900/40 overflow-hidden transition-all"
-                          >
-                            <div
-                              className={`flex items-center justify-between p-3.5 cursor-pointer select-none transition-all ${
-                                isProgramExpanded ? "bg-neon-blue/[0.04]" : "hover:bg-white/[0.02]"
-                              }`}
-                              onClick={() => toggleNode(programKey)}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleNode(programKey);
-                                  }}
-                                  className="p-1 text-slate-400 hover:text-white transition-colors"
-                                >
-                                  {isProgramExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                </button>
-
-                                <div className="p-1.5 rounded-lg bg-neon-blue/20 text-neon-blue border border-neon-blue/30">
-                                  {isProgramExpanded ? <FolderOpen size={16} /> : <Folder size={16} />}
-                                </div>
-
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs sm:text-sm font-bold text-slate-200 tracking-tight truncate">
-                                      {program.name}
-                                    </span>
-                                    <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-neon-blue/10 text-neon-blue border border-neon-blue/30 font-semibold">
-                                      Level 2 · Program
-                                    </span>
-                                    <span className="text-[9px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
-                                      {konsentrasiCount} Jurusan
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Level 2 Actions */}
-                              <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenAddKonsentrasi(program.id)}
-                                  className="px-2.5 py-1 rounded-lg bg-neon-pink/10 hover:bg-neon-pink/20 text-neon-pink border border-neon-pink/30 text-[10px] font-semibold flex items-center gap-1 transition-all"
-                                  title="Tambah Konsentrasi Keahlian / Jurusan"
-                                >
-                                  <Plus size={12} /> Jurusan
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEditProgram(program)}
-                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-                                  title="Edit Nama Program"
-                                >
-                                  <Edit2 size={13} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete("program", program.id, program.name)}
-                                  className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
-                                  title="Hapus Program Keahlian"
-                                >
-                                  <Trash2 size={13} />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* --- LEVEL 3: KONSENTRASI KEAHLIAN / JURUSAN (LEAF FOLDER) --- */}
-                            {isProgramExpanded && (
-                              <div className="pl-6 md:pl-10 pr-3 pb-3 pt-1 space-y-2 border-l border-neon-blue/20 ml-6 my-1">
-                                {program.konsentrasiKeahlian && program.konsentrasiKeahlian.length > 0 ? (
-                                  program.konsentrasiKeahlian.map((konsentrasi) => {
-                                    const konsentrasiKey = `konsentrasi-${konsentrasi.id}`;
-                                    const isKonsentrasiExpanded = !!expandedNodes[konsentrasiKey];
-                                    const unitCount = konsentrasi.masterUnits?.length || 0;
-
-                                    return (
-                                      <div
-                                        key={konsentrasi.id}
-                                        className="rounded-xl border border-white/5 bg-slate-950/60 overflow-hidden"
-                                      >
-                                        <div
-                                          className={`flex items-center justify-between p-3 cursor-pointer select-none transition-all ${
-                                            isKonsentrasiExpanded ? "bg-neon-pink/[0.04]" : "hover:bg-white/[0.02]"
-                                          }`}
-                                          onClick={() => toggleNode(konsentrasiKey)}
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleNode(konsentrasiKey);
-                                              }}
-                                              className="p-1 text-slate-400 hover:text-white transition-colors"
-                                            >
-                                              {isKonsentrasiExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-                                            </button>
-
-                                            <div className="p-1.5 rounded-lg bg-neon-pink/20 text-neon-pink border border-neon-pink/30">
-                                              <BookOpen size={14} />
-                                            </div>
-
-                                            <div className="min-w-0">
-                                              <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="text-xs font-bold text-white truncate">
-                                                  {konsentrasi.name}
-                                                </span>
-                                                <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-neon-pink/10 text-neon-pink border border-neon-pink/30 font-semibold">
-                                                  Level 3 · Jurusan
-                                                </span>
-                                                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                                                  {unitCount} Unit SKKNI
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Level 3 Actions */}
-                                          <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleOpenAddUnit(konsentrasi.id)}
-                                              className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold flex items-center gap-1 transition-all"
-                                              title="Tambah Unit Kompetensi SKKNI"
-                                            >
-                                              <Plus size={12} /> Unit SKKNI
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleOpenEditKonsentrasi(konsentrasi)}
-                                              className="p-1 text-slate-400 hover:text-white rounded hover:bg-white/10 transition-colors"
-                                              title="Edit Nama Konsentrasi"
-                                            >
-                                              <Edit2 size={12} />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleDelete("konsentrasi", konsentrasi.id, konsentrasi.name)}
-                                              className="p-1 text-slate-400 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
-                                              title="Hapus Konsentrasi Keahlian"
-                                            >
-                                              <Trash2 size={12} />
-                                            </button>
-                                          </div>
-                                        </div>
-
-                                        {/* --- LEVEL 4: BANK MASTER UNIT KOMPETENSI SKKNI (FILES) --- */}
-                                        {isKonsentrasiExpanded && (
-                                          <div className="p-3 bg-slate-900/60 border-t border-white/5 space-y-2">
-                                            {konsentrasi.masterUnits && konsentrasi.masterUnits.length > 0 ? (
-                                              <div className="space-y-1.5">
-                                                {konsentrasi.masterUnits.map((unit, idx) => (
-                                                  <div
-                                                    key={unit.id}
-                                                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/[0.02] transition-all group/unit"
-                                                  >
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                      <span className="text-[10px] font-mono text-slate-500 w-5 text-center">
-                                                        {idx + 1}
-                                                      </span>
-                                                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-500/30 font-bold shrink-0">
-                                                        {unit.code}
-                                                      </span>
-                                                      <p className="text-xs font-medium text-slate-200 truncate">
-                                                        {unit.title}
-                                                      </p>
-                                                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10 uppercase shrink-0">
-                                                        {unit.standard || "SKKNI"}
-                                                      </span>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-1 shrink-0">
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => handleOpenEditUnit(unit)}
-                                                        className="p-1 text-slate-500 hover:text-white rounded hover:bg-white/10 transition-colors"
-                                                        title="Edit Unit Kompetensi"
-                                                      >
-                                                        <Edit2 size={12} />
-                                                      </button>
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => handleDelete("units", unit.id, unit.title)}
-                                                        className="p-1 text-slate-500 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
-                                                        title="Hapus Unit Kompetensi"
-                                                      >
-                                                        <Trash2 size={12} />
-                                                      </button>
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ) : (
-                                              <div className="py-4 text-center border border-dashed border-white/10 rounded-xl">
-                                                <p className="text-[11px] text-slate-400">
-                                                  Belum ada Master Unit Kompetensi SKKNI pada jurusan ini.
-                                                </p>
-                                                <button
-                                                  type="button"
-                                                  onClick={() => handleOpenAddUnit(konsentrasi.id)}
-                                                  className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
-                                                >
-                                                  <Plus size={13} /> Tambah Unit Kompetensi Sekarang
-                                                </button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })
-                                ) : (
-                                  <div className="p-3 text-[11px] text-slate-500 italic">
-                                    Belum ada konsentrasi keahlian di bawah program ini.
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="p-3 text-[11px] text-slate-500 italic">
-                        Belum ada program keahlian di bawah bidang ini.
-                      </div>
-                    )}
-                  </div>
-                )}
+        {/* 2-PANEL LAYOUT (LEFT SIDEBAR NAVIGATION TREE + RIGHT MAIN BROWSER AREA) */}
+        <div className="flex-1 flex flex-col md:flex-row min-h-[580px]">
+          {/* LEFT SIDEBAR: QUICK DIRECTORY TREE */}
+          <div className="w-full md:w-72 border-r border-white/10 bg-slate-950/90 p-4 space-y-4 shrink-0 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                <span>Quick Access</span>
+                <span className="text-[10px] font-mono text-cyan-400">{bidangList.length} Bidang</span>
               </div>
-            );
-          })}
-        </div>
-      )}
 
-      {/* --- ADD / EDIT HIERARCHICAL MODAL --- */}
+              {/* Tree Navigation List */}
+              <div className="space-y-1 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
+                <button
+                  type="button"
+                  onClick={handleGoToRoot}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-left transition-all ${
+                    currentLevel === 0
+                      ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-md shadow-cyan-500/10"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <Home size={15} className={currentLevel === 0 ? "text-cyan-400" : "text-slate-500"} />
+                  <span className="truncate">Semua Bidang Keahlian</span>
+                </button>
+
+                {bidangList.map((bidang) => {
+                  const isBidangActive = selectedBidangId === bidang.id;
+                  const childPrograms = programList.filter((p) => p.bidangKeahlianId === bidang.id);
+
+                  return (
+                    <div key={bidang.id} className="space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleGoToBidang(bidang.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-left transition-all ${
+                          isBidangActive && currentLevel === 1
+                            ? "bg-neon-purple/15 text-neon-purple border border-neon-purple/30 font-bold"
+                            : isBidangActive
+                            ? "text-neon-purple bg-white/[0.03]"
+                            : "text-slate-400 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Folder size={14} className={isBidangActive ? "text-neon-purple" : "text-slate-500"} />
+                          <span className="truncate">{bidang.name}</span>
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-white/5">
+                          {childPrograms.length}
+                        </span>
+                      </button>
+
+                      {/* Nested Programs in Left Tree if Bidang selected */}
+                      {isBidangActive && childPrograms.length > 0 && (
+                        <div className="pl-6 space-y-0.5 border-l border-white/10 ml-3 my-0.5">
+                          {childPrograms.map((prog) => {
+                            const isProgActive = selectedProgramId === prog.id;
+
+                            return (
+                              <button
+                                key={prog.id}
+                                type="button"
+                                onClick={() => handleGoToProgram(prog.id)}
+                                className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] text-left transition-all ${
+                                  isProgActive
+                                    ? "bg-neon-blue/15 text-neon-blue border border-neon-blue/30 font-bold"
+                                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                                }`}
+                              >
+                                <Layers size={13} className={isProgActive ? "text-neon-blue" : "text-slate-500"} />
+                                <span className="truncate">{prog.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Storage Summary Mini Card */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Sparkles size={12} className="text-cyan-400" />
+                Statistik Registri
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="p-2 rounded-xl bg-slate-950/60 border border-white/5">
+                  <p className="text-xs font-mono font-bold text-white">{konsentrasiList.length}</p>
+                  <p className="text-[9px] text-slate-400">Total Jurusan</p>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-950/60 border border-white/5">
+                  <p className="text-xs font-mono font-bold text-emerald-400">{unitsList.length}</p>
+                  <p className="text-[9px] text-slate-400">Master SKKNI</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* MAIN CONTENT BROWSER AREA */}
+          <div className="flex-1 p-6 flex flex-col justify-between bg-slate-950/40 min-h-[500px]">
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <RefreshCw size={24} className="animate-spin text-cyan-400" />
+                <p className="text-xs font-mono">Memuat item direktori...</p>
+              </div>
+            ) : currentFolderItems.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
+                <div className="p-4 rounded-3xl bg-white/[0.02] border border-white/10 text-slate-500">
+                  <FolderOpen size={40} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Folder Ini Kosong</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                    {searchQuery
+                      ? `Tidak ada item yang cocok dengan pencarian "${searchQuery}".`
+                      : "Belum ada item di dalam folder ini. Klik tombol tambah di atas untuk membuat item baru."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenAdd}
+                  className="px-5 py-2.5 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-2"
+                >
+                  <Plus size={14} /> Tambah Item Sekarang
+                </button>
+              </div>
+            ) : viewMode === "grid" ? (
+              /* --- GRID VIEW (CARDS / TILES LAYOUT) --- */
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {currentFolderItems.map((item: any) => {
+                  const isFolder = item.type !== "unit";
+                  const isSelected = selectedItemId === item.id;
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedItemId(item.id)}
+                      onDoubleClick={() => handleOpenItem(item)}
+                      className={`p-4 rounded-2xl border cursor-pointer select-none transition-all relative group flex flex-col justify-between gap-3 ${
+                        isSelected
+                          ? "bg-cyan-500/15 border-cyan-500/50 shadow-lg shadow-cyan-500/10"
+                          : "bg-slate-900/60 border-white/5 hover:border-white/20 hover:bg-slate-900/90"
+                      }`}
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenItem(item);
+                            }}
+                            className={`p-3 rounded-2xl transition-transform group-hover:scale-105 ${
+                              item.type === "bidang"
+                                ? "bg-neon-purple/20 text-neon-purple border border-neon-purple/30"
+                                : item.type === "program"
+                                ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
+                                : item.type === "konsentrasi"
+                                ? "bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
+                                : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            }`}
+                          >
+                            {isFolder ? <Folder size={24} /> : <FileText size={24} />}
+                          </div>
+
+                          {/* Action Menu Buttons */}
+                          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenEditItem(item, e)}
+                              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                              title="Edit / Rename"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteItem(item, e)}
+                              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+                              title="Hapus"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Title & Metadata */}
+                        <div>
+                          {item.code && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-bold block w-fit mb-1">
+                              {item.code}
+                            </span>
+                          )}
+                          <h4 className="text-xs font-bold text-white line-clamp-2 leading-snug">
+                            {item.name}
+                          </h4>
+                        </div>
+                      </div>
+
+                      {/* Footer Badge / Counter */}
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                        {isFolder ? (
+                          <>
+                            <span>{item.childLabel}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenItem(item);
+                              }}
+                              className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-0.5"
+                            >
+                              Buka <ChevronRight size={11} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="uppercase text-emerald-400">{item.standard || "SKKNI"}</span>
+                            <span>Urutan #{item.order || 0}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* --- LIST / DETAILS VIEW (TABLE LAYOUT) --- */
+              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/60 shadow-xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
+                      <th className="py-3 px-4 w-12 text-center">No</th>
+                      <th className="py-3 px-4">Nama Item / Unit</th>
+                      <th className="py-3 px-4">Tipe / Kode</th>
+                      <th className="py-3 px-4">Isi / Standar</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {currentFolderItems.map((item: any, idx: number) => {
+                      const isFolder = item.type !== "unit";
+                      const isSelected = selectedItemId === item.id;
+
+                      return (
+                        <tr
+                          key={item.id}
+                          onClick={() => setSelectedItemId(item.id)}
+                          onDoubleClick={() => handleOpenItem(item)}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected ? "bg-cyan-500/[0.08]" : "hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-4 text-center font-mono text-slate-500">{idx + 1}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2.5">
+                              {isFolder ? (
+                                <Folder
+                                  size={16}
+                                  className={
+                                    item.type === "bidang"
+                                      ? "text-neon-purple shrink-0"
+                                      : item.type === "program"
+                                      ? "text-neon-blue shrink-0"
+                                      : "text-neon-pink shrink-0"
+                                  }
+                                />
+                              ) : (
+                                <FileText size={16} className="text-emerald-400 shrink-0" />
+                              )}
+                              <span className="font-bold text-white truncate max-w-md">{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-slate-300">
+                            {item.code ? (
+                              <span className="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">
+                                {item.code}
+                              </span>
+                            ) : (
+                              <span className="uppercase text-[10px] text-slate-400">{item.type}</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
+                            {isFolder ? item.childLabel : item.standard || "SKKNI"}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                              {isFolder && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenItem(item)}
+                                  className="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-[10px] font-bold transition-all flex items-center gap-1"
+                                >
+                                  Buka <ChevronRight size={11} />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => handleOpenEditItem(item, e)}
+                                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                                title="Edit"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteItem(item, e)}
+                                className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Bottom Explorer Status Bar */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-slate-500">
+              <span>
+                Menampilkan <b>{currentFolderItems.length} item</b> di folder ini
+              </span>
+              <span>Double-click item untuk membuka folder</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- ADD / EDIT MODAL --- */}
       {modalType && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="w-full max-w-lg bg-slate-900 border border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl relative">
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-              {editingItem ? <Edit2 size={18} className="text-neon-purple" /> : <Plus size={18} className="text-neon-purple" />}
+              {editingItem ? <Edit2 size={18} className="text-cyan-400" /> : <Plus size={18} className="text-cyan-400" />}
               {editingItem
                 ? `Edit ${
                     modalType === "bidang"
@@ -914,7 +1016,7 @@ export default function ExpertiseFieldsTreePage() {
                   }`}
             </h3>
             <p className="text-xs text-slate-400 mb-6">
-              Lengkapi formulir di bawah ini untuk memperbarui direktori keahlian & master bank SKKNI.
+              Lengkapi formulir di bawah ini untuk menyimpan data direktori keahlian.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -930,7 +1032,7 @@ export default function ExpertiseFieldsTreePage() {
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="Contoh: Teknologi Informasi, Seni & Ekonomi Kreatif"
-                    className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-purple transition-all text-sm"
+                    className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm"
                     autoFocus
                   />
                 </div>
@@ -946,7 +1048,7 @@ export default function ExpertiseFieldsTreePage() {
                     <select
                       value={formBidangId}
                       onChange={(e) => setFormBidangId(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-blue transition-all text-sm cursor-pointer"
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm cursor-pointer"
                     >
                       {bidangList.map((b) => (
                         <option key={b.id} value={b.id}>
@@ -965,7 +1067,7 @@ export default function ExpertiseFieldsTreePage() {
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
                       placeholder="Contoh: Pengembangan Perangkat Lunak dan Gim"
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-blue transition-all text-sm"
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm"
                       autoFocus
                     />
                   </div>
@@ -982,11 +1084,11 @@ export default function ExpertiseFieldsTreePage() {
                     <select
                       value={formProgramId}
                       onChange={(e) => setFormProgramId(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-pink transition-all text-sm cursor-pointer"
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm cursor-pointer"
                     >
                       {programList.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.name} ({p.bidangKeahlian?.name || "Bidang"})
+                          {p.name}
                         </option>
                       ))}
                     </select>
@@ -1001,7 +1103,7 @@ export default function ExpertiseFieldsTreePage() {
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
                       placeholder="Contoh: Rekayasa Perangkat Lunak, Teknik Komputer Jaringan"
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-neon-pink transition-all text-sm"
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm"
                       autoFocus
                     />
                   </div>
@@ -1022,7 +1124,7 @@ export default function ExpertiseFieldsTreePage() {
                     >
                       {konsentrasiList.map((k) => (
                         <option key={k.id} value={k.id}>
-                          {k.name} ({k.programKeahlian?.name || "Program"})
+                          {k.name}
                         </option>
                       ))}
                     </select>
@@ -1099,7 +1201,7 @@ export default function ExpertiseFieldsTreePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 bg-gradient-to-r from-neon-purple to-neon-blue text-white rounded-2xl text-xs font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
+                  className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold rounded-2xl text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
                 >
                   Simpan Data
                 </button>
