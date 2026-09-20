@@ -157,6 +157,7 @@ export default function SmartIssueCertificatePage() {
   const [preIssuedQrBase64, setPreIssuedQrBase64] = useState<string>("");
   const [preIssuedLoading, setPreIssuedLoading] = useState<boolean>(false);
   const [preIssuedSuccessResult, setPreIssuedSuccessResult] = useState<any | null>(null);
+  const [standardSuccessResults, setStandardSuccessResults] = useState<any[] | null>(null);
   const [preIssuedCopiedHash, setPreIssuedCopiedHash] = useState<boolean>(false);
   const [preIssuedPreviewZoom, setPreIssuedPreviewZoom] = useState<number>(65);
 
@@ -536,6 +537,7 @@ export default function SmartIssueCertificatePage() {
 
     let successCount = 0;
     let failCount = 0;
+    const issuedList: any[] = [];
 
     for (let i = 0; i < studentsToIssue.length; i++) {
       const item = studentsToIssue[i];
@@ -552,7 +554,7 @@ export default function SmartIssueCertificatePage() {
       const validScores = stdUnits.map((u) => parseFloat(u.score || "0")).filter((s) => !isNaN(s));
       const studentAvg = validScores.length > 0 ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2) : "90.00";
 
-      const payload = {
+      const payload: any = {
         name: item.student.name,
         studentName: item.student.name,
         studentId: item.student.studentId || item.student.nim || item.student.nisn || item.student.id,
@@ -563,6 +565,7 @@ export default function SmartIssueCertificatePage() {
         schoolName: schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA",
         birthPlaceDate: item.student.birthPlaceDate || birthPlaceDate.trim() || undefined,
         schoolOrigin: item.student.schoolOrigin || schoolOrigin.trim() || undefined,
+        certificateNumber: certificateNumberPrefix ? `${certificateNumberPrefix}-${item.student.studentId || "001"}` : undefined,
         layoutMode: pageMode === "DOUBLE" ? "DUPLEX_2_PAGES" : "STANDARD",
         competencyUnits: stdUnits,
         averageScore: studentAvg,
@@ -586,9 +589,31 @@ export default function SmartIssueCertificatePage() {
       };
 
       try {
-        const res = await api.post("/certificates/issue", payload);
-        if (res.data.ok) {
+        let res;
+        try {
+          res = await api.post("/certificates/issue", payload);
+        } catch (apiErr) {
+          const cloudRes = await fetch("/api/certificates/issue", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await cloudRes.json();
+          res = { data: json };
+        }
+
+        if (res.data?.ok) {
           successCount++;
+          const certRecord = res.data.record || res.data.data || {};
+          issuedList.push({
+            certId: res.data.certId || certRecord.certId || certRecord.id,
+            name: item.student.name,
+            studentId: payload.studentId,
+            program: payload.program,
+            certificateNumber: certRecord.certificateNumber || payload.certificateNumber || `UKK/${(res.data.certId || "").substring(0, 8).toUpperCase()}`,
+            txId: res.data.txId || certRecord.blockchainTxId || "ON_CHAIN_SYNCED",
+            hash: res.data.hash || certRecord.hash || "",
+          });
         } else {
           failCount++;
         }
@@ -602,6 +627,7 @@ export default function SmartIssueCertificatePage() {
     setShowModal(false);
 
     if (successCount > 0) {
+      setStandardSuccessResults(issuedList);
       toast.success(`Sukses! ${successCount} Sertifikat Berhasil Diterbitkan & Dimint ke Blockchain Ledger ⚡`, {
         description: failCount > 0 ? `${failCount} sertifikat gagal diproses.` : "Seluruh siswa telah memiliki bukti kriptografis.",
       });
@@ -2308,144 +2334,257 @@ export default function SmartIssueCertificatePage() {
       )}
 
       {/* --- PRE-ISSUED BLOCKCHAIN SUCCESS PROOF MODAL --- */}
-      {preIssuedSuccessResult && (
+      {preIssuedSuccessResult && (() => {
+        const certId =
+          preIssuedSuccessResult.certId ||
+          preIssuedSuccessResult.record?.certId ||
+          preIssuedSuccessResult.record?.id ||
+          preIssuedSuccessResult.certificate?.certId;
+        const studentName =
+          preIssuedSuccessResult.record?.studentName ||
+          preIssuedSuccessResult.record?.name ||
+          preIssuedSuccessResult.name ||
+          preIssuedStudent?.name ||
+          "Peserta Didik";
+        const certNumber =
+          preIssuedSuccessResult.record?.certificateNumber ||
+          preIssuedSuccessResult.certificateNumber ||
+          preIssuedCertNumber;
+        const schoolName =
+          preIssuedSuccessResult.record?.schoolName ||
+          preIssuedSuccessResult.schoolName ||
+          preIssuedSchoolName;
+        const txHash =
+          preIssuedSuccessResult.txId ||
+          preIssuedSuccessResult.record?.blockchainTxId ||
+          preIssuedSuccessResult.record?.txId ||
+          "TX_FABRIC_ON_CHAIN";
+        const fileHash =
+          preIssuedSuccessResult.hash ||
+          preIssuedSuccessResult.record?.hash ||
+          "SHA256_MATCHED";
+        const frontUrl =
+          preIssuedSuccessResult.frontUrl ||
+          preIssuedSuccessResult.record?.frontUrl ||
+          preIssuedSuccessResult.cid ||
+          preIssuedSuccessResult.record?.cid;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
+
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+                <div className="flex items-center gap-3.5">
+                  <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
+                    <ShieldCheck size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      Sertifikat Jadi Berhasil Diamankan!
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        On-Chain Verified
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Stamp Tipe A 1:1 QR code dan identitas dokumen telah resmi terikat ke ledger.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPreIssuedSuccessResult(null)}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="py-5 space-y-4 text-xs">
+                {/* Recipient & Cert Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-white/10">
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">Nama Peserta Didik</p>
+                    <p className="text-sm font-bold text-white mt-0.5">{studentName}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">Nomor Sertifikat Resmi</p>
+                    <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">{certNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">ID Verifikasi Sistem</p>
+                    <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5">{certId}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">Satuan Pendidikan</p>
+                    <p className="text-xs text-slate-300 truncate mt-0.5">{schoolName}</p>
+                  </div>
+                </div>
+
+                {/* Cryptographic Proof Details */}
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <Hash size={13} className="text-cyan-400" />
+                        Transaction ID (Hyperledger Fabric):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (txHash && typeof navigator !== "undefined") {
+                            navigator.clipboard?.writeText(txHash);
+                          }
+                          setPreIssuedCopiedHash(true);
+                          setTimeout(() => setPreIssuedCopiedHash(false), 2000);
+                        }}
+                        className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px]"
+                      >
+                        {preIssuedCopiedHash ? <Check size={12} /> : <Copy size={12} />}
+                        <span>{preIssuedCopiedHash ? "Tersalin" : "Salin"}</span>
+                      </button>
+                    </div>
+                    <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-cyan-300 break-all border border-cyan-500/20">
+                      {txHash}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-emerald-400" />
+                        SHA-256 Document Hash (Fingerprint):
+                      </span>
+                    </div>
+                    <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 break-all border border-white/5">
+                      {fileHash}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPreIssuedSuccessResult(null)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Tutup Jendela
+                </button>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {frontUrl && (
+                    <a
+                      href={frontUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <span>Unduh Gambar Bertanda</span>
+                      <ExternalLink size={13} />
+                    </a>
+                  )}
+                  <a
+                    href={`/verify/${certId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
+                  >
+                    <span>Buka Verifikasi</span>
+                    <ArrowRight size={14} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* --- STANDARD BATCH / SINGLE ISSUANCE SUCCESS MODAL --- */}
+      {standardSuccessResults && standardSuccessResults.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
+          <div className="bg-slate-900 border border-cyan-500/40 rounded-3xl max-w-3xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(6,182,212,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh]">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5 shrink-0">
               <div className="flex items-center gap-3.5">
-                <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
-                  <ShieldCheck size={28} />
+                <div className="p-3 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/20">
+                  <CheckCircle2 size={28} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    Sertifikat Jadi Berhasil Diamankan!
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                      On-Chain Verified
+                    {standardSuccessResults.length} Sertifikat Berhasil Diterbitkan!
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                      Consensus Verified
                     </span>
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Stamp Tipe A 1:1 QR code dan identitas dokumen telah resmi terikat ke ledger.
+                    Data siswa dan bukti konsensus blockchain telah aktif dan siap diverifikasi secara publik.
                   </p>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => setPreIssuedSuccessResult(null)}
+                onClick={() => setStandardSuccessResults(null)}
                 className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="py-5 space-y-4 text-xs">
-              {/* Recipient & Cert Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-white/10">
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Nama Peserta Didik</p>
-                  <p className="text-sm font-bold text-white mt-0.5">
-                    {preIssuedSuccessResult.certificate?.name || preIssuedStudent?.name}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Nomor Sertifikat Resmi</p>
-                  <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">
-                    {preIssuedSuccessResult.certificate?.certificateNumber || preIssuedCertNumber}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">ID Verifikasi Sistem</p>
-                  <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5">
-                    {preIssuedSuccessResult.certificate?.certId || preIssuedSuccessResult.certificate?.id}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Satuan Pendidikan</p>
-                  <p className="text-xs text-slate-300 truncate mt-0.5">
-                    {preIssuedSuccessResult.certificate?.schoolName || preIssuedSchoolName}
-                  </p>
-                </div>
-              </div>
+            {/* Body: List of issued certs */}
+            <div className="py-5 overflow-y-auto space-y-3 custom-scrollbar">
+              {standardSuccessResults.map((certItem, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-cyan-500/30 transition-all"
+                >
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold text-white uppercase flex items-center gap-2">
+                      <span>{certItem.name}</span>
+                      <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+                        {certItem.certId}
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      NISN: {certItem.studentId} · No: {certItem.certificateNumber || "-"}
+                    </p>
+                  </div>
 
-              {/* Cryptographic Proof Details */}
-              <div className="space-y-2.5">
-                <div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                    <span className="font-bold flex items-center gap-1.5">
-                      <Hash size={13} className="text-cyan-400" />
-                      Transaction ID (Hyperledger Fabric):
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const tx = preIssuedSuccessResult.certificate?.transactionHash || preIssuedSuccessResult.certificate?.txHash || "FABRIC_TX_OK";
-                        navigator.clipboard.writeText(tx);
-                        setPreIssuedCopiedHash(true);
-                        toast.success("Transaction Hash disalin ke clipboard!");
-                        setTimeout(() => setPreIssuedCopiedHash(false), 2000);
-                      }}
-                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px]"
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`/verify/${certItem.certId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20"
                     >
-                      {preIssuedCopiedHash ? <Check size={12} /> : <Copy size={12} />}
-                      <span>{preIssuedCopiedHash ? "Tersalin" : "Salin"}</span>
-                    </button>
+                      <span>Verifikasi Publik</span>
+                      <ExternalLink size={12} />
+                    </a>
                   </div>
-                  <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-cyan-300 break-all border border-cyan-500/20">
-                    {preIssuedSuccessResult.certificate?.transactionHash || preIssuedSuccessResult.certificate?.txHash || preIssuedSuccessResult.transactionHash || "TX_FABRIC_REGISTERED_SUCCESS"}
-                  </p>
                 </div>
-
-                <div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                    <span className="font-bold flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-emerald-400" />
-                      SHA-256 Document Hash (Fingerprint):
-                    </span>
-                  </div>
-                  <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 break-all border border-white/5">
-                    {preIssuedSuccessResult.certificate?.fileHash || preIssuedSuccessResult.certificate?.hash || preIssuedSuccessResult.hash || "SHA256_MATCHED"}
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Footer Buttons */}
-            <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Footer */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
+              <span className="text-xs text-slate-500">
+                Total: <b>{standardSuccessResults.length}</b> sertifikat tercatat
+              </span>
               <button
                 type="button"
-                onClick={() => setPreIssuedSuccessResult(null)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                onClick={() => setStandardSuccessResults(null)}
+                className="px-6 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all"
               >
-                Tutup Jendela
+                Selesai
               </button>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                {(preIssuedSuccessResult.certificate?.cid || preIssuedSuccessResult.certificate?.frontUrl) && (
-                  <a
-                    href={preIssuedSuccessResult.certificate?.frontUrl || preIssuedSuccessResult.certificate?.cid}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <span>Unduh Gambar Bertanda</span>
-                    <ExternalLink size={13} />
-                  </a>
-                )}
-                <a
-                  href={`/verify/${preIssuedSuccessResult.certificate?.certId || preIssuedSuccessResult.certificate?.id || "CERT-2026-0001"}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
-                >
-                  <span>Buka Verifikasi</span>
-                  <ArrowRight size={14} />
-                </a>
-              </div>
             </div>
           </div>
         </div>

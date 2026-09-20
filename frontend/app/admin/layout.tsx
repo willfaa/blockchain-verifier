@@ -90,11 +90,6 @@ export default function AdminLayout({
       icon: FileText,
       href: "/admin/certificates",
     },
-    {
-      label: "Network Explorer",
-      icon: Globe,
-      href: "/admin/explorer",
-    },
   ];
 
   return (

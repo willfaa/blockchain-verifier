@@ -22,8 +22,13 @@ const getHeaders = () => ({
 export async function fetchCertificateFromSupabase(id: string) {
   try {
     const cleanId = id.trim();
-    // Query certificates by certId or id
-    const url = `${SUPABASE_API_URL}/rest/v1/certificates?or=(certId.eq.${cleanId},id.eq.${cleanId})&select=*,course:courses(id,title,certificateTemplate,user:users(id,name,nip,majority,studyProgram))&limit=1`;
+    // Prevent PostgREST invalid input syntax for type uuid when querying non-UUID strings against the uuid `id` column
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+    const filterQuery = isUuid
+      ? `or=(certId.eq.${cleanId},id.eq.${cleanId})`
+      : `or=(certId.eq.${cleanId},certificateNumber.eq.${cleanId})`;
+
+    const url = `${SUPABASE_API_URL}/rest/v1/certificates?${filterQuery}&select=*,course:courses(id,title,certificateTemplate,user:users(id,name,nip,majority,studyProgram))&limit=1`;
     
     const res = await fetch(url, {
       headers: getHeaders(),
@@ -42,8 +47,15 @@ export async function fetchCertificateFromSupabase(id: string) {
 
     const item = data[0];
 
-    // Fetch course competency units if available
+    // Parse competencyUnits if stored as string or array
     let competencyUnits = item.competencyUnits;
+    if (typeof competencyUnits === "string") {
+      try {
+        competencyUnits = JSON.parse(competencyUnits);
+      } catch (e) {}
+    }
+
+    // Fetch course competency units if available and empty
     if ((!competencyUnits || !Array.isArray(competencyUnits) || competencyUnits.length === 0) && item.courseId) {
       try {
         const unitsUrl = `${SUPABASE_API_URL}/rest/v1/course_competency_units?courseId.eq.${item.courseId}&order=order.asc`;
@@ -62,6 +74,14 @@ export async function fetchCertificateFromSupabase(id: string) {
       } catch (e) {}
     }
 
+    // Parse signers if string
+    let signers = item.signers;
+    if (typeof signers === "string") {
+      try {
+        signers = JSON.parse(signers);
+      } catch (e) {}
+    }
+
     return {
       certId: item.certId || item.id,
       studentId: item.studentId,
@@ -69,6 +89,8 @@ export async function fetchCertificateFromSupabase(id: string) {
       majority: item.majority,
       program: item.program,
       cid: item.cid || "",
+      frontUrl: item.frontUrl || item.cid || "",
+      transcriptUrl: item.transcriptUrl || item.backUrl || undefined,
       hash: item.hash,
       status: item.status || "ISSUED",
       issuedAt: item.issuedAt,
@@ -77,7 +99,7 @@ export async function fetchCertificateFromSupabase(id: string) {
       course: item.course,
       certificateNumber: item.certificateNumber || undefined,
       schoolName: item.schoolName || undefined,
-      signers: item.signers || undefined,
+      signers: signers || undefined,
       competencyUnits: competencyUnits || undefined,
       layoutMode: item.layoutMode || "STANDARD",
       blockchainSyncStatus: item.blockchainSyncStatus || "SYNCED",
@@ -88,6 +110,40 @@ export async function fetchCertificateFromSupabase(id: string) {
   } catch (err: any) {
     console.error("[Supabase Direct Error]:", err.message);
     return null;
+  }
+}
+
+export async function fetchCertificatesFromSupabase(limit = 100) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/certificates?select=*,course:courses(id,title)&order=createdAt.desc&limit=${limit}`;
+    const res = await fetch(url, { headers: getHeaders(), cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    return data.map((item: any) => ({
+      id: item.id,
+      certId: item.certId || item.id,
+      studentId: item.studentId,
+      studentName: item.studentName || item.name,
+      name: item.studentName || item.name,
+      majority: item.majority,
+      program: item.program,
+      cid: item.cid || "",
+      frontUrl: item.frontUrl || item.cid || "",
+      transcriptUrl: item.transcriptUrl || undefined,
+      hash: item.hash,
+      status: item.status || "ISSUED",
+      issuedAt: item.issuedAt || item.createdAt,
+      createdAt: item.createdAt || item.issuedAt,
+      courseName: item.course?.title || undefined,
+      certificateNumber: item.certificateNumber || undefined,
+      blockchainTxId: item.blockchainTxId || undefined,
+      blockchainSyncStatus: item.blockchainSyncStatus || "SYNCED",
+      layoutMode: item.layoutMode || "STANDARD",
+    }));
+  } catch (err: any) {
+    console.error("[Supabase Direct Fetch All Certificates Error]:", err.message);
+    return [];
   }
 }
 

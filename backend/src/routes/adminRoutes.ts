@@ -51,8 +51,10 @@ import {
 } from "../controllers/adminController";
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
+import { CertController } from "../controllers/certController";
 
 const router = Router();
+const certController = new CertController();
 
 // Base Path: /api/admin
 router.use(verifyToken);
@@ -63,6 +65,12 @@ router.use(verifyAdmin);
  * Endpoint: GET /api/admin/stats
  */
 router.get("/stats", getDashboardStats);
+
+/**
+ * TRANSACTION LOGS / CERTIFICATES
+ * Endpoint: GET /api/admin/certificates
+ */
+router.get("/certificates", (req, res) => certController.getAllCertificates(req, res));
 
 /**
  * SYSTEM SETTINGS
