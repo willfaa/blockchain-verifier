@@ -3,6 +3,7 @@ import path from "path";
 import * as QRCode from "qrcode";
 import fs from "fs";
 import axios from "axios";
+import crypto from "crypto";
 import { db } from "../config/db";
 
 // --- Cross-Platform Font Registration for node-canvas ---
@@ -1247,4 +1248,142 @@ export const generateCertificateTranscriptCanvas = async (data: CertData): Promi
   ctx.fillText(s1?.nip ? `NIP: ${s1.nip}` : (data.instructorNip ? `NIP: ${data.instructorNip}` : "NIP: -"), rightSignerX, footerY + 126);
 
   return canvas.toBuffer("image/png");
+};
+
+export interface StampCertificateOptions {
+  imageBuffer: Buffer;
+  certId: string;
+  certificateNumber?: string;
+  studentName?: string;
+  clientUrl?: string;
+  layoutConfig?: Record<string, any>;
+  customStampPosition?: { x: number; y: number; width?: number; height?: number };
+}
+
+/**
+ * Stamps a 1:1 QR Code + Standard Certificate ID badge (Stamp Tipe A)
+ * onto an existing pre-issued/scanned certificate document image.
+ */
+export const stampExistingCertificateImage = async (
+  options: StampCertificateOptions
+): Promise<{ stampedBuffer: Buffer; hash: string; width: number; height: number }> => {
+  const { imageBuffer, certId, certificateNumber, clientUrl, layoutConfig, customStampPosition } = options;
+
+  // 1. Load original certificate image
+  const baseImg = await loadImage(imageBuffer);
+  const width = baseImg.width;
+  const height = baseImg.height;
+
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  // Draw the original certificate document
+  ctx.drawImage(baseImg, 0, 0, width, height);
+
+  // 2. Resolve Admin Layout Configuration for QR & Stamp
+  const rawConfig = layoutConfig || {};
+  const elements = rawConfig.elements || rawConfig;
+
+  // Reference canvas dimension in admin editor
+  const isLandscape = width >= height;
+  const refCanvasWidth = isLandscape ? 1754 : 1240;
+  const refCanvasHeight = isLandscape ? 1240 : 1754;
+
+  const scaleX = width / refCanvasWidth;
+  const scaleY = height / refCanvasHeight;
+  const uniformScale = Math.min(scaleX, scaleY);
+
+  // QR & Stamp elements from admin config or defaults
+  const qrEl = elements.qrCode || { x: refCanvasWidth / 2, y: refCanvasHeight * 0.8, width: 130, height: 130 };
+  const certIdEl = elements.certIdLabel || { x: qrEl.x, y: qrEl.y + (qrEl.height || 130) / 2 + 18, fontSize: 14, color: "#0ea5e9", fontFamily: "Courier New" };
+  const scanEl = elements.scanToVerifyLabel;
+
+  // Final Stamp Coordinates (mapped to image resolution)
+  let qrX = customStampPosition?.x !== undefined ? customStampPosition.x : Math.round(qrEl.x * scaleX);
+  let qrY = customStampPosition?.y !== undefined ? customStampPosition.y : Math.round(qrEl.y * scaleY);
+  let qrSize = customStampPosition?.width !== undefined ? customStampPosition.width : Math.round((qrEl.width || 130) * uniformScale);
+
+  // Ensure minimum legible QR size
+  qrSize = Math.max(90, qrSize);
+
+  // 3. Generate 1:1 High-Resolution QR Code
+  const baseUrl = clientUrl || process.env.CLIENT_URL || "https://www.willfaa.web.id";
+  const verifyUrl = `${baseUrl}/verify/${certId}`;
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+    width: qrSize * 2, // 2x oversampling for ultra crisp rendering
+    margin: 1,
+    color: { dark: "#000000", light: "#ffffff" },
+  });
+  const qrImg = await loadImage(qrDataUrl);
+
+  const drawX = qrX - qrSize / 2;
+  const drawY = qrY - qrSize / 2;
+
+  // 4. Draw Stamp Tipe A: White Card + 1:1 QR Code + Border
+  ctx.save();
+  const padding = Math.max(4, Math.round(qrSize * 0.04));
+
+  // Subtle drop shadow for stamp
+  ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 2;
+
+  // White plate
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(drawX - padding, drawY - padding, qrSize + padding * 2, qrSize + padding * 2, Math.max(6, Math.round(qrSize * 0.06)));
+  ctx.fill();
+
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
+
+  // Draw 1:1 QR Code
+  ctx.drawImage(qrImg, drawX, drawY, qrSize, qrSize);
+  ctx.restore();
+
+  // 5. Draw Stamp ID Text (Standard Format: "ID: CERT-2026-XXXX")
+  const idFontSize = Math.max(11, Math.round((certIdEl.fontSize || 14) * uniformScale));
+  const idFontFamily = certIdEl.fontFamily || "Courier New";
+  const idColor = certIdEl.color || "#0369a1";
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.font = resolveCanvasFont(idFontFamily, idFontSize, true, false);
+
+  const certIdText = `ID: ${certId.length > 18 ? certId.substring(0, 18) : certId}`;
+  const textWidth = ctx.measureText(certIdText).width;
+  const labelY = drawY + qrSize + padding + 6;
+
+  // Background pill for ID label
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.beginPath();
+  ctx.roundRect(qrX - textWidth / 2 - 8, labelY - 3, textWidth + 16, idFontSize + 6, 4);
+  ctx.fill();
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = idColor;
+  ctx.fillText(certIdText, qrX, labelY);
+
+  // 6. Draw "Scan to Verify" sub-label if visible
+  if (scanEl && scanEl.visible !== false) {
+    const scanFontSize = Math.max(9, Math.round((scanEl.fontSize || 11) * uniformScale));
+    ctx.font = resolveCanvasFont("Arial", scanFontSize, false, false);
+    ctx.fillStyle = scanEl.color || "#64748b";
+    ctx.fillText("SCAN TO VERIFY", qrX, labelY + idFontSize + 8);
+  }
+
+  ctx.restore();
+
+  // 7. Output Final Stamped Buffer & SHA-256 Hash
+  const stampedBuffer = canvas.toBuffer("image/png");
+  const hash = crypto.createHash("sha256").update(stampedBuffer).digest("hex");
+
+  return { stampedBuffer, hash, width, height };
 };

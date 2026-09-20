@@ -99,3 +99,14 @@ export const uploadExcel = multer({
   fileFilter: excelFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB Limit
 });
+
+export const uploadMemory = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB
+});
+
+export const uploadCertificateFile = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+});
+

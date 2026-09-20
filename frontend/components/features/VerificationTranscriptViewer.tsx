@@ -15,6 +15,10 @@ import {
   Printer,
   Copy,
   Check,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Eye,
 } from "lucide-react";
 import CertificateTemplate from "@/components/features/CertificateTemplate";
 import QRCode from "qrcode";
@@ -48,6 +52,9 @@ interface VerificationTranscriptViewerProps {
   courseTitle?: string;
   issuedAt: string;
   cid?: string | null;
+  frontUrl?: string | null;
+  transcriptUrl?: string | null;
+  layoutMode?: string | null;
   hash: string;
   competencyUnits?: CompetencyUnit[] | null;
   signers?: SignerInfo[] | null;
@@ -66,6 +73,9 @@ export function VerificationTranscriptViewer({
   courseTitle,
   issuedAt,
   cid,
+  frontUrl,
+  transcriptUrl,
+  layoutMode,
   hash,
   competencyUnits,
   signers,
@@ -76,6 +86,18 @@ export function VerificationTranscriptViewer({
   const [copiedHash, setCopiedHash] = useState(false);
   const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
   const [layoutSettings, setLayoutSettings] = useState<any>({});
+  const [imageZoom, setImageZoom] = useState<number>(100);
+
+  const isPreIssued =
+    layoutMode === "PRE_ISSUED_STAMP" ||
+    Boolean(frontUrl) ||
+    Boolean(cid && (cid.startsWith("http") || cid.startsWith("/storage") || cid.includes("supabase.co")));
+
+  const effectiveFrontImage =
+    frontUrl ||
+    (cid?.startsWith("http") ? cid : cid ? `${ipfsGateway}/ipfs/${cid}` : "");
+
+  const effectiveTranscriptImage = transcriptUrl;
 
   useEffect(() => {
     // Generate QR Code
@@ -167,7 +189,9 @@ export function VerificationTranscriptViewer({
             }`}
           >
             <Award size={15} />
-            <span>Sertifikat Utama (Depan)</span>
+            <span>
+              {isPreIssued ? "Sertifikat Bertanda (Halaman 1)" : "Sertifikat Utama (Depan)"}
+            </span>
           </button>
           <button
             type="button"
@@ -179,66 +203,137 @@ export function VerificationTranscriptViewer({
             }`}
           >
             <FileText size={15} />
-            <span>Transkrip SKKNI (Belakang)</span>
+            <span>
+              {effectiveTranscriptImage ? "Transkrip / Hal 2" : "Transkrip SKKNI (Belakang)"}
+            </span>
           </button>
         </div>
 
-        {/* 2-Page Official PDF Download Button */}
-        <a
-          href={`${apiBase}/api/certificates/${certId}/pdf`}
-          target="_blank"
-          rel="noreferrer"
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
-        >
-          <Printer size={15} />
-          <span>Unduh PDF Resmi (2 Halaman Duplex)</span>
-        </a>
+        {/* Actions Button */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {isPreIssued && effectiveFrontImage ? (
+            <a
+              href={effectiveFrontImage}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
+            >
+              <Download size={15} />
+              <span>Unduh Sertifikat Jadi Ber-QR</span>
+            </a>
+          ) : (
+            <a
+              href={`${apiBase}/api/certificates/${certId}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
+            >
+              <Printer size={15} />
+              <span>Unduh PDF Resmi (2 Halaman Duplex)</span>
+            </a>
+          )}
+        </div>
       </div>
 
       {/* TAB CONTENT: Front Certificate vs Back Transcript */}
       {activeTab === "front" ? (
         <div className="space-y-6">
-          {/* Real-Time Vector Certificate Preview (Zero-Failure Resilience) */}
-          <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
-            <div className="flex items-center justify-center shrink-0 m-auto">
-              <CertificateTemplate
-                studentName={studentName}
-                studentId={studentId}
-                courseName={courseTitle || program || "Sertifikat Kelulusan"}
-                certificateId={certId}
-                program={program}
-                majority={majority}
-                issuedAt={issuedAt}
-                qrCodeBase64={qrCodeBase64}
-                layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                paperSize={layoutSettings.certificatePaperSize || "A4"}
-                paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                instructorName={layoutSettings.instructorName || signerList[0]?.name}
-                instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
-                instructors={layoutSettings.instructors || signerList}
-                institutionLogo={layoutSettings.institutionLogo}
-                institutionName={layoutSettings.institutionName}
-                institutionSubtext={layoutSettings.institutionSubtext}
-                bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
-                layoutConfig={layoutSettings.layoutConfig}
-              />
+          {/* Display Stamped Image if Pre-Issued or Dynamic Template if Standard */}
+          {isPreIssued && effectiveFrontImage ? (
+            <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
+              {/* Image Viewer Toolbar */}
+              <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <ShieldCheck size={16} />
+                  Dokumen Resmi Bertanda Stamp Tipe A 1:1 QR
+                </span>
+                <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom((z) => Math.max(40, z - 10))}
+                    className="p-1 text-slate-400 hover:text-white"
+                    title="Perkecil"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                    {imageZoom}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom((z) => Math.min(200, z + 10))}
+                    className="p-1 text-slate-400 hover:text-white"
+                    title="Perbesar"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom(100)}
+                    className="text-[10px] font-bold px-2 text-slate-300 hover:text-cyan-400"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              {/* Stamped Certificate Image */}
+              <div className="w-full overflow-auto max-h-[70vh] flex items-center justify-center p-2">
+                <img
+                  src={effectiveFrontImage}
+                  alt={`Sertifikat ${studentName}`}
+                  style={{
+                    width: `${imageZoom}%`,
+                    maxWidth: imageZoom <= 100 ? "100%" : "none",
+                    transition: "width 0.15s ease-out",
+                  }}
+                  className="rounded-xl shadow-2xl border border-white/10 select-none"
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Real-Time Vector Certificate Preview (Zero-Failure Resilience) */
+            <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
+              <div className="flex items-center justify-center shrink-0 m-auto">
+                <CertificateTemplate
+                  studentName={studentName}
+                  studentId={studentId}
+                  courseName={courseTitle || program || "Sertifikat Kelulusan"}
+                  certificateId={certId}
+                  program={program}
+                  majority={majority}
+                  issuedAt={issuedAt}
+                  qrCodeBase64={qrCodeBase64}
+                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                  paperSize={layoutSettings.certificatePaperSize || "A4"}
+                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                  instructorName={layoutSettings.instructorName || signerList[0]?.name}
+                  instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
+                  instructors={layoutSettings.instructors || signerList}
+                  institutionLogo={layoutSettings.institutionLogo}
+                  institutionName={layoutSettings.institutionName}
+                  institutionSubtext={layoutSettings.institutionSubtext}
+                  bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                  layoutConfig={layoutSettings.layoutConfig}
+                />
+              </div>
+            </div>
+          )}
 
           {cid && (
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] text-white/50 font-mono">
               <span className="flex items-center gap-2">
                 <ShieldCheck size={14} className="text-emerald-400" />
-                IPFS Digital Proof CID: {cid.substring(0, 22)}...
+                IPFS / Supabase Storage Reference: {cid.substring(0, 32)}...
               </span>
               <a
-                href={`${ipfsGateway}/ipfs/${cid}`}
+                href={effectiveFrontImage || `${ipfsGateway}/ipfs/${cid}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-sans font-bold text-xs"
               >
-                Buka Artifak Digital IPFS <ExternalLink size={12} />
+                Buka Artifak Digital Asli <ExternalLink size={12} />
               </a>
             </div>
           )}
@@ -246,32 +341,49 @@ export function VerificationTranscriptViewer({
       ) : (
         /* TAB 2: Transkrip Unit Kompetensi SKKNI (Duplex Back Page) */
         <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Vector Document Canvas Preview */}
-          <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
-            <div className="flex items-center justify-center shrink-0 m-auto">
-              <CertificateTranscriptPage
-                studentName={studentName}
-                studentId={studentId}
-                majority={majority}
-                program={program}
-                courseTitle={courseTitle}
-                units={units}
-                examinerName={signerList[0]?.name || layoutSettings.instructorName || "Penguji / Asesor"}
-                examinerNip={signerList[0]?.nip || layoutSettings.instructorNip}
-                institutionLogo={layoutSettings.institutionLogo}
-                institutionName={layoutSettings.institutionName}
-                institutionSubtext={layoutSettings.institutionSubtext}
-                schoolName={layoutSettings.institutionName || schoolName || "SMK Mitra IDUKA"}
-                paperSize={layoutSettings.certificatePaperSize || "A4"}
-                paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                bgPath={layoutSettings.transcriptTemplate}
-                layoutConfig={layoutSettings.transcriptLayoutConfig}
-              />
+          {effectiveTranscriptImage ? (
+            <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
+              <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                <span className="text-xs font-bold text-teal-400 flex items-center gap-1.5">
+                  <FileText size={16} />
+                  Transkrip Nilai & Cap Kompetensi (Halaman 2)
+                </span>
+              </div>
+              <div className="w-full overflow-auto max-h-[70vh] flex items-center justify-center p-2">
+                <img
+                  src={effectiveTranscriptImage}
+                  alt={`Transkrip ${studentName}`}
+                  className="max-w-full rounded-xl shadow-2xl border border-white/10 select-none"
+                />
+              </div>
             </div>
-          </div>
-
+          ) : (
+            /* Vector Document Canvas Preview */
+            <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
+              <div className="flex items-center justify-center shrink-0 m-auto">
+                <CertificateTranscriptPage
+                  studentName={studentName}
+                  studentId={studentId}
+                  majority={majority}
+                  program={program}
+                  courseTitle={courseTitle}
+                  units={units}
+                  examinerName={signerList[0]?.name || layoutSettings.instructorName || "Penguji / Asesor"}
+                  examinerNip={signerList[0]?.nip || layoutSettings.instructorNip}
+                  institutionLogo={layoutSettings.institutionLogo}
+                  institutionName={layoutSettings.institutionName}
+                  institutionSubtext={layoutSettings.institutionSubtext}
+                  schoolName={layoutSettings.institutionName || schoolName || "SMK Mitra IDUKA"}
+                  paperSize={layoutSettings.certificatePaperSize || "A4"}
+                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
+                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
+                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                  bgPath={layoutSettings.transcriptTemplate}
+                  layoutConfig={layoutSettings.transcriptLayoutConfig}
+                />
+              </div>
+            </div>
+          )}
           {/* Transcript Data Card */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 backdrop-blur-xl space-y-6">
             {/* Header Transkrip */}

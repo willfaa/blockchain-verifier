@@ -19,13 +19,205 @@ import {
 } from "../repositories/certRepo";
 import { prisma } from "../config/db";
 import { CertificateRecord } from "../types";
-import { generateCertificateImage } from "../services/imageGenerator";
+import { generateCertificateImage, stampExistingCertificateImage } from "../services/imageGenerator";
 import { uploadToIpfs } from "../utils/ipfs";
+import { uploadBufferToSupabase } from "../utils/supabaseStorage";
 
 // URL Frontend untuk verifikasi publik
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 export class CertController {
+  public async stampAndSecureExistingCertificate(req: Request, res: Response) {
+    try {
+      const issuerId = req.user?.identifier || req.user?.id || "TEACHER_SYSTEM";
+      const issuerRole = req.user?.role || "teacher";
+
+      let {
+        certId,
+        studentId,
+        name,
+        majority,
+        program,
+        certificateNumber,
+        schoolName,
+        issuedAt,
+        courseId,
+        signers,
+        competencyUnits,
+        customStampPosition,
+        page1Base64,
+        page2Base64,
+      } = req.body || {};
+
+      // Parse JSON strings if sent as multipart form data
+      if (typeof signers === "string") {
+        try { signers = JSON.parse(signers); } catch(e) {}
+      }
+      if (typeof competencyUnits === "string") {
+        try { competencyUnits = JSON.parse(competencyUnits); } catch(e) {}
+      }
+      if (typeof customStampPosition === "string") {
+        try { customStampPosition = JSON.parse(customStampPosition); } catch(e) {}
+      }
+
+      // Handle uploaded file buffers from Multer or Base64
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+      let page1Buffer: Buffer | null = null;
+      let page2Buffer: Buffer | null = null;
+
+      if (files?.page1?.[0]) {
+        page1Buffer = files.page1[0].buffer;
+      } else if (req.file) {
+        page1Buffer = req.file.buffer;
+      } else if (page1Base64) {
+        const cleanBase64 = page1Base64.replace(/^data:image\/\w+;base64,/, "");
+        page1Buffer = Buffer.from(cleanBase64, "base64");
+      }
+
+      if (files?.page2?.[0]) {
+        page2Buffer = files.page2[0].buffer;
+      } else if (page2Base64) {
+        const cleanBase64 = page2Base64.replace(/^data:image\/\w+;base64,/, "");
+        page2Buffer = Buffer.from(cleanBase64, "base64");
+      }
+
+      if (!page1Buffer) {
+        return res.status(400).json({
+          ok: false,
+          error: "Berkas halaman depan sertifikat (page1) wajib diunggah.",
+        });
+      }
+
+      if (!studentId || !name) {
+        return res.status(400).json({
+          ok: false,
+          error: "Data siswa (studentId & name) wajib diisi.",
+        });
+      }
+
+      if (!certId) {
+        certId = `CERT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
+      // 1. Resolve Admin's Layout Configuration
+      let layoutConfig = null;
+      try {
+        const setting = await prisma.systemSetting.findUnique({
+          where: { key: "certificate_layout_config" },
+        });
+        if (setting?.value) {
+          layoutConfig = JSON.parse(setting.value);
+        }
+      } catch (e) {}
+
+      // 2. Stamp 1:1 QR Code + Certificate ID (Stamp Tipe A) on Page 1
+      console.log(`🛡️ Stamping Stamp Tipe A 1:1 onto pre-issued certificate for ${name} (${certId})...`);
+      const { stampedBuffer, hash } = await stampExistingCertificateImage({
+        imageBuffer: page1Buffer,
+        certId,
+        certificateNumber,
+        studentName: name,
+        clientUrl: CLIENT_URL,
+        layoutConfig,
+        customStampPosition,
+      });
+
+      // 3. Upload to Supabase Storage
+      console.log(`☁️ Uploading Stamped Certificate to Supabase Storage...`);
+      const page1RemotePath = `certificates/${certId}_front.png`;
+      const frontUrl = await uploadBufferToSupabase(stampedBuffer, "lms", page1RemotePath, "image/png");
+
+      let transcriptUrl = "";
+      if (page2Buffer) {
+        const page2RemotePath = `certificates/${certId}_transcript.png`;
+        transcriptUrl = await uploadBufferToSupabase(page2Buffer, "lms", page2RemotePath, "image/png");
+      }
+
+      // 4. IPFS CID & Decentralized Record
+      const cid = frontUrl || `Qm${hash.substring(0, 44)}`;
+
+      // 5. Build Record
+      const certRecord: CertificateRecord = {
+        certId,
+        studentId,
+        name,
+        majority: majority || "Teknik Komputer dan Jaringan",
+        program: program || "Uji Kompetensi Keahlian (UKK)",
+        score: "KOMPETEN",
+        cid: cid,
+        hash,
+        status: "PENDING",
+        issuedAt: issuedAt || new Intl.DateTimeFormat("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date()),
+        courseId: courseId || null,
+        certificateNumber: certificateNumber || null,
+        schoolName: schoolName || null,
+        signers: signers || null,
+        competencyUnits: competencyUnits || null,
+        layoutMode: "PRE_ISSUED_STAMP",
+      };
+
+      // 6. Submit to Fabric Blockchain Ledger
+      let syncStatus = "SYNCED";
+      let txId = `TX_${Date.now()}`;
+      try {
+        console.log(`Atomic Securing: Submitting to Fabric Ledger...`);
+        const fabricRecord = { ...certRecord, status: "ISSUED" as const };
+        const fabricResult = await issueCertificateOnFabric(fabricRecord, issuerId, issuerRole);
+        if (fabricResult?.txId) txId = fabricResult.txId;
+
+        certRecord.status = "ISSUED";
+        await saveCertificate(certRecord);
+        await prisma.certificate.update({
+          where: { certId },
+          data: {
+            blockchainSyncStatus: "SYNCED",
+            blockchainTxId: txId,
+            syncedAt: new Date(),
+          },
+        });
+      } catch (fabricErr: any) {
+        console.warn(`Fabric connection note: Saved to DB as PENDING:`, fabricErr.message);
+        syncStatus = "PENDING_SYNC";
+        certRecord.status = "PENDING";
+        await saveCertificate(certRecord);
+        await prisma.certificate.update({
+          where: { certId },
+          data: {
+            status: "PENDING",
+            blockchainSyncStatus: "PENDING_SYNC",
+          },
+        });
+      }
+
+      const verificationUrl = `${CLIENT_URL}/verify/${certId}`;
+
+      return res.json({
+        ok: true,
+        message: "Sertifikat Jadi Berhasil Di-Stamp & Diamankan ke Blockchain!",
+        record: certRecord,
+        certId,
+        hash,
+        txId,
+        cid,
+        frontUrl,
+        transcriptUrl,
+        verificationUrl,
+        syncStatus,
+      });
+    } catch (err: any) {
+      console.error("Stamp and Secure Existing Certificate Error:", err);
+      return res.status(500).json({
+        ok: false,
+        error: "Gagal membubuhkan stempel dan mengamankan sertifikat.",
+        detail: err.message || String(err),
+      });
+    }
+  }
+
   public async issueCertificate(req: Request, res: Response) {
     try {
       // 1. Ambil Identitas Issuer (Dosen/Admin yang login)

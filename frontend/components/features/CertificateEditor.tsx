@@ -802,9 +802,22 @@ export default function CertificateEditor({
   const updateElement = useCallback(
     (id: string, updates: Partial<LayoutElement>, recordHistory = true) => {
       setElements((prev) => {
+        const current = prev[id];
+        if (!current) return prev;
+        const effectiveUpdates = { ...updates };
+
+        // Strictly enforce 1:1 square aspect ratio for QR Code or locked ratio elements
+        if (id === "qrCode" || current.lockAspectRatio) {
+          if (effectiveUpdates.width !== undefined && effectiveUpdates.height === undefined) {
+            effectiveUpdates.height = effectiveUpdates.width;
+          } else if (effectiveUpdates.height !== undefined && effectiveUpdates.width === undefined) {
+            effectiveUpdates.width = effectiveUpdates.height;
+          }
+        }
+
         const next = {
           ...prev,
-          [id]: { ...prev[id], ...updates },
+          [id]: { ...current, ...effectiveUpdates },
         };
         if (recordHistory) {
           pushHistory(next);
@@ -1949,6 +1962,120 @@ export default function CertificateEditor({
       }
       pushHistory(updated);
       return updated;
+    });
+  };
+
+  // Helper 1-Klik: Ratakan Posisi Stamp Tipe A (QR Code 1:1 di atas + ID Sertifikat Standar di bawah)
+  const handleAlignStampTypeA = () => {
+    setElements((prev) => {
+      const next = { ...prev };
+      const qr = next.qrCode || {
+        id: "qrCode",
+        type: "image",
+        label: "QR Code Verifikasi",
+        x: Math.round(canvasWidth / 2),
+        y: Math.round(canvasHeight * 0.8),
+        width: 130,
+        height: 130,
+        fontSize: 0,
+        fontFamily: "Arial",
+        color: "#ffffff",
+        bold: false,
+        italic: false,
+        visible: true,
+        lockAspectRatio: true,
+      };
+      const qrSize = qr.width || 130;
+
+      // Update QR code
+      next.qrCode = {
+        ...qr,
+        width: qrSize,
+        height: qrSize,
+        lockAspectRatio: true,
+        visible: true,
+      };
+
+      // Position certIdLabel centered directly below QR code
+      if (next.certIdLabel) {
+        next.certIdLabel = {
+          ...next.certIdLabel,
+          x: qr.x,
+          y: qr.y + Math.round(qrSize / 2) + 18,
+          align: "center",
+          visible: true,
+        };
+      }
+
+      // Position scanToVerifyLabel directly below certIdLabel
+      if (next.scanToVerifyLabel) {
+        next.scanToVerifyLabel = {
+          ...next.scanToVerifyLabel,
+          x: qr.x,
+          y: qr.y + Math.round(qrSize / 2) + 38,
+          align: "center",
+          visible: true,
+        };
+      }
+
+      pushHistory(next);
+      return next;
+    });
+  };
+
+  // Helper 1-Klik: Pindah Posisi Stamp Tipe A (Pojok Kanan Bawah / Pojok Kiri Bawah / Tengah Bawah)
+  const handleSetStampPositionPreset = (preset: "bottom-right" | "bottom-left" | "bottom-center") => {
+    setElements((prev) => {
+      const next = { ...prev };
+      const qrSize = next.qrCode?.width || 130;
+      let targetX = Math.round(canvasWidth / 2);
+      let targetY = canvasHeight - 160;
+
+      if (preset === "bottom-right") {
+        targetX = canvasWidth - (layout === "VERTICAL" ? 180 : 220);
+        targetY = canvasHeight - (layout === "VERTICAL" ? 180 : 160);
+      } else if (preset === "bottom-left") {
+        targetX = layout === "VERTICAL" ? 180 : 220;
+        targetY = canvasHeight - (layout === "VERTICAL" ? 180 : 160);
+      } else if (preset === "bottom-center") {
+        targetX = Math.round(canvasWidth / 2);
+        targetY = canvasHeight - (layout === "VERTICAL" ? 220 : 180);
+      }
+
+      if (next.qrCode) {
+        next.qrCode = {
+          ...next.qrCode,
+          x: targetX,
+          y: targetY,
+          width: qrSize,
+          height: qrSize,
+          lockAspectRatio: true,
+          visible: true,
+        };
+      }
+
+      if (next.certIdLabel) {
+        next.certIdLabel = {
+          ...next.certIdLabel,
+          x: targetX,
+          y: targetY + Math.round(qrSize / 2) + 18,
+          align: "center",
+          visible: true,
+        };
+      }
+
+      if (next.scanToVerifyLabel) {
+        next.scanToVerifyLabel = {
+          ...next.scanToVerifyLabel,
+          x: targetX,
+          y: targetY + Math.round(qrSize / 2) + 38,
+          align: "center",
+          visible: true,
+        };
+      }
+
+      pushHistory(next);
+      return next;
     });
   };
 
@@ -4152,7 +4279,78 @@ export default function CertificateEditor({
                     </button>
                   </div>
 
-                  {primarySelectedEl.id !== "qrCode" && (
+                  {primarySelectedEl.id === "qrCode" ? (
+                    <>
+                      {/* 1:1 Square Size Presets */}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-cyan-400 uppercase font-bold tracking-widest whitespace-nowrap flex items-center gap-1">
+                          <QrCode size={10} />
+                          Ukuran QR 1:1 (px)
+                        </span>
+                        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-cyan-500/30">
+                          {[80, 100, 120, 130, 140, 160, 180, 200].map((size) => (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => updateElement(primarySelectedEl.id, { width: size, height: size })}
+                              className={`px-1.5 py-0.5 text-[10px] rounded font-mono transition-colors ${
+                                primarySelectedEl.width === size
+                                  ? "bg-cyan-500 text-slate-950 font-bold"
+                                  : "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white"
+                              }`}
+                              title={`Set Ukuran ${size}x${size} px (1:1)`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Stamp Tipe A (Kotak Vertikal Standar) Quick Tools */}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-fuchsia-400 uppercase font-bold tracking-widest whitespace-nowrap flex items-center gap-1">
+                          <Sparkles size={10} />
+                          Stamp Tipe A
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={handleAlignStampTypeA}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-300 rounded-lg text-xs font-semibold border border-fuchsia-500/40 whitespace-nowrap shadow-sm"
+                            title="Ratakan ID Sertifikat & Scan Label Tepat di Bawah QR Code (Stamp Tipe A)"
+                          >
+                            <span>📐 Sync Tipe A</span>
+                          </button>
+                          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-white/10">
+                            <button
+                              type="button"
+                              onClick={() => handleSetStampPositionPreset("bottom-right")}
+                              className="px-2 py-0.5 text-[10px] bg-white/5 hover:bg-white/15 text-white/80 rounded"
+                              title="Pindah Stamp Tipe A ke Pojok Kanan Bawah"
+                            >
+                              ↘ Kanan
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetStampPositionPreset("bottom-center")}
+                              className="px-2 py-0.5 text-[10px] bg-white/5 hover:bg-white/15 text-white/80 rounded"
+                              title="Pindah Stamp Tipe A ke Tengah Bawah"
+                            >
+                              ↓ Tengah
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetStampPositionPreset("bottom-left")}
+                              className="px-2 py-0.5 text-[10px] bg-white/5 hover:bg-white/15 text-white/80 rounded"
+                              title="Pindah Stamp Tipe A ke Pojok Kiri Bawah"
+                            >
+                              ↙ Kiri
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
                     <>
                       {/* Quick Size Presets */}
                       <div className="flex flex-col gap-1">

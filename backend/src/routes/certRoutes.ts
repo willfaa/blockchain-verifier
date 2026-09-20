@@ -6,6 +6,7 @@ import {
   verifyAdmin,
   verifyIssuer, // (Admin OR Teacher)
 } from "../middleware/authMiddleware";
+import { uploadCertificateFile } from "../middleware/uploadMiddleware";
 import { getCertificateFromChain } from "../controllers/issueController";
 
 const router = Router();
@@ -18,9 +19,21 @@ router.get("/", verifyToken, verifyIssuer, (req, res) =>
   certController.getAllCertificates(req, res)
 );
 
-// B. Issue Certificate
+// B. Issue Certificate (Auto-Generated)
 router.post("/issue", verifyToken, verifyIssuer, (req, res) =>
   certController.issueCertificate(req, res)
+);
+
+// B0. Stamp & Secure Existing Certificate (Scan / Pre-issued Certificate)
+router.post(
+  "/stamp-existing",
+  verifyToken,
+  verifyIssuer,
+  uploadCertificateFile.fields([
+    { name: "page1", maxCount: 1 },
+    { name: "page2", maxCount: 1 },
+  ]),
+  (req, res) => certController.stampAndSecureExistingCertificate(req, res)
 );
 
 // B1. Preview Certificate

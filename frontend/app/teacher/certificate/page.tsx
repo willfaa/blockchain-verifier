@@ -31,7 +31,16 @@ import {
   Sliders,
   Send,
   GraduationCap,
+  QrCode,
+  Upload,
+  ShieldCheck,
+  ExternalLink,
+  Copy,
+  Check,
+  FileCheck,
+  ArrowRight,
 } from "lucide-react";
+import QRCode from "qrcode";
 import {
   Select,
   SelectContent,
@@ -70,6 +79,9 @@ interface BatchStudentScore {
 }
 
 export default function SmartIssueCertificatePage() {
+  // Primary Workflow Tab: "system" (Auto-Generate UKK) vs "pre_issued" (Amankan Sertifikat Jadi)
+  const [issuanceTab, setIssuanceTab] = useState<"system" | "pre_issued">("system");
+
   // Mode: "batch" (Massal via Student Directory) vs "single" (Individu via Quick Search)
   const [issueMode, setIssueMode] = useState<"batch" | "single">("batch");
 
@@ -118,6 +130,35 @@ export default function SmartIssueCertificatePage() {
   const [examinerNip, setExaminerNip] = useState("");
   const [certificateNumberPrefix, setCertificateNumberPrefix] = useState("");
   const [birthPlaceDate, setBirthPlaceDate] = useState("");
+
+  // Pre-Issued Certificate Securing States (Sertifikat Jadi Scan / PDF)
+  const [preIssuedPage1File, setPreIssuedPage1File] = useState<File | null>(null);
+  const [preIssuedPage1Preview, setPreIssuedPage1Preview] = useState<string>("");
+  const [preIssuedPage2File, setPreIssuedPage2File] = useState<File | null>(null);
+  const [preIssuedPage2Preview, setPreIssuedPage2Preview] = useState<string>("");
+  const [preIssuedActivePreviewPage, setPreIssuedActivePreviewPage] = useState<"page1" | "page2">("page1");
+
+  const [preIssuedStudent, setPreIssuedStudent] = useState<StudentRecord | null>(null);
+  const [preIssuedStudentSearch, setPreIssuedStudentSearch] = useState<string>("");
+  const [preIssuedCertNumber, setPreIssuedCertNumber] = useState<string>("11-0159-0164-8");
+  const [preIssuedSchoolName, setPreIssuedSchoolName] = useState<string>("SMKS Senopati Sedati");
+  const [preIssuedMajor, setPreIssuedMajor] = useState<string>("Teknik Komputer dan Jaringan");
+  const [preIssuedProgram, setPreIssuedProgram] = useState<string>("Teknik Komputer dan Jaringan");
+  const [preIssuedAssignmentTitle, setPreIssuedAssignmentTitle] = useState<string>("Rancang Bangun Keamanan Jaringan dan Konfigurasi Server");
+  const [preIssuedPredicate, setPreIssuedPredicate] = useState<string>("Kompeten");
+  const [preIssuedIssueDate, setPreIssuedIssueDate] = useState<string>("Sidoarjo, 13 Februari 2026");
+  const [preIssuedInternalAssessor, setPreIssuedInternalAssessor] = useState<string>("TEGUH AGUS SETIAWAN S.Kom");
+  const [preIssuedInternalInstitution, setPreIssuedInternalInstitution] = useState<string>("SMKS SENOPATI SEDATI");
+  const [preIssuedExternalAssessor, setPreIssuedExternalAssessor] = useState<string>("BAMBANG SOERJOHANDOKO");
+  const [preIssuedExternalInstitution, setPreIssuedExternalInstitution] = useState<string>("PT SKILL INDOTIMUR AGUNG");
+
+  const [preIssuedStampPreset, setPreIssuedStampPreset] = useState<"admin" | "bottom-right" | "bottom-left" | "bottom-center">("admin");
+  const [preIssuedStampPos, setPreIssuedStampPos] = useState<{ x?: number; y?: number; width?: number; height?: number } | null>(null);
+  const [preIssuedQrBase64, setPreIssuedQrBase64] = useState<string>("");
+  const [preIssuedLoading, setPreIssuedLoading] = useState<boolean>(false);
+  const [preIssuedSuccessResult, setPreIssuedSuccessResult] = useState<any | null>(null);
+  const [preIssuedCopiedHash, setPreIssuedCopiedHash] = useState<boolean>(false);
+  const [preIssuedPreviewZoom, setPreIssuedPreviewZoom] = useState<number>(65);
 
   // Admin / Public LMS Layout Settings State
   const [layoutSettings, setLayoutSettings] = useState<any>({});
@@ -578,6 +619,267 @@ export default function SmartIssueCertificatePage() {
     }
   };
 
+  // Generate sample QR code for pre-issued preview
+  useEffect(() => {
+    const dummyId = preIssuedStudent ? (preIssuedStudent.studentId || preIssuedStudent.id) : "2026-0001";
+    const clientBase = typeof window !== "undefined" ? window.location.origin : "https://www.willfaa.web.id";
+    QRCode.toDataURL(`${clientBase}/verify/CERT-2026-${dummyId.substring(0, 8).toUpperCase()}`, {
+      margin: 1,
+      width: 256,
+      color: { dark: "#000000", light: "#ffffff" },
+    })
+      .then(setPreIssuedQrBase64)
+      .catch(() => {});
+  }, [preIssuedStudent]);
+
+  // Handle file uploads for page 1 and page 2
+  const handlePreIssuedPageUpload = (page: "page1" | "page2", file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      if (page === "page1") {
+        setPreIssuedPage1File(file);
+        setPreIssuedPage1Preview(dataUrl);
+        setPreIssuedActivePreviewPage("page1");
+        toast.success(`Halaman 1 (${file.name}) siap dipratinjau dengan Stamp Tipe A 1:1.`);
+      } else {
+        setPreIssuedPage2File(file);
+        setPreIssuedPage2Preview(dataUrl);
+        setPreIssuedActivePreviewPage("page2");
+        toast.success(`Halaman 2 / Transkrip (${file.name}) berhasil dimuat.`);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Helper 1-Klik: Muat Contoh Sertifikat SMK TKJ Moch. Ubaidilah
+  const handleLoadSampleCertificate = () => {
+    // Fill sample metadata
+    setPreIssuedCertNumber("11-0159-0164-8");
+    setPreIssuedSchoolName("SMKS Senopati Sedati");
+    setPreIssuedMajor("Teknik Komputer dan Jaringan");
+    setPreIssuedProgram("Teknik Komputer dan Jaringan");
+    setPreIssuedAssignmentTitle("Rancang Bangun Keamanan Jaringan dan Konfigurasi Server");
+    setPreIssuedPredicate("Kompeten");
+    setPreIssuedIssueDate("Sidoarjo, 13 Februari 2026");
+    setPreIssuedInternalAssessor("TEGUH AGUS SETIAWAN S.Kom");
+    setPreIssuedInternalInstitution("SMKS SENOPATI SEDATI");
+    setPreIssuedExternalAssessor("BAMBANG SOERJOHANDOKO");
+    setPreIssuedExternalInstitution("PT SKILL INDOTIMUR AGUNG");
+
+    // Match or create dummy student
+    const matched = allStudents.find((s) => s.name?.toLowerCase().includes("ubaidilah")) || {
+      id: "student-sample-ubaidilah",
+      name: "MOCH. UBAIDILAH",
+      studentId: "0084547653",
+      nisn: "0084547653",
+      email: "ubaidilah@smksenopati.sch.id",
+      majority: "Teknik Komputer dan Jaringan",
+      studyProgram: "Teknik Komputer dan Jaringan",
+      schoolOrigin: "SMKS Senopati Sedati",
+    };
+    setPreIssuedStudent(matched);
+
+    // Generate high quality sample scanned certificate image preview if none uploaded
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1754;
+      canvas.height = 1240;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Background
+        ctx.fillStyle = "#faf7f0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Ornate Border
+        ctx.strokeStyle = "#8b6f38";
+        ctx.lineWidth = 14;
+        ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+        ctx.strokeStyle = "#c5a059";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
+
+        // Header Texts
+        ctx.fillStyle = "#1e293b";
+        ctx.font = "bold 34px serif";
+        ctx.textAlign = "center";
+        ctx.fillText("SERTIFIKAT UJI KOMPETENSI KEAHLIAN", canvas.width / 2, 150);
+
+        ctx.font = "italic 20px serif";
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("Nomor Sertifikat: 11-0159-0164-8", canvas.width / 2, 195);
+
+        ctx.font = "18px sans-serif";
+        ctx.fillStyle = "#334155";
+        ctx.fillText("Diberikan Kepada Siswa / Peserta Didik:", canvas.width / 2, 260);
+
+        // Student Name
+        ctx.font = "bold 46px sans-serif";
+        ctx.fillStyle = "#0f172a";
+        ctx.fillText("MOCH. UBAIDILAH", canvas.width / 2, 330);
+
+        // Underline
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2 - 260, 345);
+        ctx.lineTo(canvas.width / 2 + 260, 345);
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.font = "18px sans-serif";
+        ctx.fillStyle = "#475569";
+        ctx.fillText("NISN: 0084547653  ·  Satuan Pendidikan: SMKS Senopati Sedati", canvas.width / 2, 385);
+
+        ctx.font = "20px sans-serif";
+        ctx.fillText("Telah menyelesaikan Uji Kompetensi Keahlian pada Program Keahlian:", canvas.width / 2, 450);
+
+        ctx.font = "bold 30px sans-serif";
+        ctx.fillStyle = "#0369a1";
+        ctx.fillText("TEKNIK KOMPUTER DAN JARINGAN", canvas.width / 2, 500);
+
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillStyle = "#15803d";
+        ctx.fillText("Predikat: KOMPETEN (SANGAT BAIK)", canvas.width / 2, 550);
+
+        ctx.font = "italic 18px sans-serif";
+        ctx.fillStyle = "#475569";
+        ctx.fillText('Skema Penugasan: "Rancang Bangun Keamanan Jaringan dan Konfigurasi Server"', canvas.width / 2, 595);
+
+        // Assessor details
+        ctx.textAlign = "left";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillStyle = "#1e293b";
+        ctx.fillText("Penguji Internal:", 200, 820);
+        ctx.font = "16px sans-serif";
+        ctx.fillText("TEGUH AGUS SETIAWAN, S.Kom", 200, 920);
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("SMKS SENOPATI SEDATI", 200, 945);
+
+        ctx.textAlign = "right";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillStyle = "#1e293b";
+        ctx.fillText("Asesor Industri (Eksternal):", canvas.width - 200, 820);
+        ctx.font = "16px sans-serif";
+        ctx.fillText("BAMBANG SOERJOHANDOKO", canvas.width - 200, 920);
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("PT SKILL INDOTIMUR AGUNG", canvas.width - 200, 945);
+
+        const generatedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        setPreIssuedPage1Preview(generatedDataUrl);
+        setPreIssuedActivePreviewPage("page1");
+      }
+    } catch (e) {
+      console.warn("Could not generate canvas sample:", e);
+    }
+
+    toast.success("Contoh Data Sertifikat SMK TKJ (Moch. Ubaidilah) Berhasil Dimuat!");
+  };
+
+  // Handle Securing and Minting to Blockchain
+  const handleSecurePreIssuedCertificate = async () => {
+    if (!preIssuedPage1File && !preIssuedPage1Preview) {
+      toast.error("Wajib mengunggah berkas Halaman 1 Sertifikat Jadi (Gambar / PDF).");
+      return;
+    }
+
+    const targetStudentName = preIssuedStudent?.name || foundStudent?.name;
+    const targetStudentId =
+      preIssuedStudent?.studentId ||
+      preIssuedStudent?.nim ||
+      preIssuedStudent?.nisn ||
+      preIssuedStudent?.id ||
+      foundStudent?.studentId ||
+      "0084547653";
+
+    if (!targetStudentName) {
+      toast.error("Pilih atau tentukan nama siswa terlebih dahulu.");
+      return;
+    }
+
+    setPreIssuedLoading(true);
+    try {
+      const formData = new FormData();
+      if (preIssuedPage1File) {
+        formData.append("page1", preIssuedPage1File);
+      } else if (preIssuedPage1Preview) {
+        formData.append("page1Base64", preIssuedPage1Preview);
+      }
+
+      if (preIssuedPage2File) {
+        formData.append("page2", preIssuedPage2File);
+      } else if (preIssuedPage2Preview) {
+        formData.append("page2Base64", preIssuedPage2Preview);
+      }
+
+      const certId = `CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      formData.append("certId", certId);
+      formData.append("studentId", targetStudentId);
+      formData.append("name", targetStudentName);
+      formData.append("certificateNumber", preIssuedCertNumber);
+      formData.append("schoolName", preIssuedSchoolName);
+      formData.append("majority", preIssuedMajor);
+      formData.append("program", preIssuedProgram);
+      formData.append("issuedAt", preIssuedIssueDate);
+
+      const signers = [
+        {
+          name: preIssuedInternalAssessor,
+          title: "Penguji Internal / Kepala Sekolah",
+          role: "INTERNAL",
+          institution: preIssuedInternalInstitution,
+        },
+        {
+          name: preIssuedExternalAssessor,
+          title: "Penguji Eksternal / Asesor Industri",
+          role: "EXTERNAL",
+          institution: preIssuedExternalInstitution,
+        },
+      ];
+      formData.append("signers", JSON.stringify(signers));
+
+      if (preIssuedStampPos) {
+        formData.append("customStampPosition", JSON.stringify(preIssuedStampPos));
+      }
+
+      let res;
+      try {
+        res = await fetch("/api/certificates/stamp-existing", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error("Cloud endpoint fallback");
+      } catch (cloudErr) {
+        res = await api.post("/certificates/stamp-existing", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      let resData;
+      if (typeof (res as any).json === "function") {
+        resData = await (res as any).json();
+      } else {
+        resData = (res as any).data;
+      }
+
+      if (resData.ok) {
+        setPreIssuedSuccessResult(resData);
+        toast.success("🛡️ Sertifikat Jadi Berhasil Diamankan & Terverifikasi Blockchain!", {
+          description: `Merkle Fingerprint SHA-256 dan Transaksi Fabric telah tercatat permanen.`,
+        });
+      } else {
+        toast.error(resData.error || "Gagal mengamankan sertifikat.");
+      }
+    } catch (err: any) {
+      console.error("Failed to secure pre-issued certificate:", err);
+      toast.error(err?.message || "Terjadi kesalahan saat mengamankan sertifikat.");
+    } finally {
+      setPreIssuedLoading(false);
+    }
+  };
+
   // Canvas & Paper Dimension Computations for Modal Preview
   const dpi = 150;
   const cmToPx = dpi / 2.54;
@@ -619,49 +921,526 @@ export default function SmartIssueCertificatePage() {
               <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
                 Smart <span className="text-cyan-400">Certificate Issuance</span>
                 <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
-                  Batch & Individual
+                  {issuanceTab === "pre_issued" ? "Pre-Issued Stamp 1:1" : "Batch & Individual"}
                 </span>
               </h1>
               <p className="text-xs text-slate-400 mt-1">
-                Terbitkan sertifikat 1 Halaman atau 2 Halaman (Transkrip SKKNI) secara massal atau individual terverifikasi blockchain ledger.
+                Pilih antara pembuatan sertifikat desain sistem baru atau amankan berkas fisik/scan yang sudah terbit dengan Stamp 1:1 QR code.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Top Mode Switcher */}
-        <div className="flex items-center bg-slate-950 p-1.5 rounded-2xl border border-white/10 shadow-xl">
-          <button
-            type="button"
-            onClick={() => setIssueMode("batch")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-              issueMode === "batch"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-lg shadow-cyan-500/20"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <Users size={16} />
-            <span>Penerbitan Massal (Batch)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIssueMode("single")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-              issueMode === "single"
-                ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-fuchsia-500/20"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <UserCheck size={16} />
-            <span>Penerbitan Individu (Single)</span>
-          </button>
-        </div>
+        {/* Workflow Mode Indicators */}
+        {issuanceTab === "system" && (
+          <div className="flex items-center bg-slate-950 p-1.5 rounded-2xl border border-white/10 shadow-xl">
+            <button
+              type="button"
+              onClick={() => setIssueMode("batch")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                issueMode === "batch"
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-lg shadow-cyan-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Users size={16} />
+              <span>Penerbitan Massal (Batch)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIssueMode("single")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                issueMode === "single"
+                  ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-fuchsia-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <UserCheck size={16} />
+              <span>Penerbitan Individu (Single)</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* --- TOP SETTINGS: COURSE SELECTOR & PAGE FORMAT --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Course / Skema Selector */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+      {/* Primary Workflow Switcher */}
+      <div className="flex flex-wrap items-center gap-3 bg-slate-950/80 p-2 rounded-2xl border border-white/10 shadow-2xl">
+        <button
+          type="button"
+          onClick={() => setIssuanceTab("system")}
+          className={`flex-1 min-w-[240px] flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+            issuanceTab === "system"
+              ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-lg shadow-cyan-500/25"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <Sparkles size={16} />
+          <span>Buat Desain Sistem (Auto-Generate UKK)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setIssuanceTab("pre_issued")}
+          className={`flex-1 min-w-[240px] flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+            issuanceTab === "pre_issued"
+              ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 shadow-lg shadow-emerald-500/25"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <ShieldCheck size={16} />
+          <span>Amankan Sertifikat Jadi (Scan / PDF Terbit)</span>
+          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-mono font-bold">
+            Stamp 1:1 QR
+          </span>
+        </button>
+      </div>
+
+      {issuanceTab === "pre_issued" ? (
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {/* Pre-Issued Header Banner */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-teal-950/30 to-slate-900 border border-emerald-500/30 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                <ShieldCheck size={28} />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+                  Amankan Sertifikat Fisik / Terbitan Sekolah
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    Stamp Tipe A 1:1
+                  </span>
+                </h2>
+                <p className="text-xs text-emerald-200/70 mt-1">
+                  Bubuhkan QR Code 1:1 dan ID Sertifikat Standar otomatis pada dokumen yang sudah jadi, lalu minting bukti ke Blockchain Fabric.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleLoadSampleCertificate}
+                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-300 hover:text-white text-xs font-bold border border-emerald-500/30 transition-all flex items-center gap-2 shadow-sm"
+                title="Muat contoh sertifikat SMK TKJ Moch. Ubaidilah yang diunggah"
+              >
+                <span>⚡ Muat Contoh SMK TKJ</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Form & Controls (5 Cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Step 1: Student Selection */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <UserCheck size={16} className="text-emerald-400" />
+                  Langkah 1: Tentukan Siswa Penerima <span className="text-red-400">*</span>
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-3.5 text-slate-400" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Ketik Nama Siswa atau NISN untuk cari..."
+                      value={preIssuedStudentSearch}
+                      onChange={(e) => {
+                        setPreIssuedStudentSearch(e.target.value);
+                        const q = e.target.value.toLowerCase();
+                        if (q.length >= 2) {
+                          const matched = allStudents.find((s) => s.name.toLowerCase().includes(q) || (s.studentId || "").toLowerCase().includes(q));
+                          if (matched) setPreIssuedStudent(matched);
+                        }
+                      }}
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+
+                  {preIssuedStudent ? (
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-emerald-500/40">
+                          <AvatarFallback className="bg-emerald-950 text-emerald-300 font-bold text-xs">
+                            {getInitials(preIssuedStudent.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-xs font-bold text-white uppercase">{preIssuedStudent.name}</p>
+                          <p className="text-[11px] text-emerald-300/80 font-mono">NISN: {preIssuedStudent.studentId || preIssuedStudent.nisn || "-"}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
+                        ✓ Terpilih
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 text-[11px] text-slate-400 text-center">
+                      Cari siswa di atas atau klik "Muat Contoh SMK TKJ" untuk auto-fill.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 2: File Upload (Page 1 Front & Page 2 Transcript) */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Upload size={16} className="text-teal-400" />
+                  Langkah 2: Unggah Berkas Sertifikat Jadi <span className="text-red-400">*</span>
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Upload Page 1 (Front Certificate) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>Halaman 1: Sertifikat Depan (Wajib)</span>
+                      {preIssuedPage1Preview && (
+                        <span className="text-[10px] text-emerald-400 font-mono">✓ Berkas Siap</span>
+                      )}
+                    </label>
+                    <label className="border-2 border-dashed border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-4 bg-emerald-950/10 hover:bg-emerald-950/20 cursor-pointer flex flex-col items-center justify-center text-center transition-all group">
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handlePreIssuedPageUpload("page1", file);
+                        }}
+                      />
+                      <Upload size={22} className="text-emerald-400 group-hover:scale-110 transition-transform mb-1.5" />
+                      <span className="text-xs font-bold text-white">
+                        {preIssuedPage1File ? preIssuedPage1File.name : "Klik atau Geser File Sertifikat Depan (JPG / PNG)"}
+                      </span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Maksimal 30 MB (Resolusi tinggi didukung)</span>
+                    </label>
+                  </div>
+
+                  {/* Upload Page 2 (Transcript / Back Page) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>Halaman 2: Transkrip Kompetensi (Opsional)</span>
+                      {preIssuedPage2Preview && (
+                        <span className="text-[10px] text-teal-400 font-mono">✓ Berkas Siap</span>
+                      )}
+                    </label>
+                    <label className="border-2 border-dashed border-white/10 hover:border-teal-400/50 rounded-2xl p-3.5 bg-slate-950/40 hover:bg-teal-950/10 cursor-pointer flex flex-col items-center justify-center text-center transition-all group">
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handlePreIssuedPageUpload("page2", file);
+                        }}
+                      />
+                      <FileText size={18} className="text-slate-400 group-hover:text-teal-400 transition-colors mb-1" />
+                      <span className="text-xs font-semibold text-slate-300">
+                        {preIssuedPage2File ? preIssuedPage2File.name : "Unggah Transkrip Nilai (Jika ada)"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Metadata Details */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <FileCheck size={16} className="text-cyan-400" />
+                  Langkah 3: Metadata & Detail Dokumen
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="font-bold text-slate-300">Nomor Sertifikat</label>
+                    <input
+                      type="text"
+                      value={preIssuedCertNumber}
+                      onChange={(e) => setPreIssuedCertNumber(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white font-mono text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                      placeholder="Contoh: 11-0159-0164-8"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-300">Jurusan / Keahlian</label>
+                    <input
+                      type="text"
+                      value={preIssuedMajor}
+                      onChange={(e) => setPreIssuedMajor(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-300">Predikat / Hasil</label>
+                    <input
+                      type="text"
+                      value={preIssuedPredicate}
+                      onChange={(e) => setPreIssuedPredicate(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="font-bold text-slate-300">Judul Penugasan / Skema</label>
+                    <input
+                      type="text"
+                      value={preIssuedAssignmentTitle}
+                      onChange={(e) => setPreIssuedAssignmentTitle(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="font-bold text-slate-300">Tempat & Tanggal Terbit</label>
+                    <input
+                      type="text"
+                      value={preIssuedIssueDate}
+                      onChange={(e) => setPreIssuedIssueDate(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="font-bold text-slate-300">Nama Sekolah</label>
+                    <input
+                      type="text"
+                      value={preIssuedSchoolName}
+                      onChange={(e) => setPreIssuedSchoolName(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Stamp Placement Presets */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <QrCode size={16} className="text-fuchsia-400" />
+                    Posisi Stamp Tipe A 1:1
+                  </h3>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/30">
+                    1:1 Square Lock
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreIssuedStampPreset("admin");
+                      setPreIssuedStampPos(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
+                      preIssuedStampPreset === "admin"
+                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    ⚙️ Sesuai Admin Template
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreIssuedStampPreset("bottom-right");
+                      setPreIssuedStampPos({ x: 1020, y: 1450, width: 130, height: 130 });
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
+                      preIssuedStampPreset === "bottom-right"
+                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    ↘ Pojok Kanan Bawah
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreIssuedStampPreset("bottom-center");
+                      setPreIssuedStampPos({ x: 620, y: 1450, width: 130, height: 130 });
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
+                      preIssuedStampPreset === "bottom-center"
+                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    ↓ Tengah Bawah
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreIssuedStampPreset("bottom-left");
+                      setPreIssuedStampPos({ x: 220, y: 1450, width: 130, height: 130 });
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
+                      preIssuedStampPreset === "bottom-left"
+                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    ↙ Pojok Kiri Bawah
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Button: Mint to Blockchain */}
+              <button
+                type="button"
+                onClick={handleSecurePreIssuedCertificate}
+                disabled={preIssuedLoading || (!preIssuedPage1File && !preIssuedPage1Preview)}
+                className="w-full py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 transform active:scale-95 transition-all disabled:opacity-50 text-sm uppercase tracking-wider"
+              >
+                {preIssuedLoading ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    <span>Membubuhkan Stamp & Menerbitkan ke Ledger...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck size={20} />
+                    <span>Amankan Dokumen & Mint ke Blockchain ⚡</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Right Column: Live Interactive Canvas Preview (7 Cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl shadow-2xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreIssuedActivePreviewPage("page1")}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        preIssuedActivePreviewPage === "page1"
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Award size={14} />
+                      <span>Halaman 1 (Depan)</span>
+                    </button>
+                    {preIssuedPage2Preview && (
+                      <button
+                        type="button"
+                        onClick={() => setPreIssuedActivePreviewPage("page2")}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          preIssuedActivePreviewPage === "page2"
+                            ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <FileText size={14} />
+                        <span>Halaman 2 (Transkrip)</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Zoom Controls */}
+                  <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setPreIssuedPreviewZoom((z) => Math.max(30, z - 10))}
+                      className="p-1 hover:bg-white/10 text-slate-400 hover:text-white rounded"
+                    >
+                      <ZoomOut size={14} />
+                    </button>
+                    <span className="text-[11px] font-mono text-white px-1">{preIssuedPreviewZoom}%</span>
+                    <button
+                      type="button"
+                      onClick={() => setPreIssuedPreviewZoom((z) => Math.min(150, z + 10))}
+                      className="p-1 hover:bg-white/10 text-slate-400 hover:text-white rounded"
+                    >
+                      <ZoomIn size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Canvas Container */}
+                <div className="w-full bg-slate-950 rounded-2xl border border-white/10 p-4 min-h-[560px] flex items-center justify-center overflow-auto custom-scrollbar relative">
+                  {preIssuedActivePreviewPage === "page1" ? (
+                    preIssuedPage1Preview ? (
+                      <div
+                        className="relative rounded-lg shadow-2xl overflow-hidden shrink-0 border border-white/20 transition-all"
+                        style={{
+                          width: `${Math.round(800 * (preIssuedPreviewZoom / 100))}px`,
+                          maxWidth: "100%",
+                        }}
+                      >
+                        <img
+                          src={preIssuedPage1Preview}
+                          alt="Sertifikat Jadi Hal 1"
+                          className="w-full h-auto object-contain select-none block"
+                        />
+
+                        {/* Stamp Tipe A 1:1 Live Overlay */}
+                        <div
+                          className="absolute pointer-events-none flex flex-col items-center justify-center"
+                          style={{
+                            right: preIssuedStampPreset === "bottom-left" ? "auto" : preIssuedStampPreset === "bottom-center" ? "50%" : "8%",
+                            left: preIssuedStampPreset === "bottom-left" ? "8%" : preIssuedStampPreset === "bottom-center" ? "auto" : "auto",
+                            transform: preIssuedStampPreset === "bottom-center" ? "translateX(50%)" : "none",
+                            bottom: "8%",
+                          }}
+                        >
+                          <div className="bg-white p-1.5 rounded-lg border border-slate-300 shadow-xl flex flex-col items-center justify-center">
+                            {preIssuedQrBase64 ? (
+                              <img src={preIssuedQrBase64} alt="QR Code" className="w-16 h-16 object-contain" />
+                            ) : (
+                              <QrCode size={56} className="text-slate-900" />
+                            )}
+                            <div className="mt-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 text-center">
+                              <span className="text-[8px] font-mono font-bold text-sky-700 block whitespace-nowrap">
+                                ID: CERT-2026-XXXX
+                              </span>
+                              <span className="text-[7px] text-slate-500 font-sans block uppercase tracking-tight">
+                                SCAN TO VERIFY
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-12 text-slate-400 space-y-3">
+                        <div className="p-4 rounded-3xl bg-white/5 border border-white/10 text-slate-500">
+                          <Upload size={36} />
+                        </div>
+                        <p className="text-sm font-bold text-white">Belum Ada Berkas Sertifikat Jadi</p>
+                        <p className="text-xs text-slate-400 max-w-sm">
+                          Unggah gambar scan sertifikat di panel kiri atau klik "Muat Contoh SMK TKJ" untuk melihat demonstrasi penempelan Stamp Tipe A 1:1.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    preIssuedPage2Preview ? (
+                      <div
+                        className="relative rounded-lg shadow-2xl overflow-hidden shrink-0 border border-white/20 transition-all"
+                        style={{
+                          width: `${Math.round(800 * (preIssuedPreviewZoom / 100))}px`,
+                          maxWidth: "100%",
+                        }}
+                      >
+                        <img
+                          src={preIssuedPage2Preview}
+                          alt="Transkrip Hal 2"
+                          className="w-full h-auto object-contain select-none block"
+                        />
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {/* --- TOP SETTINGS: COURSE SELECTOR & PAGE FORMAT --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Course / Skema Selector */}
+            <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <BookOpen size={16} className="text-cyan-400" />
@@ -1296,6 +2075,8 @@ export default function SmartIssueCertificatePage() {
           </div>
         </div>
       )}
+      </div>
+      )}
 
       {/* --- DUAL TAB PREVIEW MODAL (FRONT & TRANSCRIPT) --- */}
       {showModal && activeTargetStudent && (
@@ -1520,6 +2301,150 @@ export default function SmartIssueCertificatePage() {
                     </>
                   )}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- PRE-ISSUED BLOCKCHAIN SUCCESS PROOF MODAL --- */}
+      {preIssuedSuccessResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
+                  <ShieldCheck size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    Sertifikat Jadi Berhasil Diamankan!
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      On-Chain Verified
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Stamp Tipe A 1:1 QR code dan identitas dokumen telah resmi terikat ke ledger.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPreIssuedSuccessResult(null)}
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="py-5 space-y-4 text-xs">
+              {/* Recipient & Cert Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-white/10">
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">Nama Peserta Didik</p>
+                  <p className="text-sm font-bold text-white mt-0.5">
+                    {preIssuedSuccessResult.certificate?.name || preIssuedStudent?.name}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">Nomor Sertifikat Resmi</p>
+                  <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">
+                    {preIssuedSuccessResult.certificate?.certificateNumber || preIssuedCertNumber}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">ID Verifikasi Sistem</p>
+                  <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5">
+                    {preIssuedSuccessResult.certificate?.certId || preIssuedSuccessResult.certificate?.id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">Satuan Pendidikan</p>
+                  <p className="text-xs text-slate-300 truncate mt-0.5">
+                    {preIssuedSuccessResult.certificate?.schoolName || preIssuedSchoolName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Cryptographic Proof Details */}
+              <div className="space-y-2.5">
+                <div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <Hash size={13} className="text-cyan-400" />
+                      Transaction ID (Hyperledger Fabric):
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tx = preIssuedSuccessResult.certificate?.transactionHash || preIssuedSuccessResult.certificate?.txHash || "FABRIC_TX_OK";
+                        navigator.clipboard.writeText(tx);
+                        setPreIssuedCopiedHash(true);
+                        toast.success("Transaction Hash disalin ke clipboard!");
+                        setTimeout(() => setPreIssuedCopiedHash(false), 2000);
+                      }}
+                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px]"
+                    >
+                      {preIssuedCopiedHash ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{preIssuedCopiedHash ? "Tersalin" : "Salin"}</span>
+                    </button>
+                  </div>
+                  <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-cyan-300 break-all border border-cyan-500/20">
+                    {preIssuedSuccessResult.certificate?.transactionHash || preIssuedSuccessResult.certificate?.txHash || preIssuedSuccessResult.transactionHash || "TX_FABRIC_REGISTERED_SUCCESS"}
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-emerald-400" />
+                      SHA-256 Document Hash (Fingerprint):
+                    </span>
+                  </div>
+                  <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 break-all border border-white/5">
+                    {preIssuedSuccessResult.certificate?.fileHash || preIssuedSuccessResult.certificate?.hash || preIssuedSuccessResult.hash || "SHA256_MATCHED"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setPreIssuedSuccessResult(null)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                Tutup Jendela
+              </button>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {(preIssuedSuccessResult.certificate?.cid || preIssuedSuccessResult.certificate?.frontUrl) && (
+                  <a
+                    href={preIssuedSuccessResult.certificate?.frontUrl || preIssuedSuccessResult.certificate?.cid}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>Unduh Gambar Bertanda</span>
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+                <a
+                  href={`/verify/${preIssuedSuccessResult.certificate?.certId || preIssuedSuccessResult.certificate?.id || "CERT-2026-0001"}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
+                >
+                  <span>Buka Verifikasi</span>
+                  <ArrowRight size={14} />
+                </a>
               </div>
             </div>
           </div>

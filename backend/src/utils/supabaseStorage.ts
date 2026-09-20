@@ -106,3 +106,79 @@ export async function uploadFileToSupabase(
     throw new Error(`Supabase Storage upload failed: ${err.message}`);
   }
 }
+
+/**
+ * Uploads a Buffer directly to Supabase Storage and returns the public URL.
+ */
+export async function uploadBufferToSupabase(
+  fileBuffer: Buffer,
+  bucket: string,
+  remotePath: string,
+  mimeType: string = "image/png"
+): Promise<string> {
+  const apiUrl = process.env.SUPABASE_API_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pitbddduxxntkhawzxrr.supabase.co";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!apiUrl || !serviceKey) {
+    console.warn("[Supabase] API URL or Service Role Key is missing in env.");
+    return "";
+  }
+
+  try {
+    const cleanedRemotePath = remotePath.replace(/\\/g, "/");
+    const uploadUrl = `${apiUrl}/storage/v1/object/${bucket}/${cleanedRemotePath}`;
+
+    try {
+      await axios.post(uploadUrl, fileBuffer, {
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": mimeType,
+          "x-upsert": "true",
+        },
+      });
+    } catch (postErr: any) {
+      const isBucketNotFound =
+        postErr.response?.status === 400 &&
+        (postErr.response?.data?.error === "Bucket not found" ||
+          postErr.response?.data?.message === "Bucket not found");
+
+      if (isBucketNotFound) {
+        try {
+          await axios.post(
+            `${apiUrl}/storage/v1/bucket`,
+            {
+              id: bucket,
+              name: bucket,
+              public: true,
+              file_size_limit: 52428800,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          await axios.post(uploadUrl, fileBuffer, {
+            headers: {
+              Authorization: `Bearer ${serviceKey}`,
+              "Content-Type": mimeType,
+              "x-upsert": "true",
+            },
+          });
+        } catch (createErr: any) {
+          throw postErr;
+        }
+      } else {
+        throw postErr;
+      }
+    }
+
+    const publicUrl = `${apiUrl}/storage/v1/object/public/${bucket}/${cleanedRemotePath}`;
+    return publicUrl;
+  } catch (err: any) {
+    console.error("[Supabase] Buffer upload error:", err.message);
+    return "";
+  }
+}
+

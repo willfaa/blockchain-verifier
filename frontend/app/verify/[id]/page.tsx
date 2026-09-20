@@ -345,6 +345,7 @@ export default async function VerificationPage({
               courseTitle={cert.course?.title || cert.courseName}
               issuedAt={cert.issuedAt}
               cid={cert.cid}
+              layoutMode={cert.layoutMode}
               hash={cert.hash}
               competencyUnits={cert.competencyUnits}
               signers={cert.signers}
