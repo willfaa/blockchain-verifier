@@ -6,7 +6,7 @@ import {
   fetchCourseUnitsFromSupabase,
   insertCertificateToSupabase,
 } from "@/lib/supabase";
-import { pinJsonToPinata } from "@/lib/ipfs";
+import { pinFileToPinata } from "@/lib/ipfs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,29 +96,23 @@ export async function POST(request: NextRequest) {
         year: "numeric",
       }).format(new Date());
 
-    // 3. Pin Certificate Metadata to Pinata IPFS Cloud
+    // 3. Pin Certificate Image (if provided) or set deterministic Hash CID
     let ipfsCid = "";
-    try {
-      ipfsCid = await pinJsonToPinata(
-        {
-          certId,
-          certificateNumber: certNumber,
-          studentName,
-          studentId,
-          program,
-          majority,
-          courseId,
-          issuedAt: formattedDate,
-          hash,
-          competencyUnits,
-          schoolName,
-          signers,
-          network: "Hyperledger Fabric + Pinata IPFS Decentralized Ledger",
-        },
-        `Cert_${studentId}_${certId.substring(0, 8)}`
-      );
-    } catch (pinErr: any) {
-      console.warn("[Pinata IPFS Pinning Error]:", pinErr.message);
+    if (body.page1Base64 || body.imageBase64) {
+      try {
+        const rawBase64 = (body.page1Base64 || body.imageBase64).replace(/^data:image\/\w+;base64,/, "");
+        const imgBuf = Buffer.from(rawBase64, "base64");
+        const isJpeg = imgBuf.length > 3 && imgBuf[0] === 0xff && imgBuf[1] === 0xd8;
+        const mime = isJpeg ? "image/jpeg" : "image/png";
+        const ext = isJpeg ? "jpg" : "png";
+        ipfsCid = await pinFileToPinata(imgBuf, `${certId}_front.${ext}`, mime);
+      } catch (pinErr: any) {
+        console.warn("[Pinata IPFS Image Pinning Error]:", pinErr.message);
+      }
+    }
+    
+    if (!ipfsCid) {
+      ipfsCid = `Qm${hash.substring(0, 44)}`;
     }
 
     // 4. Insert Certificate to Supabase Database
@@ -132,7 +126,7 @@ export async function POST(request: NextRequest) {
       courseId: courseId || null,
       userId: user.id,
       issuedAt: formattedDate,
-      cid: ipfsCid || "",
+      cid: ipfsCid,
       hash,
       status: "ISSUED",
       certificateNumber: certNumber,

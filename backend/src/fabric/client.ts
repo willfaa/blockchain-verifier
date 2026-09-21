@@ -731,35 +731,9 @@ export async function syncPendingCertificatesToFabric() {
       } else {
         let finalCid = cert.cid;
 
-        // If CID is empty or pending, upload to Pinata IPFS
-        if ((!finalCid || finalCid.startsWith("PENDING")) && process.env.PINATA_JWT) {
-          try {
-            const pinataJwt = process.env.PINATA_JWT.replace(/^["']|["']$/g, "").trim();
-            const pinRes = await axios.post(
-              "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-              {
-                pinataMetadata: { name: `Cert_${cert.studentId}_${cert.certId.substring(0, 8)}.json` },
-                pinataContent: {
-                  certId: cert.certId,
-                  studentName: cert.studentName,
-                  studentId: cert.studentId,
-                  program: cert.program,
-                  majority: cert.majority,
-                  hash: cert.hash,
-                  issuedAt: cert.issuedAt,
-                },
-              },
-              {
-                headers: { Authorization: `Bearer ${pinataJwt}` },
-                timeout: 5000,
-              }
-            );
-            if (pinRes.data?.IpfsHash) {
-              finalCid = pinRes.data.IpfsHash;
-            }
-          } catch (ipfsErr: any) {
-            console.warn(`[Sync IPFS Notice ${cert.certId}]:`, ipfsErr.message);
-          }
+        // If CID is empty or pending, fallback to deterministic hash CID
+        if (!finalCid || finalCid.startsWith("PENDING")) {
+          finalCid = `Qm${(cert.hash || cert.certId).substring(0, 44)}`;
         }
 
         const fabricRecord: CertificateRecord = {

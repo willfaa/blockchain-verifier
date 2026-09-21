@@ -306,7 +306,19 @@ export function VerificationTranscriptViewer({
             </div>
 
             {/* Content Display: Stamped Image or Dynamic Template */}
-            <div className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 custom-scrollbar">
+            <div
+              onWheel={(e) => {
+                if (e.ctrlKey || e.metaKey) {
+                  e.preventDefault();
+                  if (e.deltaY < 0) {
+                    setFrontZoom((z) => Math.min(180, z + 5));
+                  } else {
+                    setFrontZoom((z) => Math.max(30, z - 5));
+                  }
+                }
+              }}
+              className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 sm:p-4 custom-scrollbar"
+            >
               {isPreIssued && effectiveFrontImage ? (
                 <img
                   src={effectiveFrontImage}
@@ -314,6 +326,8 @@ export function VerificationTranscriptViewer({
                   style={{
                     width: `${frontZoom}%`,
                     maxWidth: frontZoom <= 100 ? "100%" : "none",
+                    maxHeight: frontZoom <= 100 ? "65vh" : "none",
+                    objectFit: "contain",
                     transition: "width 0.15s ease-out",
                   }}
                   className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
@@ -323,17 +337,21 @@ export function VerificationTranscriptViewer({
                   style={{
                     width: `${Math.round(templateCanvasW * (frontZoom / 100))}px`,
                     height: `${Math.round(templateCanvasH * (frontZoom / 100))}px`,
+                    minWidth: `${Math.round(templateCanvasW * (frontZoom / 100))}px`,
+                    minHeight: `${Math.round(templateCanvasH * (frontZoom / 100))}px`,
                     transition: "width 0.15s ease-out, height 0.15s ease-out",
                   }}
-                  className="relative overflow-hidden flex items-center justify-center shrink-0 m-auto rounded-xl shadow-2xl border border-white/10"
+                  className="relative shrink-0 shadow-2xl rounded-xl overflow-hidden border border-white/10 m-auto"
                 >
                   <div
                     style={{
-                      transform: `scale(${frontZoom / 100})`,
-                      transformOrigin: "top left",
                       width: `${templateCanvasW}px`,
                       height: `${templateCanvasH}px`,
+                      transform: `scale(${frontZoom / 100})`,
+                      transformOrigin: "top left",
+                      transition: "transform 0.15s ease-out",
                     }}
+                    className="absolute top-0 left-0 select-none pointer-events-auto"
                   >
                     <CertificateTemplate
                       studentName={studentName}
@@ -434,7 +452,19 @@ export function VerificationTranscriptViewer({
             </div>
 
             {/* Transcript Display: Stamped Image or Dynamic Canvas */}
-            <div className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 custom-scrollbar">
+            <div
+              onWheel={(e) => {
+                if (e.ctrlKey || e.metaKey) {
+                  e.preventDefault();
+                  if (e.deltaY < 0) {
+                    setTranscriptZoom((z) => Math.min(180, z + 5));
+                  } else {
+                    setTranscriptZoom((z) => Math.max(30, z - 5));
+                  }
+                }
+              }}
+              className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 sm:p-4 custom-scrollbar"
+            >
               {effectiveTranscriptImage ? (
                 <img
                   src={effectiveTranscriptImage}
@@ -442,6 +472,8 @@ export function VerificationTranscriptViewer({
                   style={{
                     width: `${transcriptZoom}%`,
                     maxWidth: transcriptZoom <= 100 ? "100%" : "none",
+                    maxHeight: transcriptZoom <= 100 ? "65vh" : "none",
+                    objectFit: "contain",
                     transition: "width 0.15s ease-out",
                   }}
                   className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
@@ -451,17 +483,21 @@ export function VerificationTranscriptViewer({
                   style={{
                     width: `${Math.round(templateCanvasW * (transcriptZoom / 100))}px`,
                     height: `${Math.round(templateCanvasH * (transcriptZoom / 100))}px`,
+                    minWidth: `${Math.round(templateCanvasW * (transcriptZoom / 100))}px`,
+                    minHeight: `${Math.round(templateCanvasH * (transcriptZoom / 100))}px`,
                     transition: "width 0.15s ease-out, height 0.15s ease-out",
                   }}
-                  className="relative overflow-hidden flex items-center justify-center shrink-0 m-auto rounded-xl shadow-2xl border border-white/10"
+                  className="relative shrink-0 shadow-2xl rounded-xl overflow-hidden border border-white/10 m-auto"
                 >
                   <div
                     style={{
-                      transform: `scale(${transcriptZoom / 100})`,
-                      transformOrigin: "top left",
                       width: `${templateCanvasW}px`,
                       height: `${templateCanvasH}px`,
+                      transform: `scale(${transcriptZoom / 100})`,
+                      transformOrigin: "top left",
+                      transition: "transform 0.15s ease-out",
                     }}
+                    className="absolute top-0 left-0 select-none pointer-events-auto"
                   >
                     <CertificateTranscriptPage
                       studentName={studentName}

@@ -6,7 +6,7 @@ import {
   insertCertificateToSupabase,
   uploadToSupabaseStorage,
 } from "@/lib/supabase";
-import { pinFileToPinata, pinJsonToPinata } from "@/lib/ipfs";
+import { pinFileToPinata } from "@/lib/ipfs";
 
 export const dynamic = "force-dynamic";
 
