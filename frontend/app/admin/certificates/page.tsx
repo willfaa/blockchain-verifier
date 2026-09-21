@@ -178,7 +178,7 @@ export default function CertificateLedgerPage() {
             <p className="text-[10px] text-slate-400 font-mono">{formattedDate}</p>
             {r.layoutMode === "PRE_ISSUED_STAMP" && (
               <span className="inline-block text-[9px] px-1.5 py-0.2 rounded bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30 font-bold uppercase">
-                Stamp 1:1 QR
+                Sertifikat Jadi
               </span>
             )}
           </div>
@@ -355,7 +355,7 @@ export default function CertificateLedgerPage() {
           <p className="text-2xl font-black text-emerald-300 font-mono">{stats.synced}</p>
         </div>
         <div className="p-5 rounded-2xl bg-fuchsia-950/20 border border-fuchsia-500/30 backdrop-blur-xl space-y-1">
-          <p className="text-[10px] uppercase font-bold text-fuchsia-400 tracking-wider">Stamp 1:1 QR Jadi</p>
+          <p className="text-[10px] uppercase font-bold text-fuchsia-400 tracking-wider">Sertifikat Jadi</p>
           <p className="text-2xl font-black text-fuchsia-300 font-mono">{stats.preIssued}</p>
         </div>
         <div className="p-5 rounded-2xl bg-amber-950/20 border border-amber-500/30 backdrop-blur-xl space-y-1">

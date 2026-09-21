@@ -39,6 +39,7 @@ import {
   Check,
   FileCheck,
   ArrowRight,
+  Layers,
 } from "lucide-react";
 import QRCode from "qrcode";
 import {
@@ -51,7 +52,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials, getAvatarUrl } from "@/lib/utils";
 import CertificateTemplate from "@/components/features/CertificateTemplate";
-import CertificateTranscriptPage, { CompetencyItem } from "@/components/features/CertificateTranscriptPage";
+import CertificateTranscriptPage, {
+  CompetencyItem,
+} from "@/components/features/CertificateTranscriptPage";
 
 interface StudentRecord {
   id: string;
@@ -80,7 +83,9 @@ interface BatchStudentScore {
 
 export default function SmartIssueCertificatePage() {
   // Primary Workflow Tab: "system" (Auto-Generate UKK) vs "pre_issued" (Amankan Sertifikat Jadi)
-  const [issuanceTab, setIssuanceTab] = useState<"system" | "pre_issued">("system");
+  const [issuanceTab, setIssuanceTab] = useState<"system" | "pre_issued">(
+    "system",
+  );
 
   // Mode: "batch" (Massal via Student Directory) vs "single" (Individu via Quick Search)
   const [issueMode, setIssueMode] = useState<"batch" | "single">("batch");
@@ -90,7 +95,10 @@ export default function SmartIssueCertificatePage() {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [loadingIssue, setLoadingIssue] = useState(false);
   const [loadingUnits, setLoadingUnits] = useState(false);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
 
   // Preview Modal States
   const [showModal, setShowModal] = useState(false);
@@ -98,7 +106,8 @@ export default function SmartIssueCertificatePage() {
   const [previewZoom, setPreviewZoom] = useState<number>(55);
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [fullscreenZoom, setFullscreenZoom] = useState<number>(70);
-  const [previewTargetStudent, setPreviewTargetStudent] = useState<StudentRecord | null>(null);
+  const [previewTargetStudent, setPreviewTargetStudent] =
+    useState<StudentRecord | null>(null);
 
   // Single Search State
   const [searchStudentId, setSearchStudentId] = useState("");
@@ -110,7 +119,9 @@ export default function SmartIssueCertificatePage() {
   const [dirSearch, setDirSearch] = useState("");
   const [dirMajorFilter, setDirMajorFilter] = useState("ALL");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [batchScores, setBatchScores] = useState<Record<string, BatchStudentScore>>({});
+  const [batchScores, setBatchScores] = useState<
+    Record<string, BatchStudentScore>
+  >({});
 
   // Course & Hierarchy State
   const [courseId, setCourseId] = useState("");
@@ -122,7 +133,9 @@ export default function SmartIssueCertificatePage() {
   const [pageMode, setPageMode] = useState<"SINGLE" | "DOUBLE">("DOUBLE");
   const [availableUnits, setAvailableUnits] = useState<CompetencyItem[]>([]);
   const [selectedUnitCodes, setSelectedUnitCodes] = useState<string[]>([]);
-  const [defaultUnitScores, setDefaultUnitScores] = useState<Record<string, string>>({});
+  const [defaultUnitScores, setDefaultUnitScores] = useState<
+    Record<string, string>
+  >({});
 
   // Global Issuer / Examiner Metadata
   const [schoolOrigin, setSchoolOrigin] = useState("");
@@ -132,34 +145,121 @@ export default function SmartIssueCertificatePage() {
   const [birthPlaceDate, setBirthPlaceDate] = useState("");
 
   // Pre-Issued Certificate Securing States (Sertifikat Jadi Scan / PDF)
-  const [preIssuedPage1File, setPreIssuedPage1File] = useState<File | null>(null);
-  const [preIssuedPage1Preview, setPreIssuedPage1Preview] = useState<string>("");
-  const [preIssuedPage2File, setPreIssuedPage2File] = useState<File | null>(null);
-  const [preIssuedPage2Preview, setPreIssuedPage2Preview] = useState<string>("");
-  const [preIssuedActivePreviewPage, setPreIssuedActivePreviewPage] = useState<"page1" | "page2">("page1");
+  const [preIssuedPageMode, setPreIssuedPageMode] = useState<
+    "SINGLE" | "DOUBLE"
+  >("SINGLE");
+  const [preIssuedPage1File, setPreIssuedPage1File] = useState<File | null>(
+    null,
+  );
+  const [preIssuedPage1Preview, setPreIssuedPage1Preview] =
+    useState<string>("");
+  const [preIssuedPage2File, setPreIssuedPage2File] = useState<File | null>(
+    null,
+  );
+  const [preIssuedPage2Preview, setPreIssuedPage2Preview] =
+    useState<string>("");
+  const [preIssuedActivePreviewPage, setPreIssuedActivePreviewPage] = useState<
+    "page1" | "page2"
+  >("page1");
 
-  const [preIssuedStudent, setPreIssuedStudent] = useState<StudentRecord | null>(null);
-  const [preIssuedStudentSearch, setPreIssuedStudentSearch] = useState<string>("");
-  const [preIssuedCertNumber, setPreIssuedCertNumber] = useState<string>("11-0159-0164-8");
-  const [preIssuedSchoolName, setPreIssuedSchoolName] = useState<string>("SMKS Senopati Sedati");
-  const [preIssuedMajor, setPreIssuedMajor] = useState<string>("Teknik Komputer dan Jaringan");
-  const [preIssuedProgram, setPreIssuedProgram] = useState<string>("Teknik Komputer dan Jaringan");
-  const [preIssuedAssignmentTitle, setPreIssuedAssignmentTitle] = useState<string>("Rancang Bangun Keamanan Jaringan dan Konfigurasi Server");
-  const [preIssuedPredicate, setPreIssuedPredicate] = useState<string>("Kompeten");
-  const [preIssuedIssueDate, setPreIssuedIssueDate] = useState<string>("Sidoarjo, 13 Februari 2026");
-  const [preIssuedInternalAssessor, setPreIssuedInternalAssessor] = useState<string>("TEGUH AGUS SETIAWAN S.Kom");
-  const [preIssuedInternalInstitution, setPreIssuedInternalInstitution] = useState<string>("SMKS SENOPATI SEDATI");
-  const [preIssuedExternalAssessor, setPreIssuedExternalAssessor] = useState<string>("BAMBANG SOERJOHANDOKO");
-  const [preIssuedExternalInstitution, setPreIssuedExternalInstitution] = useState<string>("PT SKILL INDOTIMUR AGUNG");
+  const [preIssuedStudent, setPreIssuedStudent] =
+    useState<StudentRecord | null>(null);
+  const [preIssuedStudentSearch, setPreIssuedStudentSearch] =
+    useState<string>("");
+  const [isPreIssuedStudentDropdownOpen, setIsPreIssuedStudentDropdownOpen] =
+    useState<boolean>(false);
+  const [preIssuedCertNumber, setPreIssuedCertNumber] =
+    useState<string>("11-0159-0164-8");
+  const [preIssuedSchoolName, setPreIssuedSchoolName] = useState<string>(
+    "SMKS Senopati Sedati",
+  );
+  const [preIssuedMajor, setPreIssuedMajor] = useState<string>(
+    "Teknik Komputer dan Jaringan",
+  );
+  const [preIssuedProgram, setPreIssuedProgram] = useState<string>(
+    "Teknik Komputer dan Jaringan",
+  );
+  const [preIssuedAssignmentTitle, setPreIssuedAssignmentTitle] =
+    useState<string>("Rancang Bangun Keamanan Jaringan dan Konfigurasi Server");
+  const [preIssuedPredicate, setPreIssuedPredicate] =
+    useState<string>("Kompeten");
+  const [preIssuedIssueDate, setPreIssuedIssueDate] = useState<string>(
+    "Sidoarjo, 13 Februari 2026",
+  );
+  const [preIssuedInternalAssessor, setPreIssuedInternalAssessor] =
+    useState<string>("TEGUH AGUS SETIAWAN S.Kom");
+  const [preIssuedInternalInstitution, setPreIssuedInternalInstitution] =
+    useState<string>("SMKS SENOPATI SEDATI");
+  const [preIssuedExternalAssessor, setPreIssuedExternalAssessor] =
+    useState<string>("BAMBANG SOERJOHANDOKO");
+  const [preIssuedExternalInstitution, setPreIssuedExternalInstitution] =
+    useState<string>("PT SKILL INDOTIMUR AGUNG");
 
-  const [preIssuedStampPreset, setPreIssuedStampPreset] = useState<"admin" | "bottom-right" | "bottom-left" | "bottom-center">("admin");
-  const [preIssuedStampPos, setPreIssuedStampPos] = useState<{ x?: number; y?: number; width?: number; height?: number } | null>(null);
+  const [preIssuedStampPreset, setPreIssuedStampPreset] = useState<
+    "admin" | "bottom-right" | "bottom-left" | "bottom-center"
+  >("admin");
+  const [preIssuedStampPos, setPreIssuedStampPos] = useState<{
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  } | null>(null);
   const [preIssuedQrBase64, setPreIssuedQrBase64] = useState<string>("");
   const [preIssuedLoading, setPreIssuedLoading] = useState<boolean>(false);
-  const [preIssuedSuccessResult, setPreIssuedSuccessResult] = useState<any | null>(null);
-  const [standardSuccessResults, setStandardSuccessResults] = useState<any[] | null>(null);
-  const [preIssuedCopiedHash, setPreIssuedCopiedHash] = useState<boolean>(false);
+  const [preIssuedSuccessResult, setPreIssuedSuccessResult] = useState<
+    any | null
+  >(null);
+  const [standardSuccessResults, setStandardSuccessResults] = useState<
+    any[] | null
+  >(null);
+  const [preIssuedCopiedHash, setPreIssuedCopiedHash] =
+    useState<boolean>(false);
   const [preIssuedPreviewZoom, setPreIssuedPreviewZoom] = useState<number>(65);
+
+  // Filtered Students for Live Dynamic Search (Matches NISN, Nama, Email, Jurusan, Sekolah)
+  const filteredPreIssuedStudents = useMemo(() => {
+    const q = preIssuedStudentSearch.trim().toLowerCase();
+    if (!q) return [];
+    return allStudents
+      .filter((s) => {
+        const nameMatch = (s.name || "").toLowerCase().includes(q);
+        const nisnMatch = (s.nisn || s.studentId || s.nim || "")
+          .toLowerCase()
+          .includes(q);
+        const emailMatch = (s.email || "").toLowerCase().includes(q);
+        const majorStr =
+          typeof s.majority === "object"
+            ? s.majority.name
+            : s.majority || "";
+        const progStr =
+          typeof s.studyProgram === "object"
+            ? s.studyProgram.name
+            : s.studyProgram || "";
+        const majorMatch =
+          majorStr.toLowerCase().includes(q) ||
+          progStr.toLowerCase().includes(q);
+        const schoolMatch = (s.schoolOrigin || "").toLowerCase().includes(q);
+        return (
+          nameMatch ||
+          nisnMatch ||
+          emailMatch ||
+          majorMatch ||
+          schoolMatch
+        );
+      })
+      .sort((a, b) => {
+        const aNisn = (a.nisn || a.studentId || "").toLowerCase();
+        const bNisn = (b.nisn || b.studentId || "").toLowerCase();
+        const aName = (a.name || "").toLowerCase();
+        const bName = (b.name || "").toLowerCase();
+        if (aNisn.startsWith(q) && !bNisn.startsWith(q)) return -1;
+        if (!aNisn.startsWith(q) && bNisn.startsWith(q)) return 1;
+        if (aName.startsWith(q) && !bName.startsWith(q)) return -1;
+        if (!aName.startsWith(q) && bName.startsWith(q)) return 1;
+        return 0;
+      })
+      .slice(0, 10);
+  }, [allStudents, preIssuedStudentSearch]);
 
   // Admin / Public LMS Layout Settings State
   const [layoutSettings, setLayoutSettings] = useState<any>({});
@@ -169,18 +269,22 @@ export default function SmartIssueCertificatePage() {
     const initData = async () => {
       setLoadingStudents(true);
       try {
-        const [coursesRes, settingsRes, studentsRes, majorsRes] = await Promise.allSettled([
-          api.get("/lms/teacher/my-courses"),
-          api.get("/lms/settings"),
-          api.get("/users?role=student"),
-          api.get("/admin/departments/konsentrasi"),
-        ]);
+        const [coursesRes, settingsRes, studentsRes, majorsRes] =
+          await Promise.allSettled([
+            api.get("/lms/teacher/my-courses"),
+            api.get("/lms/settings"),
+            api.get("/users?role=student"),
+            api.get("/admin/departments/konsentrasi"),
+          ]);
 
         if (coursesRes.status === "fulfilled" && coursesRes.value?.data?.ok) {
           setCourses(coursesRes.value.data.data || []);
         }
 
-        if (studentsRes.status === "fulfilled" && studentsRes.value?.data?.data) {
+        if (
+          studentsRes.status === "fulfilled" &&
+          studentsRes.value?.data?.data
+        ) {
           setAllStudents(studentsRes.value.data.data || []);
         }
 
@@ -188,7 +292,10 @@ export default function SmartIssueCertificatePage() {
           setMajorsList(majorsRes.value.data.data || []);
         }
 
-        if (settingsRes.status === "fulfilled" && settingsRes.value?.data?.settings) {
+        if (
+          settingsRes.status === "fulfilled" &&
+          settingsRes.value?.data?.settings
+        ) {
           const s = settingsRes.value.data.settings;
           setLayoutSettings(s);
 
@@ -197,8 +304,10 @@ export default function SmartIssueCertificatePage() {
             setExaminerName((prev) => prev || s.instructors[0].name);
             setExaminerNip((prev) => prev || s.instructors[0].nip);
           } else {
-            if (s.instructorName) setExaminerName((prev) => prev || s.instructorName);
-            if (s.instructorNip) setExaminerNip((prev) => prev || s.instructorNip);
+            if (s.instructorName)
+              setExaminerName((prev) => prev || s.instructorName);
+            if (s.instructorNip)
+              setExaminerNip((prev) => prev || s.instructorNip);
           }
 
           if (s.schoolName) {
@@ -234,14 +343,23 @@ export default function SmartIssueCertificatePage() {
     api
       .get(`/lms/courses/${courseId}/competency-units`)
       .then((res) => {
-        if (res.data.ok && Array.isArray(res.data.data) && res.data.data.length > 0) {
-          const formatted: CompetencyItem[] = res.data.data.map((u: any, idx: number) => ({
-            code: u.code || `UNIT-${idx + 1}`,
-            title: u.title || `Unit Kompetensi ${idx + 1}`,
-            standard: u.standard || "SKKNI",
-            score: u.score !== undefined && u.score !== null ? String(u.score) : "90.00",
-            result: u.result || "KOMPETEN",
-          }));
+        if (
+          res.data.ok &&
+          Array.isArray(res.data.data) &&
+          res.data.data.length > 0
+        ) {
+          const formatted: CompetencyItem[] = res.data.data.map(
+            (u: any, idx: number) => ({
+              code: u.code || `UNIT-${idx + 1}`,
+              title: u.title || `Unit Kompetensi ${idx + 1}`,
+              standard: u.standard || "SKKNI",
+              score:
+                u.score !== undefined && u.score !== null
+                  ? String(u.score)
+                  : "90.00",
+              result: u.result || "KOMPETEN",
+            }),
+          );
           setAvailableUnits(formatted);
           setSelectedUnitCodes(formatted.map((u) => u.code || ""));
 
@@ -253,11 +371,41 @@ export default function SmartIssueCertificatePage() {
         } else {
           // Provide standard initial vocational units fallback
           const standardFallbacks: CompetencyItem[] = [
-            { code: "J.620100.004.01", title: "Memahami dasar pemrograman", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
-            { code: "J.620100.009.02", title: "Memahami tipe data dan variable", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
-            { code: "J.620100.017.02", title: "Menerapkan operator dan percabangan", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
-            { code: "J.620100.025.02", title: "Menerapkan algoritma pemrograman", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
-            { code: "J.620100.033.02", title: "Menerapkan debugging dan error handling", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
+            {
+              code: "J.620100.004.01",
+              title: "Memahami dasar pemrograman",
+              score: "90.00",
+              standard: "SKKNI",
+              result: "KOMPETEN",
+            },
+            {
+              code: "J.620100.009.02",
+              title: "Memahami tipe data dan variable",
+              score: "90.00",
+              standard: "SKKNI",
+              result: "KOMPETEN",
+            },
+            {
+              code: "J.620100.017.02",
+              title: "Menerapkan operator dan percabangan",
+              score: "90.00",
+              standard: "SKKNI",
+              result: "KOMPETEN",
+            },
+            {
+              code: "J.620100.025.02",
+              title: "Menerapkan algoritma pemrograman",
+              score: "90.00",
+              standard: "SKKNI",
+              result: "KOMPETEN",
+            },
+            {
+              code: "J.620100.033.02",
+              title: "Menerapkan debugging dan error handling",
+              score: "90.00",
+              standard: "SKKNI",
+              result: "KOMPETEN",
+            },
           ];
           setAvailableUnits(standardFallbacks);
           setSelectedUnitCodes(standardFallbacks.map((u) => u.code || ""));
@@ -270,8 +418,20 @@ export default function SmartIssueCertificatePage() {
       })
       .catch(() => {
         const standardFallbacks: CompetencyItem[] = [
-          { code: "J.620100.004.01", title: "Memahami dasar pemrograman", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
-          { code: "J.620100.009.02", title: "Memahami tipe data dan variable", score: "90.00", standard: "SKKNI", result: "KOMPETEN" },
+          {
+            code: "J.620100.004.01",
+            title: "Memahami dasar pemrograman",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
+          {
+            code: "J.620100.009.02",
+            title: "Memahami tipe data dan variable",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
         ];
         setAvailableUnits(standardFallbacks);
         setSelectedUnitCodes(standardFallbacks.map((u) => u.code || ""));
@@ -281,20 +441,29 @@ export default function SmartIssueCertificatePage() {
 
   // Active units included in transcript based on teacher checklist
   const activeTranscriptUnits = useMemo(() => {
-    return availableUnits.filter((u) => u.code && selectedUnitCodes.includes(u.code));
+    return availableUnits.filter(
+      (u) => u.code && selectedUnitCodes.includes(u.code),
+    );
   }, [availableUnits, selectedUnitCodes]);
 
   // Filtered Students in Student Directory
   const filteredStudents = useMemo(() => {
     return allStudents.filter((std) => {
       const q = dirSearch.toLowerCase().trim();
-      const nameMatch = !q || std.name?.toLowerCase().includes(q) || std.email?.toLowerCase().includes(q) || (std.studentId || std.nim || std.nisn || "").toLowerCase().includes(q);
+      const nameMatch =
+        !q ||
+        std.name?.toLowerCase().includes(q) ||
+        std.email?.toLowerCase().includes(q) ||
+        (std.studentId || std.nim || std.nisn || "").toLowerCase().includes(q);
 
       let majorStr = "";
-      if (typeof std.majority === "object" && std.majority !== null) majorStr = (std.majority as any).name || "";
+      if (typeof std.majority === "object" && std.majority !== null)
+        majorStr = (std.majority as any).name || "";
       else majorStr = String(std.majority || "");
 
-      const majorMatch = dirMajorFilter === "ALL" || majorStr.toLowerCase().includes(dirMajorFilter.toLowerCase());
+      const majorMatch =
+        dirMajorFilter === "ALL" ||
+        majorStr.toLowerCase().includes(dirMajorFilter.toLowerCase());
 
       return nameMatch && majorMatch;
     });
@@ -317,7 +486,8 @@ export default function SmartIssueCertificatePage() {
         [student.id]: {
           student,
           scores: { ...defaultUnitScores },
-          schoolOrigin: student.schoolOrigin || schoolOrigin || "SMK Mitra IDUKA",
+          schoolOrigin:
+            student.schoolOrigin || schoolOrigin || "SMK Mitra IDUKA",
           birthPlaceDate: student.birthPlaceDate || "",
         },
       }));
@@ -327,17 +497,23 @@ export default function SmartIssueCertificatePage() {
   // Select All / Unselect All Filtered Students
   const handleSelectAllFiltered = () => {
     const filteredIds = filteredStudents.map((s) => s.id);
-    const allSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedStudentIds.includes(id));
+    const allSelected =
+      filteredIds.length > 0 &&
+      filteredIds.every((id) => selectedStudentIds.includes(id));
 
     if (allSelected) {
-      setSelectedStudentIds((prev) => prev.filter((id) => !filteredIds.includes(id)));
+      setSelectedStudentIds((prev) =>
+        prev.filter((id) => !filteredIds.includes(id)),
+      );
       setBatchScores((prev) => {
         const copy = { ...prev };
         filteredIds.forEach((id) => delete copy[id]);
         return copy;
       });
     } else {
-      const newIds = Array.from(new Set([...selectedStudentIds, ...filteredIds]));
+      const newIds = Array.from(
+        new Set([...selectedStudentIds, ...filteredIds]),
+      );
       setSelectedStudentIds(newIds);
 
       const newBatch = { ...batchScores };
@@ -395,7 +571,11 @@ export default function SmartIssueCertificatePage() {
   };
 
   // Update Individual Student Score in Batch Table
-  const handleUpdateStudentUnitScore = (studentId: string, unitCode: string, scoreVal: string) => {
+  const handleUpdateStudentUnitScore = (
+    studentId: string,
+    unitCode: string,
+    scoreVal: string,
+  ) => {
     setBatchScores((prev) => {
       const current = prev[studentId] || {
         student: allStudents.find((s) => s.id === studentId)!,
@@ -460,13 +640,17 @@ export default function SmartIssueCertificatePage() {
       if (res.data.ok && res.data.student) {
         const std = res.data.student;
         setFoundStudent(std);
-        if (std.schoolOrigin && !schoolOrigin) setSchoolOrigin(std.schoolOrigin);
-        if (std.birthPlaceDate && !birthPlaceDate) setBirthPlaceDate(std.birthPlaceDate);
+        if (std.schoolOrigin && !schoolOrigin)
+          setSchoolOrigin(std.schoolOrigin);
+        if (std.birthPlaceDate && !birthPlaceDate)
+          setBirthPlaceDate(std.birthPlaceDate);
       } else {
         setSearchError("Data siswa tidak ditemukan di database.");
       }
     } catch (err: any) {
-      setSearchError(err.response?.data?.error || "Siswa tidak ditemukan dalam registri.");
+      setSearchError(
+        err.response?.data?.error || "Siswa tidak ditemukan dalam registri.",
+      );
     } finally {
       setLoadingSearch(false);
     }
@@ -494,7 +678,10 @@ export default function SmartIssueCertificatePage() {
     const rec = batchScores[studentId];
     return activeTranscriptUnits.map((u) => ({
       ...u,
-      score: u.code && rec.scores[u.code] !== undefined ? rec.scores[u.code] : (u.score || "90.00"),
+      score:
+        u.code && rec.scores[u.code] !== undefined
+          ? rec.scores[u.code]
+          : u.score || "90.00",
     }));
   };
 
@@ -505,7 +692,10 @@ export default function SmartIssueCertificatePage() {
       return;
     }
 
-    const studentsToIssue: { student: StudentRecord; scores: Record<string, string> }[] = [];
+    const studentsToIssue: {
+      student: StudentRecord;
+      scores: Record<string, string>;
+    }[] = [];
 
     if (issueMode === "single") {
       if (!foundStudent) {
@@ -518,7 +708,9 @@ export default function SmartIssueCertificatePage() {
       });
     } else {
       if (selectedStudentIds.length === 0) {
-        toast.error("Pilih minimal 1 siswa dari daftar untuk diterbitkan sertifikat.");
+        toast.error(
+          "Pilih minimal 1 siswa dari daftar untuk diterbitkan sertifikat.",
+        );
         return;
       }
       selectedStudentIds.forEach((sId) => {
@@ -551,36 +743,71 @@ export default function SmartIssueCertificatePage() {
         result: u.result || "KOMPETEN",
       }));
 
-      const validScores = stdUnits.map((u) => parseFloat(u.score || "0")).filter((s) => !isNaN(s));
-      const studentAvg = validScores.length > 0 ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2) : "90.00";
+      const validScores = stdUnits
+        .map((u) => parseFloat(u.score || "0"))
+        .filter((s) => !isNaN(s));
+      const studentAvg =
+        validScores.length > 0
+          ? (
+              validScores.reduce((a, b) => a + b, 0) / validScores.length
+            ).toFixed(2)
+          : "90.00";
 
       const payload: any = {
         name: item.student.name,
         studentName: item.student.name,
-        studentId: item.student.studentId || item.student.nim || item.student.nisn || item.student.id,
-        program: typeof item.student.studyProgram === "object" ? (item.student.studyProgram as any)?.name : item.student.studyProgram || selectedCourse?.title || "Program Keahlian",
-        majority: typeof item.student.majority === "object" ? (item.student.majority as any)?.name : item.student.majority || "Teknik Informatika",
+        studentId:
+          item.student.studentId ||
+          item.student.nim ||
+          item.student.nisn ||
+          item.student.id,
+        program:
+          typeof item.student.studyProgram === "object"
+            ? (item.student.studyProgram as any)?.name
+            : item.student.studyProgram ||
+              selectedCourse?.title ||
+              "Program Keahlian",
+        majority:
+          typeof item.student.majority === "object"
+            ? (item.student.majority as any)?.name
+            : item.student.majority || "Teknik Informatika",
         courseId: courseId,
         courseName: selectedCourse?.title,
-        schoolName: schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA",
-        birthPlaceDate: item.student.birthPlaceDate || birthPlaceDate.trim() || undefined,
-        schoolOrigin: item.student.schoolOrigin || schoolOrigin.trim() || undefined,
-        certificateNumber: certificateNumberPrefix ? `${certificateNumberPrefix}-${item.student.studentId || "001"}` : undefined,
+        schoolName:
+          schoolOrigin ||
+          selectedCourse?.schoolName ||
+          layoutSettings.schoolName ||
+          "SMK Mitra IDUKA",
+        birthPlaceDate:
+          item.student.birthPlaceDate || birthPlaceDate.trim() || undefined,
+        schoolOrigin:
+          item.student.schoolOrigin || schoolOrigin.trim() || undefined,
+        certificateNumber: certificateNumberPrefix
+          ? `${certificateNumberPrefix}-${item.student.studentId || "001"}`
+          : undefined,
         layoutMode: pageMode === "DOUBLE" ? "DUPLEX_2_PAGES" : "STANDARD",
         competencyUnits: stdUnits,
         averageScore: studentAvg,
         signers:
-          Array.isArray(layoutSettings.instructors) && layoutSettings.instructors.length > 0
+          Array.isArray(layoutSettings.instructors) &&
+          layoutSettings.instructors.length > 0
             ? layoutSettings.instructors.map((inst: any, idx: number) => ({
                 name: idx === 0 && examinerName ? examinerName : inst.name,
-                title: inst.title || (idx === 0 ? "Penguji / Asesor Uji Kompetensi Keahlian" : "Mitra Industri"),
+                title:
+                  inst.title ||
+                  (idx === 0
+                    ? "Penguji / Asesor Uji Kompetensi Keahlian"
+                    : "Mitra Industri"),
                 nip: idx === 0 && examinerNip ? examinerNip : inst.nip || "-",
                 role: idx === 0 ? "PENGUJI" : "MITRA",
                 signatureUrl: inst.signatureUrl || undefined,
               }))
             : [
                 {
-                  name: examinerName || layoutSettings.instructorName || "Kepala Sekolah",
+                  name:
+                    examinerName ||
+                    layoutSettings.instructorName ||
+                    "Kepala Sekolah",
                   title: "Penguji / Asesor Uji Kompetensi Keahlian",
                   nip: examinerNip || layoutSettings.instructorNip || "-",
                   role: "PENGUJI",
@@ -610,8 +837,12 @@ export default function SmartIssueCertificatePage() {
             name: item.student.name,
             studentId: payload.studentId,
             program: payload.program,
-            certificateNumber: certRecord.certificateNumber || payload.certificateNumber || `UKK/${(res.data.certId || "").substring(0, 8).toUpperCase()}`,
-            txId: res.data.txId || certRecord.blockchainTxId || "ON_CHAIN_SYNCED",
+            certificateNumber:
+              certRecord.certificateNumber ||
+              payload.certificateNumber ||
+              `UKK/${(res.data.certId || "").substring(0, 8).toUpperCase()}`,
+            txId:
+              res.data.txId || certRecord.blockchainTxId || "ON_CHAIN_SYNCED",
             hash: res.data.hash || certRecord.hash || "",
           });
         } else {
@@ -628,9 +859,15 @@ export default function SmartIssueCertificatePage() {
 
     if (successCount > 0) {
       setStandardSuccessResults(issuedList);
-      toast.success(`Sukses! ${successCount} Sertifikat Berhasil Diterbitkan & Dimint ke Blockchain Ledger ⚡`, {
-        description: failCount > 0 ? `${failCount} sertifikat gagal diproses.` : "Seluruh siswa telah memiliki bukti kriptografis.",
-      });
+      toast.success(
+        `Sukses! ${successCount} Sertifikat Berhasil Diterbitkan & Dimint ke Blockchain Ledger ⚡`,
+        {
+          description:
+            failCount > 0
+              ? `${failCount} sertifikat gagal diproses.`
+              : "Seluruh siswa telah memiliki bukti kriptografis.",
+        },
+      );
 
       // Clear selection
       if (issueMode === "single") {
@@ -647,13 +884,21 @@ export default function SmartIssueCertificatePage() {
 
   // Generate sample QR code for pre-issued preview
   useEffect(() => {
-    const dummyId = preIssuedStudent ? (preIssuedStudent.studentId || preIssuedStudent.id) : "2026-0001";
-    const clientBase = typeof window !== "undefined" ? window.location.origin : "https://www.willfaa.web.id";
-    QRCode.toDataURL(`${clientBase}/verify/CERT-2026-${dummyId.substring(0, 8).toUpperCase()}`, {
-      margin: 1,
-      width: 256,
-      color: { dark: "#000000", light: "#ffffff" },
-    })
+    const dummyId = preIssuedStudent
+      ? preIssuedStudent.studentId || preIssuedStudent.id
+      : "2026-0001";
+    const clientBase =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://www.willfaa.web.id";
+    QRCode.toDataURL(
+      `${clientBase}/verify/CERT-2026-${dummyId.substring(0, 8).toUpperCase()}`,
+      {
+        margin: 1,
+        width: 256,
+        color: { dark: "#000000", light: "#ffffff" },
+      },
+    )
       .then(setPreIssuedQrBase64)
       .catch(() => {});
   }, [preIssuedStudent]);
@@ -667,7 +912,7 @@ export default function SmartIssueCertificatePage() {
         setPreIssuedPage1File(file);
         setPreIssuedPage1Preview(dataUrl);
         setPreIssuedActivePreviewPage("page1");
-        toast.success(`Halaman 1 (${file.name}) siap dipratinjau dengan Stamp Tipe A 1:1.`);
+        toast.success(`Halaman 1 (${file.name}) siap dipratinjau dengan Stamp`);
       } else {
         setPreIssuedPage2File(file);
         setPreIssuedPage2Preview(dataUrl);
@@ -678,136 +923,184 @@ export default function SmartIssueCertificatePage() {
     reader.readAsDataURL(file);
   };
 
-  // Helper 1-Klik: Muat Contoh Sertifikat SMK TKJ Moch. Ubaidilah
-  const handleLoadSampleCertificate = () => {
-    // Fill sample metadata
-    setPreIssuedCertNumber("11-0159-0164-8");
-    setPreIssuedSchoolName("SMKS Senopati Sedati");
-    setPreIssuedMajor("Teknik Komputer dan Jaringan");
-    setPreIssuedProgram("Teknik Komputer dan Jaringan");
-    setPreIssuedAssignmentTitle("Rancang Bangun Keamanan Jaringan dan Konfigurasi Server");
-    setPreIssuedPredicate("Kompeten");
-    setPreIssuedIssueDate("Sidoarjo, 13 Februari 2026");
-    setPreIssuedInternalAssessor("TEGUH AGUS SETIAWAN S.Kom");
-    setPreIssuedInternalInstitution("SMKS SENOPATI SEDATI");
-    setPreIssuedExternalAssessor("BAMBANG SOERJOHANDOKO");
-    setPreIssuedExternalInstitution("PT SKILL INDOTIMUR AGUNG");
+  // Stamping Helper: Permanently Burns QR Code & Certificate ID into Image Canvas
+  const stampImageWithQr = async (
+    source: File | string,
+    targetCertId: string,
+    preset: "admin" | "bottom-right" | "bottom-left" | "bottom-center" = "admin",
+    customPos?: { x?: number; y?: number; width?: number; height?: number } | null,
+  ): Promise<{ file: File; dataUrl: string }> => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
 
-    // Match or create dummy student
-    const matched = allStudents.find((s) => s.name?.toLowerCase().includes("ubaidilah")) || {
-      id: "student-sample-ubaidilah",
-      name: "MOCH. UBAIDILAH",
-      studentId: "0084547653",
-      nisn: "0084547653",
-      email: "ubaidilah@smksenopati.sch.id",
-      majority: "Teknik Komputer dan Jaringan",
-      studyProgram: "Teknik Komputer dan Jaringan",
-      schoolOrigin: "SMKS Senopati Sedati",
-    };
-    setPreIssuedStudent(matched);
-
-    // Generate high quality sample scanned certificate image preview if none uploaded
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1754;
-      canvas.height = 1240;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        // Background
-        ctx.fillStyle = "#faf7f0";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Ornate Border
-        ctx.strokeStyle = "#8b6f38";
-        ctx.lineWidth = 14;
-        ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
-
-        ctx.strokeStyle = "#c5a059";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
-
-        // Header Texts
-        ctx.fillStyle = "#1e293b";
-        ctx.font = "bold 34px serif";
-        ctx.textAlign = "center";
-        ctx.fillText("SERTIFIKAT UJI KOMPETENSI KEAHLIAN", canvas.width / 2, 150);
-
-        ctx.font = "italic 20px serif";
-        ctx.fillStyle = "#64748b";
-        ctx.fillText("Nomor Sertifikat: 11-0159-0164-8", canvas.width / 2, 195);
-
-        ctx.font = "18px sans-serif";
-        ctx.fillStyle = "#334155";
-        ctx.fillText("Diberikan Kepada Siswa / Peserta Didik:", canvas.width / 2, 260);
-
-        // Student Name
-        ctx.font = "bold 46px sans-serif";
-        ctx.fillStyle = "#0f172a";
-        ctx.fillText("MOCH. UBAIDILAH", canvas.width / 2, 330);
-
-        // Underline
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2 - 260, 345);
-        ctx.lineTo(canvas.width / 2 + 260, 345);
-        ctx.strokeStyle = "#0f172a";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.font = "18px sans-serif";
-        ctx.fillStyle = "#475569";
-        ctx.fillText("NISN: 0084547653  ·  Satuan Pendidikan: SMKS Senopati Sedati", canvas.width / 2, 385);
-
-        ctx.font = "20px sans-serif";
-        ctx.fillText("Telah menyelesaikan Uji Kompetensi Keahlian pada Program Keahlian:", canvas.width / 2, 450);
-
-        ctx.font = "bold 30px sans-serif";
-        ctx.fillStyle = "#0369a1";
-        ctx.fillText("TEKNIK KOMPUTER DAN JARINGAN", canvas.width / 2, 500);
-
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillStyle = "#15803d";
-        ctx.fillText("Predikat: KOMPETEN (SANGAT BAIK)", canvas.width / 2, 550);
-
-        ctx.font = "italic 18px sans-serif";
-        ctx.fillStyle = "#475569";
-        ctx.fillText('Skema Penugasan: "Rancang Bangun Keamanan Jaringan dan Konfigurasi Server"', canvas.width / 2, 595);
-
-        // Assessor details
-        ctx.textAlign = "left";
-        ctx.font = "bold 18px sans-serif";
-        ctx.fillStyle = "#1e293b";
-        ctx.fillText("Penguji Internal:", 200, 820);
-        ctx.font = "16px sans-serif";
-        ctx.fillText("TEGUH AGUS SETIAWAN, S.Kom", 200, 920);
-        ctx.font = "14px sans-serif";
-        ctx.fillStyle = "#64748b";
-        ctx.fillText("SMKS SENOPATI SEDATI", 200, 945);
-
-        ctx.textAlign = "right";
-        ctx.font = "bold 18px sans-serif";
-        ctx.fillStyle = "#1e293b";
-        ctx.fillText("Asesor Industri (Eksternal):", canvas.width - 200, 820);
-        ctx.font = "16px sans-serif";
-        ctx.fillText("BAMBANG SOERJOHANDOKO", canvas.width - 200, 920);
-        ctx.font = "14px sans-serif";
-        ctx.fillStyle = "#64748b";
-        ctx.fillText("PT SKILL INDOTIMUR AGUNG", canvas.width - 200, 945);
-
-        const generatedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-        setPreIssuedPage1Preview(generatedDataUrl);
-        setPreIssuedActivePreviewPage("page1");
-      }
-    } catch (e) {
-      console.warn("Could not generate canvas sample:", e);
+    if (source instanceof File) {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(source);
+      });
+      img.src = dataUrl;
+    } else {
+      img.src = source;
     }
 
-    toast.success("Contoh Data Sertifikat SMK TKJ (Moch. Ubaidilah) Berhasil Dimuat!");
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve(true);
+      img.onerror = reject;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || img.width || 1754;
+    canvas.height = img.naturalHeight || img.height || 1240;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context is unavailable");
+
+    // 1. Draw base certificate image
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // 2. Generate QR code pointing to verification link
+    const clientBase =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://www.willfaa.web.id";
+    const verificationUrl = `${clientBase}/verify/${targetCertId}`;
+
+    const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
+      width: 600,
+      margin: 1,
+      color: {
+        dark: "#0f172a",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "H",
+    });
+
+    const qrImg = new Image();
+    qrImg.src = qrDataUrl;
+    await new Promise((resolve, reject) => {
+      qrImg.onload = () => resolve(true);
+      qrImg.onerror = reject;
+    });
+
+    // 3. Calculate stamp sizing & positioning
+    const stampWidth = Math.max(160, Math.round(canvas.width * 0.125));
+    const innerQrSize = Math.round(stampWidth * 0.88);
+    const cardPadding = Math.round((stampWidth - innerQrSize) / 2);
+    const textSectionHeight = Math.round(stampWidth * 0.28);
+    const stampHeight = stampWidth + textSectionHeight;
+
+    let stampX = 0;
+    let stampY = 0;
+
+    const marginX = Math.round(canvas.width * 0.06);
+    const marginY = Math.round(canvas.height * 0.07);
+
+    if (customPos && customPos.x !== undefined && customPos.y !== undefined) {
+      stampX = customPos.x;
+      stampY = customPos.y;
+    } else if (preset === "bottom-left") {
+      stampX = marginX;
+      stampY = canvas.height - stampHeight - marginY;
+    } else if (preset === "bottom-center") {
+      stampX = Math.round((canvas.width - stampWidth) / 2);
+      stampY = canvas.height - stampHeight - marginY;
+    } else {
+      // Default: bottom-right
+      stampX = canvas.width - stampWidth - marginX;
+      stampY = canvas.height - stampHeight - marginY;
+    }
+
+    // 4. Draw rounded white card plate
+    const radius = Math.round(stampWidth * 0.06);
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+    ctx.shadowBlur = Math.round(stampWidth * 0.07);
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = Math.round(stampWidth * 0.03);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(stampX, stampY, stampWidth, stampHeight, radius);
+    ctx.fill();
+    ctx.restore();
+
+    // Subtle outline border
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = Math.max(1, Math.round(canvas.width * 0.001));
+    ctx.beginPath();
+    ctx.roundRect(stampX, stampY, stampWidth, stampHeight, radius);
+    ctx.stroke();
+
+    // 5. Draw QR code
+    const qrX = stampX + cardPadding;
+    const qrY = stampY + cardPadding;
+    ctx.drawImage(qrImg, qrX, qrY, innerQrSize, innerQrSize);
+
+    // 6. Draw bottom ID tag
+    const labelBoxY = qrY + innerQrSize + Math.round(cardPadding * 0.35);
+    const labelBoxHeight = stampHeight - (labelBoxY - stampY) - cardPadding;
+    const labelBoxWidth = innerQrSize;
+    const labelBoxX = qrX;
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.roundRect(labelBoxX, labelBoxY, labelBoxWidth, labelBoxHeight, Math.round(radius * 0.6));
+    ctx.fill();
+
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(labelBoxX, labelBoxY, labelBoxWidth, labelBoxHeight, Math.round(radius * 0.6));
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const idFontSize = Math.max(8, Math.round(stampWidth * 0.065));
+    ctx.font = `bold ${idFontSize}px monospace, ui-monospace, sans-serif`;
+    ctx.fillStyle = "#0369a1";
+    ctx.fillText(
+      `ID: ${targetCertId}`,
+      labelBoxX + labelBoxWidth / 2,
+      labelBoxY + labelBoxHeight * 0.38,
+    );
+
+    const subFontSize = Math.max(6, Math.round(stampWidth * 0.048));
+    ctx.font = `bold ${subFontSize}px sans-serif`;
+    ctx.fillStyle = "#64748b";
+    ctx.fillText(
+      "SCAN TO VERIFY",
+      labelBoxX + labelBoxWidth / 2,
+      labelBoxY + labelBoxHeight * 0.76,
+    );
+
+    const stampedBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (b) => {
+          if (b) resolve(b);
+          else reject(new Error("Canvas blob creation failed"));
+        },
+        "image/png",
+        0.98,
+      );
+    });
+
+    const stampedFile = new File([stampedBlob], `${targetCertId}_front.png`, {
+      type: "image/png",
+    });
+
+    const dataUrl = canvas.toDataURL("image/png", 0.98);
+
+    return { file: stampedFile, dataUrl };
   };
 
   // Handle Securing and Minting to Blockchain
   const handleSecurePreIssuedCertificate = async () => {
     if (!preIssuedPage1File && !preIssuedPage1Preview) {
-      toast.error("Wajib mengunggah berkas Halaman 1 Sertifikat Jadi (Gambar / PDF).");
+      toast.error(
+        "Wajib mengunggah berkas Halaman 1 Sertifikat Jadi (Gambar / PDF).",
+      );
       return;
     }
 
@@ -818,29 +1111,37 @@ export default function SmartIssueCertificatePage() {
       preIssuedStudent?.nisn ||
       preIssuedStudent?.id ||
       foundStudent?.studentId ||
-      "0084547653";
+      "";
 
-    if (!targetStudentName) {
-      toast.error("Pilih atau tentukan nama siswa terlebih dahulu.");
+    if (!targetStudentName || !targetStudentId) {
+      toast.error("Pilih atau tentukan siswa penerima terlebih dahulu.");
       return;
     }
 
     setPreIssuedLoading(true);
     try {
-      const formData = new FormData();
-      if (preIssuedPage1File) {
-        formData.append("page1", preIssuedPage1File);
-      } else if (preIssuedPage1Preview) {
-        formData.append("page1Base64", preIssuedPage1Preview);
-      }
-
-      if (preIssuedPage2File) {
-        formData.append("page2", preIssuedPage2File);
-      } else if (preIssuedPage2Preview) {
-        formData.append("page2Base64", preIssuedPage2Preview);
-      }
-
       const certId = `CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // 1. Permanently Stamp the QR Code and ID into the Image Canvas Bitmap
+      const sourceImage = preIssuedPage1File || preIssuedPage1Preview;
+      const { file: stampedPage1File } = await stampImageWithQr(
+        sourceImage,
+        certId,
+        preIssuedStampPreset,
+        preIssuedStampPos,
+      );
+
+      const formData = new FormData();
+      formData.append("page1", stampedPage1File);
+
+      if (preIssuedPageMode === "DOUBLE") {
+        if (preIssuedPage2File) {
+          formData.append("page2", preIssuedPage2File);
+        } else if (preIssuedPage2Preview) {
+          formData.append("page2Base64", preIssuedPage2Preview);
+        }
+      }
+
       formData.append("certId", certId);
       formData.append("studentId", targetStudentId);
       formData.append("name", targetStudentName);
@@ -867,7 +1168,10 @@ export default function SmartIssueCertificatePage() {
       formData.append("signers", JSON.stringify(signers));
 
       if (preIssuedStampPos) {
-        formData.append("customStampPosition", JSON.stringify(preIssuedStampPos));
+        formData.append(
+          "customStampPosition",
+          JSON.stringify(preIssuedStampPos),
+        );
       }
 
       let res;
@@ -892,15 +1196,20 @@ export default function SmartIssueCertificatePage() {
 
       if (resData.ok) {
         setPreIssuedSuccessResult(resData);
-        toast.success("🛡️ Sertifikat Jadi Berhasil Diamankan & Terverifikasi Blockchain!", {
-          description: `Merkle Fingerprint SHA-256 dan Transaksi Fabric telah tercatat permanen.`,
-        });
+        toast.success(
+          "🛡️ Sertifikat Jadi Berhasil Diamankan & Terverifikasi Blockchain!",
+          {
+            description: `QR Code verifikasi telah tertera permanen pada sertifikat dan tercatat di Ledger Fabric.`,
+          },
+        );
       } else {
         toast.error(resData.error || "Gagal mengamankan sertifikat.");
       }
     } catch (err: any) {
       console.error("Failed to secure pre-issued certificate:", err);
-      toast.error(err?.message || "Terjadi kesalahan saat mengamankan sertifikat.");
+      toast.error(
+        err?.message || "Terjadi kesalahan saat mengamankan sertifikat.",
+      );
     } finally {
       setPreIssuedLoading(false);
     }
@@ -909,18 +1218,23 @@ export default function SmartIssueCertificatePage() {
   // Canvas & Paper Dimension Computations for Modal Preview
   const dpi = 150;
   const cmToPx = dpi / 2.54;
-  const rawPaperSize = (layoutSettings.certificatePaperSize || "A4").toUpperCase();
+  const rawPaperSize = (
+    layoutSettings.certificatePaperSize || "A4"
+  ).toUpperCase();
   const defaultPreset =
     rawPaperSize === "F4"
       ? { width: 33.0, height: 21.5 }
       : rawPaperSize === "LETTER"
-      ? { width: 27.94, height: 21.59 }
-      : { width: 29.7, height: 21.0 };
+        ? { width: 27.94, height: 21.59 }
+        : { width: 29.7, height: 21.0 };
   const rawW = layoutSettings.paperWidthCm || defaultPreset.width;
   const rawH = layoutSettings.paperHeightCm || defaultPreset.height;
-  const isVertical = (layoutSettings.certificateLayout || "HORIZONTAL") === "VERTICAL";
+  const isVertical =
+    (layoutSettings.certificateLayout || "HORIZONTAL") === "VERTICAL";
   const paperWidthCm = isVertical ? Math.min(rawW, rawH) : Math.max(rawW, rawH);
-  const paperHeightCm = isVertical ? Math.max(rawW, rawH) : Math.min(rawW, rawH);
+  const paperHeightCm = isVertical
+    ? Math.max(rawW, rawH)
+    : Math.min(rawW, rawH);
   const canvasPxW = Math.round(paperWidthCm * cmToPx);
   const canvasPxH = Math.round(paperHeightCm * cmToPx);
 
@@ -930,9 +1244,16 @@ export default function SmartIssueCertificatePage() {
   const fullscreenScaledW = Math.round((canvasPxW * fullscreenZoom) / 100);
   const fullscreenScaledH = Math.round((canvasPxH * fullscreenZoom) / 100);
 
-  const activeTargetStudent = previewTargetStudent || foundStudent || (selectedStudentIds.length > 0 ? allStudents.find((s) => s.id === selectedStudentIds[0]) : null);
+  const activeTargetStudent =
+    previewTargetStudent ||
+    foundStudent ||
+    (selectedStudentIds.length > 0
+      ? allStudents.find((s) => s.id === selectedStudentIds[0])
+      : null);
   const targetStudentUnits = getActiveUnitsForStudent(activeTargetStudent?.id);
-  const targetAvgScore = activeTargetStudent ? getStudentAverageScore(activeTargetStudent.id) : "90.00";
+  const targetAvgScore = activeTargetStudent
+    ? getStudentAverageScore(activeTargetStudent.id)
+    : "90.00";
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 font-sans">
@@ -945,13 +1266,18 @@ export default function SmartIssueCertificatePage() {
             </div>
             <div>
               <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                Smart <span className="text-cyan-400">Certificate Issuance</span>
+                Smart{" "}
+                <span className="text-cyan-400">Certificate Issuance</span>
                 <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
-                  {issuanceTab === "pre_issued" ? "Pre-Issued Stamp 1:1" : "Batch & Individual"}
+                  {issuanceTab === "pre_issued"
+                    ? "Sertifikat Fisik/Scan"
+                    : "Batch & Individual"}
                 </span>
               </h1>
               <p className="text-xs text-slate-400 mt-1">
-                Pilih antara pembuatan sertifikat desain sistem baru atau amankan berkas fisik/scan yang sudah terbit dengan Stamp 1:1 QR code.
+                Pilih antara pembuatan sertifikat desain sistem baru atau
+                amankan berkas fisik/scan yang sudah terbit dengan QR code
+                verifikasi.
               </p>
             </div>
           </div>
@@ -1000,7 +1326,7 @@ export default function SmartIssueCertificatePage() {
           }`}
         >
           <Sparkles size={16} />
-          <span>Buat Desain Sistem (Auto-Generate UKK)</span>
+          <span>Buat Desain Sistem (Auto-Generate Certificate)</span>
         </button>
         <button
           type="button"
@@ -1012,10 +1338,7 @@ export default function SmartIssueCertificatePage() {
           }`}
         >
           <ShieldCheck size={16} />
-          <span>Amankan Sertifikat Jadi (Scan / PDF Terbit)</span>
-          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-mono font-bold">
-            Stamp 1:1 QR
-          </span>
+          <span>Amankan Sertifikat Jadi (Scan / PDF)</span>
         </button>
       </div>
 
@@ -1030,25 +1353,11 @@ export default function SmartIssueCertificatePage() {
               <div>
                 <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
                   Amankan Sertifikat Fisik / Terbitan Sekolah
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                    Stamp Tipe A 1:1
-                  </span>
                 </h2>
                 <p className="text-xs text-emerald-200/70 mt-1">
-                  Bubuhkan QR Code 1:1 dan ID Sertifikat Standar otomatis pada dokumen yang sudah jadi, lalu minting bukti ke Blockchain Fabric.
+                  Bubuhkan QR Code dan identitas verifikasi otomatis pada dokumen jadi, lalu minting bukti ke Blockchain.
                 </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleLoadSampleCertificate}
-                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-300 hover:text-white text-xs font-bold border border-emerald-500/30 transition-all flex items-center gap-2 shadow-sm"
-                title="Muat contoh sertifikat SMK TKJ Moch. Ubaidilah yang diunggah"
-              >
-                <span>⚡ Muat Contoh SMK TKJ</span>
-              </button>
             </div>
           </div>
 
@@ -1056,51 +1365,195 @@ export default function SmartIssueCertificatePage() {
             {/* Left Column: Form & Controls (5 Cols) */}
             <div className="lg:col-span-5 space-y-6">
               {/* Step 1: Student Selection */}
-              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <UserCheck size={16} className="text-emerald-400" />
-                  Langkah 1: Tentukan Siswa Penerima <span className="text-red-400">*</span>
-                </h3>
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl relative">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <UserCheck size={16} className="text-emerald-400" />
+                    Langkah 1: Tentukan Siswa Penerima{" "}
+                    <span className="text-red-400">*</span>
+                  </h3>
+                  {preIssuedStudent && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreIssuedStudent(null);
+                        setPreIssuedStudentSearch("");
+                      }}
+                      className="text-[11px] text-slate-400 hover:text-red-400 transition-colors font-medium"
+                    >
+                      Ganti Siswa
+                    </button>
+                  )}
+                </div>
 
                 <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3.5 top-3.5 text-slate-400" size={16} />
-                    <input
-                      type="text"
-                      placeholder="Ketik Nama Siswa atau NISN untuk cari..."
-                      value={preIssuedStudentSearch}
-                      onChange={(e) => {
-                        setPreIssuedStudentSearch(e.target.value);
-                        const q = e.target.value.toLowerCase();
-                        if (q.length >= 2) {
-                          const matched = allStudents.find((s) => s.name.toLowerCase().includes(q) || (s.studentId || "").toLowerCase().includes(q));
-                          if (matched) setPreIssuedStudent(matched);
-                        }
-                      }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
-
                   {preIssuedStudent ? (
-                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-emerald-500/40">
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <Avatar className="h-11 w-11 border border-emerald-500/40 shrink-0">
                           <AvatarFallback className="bg-emerald-950 text-emerald-300 font-bold text-xs">
                             {getInitials(preIssuedStudent.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-xs font-bold text-white uppercase">{preIssuedStudent.name}</p>
-                          <p className="text-[11px] text-emerald-300/80 font-mono">NISN: {preIssuedStudent.studentId || preIssuedStudent.nisn || "-"}</p>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white uppercase truncate">
+                            {preIssuedStudent.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                            <span className="text-[11px] text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+                              NISN: {preIssuedStudent.studentId || preIssuedStudent.nisn || preIssuedStudent.nim || "-"}
+                            </span>
+                            {(preIssuedStudent.majority || preIssuedStudent.studyProgram) && (
+                              <span className="text-[10px] text-slate-300 bg-white/5 px-2 py-0.5 rounded truncate max-w-[200px]">
+                                {typeof preIssuedStudent.majority === "object"
+                                  ? preIssuedStudent.majority.name
+                                  : preIssuedStudent.majority ||
+                                    (typeof preIssuedStudent.studyProgram === "object"
+                                      ? preIssuedStudent.studyProgram.name
+                                      : preIssuedStudent.studyProgram)}
+                              </span>
+                            )}
+                          </div>
+                          {preIssuedStudent.schoolOrigin && (
+                            <p className="text-[10px] text-slate-400 mt-1 truncate">
+                              🏫 {preIssuedStudent.schoolOrigin}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
-                        ✓ Terpilih
-                      </span>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
+                          ✓ Terpilih
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreIssuedStudent(null);
+                            setPreIssuedStudentSearch("");
+                          }}
+                          className="text-[10px] text-slate-400 hover:text-red-400 transition-colors underline"
+                        >
+                          Ganti Siswa
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 text-[11px] text-slate-400 text-center">
-                      Cari siswa di atas atau klik "Muat Contoh SMK TKJ" untuk auto-fill.
+                    <div className="space-y-3">
+                      {/* Search Bar Input */}
+                      <div className="relative">
+                        <Search
+                          className="absolute left-3.5 top-3.5 text-slate-400"
+                          size={16}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Ketik NISN (contoh: 0084...), Nama Siswa, atau Jurusan..."
+                          value={preIssuedStudentSearch}
+                          onChange={(e) => {
+                            setPreIssuedStudentSearch(e.target.value);
+                            setIsPreIssuedStudentDropdownOpen(true);
+                          }}
+                          className="w-full bg-slate-950 border border-white/10 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        {preIssuedStudentSearch && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreIssuedStudentSearch("");
+                            }}
+                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* As-You-Type Live Matching Results Container */}
+                      {preIssuedStudentSearch.trim() ? (
+                        <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar p-1">
+                          <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider px-1">
+                            Hasil Pencarian ({filteredPreIssuedStudents.length} siswa ditemukan):
+                          </p>
+
+                          {filteredPreIssuedStudents.length > 0 ? (
+                            filteredPreIssuedStudents.map((s) => {
+                              const sMajor =
+                                typeof s.majority === "object"
+                                  ? s.majority.name
+                                  : s.majority ||
+                                    (typeof s.studyProgram === "object"
+                                      ? s.studyProgram.name
+                                      : s.studyProgram);
+
+                              const nisnValue =
+                                s.studentId || s.nisn || s.nim || "-";
+
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setPreIssuedStudent(s);
+                                    setPreIssuedStudentSearch(s.name);
+                                    if (sMajor) {
+                                      setPreIssuedMajor(sMajor);
+                                      setPreIssuedProgram(sMajor);
+                                    }
+                                    if (s.schoolOrigin) {
+                                      setPreIssuedSchoolName(s.schoolOrigin);
+                                    }
+                                    setIsPreIssuedStudentDropdownOpen(false);
+                                  }}
+                                  className="w-full text-left p-3 rounded-2xl bg-slate-950/80 hover:bg-emerald-950/30 border border-white/10 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group"
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <Avatar className="h-9 w-9 border border-white/10 group-hover:border-emerald-500/50 shrink-0">
+                                      <AvatarFallback className="bg-slate-900 text-slate-300 group-hover:text-emerald-300 font-bold text-xs">
+                                        {getInitials(s.name)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-white group-hover:text-emerald-300 uppercase truncate">
+                                        {s.name}
+                                      </p>
+                                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                        <span className="text-[10px] text-cyan-300 font-mono font-bold bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-500/30">
+                                          NISN: {nisnValue}
+                                        </span>
+                                        {sMajor && (
+                                          <span className="text-[9px] text-slate-300 bg-white/5 px-2 py-0.5 rounded truncate max-w-[150px]">
+                                            {sMajor}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {s.schoolOrigin && (
+                                        <p className="text-[9px] text-slate-400 mt-0.5 truncate">
+                                          {s.schoolOrigin}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500 group-hover:text-slate-950 px-3 py-1.5 rounded-xl border border-emerald-500/30 transition-all shrink-0">
+                                    Pilih &rarr;
+                                  </span>
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 text-center text-xs text-slate-400">
+                              Tidak ada siswa dengan NISN atau nama "{preIssuedStudentSearch}". Coba ketik kata kunci lain.
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/5 text-[11px] text-slate-400 flex items-center gap-2.5">
+                          <span className="text-base">💡</span>
+                          <span>
+                            Ketik NISN (angka) atau nama siswa di atas. Data lengkap siswa penerima akan otomatis muncul di bawah.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1108,10 +1561,44 @@ export default function SmartIssueCertificatePage() {
 
               {/* Step 2: File Upload (Page 1 Front & Page 2 Transcript) */}
               <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Upload size={16} className="text-teal-400" />
-                  Langkah 2: Unggah Berkas Sertifikat Jadi <span className="text-red-400">*</span>
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Upload size={16} className="text-teal-400" />
+                    Langkah 2: Unggah Berkas Sertifikat Jadi{" "}
+                    <span className="text-red-400">*</span>
+                  </h3>
+
+                  {/* 1 vs 2 Pages Toggle */}
+                  <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-white/10 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreIssuedPageMode("SINGLE");
+                        setPreIssuedActivePreviewPage("page1");
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        preIssuedPageMode === "SINGLE"
+                          ? "bg-emerald-500 text-slate-950 shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <FileText size={13} />
+                      <span>1 Halaman</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreIssuedPageMode("DOUBLE")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        preIssuedPageMode === "DOUBLE"
+                          ? "bg-emerald-500 text-slate-950 shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Layers size={13} />
+                      <span>2 Halaman</span>
+                    </button>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   {/* Upload Page 1 (Front Certificate) */}
@@ -1119,7 +1606,9 @@ export default function SmartIssueCertificatePage() {
                     <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
                       <span>Halaman 1: Sertifikat Depan (Wajib)</span>
                       {preIssuedPage1Preview && (
-                        <span className="text-[10px] text-emerald-400 font-mono">✓ Berkas Siap</span>
+                        <span className="text-[10px] text-emerald-400 font-mono">
+                          ✓ Berkas Siap
+                        </span>
                       )}
                     </label>
                     <label className="border-2 border-dashed border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-4 bg-emerald-950/10 hover:bg-emerald-950/20 cursor-pointer flex flex-col items-center justify-center text-center transition-all group">
@@ -1132,38 +1621,54 @@ export default function SmartIssueCertificatePage() {
                           if (file) handlePreIssuedPageUpload("page1", file);
                         }}
                       />
-                      <Upload size={22} className="text-emerald-400 group-hover:scale-110 transition-transform mb-1.5" />
+                      <Upload
+                        size={22}
+                        className="text-emerald-400 group-hover:scale-110 transition-transform mb-1.5"
+                      />
                       <span className="text-xs font-bold text-white">
-                        {preIssuedPage1File ? preIssuedPage1File.name : "Klik atau Geser File Sertifikat Depan (JPG / PNG)"}
+                        {preIssuedPage1File
+                          ? preIssuedPage1File.name
+                          : "Klik atau Geser File Sertifikat Depan (JPG / PNG)"}
                       </span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">Maksimal 30 MB (Resolusi tinggi didukung)</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">
+                        Maksimal 30 MB (Resolusi tinggi didukung)
+                      </span>
                     </label>
                   </div>
 
-                  {/* Upload Page 2 (Transcript / Back Page) */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                      <span>Halaman 2: Transkrip Kompetensi (Opsional)</span>
-                      {preIssuedPage2Preview && (
-                        <span className="text-[10px] text-teal-400 font-mono">✓ Berkas Siap</span>
-                      )}
-                    </label>
-                    <label className="border-2 border-dashed border-white/10 hover:border-teal-400/50 rounded-2xl p-3.5 bg-slate-950/40 hover:bg-teal-950/10 cursor-pointer flex flex-col items-center justify-center text-center transition-all group">
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handlePreIssuedPageUpload("page2", file);
-                        }}
-                      />
-                      <FileText size={18} className="text-slate-400 group-hover:text-teal-400 transition-colors mb-1" />
-                      <span className="text-xs font-semibold text-slate-300">
-                        {preIssuedPage2File ? preIssuedPage2File.name : "Unggah Transkrip Nilai (Jika ada)"}
-                      </span>
-                    </label>
-                  </div>
+                  {/* Upload Page 2 (Transcript / Back Page) - Only if DOUBLE */}
+                  {preIssuedPageMode === "DOUBLE" && (
+                    <div className="space-y-1.5 animate-in fade-in duration-200">
+                      <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                        <span>Halaman 2: Transkrip Kompetensi (Belakang)</span>
+                        {preIssuedPage2Preview && (
+                          <span className="text-[10px] text-teal-400 font-mono">
+                            ✓ Berkas Siap
+                          </span>
+                        )}
+                      </label>
+                      <label className="border-2 border-dashed border-white/10 hover:border-teal-400/50 rounded-2xl p-3.5 bg-slate-950/40 hover:bg-teal-950/10 cursor-pointer flex flex-col items-center justify-center text-center transition-all group">
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePreIssuedPageUpload("page2", file);
+                          }}
+                        />
+                        <FileText
+                          size={18}
+                          className="text-slate-400 group-hover:text-teal-400 transition-colors mb-1"
+                        />
+                        <span className="text-xs font-semibold text-slate-300">
+                          {preIssuedPage2File
+                            ? preIssuedPage2File.name
+                            : "Unggah Transkrip Nilai / Halaman Belakang"}
+                        </span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1176,7 +1681,9 @@ export default function SmartIssueCertificatePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="font-bold text-slate-300">Nomor Sertifikat</label>
+                    <label className="font-bold text-slate-300">
+                      Nomor Sertifikat
+                    </label>
                     <input
                       type="text"
                       value={preIssuedCertNumber}
@@ -1187,7 +1694,9 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-300">Jurusan / Keahlian</label>
+                    <label className="font-bold text-slate-300">
+                      Jurusan / Keahlian
+                    </label>
                     <input
                       type="text"
                       value={preIssuedMajor}
@@ -1197,7 +1706,9 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-300">Predikat / Hasil</label>
+                    <label className="font-bold text-slate-300">
+                      Predikat / Hasil
+                    </label>
                     <input
                       type="text"
                       value={preIssuedPredicate}
@@ -1207,17 +1718,23 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="font-bold text-slate-300">Judul Penugasan / Skema</label>
+                    <label className="font-bold text-slate-300">
+                      Judul Penugasan / Skema
+                    </label>
                     <input
                       type="text"
                       value={preIssuedAssignmentTitle}
-                      onChange={(e) => setPreIssuedAssignmentTitle(e.target.value)}
+                      onChange={(e) =>
+                        setPreIssuedAssignmentTitle(e.target.value)
+                      }
                       className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
 
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="font-bold text-slate-300">Tempat & Tanggal Terbit</label>
+                    <label className="font-bold text-slate-300">
+                      Tempat & Tanggal Terbit
+                    </label>
                     <input
                       type="text"
                       value={preIssuedIssueDate}
@@ -1227,7 +1744,9 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="font-bold text-slate-300">Nama Sekolah</label>
+                    <label className="font-bold text-slate-300">
+                      Nama Sekolah
+                    </label>
                     <input
                       type="text"
                       value={preIssuedSchoolName}
@@ -1243,11 +1762,8 @@ export default function SmartIssueCertificatePage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <QrCode size={16} className="text-fuchsia-400" />
-                    Posisi Stamp Tipe A 1:1
+                    Posisi QR Verifikasi
                   </h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/30">
-                    1:1 Square Lock
-                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -1263,13 +1779,13 @@ export default function SmartIssueCertificatePage() {
                         : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
                     }`}
                   >
-                    ⚙️ Sesuai Admin Template
+                    ⚙️ Standar / Otomatis
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setPreIssuedStampPreset("bottom-right");
-                      setPreIssuedStampPos({ x: 1020, y: 1450, width: 130, height: 130 });
+                      setPreIssuedStampPos(null);
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
                       preIssuedStampPreset === "bottom-right"
@@ -1283,7 +1799,7 @@ export default function SmartIssueCertificatePage() {
                     type="button"
                     onClick={() => {
                       setPreIssuedStampPreset("bottom-center");
-                      setPreIssuedStampPos({ x: 620, y: 1450, width: 130, height: 130 });
+                      setPreIssuedStampPos(null);
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
                       preIssuedStampPreset === "bottom-center"
@@ -1297,7 +1813,7 @@ export default function SmartIssueCertificatePage() {
                     type="button"
                     onClick={() => {
                       setPreIssuedStampPreset("bottom-left");
-                      setPreIssuedStampPos({ x: 220, y: 1450, width: 130, height: 130 });
+                      setPreIssuedStampPos(null);
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
                       preIssuedStampPreset === "bottom-left"
@@ -1314,13 +1830,16 @@ export default function SmartIssueCertificatePage() {
               <button
                 type="button"
                 onClick={handleSecurePreIssuedCertificate}
-                disabled={preIssuedLoading || (!preIssuedPage1File && !preIssuedPage1Preview)}
+                disabled={
+                  preIssuedLoading ||
+                  (!preIssuedPage1File && !preIssuedPage1Preview)
+                }
                 className="w-full py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 transform active:scale-95 transition-all disabled:opacity-50 text-sm uppercase tracking-wider"
               >
                 {preIssuedLoading ? (
                   <>
                     <Loader2 size={20} className="animate-spin" />
-                    <span>Membubuhkan Stamp & Menerbitkan ke Ledger...</span>
+                    <span>Membubuhkan QR & Menerbitkan ke Ledger...</span>
                   </>
                 ) : (
                   <>
@@ -1348,7 +1867,7 @@ export default function SmartIssueCertificatePage() {
                       <Award size={14} />
                       <span>Halaman 1 (Depan)</span>
                     </button>
-                    {preIssuedPage2Preview && (
+                    {preIssuedPageMode === "DOUBLE" && preIssuedPage2Preview && (
                       <button
                         type="button"
                         onClick={() => setPreIssuedActivePreviewPage("page2")}
@@ -1368,15 +1887,21 @@ export default function SmartIssueCertificatePage() {
                   <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-white/10">
                     <button
                       type="button"
-                      onClick={() => setPreIssuedPreviewZoom((z) => Math.max(30, z - 10))}
+                      onClick={() =>
+                        setPreIssuedPreviewZoom((z) => Math.max(30, z - 10))
+                      }
                       className="p-1 hover:bg-white/10 text-slate-400 hover:text-white rounded"
                     >
                       <ZoomOut size={14} />
                     </button>
-                    <span className="text-[11px] font-mono text-white px-1">{preIssuedPreviewZoom}%</span>
+                    <span className="text-[11px] font-mono text-white px-1">
+                      {preIssuedPreviewZoom}%
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setPreIssuedPreviewZoom((z) => Math.min(150, z + 10))}
+                      onClick={() =>
+                        setPreIssuedPreviewZoom((z) => Math.min(150, z + 10))
+                      }
                       className="p-1 hover:bg-white/10 text-slate-400 hover:text-white rounded"
                     >
                       <ZoomIn size={14} />
@@ -1401,19 +1926,36 @@ export default function SmartIssueCertificatePage() {
                           className="w-full h-auto object-contain select-none block"
                         />
 
-                        {/* Stamp Tipe A 1:1 Live Overlay */}
+                        {/* QR Code Live Placement Overlay */}
                         <div
                           className="absolute pointer-events-none flex flex-col items-center justify-center"
                           style={{
-                            right: preIssuedStampPreset === "bottom-left" ? "auto" : preIssuedStampPreset === "bottom-center" ? "50%" : "8%",
-                            left: preIssuedStampPreset === "bottom-left" ? "8%" : preIssuedStampPreset === "bottom-center" ? "auto" : "auto",
-                            transform: preIssuedStampPreset === "bottom-center" ? "translateX(50%)" : "none",
-                            bottom: "8%",
+                            right:
+                              preIssuedStampPreset === "bottom-left"
+                                ? "auto"
+                                : preIssuedStampPreset === "bottom-center"
+                                  ? "50%"
+                                  : "6%",
+                            left:
+                              preIssuedStampPreset === "bottom-left"
+                                ? "6%"
+                                : preIssuedStampPreset === "bottom-center"
+                                  ? "auto"
+                                  : "auto",
+                            transform:
+                              preIssuedStampPreset === "bottom-center"
+                                ? "translateX(50%)"
+                                : "none",
+                            bottom: "7%",
                           }}
                         >
                           <div className="bg-white p-1.5 rounded-lg border border-slate-300 shadow-xl flex flex-col items-center justify-center">
                             {preIssuedQrBase64 ? (
-                              <img src={preIssuedQrBase64} alt="QR Code" className="w-16 h-16 object-contain" />
+                              <img
+                                src={preIssuedQrBase64}
+                                alt="QR Code"
+                                className="w-16 h-16 object-contain"
+                              />
                             ) : (
                               <QrCode size={56} className="text-slate-900" />
                             )}
@@ -1433,29 +1975,30 @@ export default function SmartIssueCertificatePage() {
                         <div className="p-4 rounded-3xl bg-white/5 border border-white/10 text-slate-500">
                           <Upload size={36} />
                         </div>
-                        <p className="text-sm font-bold text-white">Belum Ada Berkas Sertifikat Jadi</p>
+                        <p className="text-sm font-bold text-white">
+                          Belum Ada Berkas Sertifikat Jadi
+                        </p>
                         <p className="text-xs text-slate-400 max-w-sm">
-                          Unggah gambar scan sertifikat di panel kiri atau klik "Muat Contoh SMK TKJ" untuk melihat demonstrasi penempelan Stamp Tipe A 1:1.
+                          Unggah berkas scan sertifikat di panel kiri untuk
+                          melihat pratinjau penempatan QR Code.
                         </p>
                       </div>
                     )
-                  ) : (
-                    preIssuedPage2Preview ? (
-                      <div
-                        className="relative rounded-lg shadow-2xl overflow-hidden shrink-0 border border-white/20 transition-all"
-                        style={{
-                          width: `${Math.round(800 * (preIssuedPreviewZoom / 100))}px`,
-                          maxWidth: "100%",
-                        }}
-                      >
-                        <img
-                          src={preIssuedPage2Preview}
-                          alt="Transkrip Hal 2"
-                          className="w-full h-auto object-contain select-none block"
-                        />
-                      </div>
-                    ) : null
-                  )}
+                  ) : preIssuedPage2Preview ? (
+                    <div
+                      className="relative rounded-lg shadow-2xl overflow-hidden shrink-0 border border-white/20 transition-all"
+                      style={{
+                        width: `${Math.round(800 * (preIssuedPreviewZoom / 100))}px`,
+                        maxWidth: "100%",
+                      }}
+                    >
+                      <img
+                        src={preIssuedPage2Preview}
+                        alt="Transkrip Hal 2"
+                        className="w-full h-auto object-contain select-none block"
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -1467,641 +2010,783 @@ export default function SmartIssueCertificatePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Course / Skema Selector */}
             <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <BookOpen size={16} className="text-cyan-400" />
-              Langkah 1: Pilih Course / Skema Sertifikasi <span className="text-red-400">*</span>
-            </h3>
-            {courseId && (
-              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
-                ✓ Kursus Aktif
-              </span>
-            )}
-          </div>
-
-          <Select value={courseId} onValueChange={setCourseId}>
-            <SelectTrigger className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:ring-cyan-500 h-14">
-              <SelectValue placeholder="-- Pilih Course / Skema Sertifikasi UKK --" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700 text-white">
-              {courses.length > 0 ? (
-                courses.map((course: any) => (
-                  <SelectItem key={course.id} value={course.id} className="cursor-pointer py-3">
-                    {course.title}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="p-4 text-xs text-slate-400 text-center">
-                  Belum ada kursus yang dibuat oleh guru ini.
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-
-          {!courseId && (
-            <p className="text-xs text-amber-300/90 flex items-center gap-1.5">
-              <AlertCircle size={14} className="shrink-0" />
-              Pilih Course terlebih dahulu untuk memuat unit kompetensi SKKNI dan template sertifikat.
-            </p>
-          )}
-        </div>
-
-        {/* Page Format & Layout Controls */}
-        <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <Sliders size={16} className="text-fuchsia-400" />
-            Format Halaman
-          </h3>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setPageMode("SINGLE")}
-              className={`p-3 rounded-2xl border text-left transition-all flex flex-col gap-1 ${
-                pageMode === "SINGLE"
-                  ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10"
-                  : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="text-xs font-bold">1 Halaman</span>
-              <span className="text-[10px] text-slate-400">Sertifikat Depan Saja</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPageMode("DOUBLE")}
-              className={`p-3 rounded-2xl border text-left transition-all flex flex-col gap-1 ${
-                pageMode === "DOUBLE"
-                  ? "bg-fuchsia-500/15 border-fuchsia-500/50 text-fuchsia-300 shadow-md shadow-fuchsia-500/10"
-                  : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="text-xs font-bold">2 Halaman (Duplex)</span>
-              <span className="text-[10px] text-slate-400">Depan + Transkrip SKKNI</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* --- STEP 2: MASTER COMPETENCY UNITS CHECKLIST (IF 2-PAGE MODE & COURSE SELECTED) --- */}
-      {pageMode === "DOUBLE" && courseId && (
-        <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl animate-in fade-in duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <FileText size={16} className="text-amber-400" />
-                Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI / IDUKA)
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Centang unit kompetensi yang diikutsertakan dalam transkrip nilai sertifikat siswa.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAddNewCustomUnit}
-                className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
-              >
-                <Plus size={14} /> Tambah Unit Custom
-              </button>
-            </div>
-          </div>
-
-          {/* Units Inclusion Checklist */}
-          {loadingUnits ? (
-            <div className="py-8 flex items-center justify-center gap-2 text-cyan-400 text-xs font-mono">
-              <RefreshCw size={16} className="animate-spin" /> Memuat unit kompetensi...
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {availableUnits.map((u) => {
-                const isChecked = u.code ? selectedUnitCodes.includes(u.code) : false;
-
-                return (
-                  <div
-                    key={u.code}
-                    onClick={() => u.code && handleToggleUnitInclusion(u.code)}
-                    className={`p-3.5 rounded-2xl border cursor-pointer select-none transition-all flex items-start gap-3 ${
-                      isChecked
-                        ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-md shadow-cyan-500/5"
-                        : "bg-white/[0.02] border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-400"
-                    }`}
-                  >
-                    <div className="mt-0.5 shrink-0">
-                      {isChecked ? (
-                        <CheckSquare size={18} className="text-cyan-400" />
-                      ) : (
-                        <Square size={18} className="text-slate-600" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-cyan-500/30 font-bold">
-                          {u.code}
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-400 uppercase">
-                          {u.standard || "SKKNI"}
-                        </span>
-                      </div>
-                      <p className="text-xs font-semibold leading-snug line-clamp-2">
-                        {u.title}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* --- MODE BATCH: STUDENT DIRECTORY + BATCH SCORE TABLE --- */}
-      {issueMode === "batch" && (
-        <div className="space-y-8 animate-in fade-in duration-300">
-          {/* Section 1: Student Directory & Multi-Select */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Users size={18} className="text-cyan-400" />
-                  Direktori Siswa & Seleksi Massal
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <BookOpen size={16} className="text-cyan-400" />
+                  Langkah 1: Pilih Course / Skema Sertifikasi{" "}
+                  <span className="text-red-400">*</span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Gunakan pencarian, filter jurusan, dan centang siswa yang akan diterbitkan sertifikatnya secara massal.
-                </p>
+                {courseId && (
+                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
+                    ✓ Kursus Aktif
+                  </span>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono px-3.5 py-1.5 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-bold">
-                  {selectedStudentIds.length} Siswa Terpilih
-                </span>
+              <Select value={courseId} onValueChange={setCourseId}>
+                <SelectTrigger className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:ring-cyan-500 h-14">
+                  <SelectValue placeholder="-- Pilih Course / Skema Sertifikasi UKK --" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                  {courses.length > 0 ? (
+                    courses.map((course: any) => (
+                      <SelectItem
+                        key={course.id}
+                        value={course.id}
+                        className="cursor-pointer py-3"
+                      >
+                        {course.title}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-4 text-xs text-slate-400 text-center">
+                      Belum ada kursus yang dibuat oleh guru ini.
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+
+              {!courseId && (
+                <p className="text-xs text-amber-300/90 flex items-center gap-1.5">
+                  <AlertCircle size={14} className="shrink-0" />
+                  Pilih Course terlebih dahulu untuk memuat unit kompetensi
+                  SKKNI dan template sertifikat.
+                </p>
+              )}
+            </div>
+
+            {/* Page Format & Layout Controls */}
+            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Sliders size={16} className="text-fuchsia-400" />
+                Format Halaman
+              </h3>
+
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={handleSelectAllFiltered}
-                  className="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-1.5"
+                  onClick={() => setPageMode("SINGLE")}
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col gap-1 ${
+                    pageMode === "SINGLE"
+                      ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10"
+                      : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                  }`}
                 >
-                  <CheckSquare size={14} />
-                  {filteredStudents.length > 0 && filteredStudents.every((s) => selectedStudentIds.includes(s.id))
-                    ? "Batalkan Semua"
-                    : "Pilih Semua Terfilter"}
+                  <span className="text-xs font-bold">1 Halaman</span>
+                  <span className="text-[10px] text-slate-400">
+                    Sertifikat Depan Saja
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPageMode("DOUBLE")}
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col gap-1 ${
+                    pageMode === "DOUBLE"
+                      ? "bg-fuchsia-500/15 border-fuchsia-500/50 text-fuchsia-300 shadow-md shadow-fuchsia-500/10"
+                      : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span className="text-xs font-bold">2 Halaman (Duplex)</span>
+                  <span className="text-[10px] text-slate-400">
+                    Depan + Transkrip SKKNI
+                  </span>
                 </button>
               </div>
             </div>
-
-            {/* Filter Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-2 relative">
-                <input
-                  type="text"
-                  value={dirSearch}
-                  onChange={(e) => setDirSearch(e.target.value)}
-                  placeholder="Cari siswa berdasarkan nama, NISN, ID, atau email..."
-                  className="w-full bg-slate-950/80 border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-all"
-                />
-                <Search size={16} className="absolute left-4 top-3.5 text-slate-500" />
-              </div>
-
-              <div>
-                <select
-                  value={dirMajorFilter}
-                  onChange={(e) => setDirMajorFilter(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all cursor-pointer"
-                >
-                  <option value="ALL">Semua Jurusan / Konsentrasi</option>
-                  {majorsList.map((m) => (
-                    <option key={m.id} value={m.name}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Student Directory Table */}
-            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 max-h-[380px] custom-scrollbar">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
-                  <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                    <th className="py-3 px-4 w-12 text-center">Pilih</th>
-                    <th className="py-3 px-4">Nama Siswa</th>
-                    <th className="py-3 px-4">NISN / ID</th>
-                    <th className="py-3 px-4">Jurusan / Konsentrasi</th>
-                    <th className="py-3 px-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {loadingStudents ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-500">
-                        Memuat data siswa...
-                      </td>
-                    </tr>
-                  ) : filteredStudents.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-500">
-                        Tidak ada siswa yang sesuai dengan filter pencarian.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredStudents.map((std) => {
-                      const isSelected = selectedStudentIds.includes(std.id);
-                      let majorDisplay = "-";
-                      if (typeof std.majority === "object" && std.majority !== null) majorDisplay = (std.majority as any).name;
-                      else if (std.majority) majorDisplay = std.majority;
-
-                      return (
-                        <tr
-                          key={std.id}
-                          onClick={() => handleToggleSelectStudent(std)}
-                          className={`cursor-pointer transition-colors ${
-                            isSelected ? "bg-cyan-500/[0.08]" : "hover:bg-white/[0.02]"
-                          }`}
-                        >
-                          <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => handleToggleSelectStudent(std)}
-                              className="rounded border-white/20 text-cyan-500 focus:ring-cyan-400 bg-slate-900 h-4 w-4 cursor-pointer"
-                            />
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border border-white/10 shrink-0">
-                                <AvatarImage src={getAvatarUrl(std.image || std.avatar || std.avatarUrl)} alt={std.name} />
-                                <AvatarFallback className="bg-cyan-500/20 text-cyan-300 text-xs font-bold">
-                                  {getInitials(std.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-bold text-white">{std.name}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{std.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 font-mono text-cyan-400 font-medium">
-                            {std.studentId || std.nim || std.nisn || "-"}
-                          </td>
-                          <td className="py-3 px-4 text-slate-300">
-                            {majorDisplay}
-                          </td>
-                          <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenPreviewForStudent(std)}
-                              disabled={!courseId}
-                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Pratinjau Sertifikat Siswa Ini"
-                            >
-                              <Eye size={14} />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
           </div>
 
-          {/* Section 2: Interactive Batch Score Table & Individual Customization */}
-          {selectedStudentIds.length > 0 && (
-            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+          {/* --- STEP 2: MASTER COMPETENCY UNITS CHECKLIST (IF 2-PAGE MODE & COURSE SELECTED) --- */}
+          {pageMode === "DOUBLE" && courseId && (
+            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl animate-in fade-in duration-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Sparkles size={18} className="text-amber-400" />
-                    Tabel Penyesuaian Nilai Batch ({selectedStudentIds.length} Siswa Terpilih)
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <FileText size={16} className="text-amber-400" />
+                    Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI /
+                    IDUKA)
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Guru dapat menyesuaikan nilai siswa secara spesifik per siswa atau menggunakan tombol pengisian cepat di sebelah kanan.
+                    Centang unit kompetensi yang diikutsertakan dalam transkrip
+                    nilai sertifikat siswa.
                   </p>
                 </div>
 
-                {/* Quick Fill Actions */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Quick Fill:</span>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handleBulkQuickFillAllStudents("90.00")}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
+                    onClick={handleAddNewCustomUnit}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
                   >
-                    Semua 90.00
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleBulkQuickFillAllStudents("85.00")}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
-                  >
-                    Semua 85.00
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleBulkQuickFillAllStudents("95.00")}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
-                  >
-                    Semua 95.00
+                    <Plus size={14} /> Tambah Unit Custom
                   </button>
                 </div>
               </div>
 
-              {/* Dynamic Batch Table */}
-              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 max-h-[460px] custom-scrollbar">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
-                    <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                      <th className="py-3 px-3 w-10 text-center">No</th>
-                      <th className="py-3 px-4 min-w-[200px]">Nama Siswa</th>
-                      {pageMode === "DOUBLE" ? (
-                        activeTranscriptUnits.map((u) => (
-                          <th key={u.code} className="py-3 px-3 min-w-[130px] text-center font-mono text-[10px]">
-                            {u.code}
-                          </th>
-                        ))
-                      ) : (
-                        <th className="py-3 px-4 text-center">Status Kelulusan</th>
-                      )}
-                      <th className="py-3 px-4 text-center w-28">Rata-Rata</th>
-                      <th className="py-3 px-4 text-right w-24">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {selectedStudentIds.map((sId, idx) => {
-                      const std = allStudents.find((s) => s.id === sId);
-                      if (!std) return null;
-                      const record = batchScores[sId] || { student: std, scores: {} };
-                      const avg = getStudentAverageScore(sId);
+              {/* Units Inclusion Checklist */}
+              {loadingUnits ? (
+                <div className="py-8 flex items-center justify-center gap-2 text-cyan-400 text-xs font-mono">
+                  <RefreshCw size={16} className="animate-spin" /> Memuat unit
+                  kompetensi...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {availableUnits.map((u) => {
+                    const isChecked = u.code
+                      ? selectedUnitCodes.includes(u.code)
+                      : false;
 
-                      return (
-                        <tr key={sId} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="py-3 px-3 text-center font-mono text-slate-500">{idx + 1}</td>
-                          <td className="py-3 px-4">
-                            <p className="font-bold text-white truncate">{std.name}</p>
-                            <p className="text-[10px] font-mono text-cyan-400">{std.studentId || std.nim || std.nisn || "-"}</p>
-                          </td>
-
-                          {pageMode === "DOUBLE" ? (
-                            activeTranscriptUnits.map((u) => {
-                              const scoreVal = u.code && record.scores[u.code] !== undefined ? record.scores[u.code] : "90.00";
-
-                              return (
-                                <td key={u.code} className="py-3 px-2 text-center">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    value={scoreVal}
-                                    onChange={(e) => u.code && handleUpdateStudentUnitScore(sId, u.code, e.target.value)}
-                                    className="w-20 bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-amber-300 font-mono font-bold text-center focus:border-amber-400 focus:outline-none"
-                                  />
-                                </td>
-                              );
-                            })
+                    return (
+                      <div
+                        key={u.code}
+                        onClick={() =>
+                          u.code && handleToggleUnitInclusion(u.code)
+                        }
+                        className={`p-3.5 rounded-2xl border cursor-pointer select-none transition-all flex items-start gap-3 ${
+                          isChecked
+                            ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-md shadow-cyan-500/5"
+                            : "bg-white/[0.02] border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-400"
+                        }`}
+                      >
+                        <div className="mt-0.5 shrink-0">
+                          {isChecked ? (
+                            <CheckSquare size={18} className="text-cyan-400" />
                           ) : (
-                            <td className="py-3 px-4 text-center text-emerald-400 font-bold">
-                              KOMPETEN (LULUS)
-                            </td>
+                            <Square size={18} className="text-slate-600" />
                           )}
+                        </div>
 
-                          <td className="py-3 px-4 text-center font-mono font-bold text-amber-300">
-                            {avg}
-                          </td>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-cyan-500/30 font-bold">
+                              {u.code}
+                            </span>
+                            <span className="text-[9px] font-mono text-slate-400 uppercase">
+                              {u.standard || "SKKNI"}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold leading-snug line-clamp-2">
+                            {u.title}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenPreviewForStudent(std)}
-                                className="p-2 text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/10 transition-colors"
-                                title="Pratinjau Sertifikat"
-                              >
-                                <Eye size={14} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleSelectStudent(std)}
-                                className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
-                                title="Hapus dari Batch"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
+          {/* --- MODE BATCH: STUDENT DIRECTORY + BATCH SCORE TABLE --- */}
+          {issueMode === "batch" && (
+            <div className="space-y-8 animate-in fade-in duration-300">
+              {/* Section 1: Student Directory & Multi-Select */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <Users size={18} className="text-cyan-400" />
+                      Direktori Siswa & Seleksi Massal
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Gunakan pencarian, filter jurusan, dan centang siswa yang
+                      akan diterbitkan sertifikatnya secara massal.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono px-3.5 py-1.5 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-bold">
+                      {selectedStudentIds.length} Siswa Terpilih
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSelectAllFiltered}
+                      className="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-1.5"
+                    >
+                      <CheckSquare size={14} />
+                      {filteredStudents.length > 0 &&
+                      filteredStudents.every((s) =>
+                        selectedStudentIds.includes(s.id),
+                      )
+                        ? "Batalkan Semua"
+                        : "Pilih Semua Terfilter"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filter Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2 relative">
+                    <input
+                      type="text"
+                      value={dirSearch}
+                      onChange={(e) => setDirSearch(e.target.value)}
+                      placeholder="Cari siswa berdasarkan nama, NISN, ID, atau email..."
+                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-all"
+                    />
+                    <Search
+                      size={16}
+                      className="absolute left-4 top-3.5 text-slate-500"
+                    />
+                  </div>
+
+                  <div>
+                    <select
+                      value={dirMajorFilter}
+                      onChange={(e) => setDirMajorFilter(e.target.value)}
+                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all cursor-pointer"
+                    >
+                      <option value="ALL">Semua Jurusan / Konsentrasi</option>
+                      {majorsList.map((m) => (
+                        <option key={m.id} value={m.name}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Student Directory Table */}
+                <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 max-h-[380px] custom-scrollbar">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
+                      <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                        <th className="py-3 px-4 w-12 text-center">Pilih</th>
+                        <th className="py-3 px-4">Nama Siswa</th>
+                        <th className="py-3 px-4">NISN / ID</th>
+                        <th className="py-3 px-4">Jurusan / Konsentrasi</th>
+                        <th className="py-3 px-4 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {loadingStudents ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-slate-500"
+                          >
+                            Memuat data siswa...
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ) : filteredStudents.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-slate-500"
+                          >
+                            Tidak ada siswa yang sesuai dengan filter pencarian.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredStudents.map((std) => {
+                          const isSelected = selectedStudentIds.includes(
+                            std.id,
+                          );
+                          let majorDisplay = "-";
+                          if (
+                            typeof std.majority === "object" &&
+                            std.majority !== null
+                          )
+                            majorDisplay = (std.majority as any).name;
+                          else if (std.majority) majorDisplay = std.majority;
+
+                          return (
+                            <tr
+                              key={std.id}
+                              onClick={() => handleToggleSelectStudent(std)}
+                              className={`cursor-pointer transition-colors ${
+                                isSelected
+                                  ? "bg-cyan-500/[0.08]"
+                                  : "hover:bg-white/[0.02]"
+                              }`}
+                            >
+                              <td
+                                className="py-3 px-4 text-center"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() =>
+                                    handleToggleSelectStudent(std)
+                                  }
+                                  className="rounded border-white/20 text-cyan-500 focus:ring-cyan-400 bg-slate-900 h-4 w-4 cursor-pointer"
+                                />
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8 border border-white/10 shrink-0">
+                                    <AvatarImage
+                                      src={getAvatarUrl(
+                                        std.image ||
+                                          std.avatar ||
+                                          std.avatarUrl,
+                                      )}
+                                      alt={std.name}
+                                    />
+                                    <AvatarFallback className="bg-cyan-500/20 text-cyan-300 text-xs font-bold">
+                                      {getInitials(std.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-bold text-white">
+                                      {std.name}
+                                    </p>
+                                    <p className="text-[10px] text-slate-400 truncate">
+                                      {std.email}
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 font-mono text-cyan-400 font-medium">
+                                {std.studentId || std.nim || std.nisn || "-"}
+                              </td>
+                              <td className="py-3 px-4 text-slate-300">
+                                {majorDisplay}
+                              </td>
+                              <td
+                                className="py-3 px-4 text-right"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleOpenPreviewForStudent(std)
+                                  }
+                                  disabled={!courseId}
+                                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title="Pratinjau Sertifikat Siswa Ini"
+                                >
+                                  <Eye size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {/* Batch Issuance Bottom Bar */}
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs text-slate-300 font-medium">
-                    Total <b>{selectedStudentIds.length} sertifikat</b> siap diterbitkan & dikunci ke ledger blockchain.
-                  </p>
+              {/* Section 2: Interactive Batch Score Table & Individual Customization */}
+              {selectedStudentIds.length > 0 && (
+                <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl animate-in fade-in duration-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <Sparkles size={18} className="text-amber-400" />
+                        Tabel Penyesuaian Nilai Batch (
+                        {selectedStudentIds.length} Siswa Terpilih)
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Guru dapat menyesuaikan nilai siswa secara spesifik per
+                        siswa atau menggunakan tombol pengisian cepat di sebelah
+                        kanan.
+                      </p>
+                    </div>
+
+                    {/* Quick Fill Actions */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">
+                        Quick Fill:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleBulkQuickFillAllStudents("90.00")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
+                      >
+                        Semua 90.00
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleBulkQuickFillAllStudents("85.00")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
+                      >
+                        Semua 85.00
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleBulkQuickFillAllStudents("95.00")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-cyan-300 border border-cyan-500/30 transition-all"
+                      >
+                        Semua 95.00
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Batch Table */}
+                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 max-h-[460px] custom-scrollbar">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
+                        <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                          <th className="py-3 px-3 w-10 text-center">No</th>
+                          <th className="py-3 px-4 min-w-[200px]">
+                            Nama Siswa
+                          </th>
+                          {pageMode === "DOUBLE" ? (
+                            activeTranscriptUnits.map((u) => (
+                              <th
+                                key={u.code}
+                                className="py-3 px-3 min-w-[130px] text-center font-mono text-[10px]"
+                              >
+                                {u.code}
+                              </th>
+                            ))
+                          ) : (
+                            <th className="py-3 px-4 text-center">
+                              Status Kelulusan
+                            </th>
+                          )}
+                          <th className="py-3 px-4 text-center w-28">
+                            Rata-Rata
+                          </th>
+                          <th className="py-3 px-4 text-right w-24">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {selectedStudentIds.map((sId, idx) => {
+                          const std = allStudents.find((s) => s.id === sId);
+                          if (!std) return null;
+                          const record = batchScores[sId] || {
+                            student: std,
+                            scores: {},
+                          };
+                          const avg = getStudentAverageScore(sId);
+
+                          return (
+                            <tr
+                              key={sId}
+                              className="hover:bg-white/[0.02] transition-colors"
+                            >
+                              <td className="py-3 px-3 text-center font-mono text-slate-500">
+                                {idx + 1}
+                              </td>
+                              <td className="py-3 px-4">
+                                <p className="font-bold text-white truncate">
+                                  {std.name}
+                                </p>
+                                <p className="text-[10px] font-mono text-cyan-400">
+                                  {std.studentId || std.nim || std.nisn || "-"}
+                                </p>
+                              </td>
+
+                              {pageMode === "DOUBLE" ? (
+                                activeTranscriptUnits.map((u) => {
+                                  const scoreVal =
+                                    u.code &&
+                                    record.scores[u.code] !== undefined
+                                      ? record.scores[u.code]
+                                      : "90.00";
+
+                                  return (
+                                    <td
+                                      key={u.code}
+                                      className="py-3 px-2 text-center"
+                                    >
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value={scoreVal}
+                                        onChange={(e) =>
+                                          u.code &&
+                                          handleUpdateStudentUnitScore(
+                                            sId,
+                                            u.code,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="w-20 bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-amber-300 font-mono font-bold text-center focus:border-amber-400 focus:outline-none"
+                                      />
+                                    </td>
+                                  );
+                                })
+                              ) : (
+                                <td className="py-3 px-4 text-center text-emerald-400 font-bold">
+                                  KOMPETEN (LULUS)
+                                </td>
+                              )}
+
+                              <td className="py-3 px-4 text-center font-mono font-bold text-amber-300">
+                                {avg}
+                              </td>
+
+                              <td className="py-3 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleOpenPreviewForStudent(std)
+                                    }
+                                    className="p-2 text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/10 transition-colors"
+                                    title="Pratinjau Sertifikat"
+                                  >
+                                    <Eye size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleToggleSelectStudent(std)
+                                    }
+                                    className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+                                    title="Hapus dari Batch"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Batch Issuance Bottom Bar */}
+                  <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs text-slate-300 font-medium">
+                        Total <b>{selectedStudentIds.length} sertifikat</b> siap
+                        diterbitkan & dikunci ke ledger blockchain.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedStudentIds.length > 0) {
+                            const firstStd = allStudents.find(
+                              (s) => s.id === selectedStudentIds[0],
+                            );
+                            if (firstStd) handleOpenPreviewForStudent(firstStd);
+                          }
+                        }}
+                        className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                      >
+                        <Eye size={16} /> Pratinjau Duplex Sample
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleExecuteIssue}
+                        disabled={loadingIssue}
+                        className="flex-1 sm:flex-initial px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-95 text-slate-950 font-bold rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 text-xs uppercase tracking-wider transform active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        {loadingIssue ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            <span>
+                              Menerbitkan {batchProgress?.current || 0}/
+                              {batchProgress?.total || 0}...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            <span>
+                              Terbitkan {selectedStudentIds.length} Sertifikat
+                              Massal
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              )}
+            </div>
+          )}
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectedStudentIds.length > 0) {
-                        const firstStd = allStudents.find((s) => s.id === selectedStudentIds[0]);
-                        if (firstStd) handleOpenPreviewForStudent(firstStd);
-                      }
-                    }}
-                    className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                  >
-                    <Eye size={16} /> Pratinjau Duplex Sample
-                  </button>
+          {/* --- MODE SINGLE: QUICK SEARCH & INDIVIDUAL ISSUANCE --- */}
+          {issueMode === "single" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
+              <div className="lg:col-span-1 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Search className="text-cyan-400" size={18} />
+                  Cari Siswa (NISN / ID)
+                </h3>
+
+                <form onSubmit={handleSingleSearch} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5 ml-1">
+                      Nomor Induk Siswa (NIS / NISN)
+                    </label>
+                    <div className="relative">
+                      <input
+                        value={searchStudentId}
+                        onChange={(e) => setSearchStudentId(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-11 pr-4 py-3 text-white focus:border-cyan-400 focus:outline-none transition-all placeholder:text-slate-600 text-xs"
+                        placeholder="Contoh: 0123456768 atau NIM..."
+                        autoFocus
+                      />
+                      <Hash
+                        className="absolute left-4 top-3.5 text-slate-500"
+                        size={16}
+                      />
+                    </div>
+                  </div>
 
                   <button
-                    type="button"
-                    onClick={handleExecuteIssue}
-                    disabled={loadingIssue}
-                    className="flex-1 sm:flex-initial px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-95 text-slate-950 font-bold rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 text-xs uppercase tracking-wider transform active:scale-95 transition-all disabled:opacity-50"
+                    type="submit"
+                    disabled={loadingSearch || !searchStudentId.trim()}
+                    className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-2xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
                   >
-                    {loadingIssue ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        <span>Menerbitkan {batchProgress?.current || 0}/{batchProgress?.total || 0}...</span>
-                      </>
+                    {loadingSearch ? (
+                      <Loader2 className="animate-spin" size={16} />
                     ) : (
-                      <>
-                        <Send size={16} />
-                        <span>Terbitkan {selectedStudentIds.length} Sertifikat Massal</span>
-                      </>
+                      <Search size={16} />
                     )}
+                    {loadingSearch
+                      ? "Mencari di Database..."
+                      : "Cari Data Siswa"}
                   </button>
-                </div>
+                </form>
+
+                {searchError && (
+                  <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex gap-2.5">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>{searchError}</span>
+                  </div>
+                )}
+
+                {foundStudent && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex gap-3 items-center">
+                    <CheckCircle
+                      className="text-emerald-400 shrink-0"
+                      size={22}
+                    />
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-emerald-400">
+                        Siswa Ditemukan
+                      </h4>
+                      <p className="text-xs text-white truncate font-medium">
+                        {foundStudent.name}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <FileText className="text-fuchsia-400" size={18} />
+                  Detail Data Sertifikat Siswa
+                </h3>
+
+                {foundStudent ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-white/10">
+                          <AvatarImage
+                            src={getAvatarUrl(foundStudent.avatar)}
+                            alt={foundStudent.name}
+                          />
+                          <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-xs font-bold">
+                            {getInitials(foundStudent.name || "Std")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">
+                            Nama Penerima
+                          </p>
+                          <p className="text-sm font-bold text-white truncate">
+                            {foundStudent.name}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">
+                          Program / Jurusan
+                        </p>
+                        <p className="text-sm font-semibold text-slate-200 truncate">
+                          {typeof foundStudent.studyProgram === "object"
+                            ? (foundStudent.studyProgram as any)?.name
+                            : foundStudent.studyProgram ||
+                              foundStudent.majority ||
+                              "Teknik Informatika"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                          Nama Penguji / Asesor
+                        </label>
+                        <input
+                          type="text"
+                          value={examinerName}
+                          onChange={(e) => setExaminerName(e.target.value)}
+                          placeholder="Contoh: Sonny Michael Wijaya, S.Kom"
+                          className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                          NIP / No. Registrasi Asesor
+                        </label>
+                        <input
+                          type="text"
+                          value={examinerNip}
+                          onChange={(e) => setExaminerNip(e.target.value)}
+                          placeholder="Contoh: REG-BNSP-7782-2026"
+                          className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                          Tempat & Tanggal Lahir Siswa
+                        </label>
+                        <input
+                          type="text"
+                          value={birthPlaceDate}
+                          onChange={(e) => setBirthPlaceDate(e.target.value)}
+                          placeholder="Contoh: Salatiga, 20 Januari 2002"
+                          className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                          Satuan Pendidikan / Sekolah Asal
+                        </label>
+                        <input
+                          type="text"
+                          value={schoolOrigin}
+                          onChange={(e) => setSchoolOrigin(e.target.value)}
+                          placeholder="Contoh: SMK Gamelab Indonesia"
+                          className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleOpenPreviewForStudent(foundStudent)
+                        }
+                        disabled={!courseId}
+                        className="px-8 py-3.5 bg-gradient-to-r from-fuchsia-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white font-bold rounded-2xl shadow-xl shadow-fuchsia-500/20 flex items-center justify-center gap-2 transform active:scale-98 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
+                      >
+                        <Award size={16} />
+                        Pratinjau & Terbitkan Sertifikat
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl text-slate-500 text-xs">
+                    Cari siswa di kolom sebelah kiri untuk mengonfigurasi dan
+                    menerbitkan sertifikat individual.
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
-      )}
-
-      {/* --- MODE SINGLE: QUICK SEARCH & INDIVIDUAL ISSUANCE --- */}
-      {issueMode === "single" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
-          <div className="lg:col-span-1 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Search className="text-cyan-400" size={18} />
-              Cari Siswa (NISN / ID)
-            </h3>
-
-            <form onSubmit={handleSingleSearch} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5 ml-1">
-                  Nomor Induk Siswa (NIS / NISN)
-                </label>
-                <div className="relative">
-                  <input
-                    value={searchStudentId}
-                    onChange={(e) => setSearchStudentId(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-11 pr-4 py-3 text-white focus:border-cyan-400 focus:outline-none transition-all placeholder:text-slate-600 text-xs"
-                    placeholder="Contoh: 0123456768 atau NIM..."
-                    autoFocus
-                  />
-                  <Hash className="absolute left-4 top-3.5 text-slate-500" size={16} />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loadingSearch || !searchStudentId.trim()}
-                className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-2xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
-              >
-                {loadingSearch ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
-                {loadingSearch ? "Mencari di Database..." : "Cari Data Siswa"}
-              </button>
-            </form>
-
-            {searchError && (
-              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex gap-2.5">
-                <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                <span>{searchError}</span>
-              </div>
-            )}
-
-            {foundStudent && (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex gap-3 items-center">
-                <CheckCircle className="text-emerald-400 shrink-0" size={22} />
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-emerald-400">Siswa Ditemukan</h4>
-                  <p className="text-xs text-white truncate font-medium">{foundStudent.name}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <FileText className="text-fuchsia-400" size={18} />
-              Detail Data Sertifikat Siswa
-            </h3>
-
-            {foundStudent ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border border-white/10">
-                      <AvatarImage src={getAvatarUrl(foundStudent.avatar)} alt={foundStudent.name} />
-                      <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-xs font-bold">
-                        {getInitials(foundStudent.name || "Std")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Nama Penerima</p>
-                      <p className="text-sm font-bold text-white truncate">{foundStudent.name}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Program / Jurusan</p>
-                    <p className="text-sm font-semibold text-slate-200 truncate">
-                      {typeof foundStudent.studyProgram === "object"
-                        ? (foundStudent.studyProgram as any)?.name
-                        : foundStudent.studyProgram || foundStudent.majority || "Teknik Informatika"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Nama Penguji / Asesor
-                    </label>
-                    <input
-                      type="text"
-                      value={examinerName}
-                      onChange={(e) => setExaminerName(e.target.value)}
-                      placeholder="Contoh: Sonny Michael Wijaya, S.Kom"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      NIP / No. Registrasi Asesor
-                    </label>
-                    <input
-                      type="text"
-                      value={examinerNip}
-                      onChange={(e) => setExaminerNip(e.target.value)}
-                      placeholder="Contoh: REG-BNSP-7782-2026"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Tempat & Tanggal Lahir Siswa
-                    </label>
-                    <input
-                      type="text"
-                      value={birthPlaceDate}
-                      onChange={(e) => setBirthPlaceDate(e.target.value)}
-                      placeholder="Contoh: Salatiga, 20 Januari 2002"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Satuan Pendidikan / Sekolah Asal
-                    </label>
-                    <input
-                      type="text"
-                      value={schoolOrigin}
-                      onChange={(e) => setSchoolOrigin(e.target.value)}
-                      placeholder="Contoh: SMK Gamelab Indonesia"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenPreviewForStudent(foundStudent)}
-                    disabled={!courseId}
-                    className="px-8 py-3.5 bg-gradient-to-r from-fuchsia-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white font-bold rounded-2xl shadow-xl shadow-fuchsia-500/20 flex items-center justify-center gap-2 transform active:scale-98 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
-                  >
-                    <Award size={16} />
-                    Pratinjau & Terbitkan Sertifikat
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl text-slate-500 text-xs">
-                Cari siswa di kolom sebelah kiri untuk mengonfigurasi dan menerbitkan sertifikat individual.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      </div>
       )}
 
       {/* --- DUAL TAB PREVIEW MODAL (FRONT & TRANSCRIPT) --- */}
@@ -2116,14 +2801,18 @@ export default function SmartIssueCertificatePage() {
                     <Award size={18} />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                    Pratinjau: {activeTargetStudent.name} ({pageMode === "DOUBLE" ? "2 Halaman Duplex" : "1 Halaman"})
+                    Pratinjau: {activeTargetStudent.name} (
+                    {pageMode === "DOUBLE" ? "2 Halaman Duplex" : "1 Halaman"})
                   </h3>
                   <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">
-                    {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm ({layoutSettings.certificatePaperSize || "A4"})
+                    {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm (
+                    {layoutSettings.certificatePaperSize || "A4"})
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Periksa seluruh data nama, nilai kompetensi, tanda tangan digital, dan posisi visual sebelum dicetak ke ledger blockchain.
+                  Periksa seluruh data nama, nilai kompetensi, tanda tangan
+                  digital, dan posisi visual sebelum dicetak ke ledger
+                  blockchain.
                 </p>
               </div>
 
@@ -2243,44 +2932,110 @@ export default function SmartIssueCertificatePage() {
                   {previewTab === "front" ? (
                     <CertificateTemplate
                       studentName={activeTargetStudent.name}
-                      studentId={activeTargetStudent.studentId || activeTargetStudent.nim || activeTargetStudent.nisn || activeTargetStudent.id}
+                      studentId={
+                        activeTargetStudent.studentId ||
+                        activeTargetStudent.nim ||
+                        activeTargetStudent.nisn ||
+                        activeTargetStudent.id
+                      }
                       courseName={selectedCourse?.title || "Program Keahlian"}
-                      program={typeof activeTargetStudent.studyProgram === "object" ? (activeTargetStudent.studyProgram as any)?.name : activeTargetStudent.studyProgram || selectedCourse?.title || "Program Keahlian"}
-                      majority={typeof activeTargetStudent.majority === "object" ? (activeTargetStudent.majority as any)?.name : activeTargetStudent.majority || "Teknik Informatika"}
+                      program={
+                        typeof activeTargetStudent.studyProgram === "object"
+                          ? (activeTargetStudent.studyProgram as any)?.name
+                          : activeTargetStudent.studyProgram ||
+                            selectedCourse?.title ||
+                            "Program Keahlian"
+                      }
+                      majority={
+                        typeof activeTargetStudent.majority === "object"
+                          ? (activeTargetStudent.majority as any)?.name
+                          : activeTargetStudent.majority || "Teknik Informatika"
+                      }
                       issuedAt={new Date().toISOString()}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
                       paperSize={layoutSettings.certificatePaperSize || "A4"}
                       paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                      instructorName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName}
-                      instructorNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip}
+                      instructorName={
+                        examinerName ||
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.name) ||
+                        layoutSettings.instructorName
+                      }
+                      instructorNip={
+                        examinerNip ||
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.nip) ||
+                        layoutSettings.instructorNip
+                      }
                       instructors={layoutSettings.instructors}
                       institutionLogo={layoutSettings.institutionLogo}
                       institutionName={layoutSettings.institutionName}
                       institutionSubtext={layoutSettings.institutionSubtext}
-                      bgPath={selectedCourse?.certificateTemplate || layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                      bgPath={
+                        selectedCourse?.certificateTemplate ||
+                        layoutSettings.certificateTemplate ||
+                        layoutSettings.bgPath
+                      }
                       layoutConfig={layoutSettings.layoutConfig}
                     />
                   ) : (
                     <CertificateTranscriptPage
                       studentName={activeTargetStudent.name}
-                      studentId={activeTargetStudent.studentId || activeTargetStudent.nim || activeTargetStudent.nisn || activeTargetStudent.id}
-                      majority={typeof activeTargetStudent.majority === "object" ? (activeTargetStudent.majority as any)?.name : activeTargetStudent.majority || "Teknik Komputer dan Jaringan"}
-                      program={typeof activeTargetStudent.studyProgram === "object" ? (activeTargetStudent.studyProgram as any)?.name : activeTargetStudent.studyProgram || selectedCourse?.title}
+                      studentId={
+                        activeTargetStudent.studentId ||
+                        activeTargetStudent.nim ||
+                        activeTargetStudent.nisn ||
+                        activeTargetStudent.id
+                      }
+                      majority={
+                        typeof activeTargetStudent.majority === "object"
+                          ? (activeTargetStudent.majority as any)?.name
+                          : activeTargetStudent.majority ||
+                            "Teknik Komputer dan Jaringan"
+                      }
+                      program={
+                        typeof activeTargetStudent.studyProgram === "object"
+                          ? (activeTargetStudent.studyProgram as any)?.name
+                          : activeTargetStudent.studyProgram ||
+                            selectedCourse?.title
+                      }
                       courseTitle={selectedCourse?.title}
                       units={targetStudentUnits}
                       averageScore={targetAvgScore}
-                      examinerName={examinerName || (layoutSettings.instructors && layoutSettings.instructors[0]?.name) || layoutSettings.instructorName || "Penguji / Asesor"}
-                      examinerNip={examinerNip || (layoutSettings.instructors && layoutSettings.instructors[0]?.nip) || layoutSettings.instructorNip || "-"}
+                      examinerName={
+                        examinerName ||
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.name) ||
+                        layoutSettings.instructorName ||
+                        "Penguji / Asesor"
+                      }
+                      examinerNip={
+                        examinerNip ||
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.nip) ||
+                        layoutSettings.instructorNip ||
+                        "-"
+                      }
                       institutionLogo={layoutSettings.institutionLogo}
                       institutionName={layoutSettings.institutionName}
                       institutionSubtext={layoutSettings.institutionSubtext}
-                      schoolName={layoutSettings.institutionName || schoolOrigin || selectedCourse?.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                      schoolName={
+                        layoutSettings.institutionName ||
+                        schoolOrigin ||
+                        selectedCourse?.schoolName ||
+                        layoutSettings.schoolName ||
+                        "SMK Mitra IDUKA"
+                      }
                       paperSize={layoutSettings.certificatePaperSize || "A4"}
                       paperWidthCm={layoutSettings.paperWidthCm || 29.7}
                       paperHeightCm={layoutSettings.paperHeightCm || 21.0}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                      bgPath={selectedCourse?.transcriptTemplate || layoutSettings.transcriptTemplate || layoutSettings.transcriptBgPath}
+                      bgPath={
+                        selectedCourse?.transcriptTemplate ||
+                        layoutSettings.transcriptTemplate ||
+                        layoutSettings.transcriptBgPath
+                      }
                       layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   )}
@@ -2288,8 +3043,17 @@ export default function SmartIssueCertificatePage() {
               </div>
 
               <div className="w-full flex items-center justify-between text-[11px] text-slate-500 mt-4 px-2 select-none">
-                <span>💡 Gunakan <b>Ctrl + Scroll Mouse</b> untuk zoom cepat (kelipatan 5%).</span>
-                <span>Ukuran Efektif: <b>{scaledW} × {scaledH} px</b> ({previewZoom}%)</span>
+                <span>
+                  💡 Gunakan <b>Ctrl + Scroll Mouse</b> untuk zoom cepat
+                  (kelipatan 5%).
+                </span>
+                <span>
+                  Ukuran Efektif:{" "}
+                  <b>
+                    {scaledW} × {scaledH} px
+                  </b>{" "}
+                  ({previewZoom}%)
+                </span>
               </div>
             </div>
 
@@ -2334,176 +3098,203 @@ export default function SmartIssueCertificatePage() {
       )}
 
       {/* --- PRE-ISSUED BLOCKCHAIN SUCCESS PROOF MODAL --- */}
-      {preIssuedSuccessResult && (() => {
-        const certId =
-          preIssuedSuccessResult.certId ||
-          preIssuedSuccessResult.record?.certId ||
-          preIssuedSuccessResult.record?.id ||
-          preIssuedSuccessResult.certificate?.certId;
-        const studentName =
-          preIssuedSuccessResult.record?.studentName ||
-          preIssuedSuccessResult.record?.name ||
-          preIssuedSuccessResult.name ||
-          preIssuedStudent?.name ||
-          "Peserta Didik";
-        const certNumber =
-          preIssuedSuccessResult.record?.certificateNumber ||
-          preIssuedSuccessResult.certificateNumber ||
-          preIssuedCertNumber;
-        const schoolName =
-          preIssuedSuccessResult.record?.schoolName ||
-          preIssuedSuccessResult.schoolName ||
-          preIssuedSchoolName;
-        const txHash =
-          preIssuedSuccessResult.txId ||
-          preIssuedSuccessResult.record?.blockchainTxId ||
-          preIssuedSuccessResult.record?.txId ||
-          "TX_FABRIC_ON_CHAIN";
-        const fileHash =
-          preIssuedSuccessResult.hash ||
-          preIssuedSuccessResult.record?.hash ||
-          "SHA256_MATCHED";
-        const frontUrl =
-          preIssuedSuccessResult.frontUrl ||
-          preIssuedSuccessResult.record?.frontUrl ||
-          preIssuedSuccessResult.cid ||
-          preIssuedSuccessResult.record?.cid;
+      {preIssuedSuccessResult &&
+        (() => {
+          const certId =
+            preIssuedSuccessResult.certId ||
+            preIssuedSuccessResult.record?.certId ||
+            preIssuedSuccessResult.record?.id ||
+            preIssuedSuccessResult.certificate?.certId;
+          const studentName =
+            preIssuedSuccessResult.record?.studentName ||
+            preIssuedSuccessResult.record?.name ||
+            preIssuedSuccessResult.name ||
+            preIssuedStudent?.name ||
+            "Peserta Didik";
+          const certNumber =
+            preIssuedSuccessResult.record?.certificateNumber ||
+            preIssuedSuccessResult.certificateNumber ||
+            preIssuedCertNumber;
+          const schoolName =
+            preIssuedSuccessResult.record?.schoolName ||
+            preIssuedSuccessResult.schoolName ||
+            preIssuedSchoolName;
+          const txHash =
+            preIssuedSuccessResult.txId ||
+            preIssuedSuccessResult.record?.blockchainTxId ||
+            preIssuedSuccessResult.record?.txId ||
+            "TX_FABRIC_ON_CHAIN";
+          const fileHash =
+            preIssuedSuccessResult.hash ||
+            preIssuedSuccessResult.record?.hash ||
+            "SHA256_MATCHED";
+          const frontUrl =
+            preIssuedSuccessResult.frontUrl ||
+            preIssuedSuccessResult.record?.frontUrl ||
+            preIssuedSuccessResult.cid ||
+            preIssuedSuccessResult.record?.cid;
 
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
 
-              {/* Header */}
-              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
-                <div className="flex items-center gap-3.5">
-                  <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
-                    <ShieldCheck size={28} />
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
+                      <ShieldCheck size={28} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        Sertifikat Jadi Berhasil Diamankan!
+                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          On-Chain Verified
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        QR code dan identitas dokumen telah resmi terikat ke
+                        ledger.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      Sertifikat Jadi Berhasil Diamankan!
-                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                        On-Chain Verified
-                      </span>
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Stamp Tipe A 1:1 QR code dan identitas dokumen telah resmi terikat ke ledger.
-                    </p>
+
+                  <button
+                    type="button"
+                    onClick={() => setPreIssuedSuccessResult(null)}
+                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="py-5 space-y-4 text-xs">
+                  {/* Recipient & Cert Info */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-white/10">
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">
+                        Nama Peserta Didik
+                      </p>
+                      <p className="text-sm font-bold text-white mt-0.5">
+                        {studentName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">
+                        Nomor Sertifikat Resmi
+                      </p>
+                      <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">
+                        {certNumber}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">
+                        ID Verifikasi Sistem
+                      </p>
+                      <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5">
+                        {certId}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">
+                        Satuan Pendidikan
+                      </p>
+                      <p className="text-xs text-slate-300 truncate mt-0.5">
+                        {schoolName}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Cryptographic Proof Details */}
+                  <div className="space-y-2.5">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <Hash size={13} className="text-cyan-400" />
+                          Transaction ID (Hyperledger Fabric):
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (txHash && typeof navigator !== "undefined") {
+                              navigator.clipboard?.writeText(txHash);
+                            }
+                            setPreIssuedCopiedHash(true);
+                            setTimeout(
+                              () => setPreIssuedCopiedHash(false),
+                              2000,
+                            );
+                          }}
+                          className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px]"
+                        >
+                          {preIssuedCopiedHash ? (
+                            <Check size={12} />
+                          ) : (
+                            <Copy size={12} />
+                          )}
+                          <span>
+                            {preIssuedCopiedHash ? "Tersalin" : "Salin"}
+                          </span>
+                        </button>
+                      </div>
+                      <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-cyan-300 break-all border border-cyan-500/20">
+                        {txHash}
+                      </p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <ShieldCheck size={13} className="text-emerald-400" />
+                          SHA-256 Document Hash (Fingerprint):
+                        </span>
+                      </div>
+                      <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 break-all border border-white/5">
+                        {fileHash}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setPreIssuedSuccessResult(null)}
-                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+                {/* Footer Buttons */}
+                <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPreIssuedSuccessResult(null)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                  >
+                    Tutup Jendela
+                  </button>
 
-              {/* Body */}
-              <div className="py-5 space-y-4 text-xs">
-                {/* Recipient & Cert Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-white/10">
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Nama Peserta Didik</p>
-                    <p className="text-sm font-bold text-white mt-0.5">{studentName}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Nomor Sertifikat Resmi</p>
-                    <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">{certNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">ID Verifikasi Sistem</p>
-                    <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5">{certId}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Satuan Pendidikan</p>
-                    <p className="text-xs text-slate-300 truncate mt-0.5">{schoolName}</p>
-                  </div>
-                </div>
-
-                {/* Cryptographic Proof Details */}
-                <div className="space-y-2.5">
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-bold flex items-center gap-1.5">
-                        <Hash size={13} className="text-cyan-400" />
-                        Transaction ID (Hyperledger Fabric):
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (txHash && typeof navigator !== "undefined") {
-                            navigator.clipboard?.writeText(txHash);
-                          }
-                          setPreIssuedCopiedHash(true);
-                          setTimeout(() => setPreIssuedCopiedHash(false), 2000);
-                        }}
-                        className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono text-[10px]"
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {frontUrl && (
+                      <a
+                        href={frontUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                       >
-                        {preIssuedCopiedHash ? <Check size={12} /> : <Copy size={12} />}
-                        <span>{preIssuedCopiedHash ? "Tersalin" : "Salin"}</span>
-                      </button>
-                    </div>
-                    <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-cyan-300 break-all border border-cyan-500/20">
-                      {txHash}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-bold flex items-center gap-1.5">
-                        <ShieldCheck size={13} className="text-emerald-400" />
-                        SHA-256 Document Hash (Fingerprint):
-                      </span>
-                    </div>
-                    <p className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 break-all border border-white/5">
-                      {fileHash}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Buttons */}
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPreIssuedSuccessResult(null)}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Tutup Jendela
-                </button>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  {frontUrl && (
+                        <span>Unduh Gambar Bertanda</span>
+                        <ExternalLink size={13} />
+                      </a>
+                    )}
                     <a
-                      href={frontUrl}
+                      href={`/verify/${certId}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                      className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
                     >
-                      <span>Unduh Gambar Bertanda</span>
-                      <ExternalLink size={13} />
+                      <span>Buka Verifikasi</span>
+                      <ArrowRight size={14} />
                     </a>
-                  )}
-                  <a
-                    href={`/verify/${certId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
-                  >
-                    <span>Buka Verifikasi</span>
-                    <ArrowRight size={14} />
-                  </a>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* --- STANDARD BATCH / SINGLE ISSUANCE SUCCESS MODAL --- */}
       {standardSuccessResults && standardSuccessResults.length > 0 && (
@@ -2519,13 +3310,15 @@ export default function SmartIssueCertificatePage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    {standardSuccessResults.length} Sertifikat Berhasil Diterbitkan!
+                    {standardSuccessResults.length} Sertifikat Berhasil
+                    Diterbitkan!
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                       Consensus Verified
                     </span>
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Data siswa dan bukti konsensus blockchain telah aktif dan siap diverifikasi secara publik.
+                    Data siswa dan bukti konsensus blockchain telah aktif dan
+                    siap diverifikasi secara publik.
                   </p>
                 </div>
               </div>
@@ -2554,7 +3347,8 @@ export default function SmartIssueCertificatePage() {
                       </span>
                     </p>
                     <p className="text-[11px] text-slate-400 font-mono">
-                      NISN: {certItem.studentId} · No: {certItem.certificateNumber || "-"}
+                      NISN: {certItem.studentId} · No:{" "}
+                      {certItem.certificateNumber || "-"}
                     </p>
                   </div>
 
@@ -2576,7 +3370,8 @@ export default function SmartIssueCertificatePage() {
             {/* Footer */}
             <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
               <span className="text-xs text-slate-500">
-                Total: <b>{standardSuccessResults.length}</b> sertifikat tercatat
+                Total: <b>{standardSuccessResults.length}</b> sertifikat
+                tercatat
               </span>
               <button
                 type="button"

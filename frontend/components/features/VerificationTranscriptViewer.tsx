@@ -255,7 +255,7 @@ export function VerificationTranscriptViewer({
               <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                 <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                   <ShieldCheck size={16} />
-                  Dokumen Resmi Bertanda Stamp Tipe A 1:1 QR
+                  Dokumen Sertifikat Terverifikasi
                 </span>
                 <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
                   <button
