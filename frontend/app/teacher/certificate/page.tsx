@@ -216,6 +216,16 @@ export default function SmartIssueCertificatePage() {
     useState<boolean>(false);
   const [preIssuedPreviewZoom, setPreIssuedPreviewZoom] = useState<number>(65);
 
+  // Confirmation Modal State (Pengaman Missclick)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: "standard" | "pre_issued";
+    title: string;
+    description: string;
+    details: { label: string; value: string }[];
+    onConfirm: () => void;
+  } | null>(null);
+
   // Filtered Students for Live Dynamic Search (Matches NISN, Nama, Email, Jurusan, Sekolah)
   const filteredPreIssuedStudents = useMemo(() => {
     const q = preIssuedStudentSearch.trim().toLowerCase();
@@ -1288,6 +1298,142 @@ export default function SmartIssueCertificatePage() {
     }
   };
 
+  // Pre-Issued Confirmation Trigger (Pengaman Missclick)
+  const handleRequestSecurePreIssued = () => {
+    if (!preIssuedPage1File && !preIssuedPage1Preview) {
+      toast.error(
+        "Wajib mengunggah berkas Halaman 1 Sertifikat Jadi (Gambar / PDF).",
+      );
+      return;
+    }
+
+    const targetStudentName = preIssuedStudent?.name || foundStudent?.name;
+    const targetStudentId =
+      preIssuedStudent?.studentId ||
+      preIssuedStudent?.nim ||
+      preIssuedStudent?.nisn ||
+      preIssuedStudent?.id ||
+      foundStudent?.studentId ||
+      "";
+
+    if (!targetStudentName || !targetStudentId) {
+      toast.error("Pilih atau tentukan siswa penerima terlebih dahulu.");
+      return;
+    }
+
+    setConfirmModal({
+      isOpen: true,
+      type: "pre_issued",
+      title: "Konfirmasi Pengamanan & Minting Sertifikat Jadi",
+      description:
+        "Sertifikat ini akan dibubuhi stempel QR verifikasi kriptografis permanen dan dicatat langsung ke Hyperledger Fabric Blockchain & IPFS. Pastikan seluruh data di bawah ini sudah akurat.",
+      details: [
+        { label: "Nama Siswa / Alumni", value: targetStudentName },
+        { label: "NISN / Student ID", value: targetStudentId },
+        { label: "Nomor Sertifikat", value: preIssuedCertNumber || "-" },
+        { label: "Program / Jurusan", value: preIssuedMajor || "-" },
+        { label: "Satuan Pendidikan", value: preIssuedSchoolName || "-" },
+        {
+          label: "Format Berkas",
+          value:
+            preIssuedPageMode === "DOUBLE"
+              ? "2 Halaman (Depan + Transkrip)"
+              : "1 Halaman (Depan Saja)",
+        },
+      ],
+      onConfirm: () => {
+        setConfirmModal(null);
+        handleSecurePreIssuedCertificate();
+      },
+    });
+  };
+
+  // Standard UKK Confirmation Trigger (Pengaman Missclick)
+  const handleRequestExecuteIssue = () => {
+    if (!courseId) {
+      toast.error("Harap pilih Course terlebih dahulu.");
+      return;
+    }
+
+    if (issueMode === "single") {
+      if (!foundStudent) {
+        toast.error("Harap cari dan pilih siswa terlebih dahulu.");
+        return;
+      }
+      setConfirmModal({
+        isOpen: true,
+        type: "standard",
+        title: "Konfirmasi Penerbitan Sertifikat Siswa",
+        description:
+          "Sertifikat resmi dan transkrip SKKNI akan dimint ke Hyperledger Fabric Blockchain dan dicatat permanen ke ledger. Pastikan seluruh nilai dan nama siswa sudah sesuai.",
+        details: [
+          { label: "Nama Siswa", value: foundStudent.name },
+          {
+            label: "NISN / ID Siswa",
+            value:
+              foundStudent.studentId || foundStudent.nim || foundStudent.id,
+          },
+          {
+            label: "Skema / Kursus",
+            value: selectedCourse?.title || "Kursus Keahlian",
+          },
+          {
+            label: "Jurusan",
+            value:
+              typeof foundStudent.majority === "object"
+                ? (foundStudent.majority as any)?.name
+                : foundStudent.majority || "Teknik Informatika",
+          },
+          {
+            label: "Format Tata Letak",
+            value:
+              pageMode === "DOUBLE"
+                ? "2 Halaman (Sertifikat + Transkrip SKKNI)"
+                : "1 Halaman Standar",
+          },
+        ],
+        onConfirm: () => {
+          setConfirmModal(null);
+          handleExecuteIssue();
+        },
+      });
+    } else {
+      if (selectedStudentIds.length === 0) {
+        toast.error(
+          "Pilih minimal 1 siswa dari daftar untuk diterbitkan sertifikat.",
+        );
+        return;
+      }
+      setConfirmModal({
+        isOpen: true,
+        type: "standard",
+        title: `Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa)`,
+        description: `Sebanyak ${selectedStudentIds.length} sertifikat akan diterbitkan dan dicatat langsung ke Hyperledger Fabric Blockchain secara bersamaan.`,
+        details: [
+          {
+            label: "Jumlah Penerima",
+            value: `${selectedStudentIds.length} Siswa Terpilih`,
+          },
+          {
+            label: "Skema / Kursus",
+            value: selectedCourse?.title || "Kursus Keahlian",
+          },
+          {
+            label: "Format Tata Letak",
+            value:
+              pageMode === "DOUBLE"
+                ? "2 Halaman (Sertifikat + Transkrip SKKNI)"
+                : "1 Halaman Standar",
+          },
+        ],
+        onConfirm: () => {
+          setConfirmModal(null);
+          handleExecuteIssue();
+        },
+      });
+    }
+  };
+
   // Canvas & Paper Dimension Computations for Modal Preview
   const dpi = 150;
   const cmToPx = dpi / 2.54;
@@ -1930,7 +2076,7 @@ export default function SmartIssueCertificatePage() {
               {/* Action Button: Mint to Blockchain */}
               <button
                 type="button"
-                onClick={handleSecurePreIssuedCertificate}
+                onClick={handleRequestSecurePreIssued}
                 disabled={
                   preIssuedLoading ||
                   (!preIssuedPage1File && !preIssuedPage1Preview)
@@ -2890,10 +3036,87 @@ export default function SmartIssueCertificatePage() {
         </div>
       )}
 
-      {/* --- DUAL TAB PREVIEW MODAL (FRONT & TRANSCRIPT) --- */}
-      {showModal && activeTargetStudent && (
+      {/* --- CONFIRMATION MODAL (PENGAMAN MISSCLICK) --- */}
+      {confirmModal && confirmModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-6xl w-full max-h-[96vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-xl w-full p-6 sm:p-8 flex flex-col shadow-[0_0_60px_rgba(16,185,129,0.25)] relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -z-10 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[80px] -z-10 pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg shadow-amber-500/20">
+                  <ShieldCheck size={28} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    {confirmModal.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Pengaman verifikasi sebelum pencatatan ke Ledger Blockchain.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Warning Alert */}
+            <div className="my-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
+              <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-200/90 leading-relaxed">
+                {confirmModal.description}
+              </p>
+            </div>
+
+            {/* Summary Details */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 space-y-2.5 text-xs">
+              {confirmModal.details.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-4 pb-2 border-b border-white/5 last:border-b-0 last:pb-0">
+                  <span className="text-slate-400 uppercase font-semibold text-[10px]">
+                    {item.label}
+                  </span>
+                  <span className="font-bold text-white text-right truncate max-w-[280px]">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                Batalkan
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmModal.onConfirm}
+                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 flex items-center gap-2 active:scale-95"
+              >
+                <CheckCircle2 size={16} />
+                <span>Yakin & Terbitkan ke Blockchain ⚡</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- PREVIEW MODAL --- */}
+      {showModal && activeTargetStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-slate-950 border border-white/15 rounded-3xl max-w-6xl w-full h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 bg-slate-900/90">
               <div className="space-y-1">
@@ -2907,7 +3130,7 @@ export default function SmartIssueCertificatePage() {
                   </h3>
                   <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">
                     {paperWidthCm.toFixed(1)} × {paperHeightCm.toFixed(1)} cm (
-                    {layoutSettings.certificatePaperSize || "A4"})
+                    {rawPaperSize})
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -3172,7 +3395,7 @@ export default function SmartIssueCertificatePage() {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={handleExecuteIssue}
+                  onClick={handleRequestExecuteIssue}
                   disabled={loadingIssue}
                   className="px-7 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
                 >

@@ -86,7 +86,6 @@ export function VerificationTranscriptViewer({
   const [copiedHash, setCopiedHash] = useState(false);
   const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
   const [layoutSettings, setLayoutSettings] = useState<any>({});
-  const [imageZoom, setImageZoom] = useState<number>(100);
 
   const isPreIssued =
     layoutMode === "PRE_ISSUED_STAMP" ||
@@ -108,6 +107,17 @@ export function VerificationTranscriptViewer({
       : "");
 
   const effectiveTranscriptImage = transcriptUrl;
+
+  const [frontZoom, setFrontZoom] = useState<number>(isPreIssued ? 75 : 55);
+  const [transcriptZoom, setTranscriptZoom] = useState<number>(effectiveTranscriptImage ? 75 : 55);
+
+  const isLandscape = (layoutSettings.certificateLayout || "HORIZONTAL") !== "VERTICAL";
+  const defaultW = isLandscape ? 29.7 : 21.0;
+  const defaultH = isLandscape ? 21.0 : 29.7;
+  const paperWCm = layoutSettings.paperWidthCm || defaultW;
+  const paperHCm = layoutSettings.paperHeightCm || defaultH;
+  const templateCanvasW = Math.round(paperWCm * (150 / 2.54));
+  const templateCanvasH = Math.round(paperHCm * (150 / 2.54));
 
   useEffect(() => {
     // Generate QR Code
@@ -229,7 +239,7 @@ export function VerificationTranscriptViewer({
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
             >
               <Download size={15} />
-              <span>Unduh Sertifikat Jadi Ber-QR</span>
+              <span>Unduh Sertifikat Ber-QR</span>
             </a>
           ) : (
             <a
@@ -248,88 +258,110 @@ export function VerificationTranscriptViewer({
       {/* TAB CONTENT: Front Certificate vs Back Transcript */}
       {activeTab === "front" ? (
         <div className="space-y-6">
-          {/* Display Stamped Image if Pre-Issued or Dynamic Template if Standard */}
-          {isPreIssued && effectiveFrontImage ? (
-            <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
-              {/* Image Viewer Toolbar */}
-              <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                  <ShieldCheck size={16} />
-                  Dokumen Sertifikat Terverifikasi
+          {/* Certificate Container with Unified Zoom Toolbar */}
+          <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
+            {/* Zoom Toolbar */}
+            <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <ShieldCheck size={16} />
+                Dokumen Sertifikat Terverifikasi
+              </span>
+              <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setFrontZoom((z) => Math.max(30, z - 10))}
+                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  title="Perkecil (Zoom Out)"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                  {frontZoom}%
                 </span>
-                <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom((z) => Math.max(40, z - 10))}
-                    className="p-1 text-slate-400 hover:text-white"
-                    title="Perkecil"
-                  >
-                    <ZoomOut size={14} />
-                  </button>
-                  <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
-                    {imageZoom}%
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom((z) => Math.min(200, z + 10))}
-                    className="p-1 text-slate-400 hover:text-white"
-                    title="Perbesar"
-                  >
-                    <ZoomIn size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom(100)}
-                    className="text-[10px] font-bold px-2 text-slate-300 hover:text-cyan-400"
-                  >
-                    Reset
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setFrontZoom((z) => Math.min(180, z + 10))}
+                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  title="Perbesar (Zoom In)"
+                >
+                  <ZoomIn size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrontZoom(isPreIssued ? 75 : 55)}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/5 text-slate-300 hover:text-cyan-400 hover:bg-white/10 transition-all ml-1"
+                  title="Tampilan Pas 1 Layar Penuh"
+                >
+                  Fit Layar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrontZoom(100)}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded text-slate-400 hover:text-white transition-colors"
+                  title="Ukuran Asli 100%"
+                >
+                  100%
+                </button>
               </div>
+            </div>
 
-              {/* Stamped Certificate Image */}
-              <div className="w-full overflow-auto max-h-[70vh] flex items-center justify-center p-2">
+            {/* Content Display: Stamped Image or Dynamic Template */}
+            <div className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 custom-scrollbar">
+              {isPreIssued && effectiveFrontImage ? (
                 <img
                   src={effectiveFrontImage}
                   alt={`Sertifikat ${studentName}`}
                   style={{
-                    width: `${imageZoom}%`,
-                    maxWidth: imageZoom <= 100 ? "100%" : "none",
+                    width: `${frontZoom}%`,
+                    maxWidth: frontZoom <= 100 ? "100%" : "none",
                     transition: "width 0.15s ease-out",
                   }}
-                  className="rounded-xl shadow-2xl border border-white/10 select-none"
+                  className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
                 />
-              </div>
+              ) : (
+                <div
+                  style={{
+                    width: `${Math.round(templateCanvasW * (frontZoom / 100))}px`,
+                    height: `${Math.round(templateCanvasH * (frontZoom / 100))}px`,
+                    transition: "width 0.15s ease-out, height 0.15s ease-out",
+                  }}
+                  className="relative overflow-hidden flex items-center justify-center shrink-0 m-auto rounded-xl shadow-2xl border border-white/10"
+                >
+                  <div
+                    style={{
+                      transform: `scale(${frontZoom / 100})`,
+                      transformOrigin: "top left",
+                      width: `${templateCanvasW}px`,
+                      height: `${templateCanvasH}px`,
+                    }}
+                  >
+                    <CertificateTemplate
+                      studentName={studentName}
+                      studentId={studentId}
+                      courseName={courseTitle || program || "Sertifikat Kelulusan"}
+                      certificateId={certId}
+                      program={program}
+                      majority={majority}
+                      issuedAt={issuedAt}
+                      qrCodeBase64={qrCodeBase64}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || defaultW}
+                      paperHeightCm={layoutSettings.paperHeightCm || defaultH}
+                      instructorName={layoutSettings.instructorName || signerList[0]?.name}
+                      instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
+                      instructors={layoutSettings.instructors || signerList}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
+                      bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                      layoutConfig={layoutSettings.layoutConfig}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            /* Real-Time Vector Certificate Preview (Zero-Failure Resilience) */
-            <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
-              <div className="flex items-center justify-center shrink-0 m-auto">
-                <CertificateTemplate
-                  studentName={studentName}
-                  studentId={studentId}
-                  courseName={courseTitle || program || "Sertifikat Kelulusan"}
-                  certificateId={certId}
-                  program={program}
-                  majority={majority}
-                  issuedAt={issuedAt}
-                  qrCodeBase64={qrCodeBase64}
-                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                  paperSize={layoutSettings.certificatePaperSize || "A4"}
-                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                  instructorName={layoutSettings.instructorName || signerList[0]?.name}
-                  instructorNip={layoutSettings.instructorNip || signerList[0]?.nip}
-                  instructors={layoutSettings.instructors || signerList}
-                  institutionLogo={layoutSettings.institutionLogo}
-                  institutionName={layoutSettings.institutionName}
-                  institutionSubtext={layoutSettings.institutionSubtext}
-                  bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
-                  layoutConfig={layoutSettings.layoutConfig}
-                />
-              </div>
-            </div>
-          )}
+          </div>
 
           {cid && (
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] text-white/50 font-mono">
@@ -356,49 +388,106 @@ export function VerificationTranscriptViewer({
       ) : (
         /* TAB 2: Transkrip Unit Kompetensi SKKNI (Duplex Back Page) */
         <div className="space-y-6 animate-in fade-in duration-300">
-          {effectiveTranscriptImage ? (
-            <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
-              <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                <span className="text-xs font-bold text-teal-400 flex items-center gap-1.5">
-                  <FileText size={16} />
-                  Transkrip Nilai & Cap Kompetensi (Halaman 2)
+          {/* Transcript Container with Zoom Toolbar */}
+          <div className="w-full bg-slate-950/90 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
+            {/* Zoom Toolbar for Transcript */}
+            <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+              <span className="text-xs font-bold text-teal-400 flex items-center gap-1.5">
+                <FileText size={16} />
+                Transkrip Nilai & Cap Kompetensi (Halaman 2)
+              </span>
+              <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setTranscriptZoom((z) => Math.max(30, z - 10))}
+                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  title="Perkecil"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                  {transcriptZoom}%
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setTranscriptZoom((z) => Math.min(180, z + 10))}
+                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  title="Perbesar"
+                >
+                  <ZoomIn size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTranscriptZoom(effectiveTranscriptImage ? 75 : 55)}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/5 text-slate-300 hover:text-cyan-400 hover:bg-white/10 transition-all ml-1"
+                >
+                  Fit Layar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTranscriptZoom(100)}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded text-slate-400 hover:text-white transition-colors"
+                >
+                  100%
+                </button>
               </div>
-              <div className="w-full overflow-auto max-h-[70vh] flex items-center justify-center p-2">
+            </div>
+
+            {/* Transcript Display: Stamped Image or Dynamic Canvas */}
+            <div className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 custom-scrollbar">
+              {effectiveTranscriptImage ? (
                 <img
                   src={effectiveTranscriptImage}
                   alt={`Transkrip ${studentName}`}
-                  className="max-w-full rounded-xl shadow-2xl border border-white/10 select-none"
+                  style={{
+                    width: `${transcriptZoom}%`,
+                    maxWidth: transcriptZoom <= 100 ? "100%" : "none",
+                    transition: "width 0.15s ease-out",
+                  }}
+                  className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
                 />
-              </div>
+              ) : (
+                <div
+                  style={{
+                    width: `${Math.round(templateCanvasW * (transcriptZoom / 100))}px`,
+                    height: `${Math.round(templateCanvasH * (transcriptZoom / 100))}px`,
+                    transition: "width 0.15s ease-out, height 0.15s ease-out",
+                  }}
+                  className="relative overflow-hidden flex items-center justify-center shrink-0 m-auto rounded-xl shadow-2xl border border-white/10"
+                >
+                  <div
+                    style={{
+                      transform: `scale(${transcriptZoom / 100})`,
+                      transformOrigin: "top left",
+                      width: `${templateCanvasW}px`,
+                      height: `${templateCanvasH}px`,
+                    }}
+                  >
+                    <CertificateTranscriptPage
+                      studentName={studentName}
+                      studentId={studentId}
+                      majority={majority}
+                      program={program}
+                      courseTitle={courseTitle}
+                      units={units}
+                      examinerName={signerList[0]?.name || layoutSettings.instructorName || "Penguji / Asesor"}
+                      examinerNip={signerList[0]?.nip || layoutSettings.instructorNip}
+                      institutionLogo={layoutSettings.institutionLogo}
+                      institutionName={layoutSettings.institutionName}
+                      institutionSubtext={layoutSettings.institutionSubtext}
+                      schoolName={layoutSettings.institutionName || schoolName || "SMK Mitra IDUKA"}
+                      paperSize={layoutSettings.certificatePaperSize || "A4"}
+                      paperWidthCm={layoutSettings.paperWidthCm || defaultW}
+                      paperHeightCm={layoutSettings.paperHeightCm || defaultH}
+                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                      bgPath={layoutSettings.transcriptTemplate}
+                      layoutConfig={layoutSettings.transcriptLayoutConfig}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            /* Vector Document Canvas Preview */
-            <div className="w-full bg-slate-950/80 rounded-3xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl">
-              <div className="flex items-center justify-center shrink-0 m-auto">
-                <CertificateTranscriptPage
-                  studentName={studentName}
-                  studentId={studentId}
-                  majority={majority}
-                  program={program}
-                  courseTitle={courseTitle}
-                  units={units}
-                  examinerName={signerList[0]?.name || layoutSettings.instructorName || "Penguji / Asesor"}
-                  examinerNip={signerList[0]?.nip || layoutSettings.instructorNip}
-                  institutionLogo={layoutSettings.institutionLogo}
-                  institutionName={layoutSettings.institutionName}
-                  institutionSubtext={layoutSettings.institutionSubtext}
-                  schoolName={layoutSettings.institutionName || schoolName || "SMK Mitra IDUKA"}
-                  paperSize={layoutSettings.certificatePaperSize || "A4"}
-                  paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                  paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                  layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                  bgPath={layoutSettings.transcriptTemplate}
-                  layoutConfig={layoutSettings.transcriptLayoutConfig}
-                />
-              </div>
-            </div>
-          )}
+          </div>
           {/* Transcript Data Card */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 backdrop-blur-xl space-y-6">
             {/* Header Transkrip */}
