@@ -84,8 +84,11 @@ export const getAvatarUrl = (path: string | null | undefined) => {
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
   if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
-    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
-    return `${gateway}/ipfs/${cleanPath}`;
+    const gateway =
+      process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+      "https://green-real-rhinoceros-350.mypinata.cloud";
+    const normalizedGateway = gateway.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
+    return `${normalizedGateway}/ipfs/${cleanPath}`;
   }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
   return `${getApiBase()}${normalizedPath}`;
@@ -96,8 +99,11 @@ export const getAssetUrl = (path: string | null | undefined) => {
   const cleanPath = normalizeLocalPath(path);
   if (cleanPath.startsWith("http")) return cleanPath;
   if (cleanPath.startsWith("Qm") && cleanPath.length >= 46) {
-    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
-    return `${gateway}/ipfs/${cleanPath}`;
+    const gateway =
+      process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+      "https://green-real-rhinoceros-350.mypinata.cloud";
+    const normalizedGateway = gateway.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
+    return `${normalizedGateway}/ipfs/${cleanPath}`;
   }
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
   return `${getApiBase()}${normalizedPath}`;

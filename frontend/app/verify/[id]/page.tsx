@@ -28,6 +28,8 @@ interface CertificateRecord {
   majority: string;
   program: string;
   cid: string;
+  frontUrl?: string;
+  transcriptUrl?: string;
   txId?: string;
   blockchainTxId?: string;
   blockchainSyncStatus?: "SYNCED" | "PENDING_SYNC" | "FAILED";
@@ -62,7 +64,8 @@ export default async function VerificationPage({
 
   const apiBase = getApiBase();
   const IPFS_GATEWAY =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+    "https://green-real-rhinoceros-350.mypinata.cloud";
 
   // 1. Direct Supabase Cloud Fetch (Instant ~30ms, Zero Port/Tunnel Dependency)
   try {
@@ -345,6 +348,8 @@ export default async function VerificationPage({
               courseTitle={cert.course?.title || cert.courseName}
               issuedAt={cert.issuedAt}
               cid={cert.cid}
+              frontUrl={cert.frontUrl}
+              transcriptUrl={cert.transcriptUrl}
               layoutMode={cert.layoutMode}
               hash={cert.hash}
               competencyUnits={cert.competencyUnits}
@@ -390,13 +395,14 @@ export default async function VerificationPage({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-10 backdrop-blur-xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-neon-blue/10 blur-[60px] -z-10 group-hover:scale-150 transition-transform duration-1000" />
+            {/* Blockchain Security Proofs */}
+            <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-10 backdrop-blur-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-neon-blue/10 blur-[60px] -z-10" />
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neon-blue mb-8">
-                Ledger Verification Proof
+                Cryptographic Audit Trail
               </h3>
               <div className="space-y-8">
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-4">
                   <div className={clsx(
                     "p-4 rounded-2xl border",
                     isFabricVerified
@@ -434,24 +440,38 @@ export default async function VerificationPage({
                 </div>
 
                 {/* RESTORED IPFS LINK */}
-                {cert.cid && (
+                {(cert.cid || cert.frontUrl) && (
                   <div className="mt-4 pt-8 border-t border-white/5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-4">
-                      Digital Transcript Artifact (Pinata IPFS)
+                      Digital Certificate & Transcript Artifact
                     </p>
-                    <a
-                      href={`${IPFS_GATEWAY}/ipfs/${cert.cid}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block w-full text-center rounded-2xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neon-blue hover:text-white transition-all shadow-2xl overflow-hidden relative group/btn"
-                    >
-                      <span className="relative z-10">
-                        Access Original Artifact
-                      </span>
-                    </a>
-                    <p className="text-[9px] text-center text-white/20 mt-4 font-bold uppercase tracking-widest">
-                      CID: {cert.cid.substring(0, 18)}...
-                    </p>
+                    {(() => {
+                      const cleanCid = cert.cid ? cert.cid.trim() : "";
+                      const isHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
+                      const artifactUrl = isHttp
+                        ? cleanCid
+                        : cleanCid
+                        ? `${IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "")}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+                        : cert.frontUrl || "#";
+
+                      return (
+                        <>
+                          <a
+                            href={artifactUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block w-full text-center rounded-2xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neon-blue hover:text-white transition-all shadow-2xl overflow-hidden relative group/btn"
+                          >
+                            <span className="relative z-10">
+                              Access Decentralized Artifact
+                            </span>
+                          </a>
+                          <p className="text-[9px] text-center text-white/20 mt-4 font-bold uppercase tracking-widest font-mono">
+                            {cleanCid && !isHttp ? `IPFS CID: ${cleanCid.substring(0, 22)}...` : "Decentralized Storage Mirror"}
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

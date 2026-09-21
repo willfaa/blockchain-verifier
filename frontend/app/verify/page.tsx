@@ -28,7 +28,8 @@ interface VerifyResult {
 }
 
 const IPFS_GATEWAY =
-  process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
+  process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+  "https://green-real-rhinoceros-350.mypinata.cloud";
 
 export default function VerifyPage() {
   const [certId, setCertId] = useState("");
@@ -90,10 +91,16 @@ export default function VerifyPage() {
     }
   }
 
-  const ipfsUrl = result && result.cid ? `${IPFS_GATEWAY}/ipfs/${result.cid}` : null;
+  const cleanCid = result?.cid ? result.cid.trim() : "";
+  const isHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
+  const ipfsUrl = cleanCid
+    ? isHttp
+      ? cleanCid
+      : `${IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "")}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+    : result?.frontUrl || null;
   const downloadName = result?.certId
-    ? `${result.certId}.pdf`
-    : "certificate.pdf";
+    ? `${result.certId}.png`
+    : "certificate.png";
   const fileLabel = result?.certId || "File preview";
 
   async function handleDownload() {

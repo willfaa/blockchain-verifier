@@ -82,6 +82,21 @@ export async function fetchCertificateFromSupabase(id: string) {
       } catch (e) {}
     }
 
+    // Smart Resolution for Pre-Issued Certificate Images
+    let resolvedFrontUrl = item.frontUrl || "";
+    if (!resolvedFrontUrl) {
+      if (item.cid && (item.cid.startsWith("http://") || item.cid.startsWith("https://"))) {
+        resolvedFrontUrl = item.cid;
+      } else if (item.layoutMode === "PRE_ISSUED_STAMP") {
+        resolvedFrontUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${item.certId}_front.png`;
+      }
+    }
+
+    let resolvedTranscriptUrl = item.transcriptUrl || item.backUrl || undefined;
+    if (!resolvedTranscriptUrl && item.layoutMode === "PRE_ISSUED_STAMP") {
+      resolvedTranscriptUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${item.certId}_transcript.png`;
+    }
+
     return {
       certId: item.certId || item.id,
       studentId: item.studentId,
@@ -89,8 +104,8 @@ export async function fetchCertificateFromSupabase(id: string) {
       majority: item.majority,
       program: item.program,
       cid: item.cid || "",
-      frontUrl: item.frontUrl || item.cid || "",
-      transcriptUrl: item.transcriptUrl || item.backUrl || undefined,
+      frontUrl: resolvedFrontUrl || undefined,
+      transcriptUrl: resolvedTranscriptUrl || undefined,
       hash: item.hash,
       status: item.status || "ISSUED",
       issuedAt: item.issuedAt,

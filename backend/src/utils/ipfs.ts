@@ -39,7 +39,7 @@ async function uploadToPinata(buffer: Buffer, filename: string): Promise<string>
     formData,
     {
       headers,
-      timeout: 5000,
+      timeout: 15000,
     }
   );
 

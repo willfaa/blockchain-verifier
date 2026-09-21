@@ -122,7 +122,7 @@ export class CertController {
         customStampPosition,
       });
 
-      // 3. Upload to Supabase Storage
+      // 3. Upload to Supabase Storage (Fast CDN Mirror)
       console.log(`☁️ Uploading Stamped Certificate to Supabase Storage...`);
       const page1RemotePath = `certificates/${certId}_front.png`;
       const frontUrl = await uploadBufferToSupabase(stampedBuffer, "lms", page1RemotePath, "image/png");
@@ -133,8 +133,16 @@ export class CertController {
         transcriptUrl = await uploadBufferToSupabase(page2Buffer, "lms", page2RemotePath, "image/png");
       }
 
-      // 4. IPFS CID & Decentralized Record
-      const cid = frontUrl || `Qm${hash.substring(0, 44)}`;
+      // 4. Upload Image Directly to IPFS / Pinata (Primary Decentralized Storage)
+      console.log(`🌐 Pinning Stamped Image directly to Pinata IPFS...`);
+      let pinataCid = "";
+      try {
+        pinataCid = await uploadToIpfs(stampedBuffer, `/certs/${certId}_front.png`);
+      } catch (ipfsErr: any) {
+        console.warn("[IPFS Image Upload Warning]:", ipfsErr.message);
+      }
+
+      const cid = pinataCid || `Qm${hash.substring(0, 44)}`;
 
       // 5. Build Record
       const certRecord: CertificateRecord = {

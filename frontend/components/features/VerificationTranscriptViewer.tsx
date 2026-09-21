@@ -93,9 +93,19 @@ export function VerificationTranscriptViewer({
     Boolean(frontUrl) ||
     Boolean(cid && (cid.startsWith("http") || cid.startsWith("/storage") || cid.includes("supabase.co")));
 
+  const cleanCid = cid ? cid.trim() : "";
+  const isCidHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
+  const normalizedGateway = (ipfsGateway || "https://green-real-rhinoceros-350.mypinata.cloud")
+    .replace(/\/ipfs\/?$/, "")
+    .replace(/\/$/, "");
+
   const effectiveFrontImage =
     frontUrl ||
-    (cid?.startsWith("http") ? cid : cid ? `${ipfsGateway}/ipfs/${cid}` : "");
+    (isCidHttp
+      ? cleanCid
+      : cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("undefined")
+      ? `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+      : "");
 
   const effectiveTranscriptImage = transcriptUrl;
 
@@ -328,7 +338,12 @@ export function VerificationTranscriptViewer({
                 IPFS / Supabase Storage Reference: {cid.substring(0, 32)}...
               </span>
               <a
-                href={effectiveFrontImage || `${ipfsGateway}/ipfs/${cid}`}
+                href={
+                  effectiveFrontImage ||
+                  (isCidHttp
+                    ? cleanCid
+                    : `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`)
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-sans font-bold text-xs"

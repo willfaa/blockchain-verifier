@@ -6,7 +6,7 @@ import {
   insertCertificateToSupabase,
   uploadToSupabaseStorage,
 } from "@/lib/supabase";
-import { pinJsonToPinata } from "@/lib/ipfs";
+import { pinFileToPinata, pinJsonToPinata } from "@/lib/ipfs";
 
 export const dynamic = "force-dynamic";
 
@@ -156,33 +156,31 @@ export async function POST(request: NextRequest) {
         year: "numeric",
       }).format(new Date());
 
-    // 4. Pin Metadata to IPFS Pinata
+    // 4. Pin Certificate Image Directly to Pinata IPFS (Primary Decentralized Storage)
     let ipfsCid = "";
-    try {
-      ipfsCid = await pinJsonToPinata(
-        {
-          certId,
-          studentId,
-          studentName,
-          certificateNumber,
-          schoolName,
-          program,
-          majority,
-          hash,
-          frontUrl,
-          transcriptUrl,
-          signers,
-          competencyUnits,
-          issuedAt: formattedDate,
-          layoutMode: "PRE_ISSUED_STAMP",
-        },
-        certId
-      );
-    } catch (ipfsErr) {
+    if (page1Buffer) {
+      try {
+        console.log(`[IPFS] Pinning Stamped Certificate Image for ${certId} directly to Pinata...`);
+        ipfsCid = await pinFileToPinata(page1Buffer, `${certId}_front.png`, "image/png");
+      } catch (ipfsErr: any) {
+        console.warn("[IPFS Direct Image Pinning Note]:", ipfsErr.message);
+      }
+    }
+
+    // Also pin transcript image if present
+    let transcriptCid = "";
+    if (page2Buffer) {
+      try {
+        transcriptCid = await pinFileToPinata(page2Buffer, `${certId}_transcript.png`, "image/png");
+      } catch (e: any) {}
+    }
+
+    // Fallback CID if pinning was skipped or failed
+    if (!ipfsCid) {
       ipfsCid = `Qm${hash.substring(0, 44)}`;
     }
 
-    const cid = frontUrl || ipfsCid;
+    const cid = ipfsCid;
     const txId = `TX_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
     // 5. Insert to Supabase DB

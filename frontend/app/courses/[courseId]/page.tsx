@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
 import { getInitials, getAssetUrl } from "@/lib/utils";
+import { getIpfsGatewayUrl } from "@/lib/ipfs";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import VideoPlayer from "@/components/features/VideoPlayer";
@@ -281,7 +282,7 @@ export default function CourseLearningPage() {
               }
               certificateUrl={
                 course.enrollment?.certificate?.cid
-                  ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud"}/ipfs/${course.enrollment.certificate.cid}`
+                  ? getIpfsGatewayUrl(course.enrollment.certificate.cid)
                   : null
               }
               onClaimSuccess={() => fetchCourseData()}

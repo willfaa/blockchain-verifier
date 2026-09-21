@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { getIpfsGatewayUrl } from "@/lib/ipfs";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -307,7 +308,7 @@ export default function AssignmentDetailPage() {
                 }
                 certificateUrl={
                   course.enrollment?.certificate?.cid
-                    ? `${process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud"}/ipfs/${course.enrollment.certificate.cid}`
+                    ? getIpfsGatewayUrl(course.enrollment.certificate.cid)
                     : null
                 }
                 onClaimSuccess={() => fetchCourseData()}

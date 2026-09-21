@@ -31,7 +31,8 @@ export default function CertificateLedgerPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const IPFS_GATEWAY =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+    "https://green-real-rhinoceros-350.mypinata.cloud";
 
   const fetchCertificates = async () => {
     setLoading(true);
