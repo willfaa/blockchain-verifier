@@ -950,14 +950,23 @@ export default function SmartIssueCertificatePage() {
       img.onerror = reject;
     });
 
+    const origW = img.naturalWidth || img.width || 1754;
+    const origH = img.naturalHeight || img.height || 1240;
+    const MAX_DIM = 2048;
+    const scale = Math.min(1, MAX_DIM / Math.max(origW, origH));
+    const targetW = Math.round(origW * scale);
+    const targetH = Math.round(origH * scale);
+
     const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth || img.width || 1754;
-    canvas.height = img.naturalHeight || img.height || 1240;
+    canvas.width = targetW;
+    canvas.height = targetH;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas context is unavailable");
 
-    // 1. Draw base certificate image
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    // 1. Draw solid white background & base certificate image
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, targetW, targetH);
+    ctx.drawImage(img, 0, 0, targetW, targetH);
 
     // 2. Generate QR code pointing to verification link
     const clientBase =
@@ -967,7 +976,7 @@ export default function SmartIssueCertificatePage() {
     const verificationUrl = `${clientBase}/verify/${targetCertId}`;
 
     const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
-      width: 600,
+      width: 500,
       margin: 1,
       color: {
         dark: "#0f172a",
@@ -983,7 +992,7 @@ export default function SmartIssueCertificatePage() {
       qrImg.onerror = reject;
     });
 
-    // 3. Calculate stamp sizing & positioning
+    // 3. Calculate stamp sizing & positioning (scaled to canvas)
     const stampWidth = Math.max(160, Math.round(canvas.width * 0.125));
     const innerQrSize = Math.round(stampWidth * 0.88);
     const cardPadding = Math.round((stampWidth - innerQrSize) / 2);
@@ -997,8 +1006,8 @@ export default function SmartIssueCertificatePage() {
     const marginY = Math.round(canvas.height * 0.07);
 
     if (customPos && customPos.x !== undefined && customPos.y !== undefined) {
-      stampX = customPos.x;
-      stampY = customPos.y;
+      stampX = Math.round(customPos.x * scale);
+      stampY = Math.round(customPos.y * scale);
     } else if (preset === "bottom-left") {
       stampX = marginX;
       stampY = canvas.height - stampHeight - marginY;
@@ -1075,24 +1084,79 @@ export default function SmartIssueCertificatePage() {
       labelBoxY + labelBoxHeight * 0.76,
     );
 
+    // Export optimized high-res JPEG (~400KB vs 25MB raw PNG) to prevent HTTP 413 Payload Too Large
     const stampedBlob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (b) => {
           if (b) resolve(b);
           else reject(new Error("Canvas blob creation failed"));
         },
-        "image/png",
-        0.98,
+        "image/jpeg",
+        0.92,
       );
     });
 
-    const stampedFile = new File([stampedBlob], `${targetCertId}_front.png`, {
-      type: "image/png",
+    const stampedFile = new File([stampedBlob], `${targetCertId}_front.jpg`, {
+      type: "image/jpeg",
     });
 
-    const dataUrl = canvas.toDataURL("image/png", 0.98);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
 
     return { file: stampedFile, dataUrl };
+  };
+
+  // Helper to optimize and downscale Page 2 / Transkrip before upload
+  const optimizeImageFile = async (
+    source: File | string,
+    filename: string,
+  ): Promise<File> => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    if (source instanceof File) {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(source);
+      });
+      img.src = dataUrl;
+    } else {
+      img.src = source;
+    }
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve(true);
+      img.onerror = reject;
+    });
+
+    const origW = img.naturalWidth || img.width || 1754;
+    const origH = img.naturalHeight || img.height || 1240;
+    const MAX_DIM = 2048;
+    const scale = Math.min(1, MAX_DIM / Math.max(origW, origH));
+    const targetW = Math.round(origW * scale);
+    const targetH = Math.round(origH * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context is unavailable");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, targetW, targetH);
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (b) => {
+          if (b) resolve(b);
+          else reject(new Error("Canvas blob creation failed"));
+        },
+        "image/jpeg",
+        0.92,
+      );
+    });
+
+    return new File([blob], filename, { type: "image/jpeg" });
   };
 
   // Handle Securing and Minting to Blockchain
@@ -1122,7 +1186,7 @@ export default function SmartIssueCertificatePage() {
     try {
       const certId = `CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      // 1. Permanently Stamp the QR Code and ID into the Image Canvas Bitmap
+      // 1. Permanently Stamp the QR Code and ID into the Image Canvas Bitmap (Optimized)
       const sourceImage = preIssuedPage1File || preIssuedPage1Preview;
       const { file: stampedPage1File } = await stampImageWithQr(
         sourceImage,
@@ -1135,10 +1199,13 @@ export default function SmartIssueCertificatePage() {
       formData.append("page1", stampedPage1File);
 
       if (preIssuedPageMode === "DOUBLE") {
-        if (preIssuedPage2File) {
-          formData.append("page2", preIssuedPage2File);
-        } else if (preIssuedPage2Preview) {
-          formData.append("page2Base64", preIssuedPage2Preview);
+        const sourcePage2 = preIssuedPage2File || preIssuedPage2Preview;
+        if (sourcePage2) {
+          const optimizedPage2 = await optimizeImageFile(
+            sourcePage2,
+            `${certId}_transcript.jpg`,
+          );
+          formData.append("page2", optimizedPage2);
         }
       }
 
@@ -1180,11 +1247,13 @@ export default function SmartIssueCertificatePage() {
           method: "POST",
           body: formData,
         });
-        if (!res.ok) throw new Error("Cloud endpoint fallback");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Server responded with ${res.status}`);
+        }
       } catch (cloudErr) {
-        res = await api.post("/certificates/stamp-existing", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        // Fallback to Express backend directly
+        res = await api.post("/certificates/stamp-existing", formData);
       }
 
       let resData;
@@ -1207,9 +1276,13 @@ export default function SmartIssueCertificatePage() {
       }
     } catch (err: any) {
       console.error("Failed to secure pre-issued certificate:", err);
-      toast.error(
-        err?.message || "Terjadi kesalahan saat mengamankan sertifikat.",
-      );
+      const errMsg =
+        err?.response?.status === 413
+          ? "Ukuran berkas sertifikat terlalu besar. Sistem telah mengoptimalkan resolusi gambar secara otomatis."
+          : err?.response?.data?.error ||
+            err?.message ||
+            "Terjadi kesalahan saat mengamankan sertifikat.";
+      toast.error(errMsg);
     } finally {
       setPreIssuedLoading(false);
     }

@@ -100,23 +100,37 @@ export async function POST(request: NextRequest) {
     let frontUrl = "";
     let transcriptUrl = "";
 
+    const isJpeg1 =
+      page1Buffer &&
+      page1Buffer.length > 3 &&
+      page1Buffer[0] === 0xff &&
+      page1Buffer[1] === 0xd8;
+    const page1Mime = isJpeg1 ? "image/jpeg" : "image/png";
+    const page1Ext = isJpeg1 ? "jpg" : "png";
+
     if (page1Buffer) {
-      const page1RemotePath = `certificates/${certId}_front.png`;
+      const page1RemotePath = `certificates/${certId}_front.${page1Ext}`;
       const uploaded1 = await uploadToSupabaseStorage(
         page1Buffer,
         page1RemotePath,
-        "image/png",
+        page1Mime,
         "lms"
       );
       if (uploaded1) frontUrl = uploaded1;
     }
 
     if (page2Buffer) {
-      const page2RemotePath = `certificates/${certId}_transcript.png`;
+      const isJpeg2 =
+        page2Buffer.length > 3 &&
+        page2Buffer[0] === 0xff &&
+        page2Buffer[1] === 0xd8;
+      const page2Mime = isJpeg2 ? "image/jpeg" : "image/png";
+      const page2Ext = isJpeg2 ? "jpg" : "png";
+      const page2RemotePath = `certificates/${certId}_transcript.${page2Ext}`;
       const uploaded2 = await uploadToSupabaseStorage(
         page2Buffer,
         page2RemotePath,
-        "image/png",
+        page2Mime,
         "lms"
       );
       if (uploaded2) transcriptUrl = uploaded2;
@@ -146,7 +160,7 @@ export async function POST(request: NextRequest) {
     if (page1Buffer) {
       try {
         console.log(`[IPFS] Pinning Stamped Certificate Image for ${certId} directly to Pinata...`);
-        ipfsCid = await pinFileToPinata(page1Buffer, `${certId}_front.png`, "image/png");
+        ipfsCid = await pinFileToPinata(page1Buffer, `${certId}_front.${page1Ext}`, page1Mime);
       } catch (ipfsErr: any) {
         console.warn("[IPFS Direct Image Pinning Note]:", ipfsErr.message);
       }
@@ -156,7 +170,13 @@ export async function POST(request: NextRequest) {
     let transcriptCid = "";
     if (page2Buffer) {
       try {
-        transcriptCid = await pinFileToPinata(page2Buffer, `${certId}_transcript.png`, "image/png");
+        const isJpeg2 =
+          page2Buffer.length > 3 &&
+          page2Buffer[0] === 0xff &&
+          page2Buffer[1] === 0xd8;
+        const page2Mime = isJpeg2 ? "image/jpeg" : "image/png";
+        const page2Ext = isJpeg2 ? "jpg" : "png";
+        transcriptCid = await pinFileToPinata(page2Buffer, `${certId}_transcript.${page2Ext}`, page2Mime);
       } catch (e: any) {}
     }
 
