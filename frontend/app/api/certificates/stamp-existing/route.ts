@@ -203,6 +203,17 @@ export async function POST(request: NextRequest) {
     const cid = ipfsCid;
     const txId = `TX_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
+    let formattedUnits = competencyUnits;
+    if (page2Buffer && !competencyUnits) {
+      formattedUnits = {
+        isTranscriptImage: true,
+        transcriptCid: transcriptCid || undefined,
+        transcriptUrl: transcriptCid
+          ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${transcriptCid}`
+          : transcriptUrl || undefined,
+      };
+    }
+
     // 5. Insert to Supabase DB
     const certRecord = {
       id: crypto.randomUUID(),
@@ -220,8 +231,8 @@ export async function POST(request: NextRequest) {
       certificateNumber,
       schoolName,
       signers: signers ? JSON.stringify(signers) : null,
-      competencyUnits: competencyUnits ? JSON.stringify(competencyUnits) : null,
-      layoutMode: "PRE_ISSUED_STAMP",
+      competencyUnits: formattedUnits ? JSON.stringify(formattedUnits) : null,
+      layoutMode: page2Buffer ? "DUPLEX_2_PAGES" : "PRE_ISSUED_STAMP",
       blockchainSyncStatus: "SYNCED",
       blockchainTxId: txId,
       syncedAt: new Date().toISOString(),
@@ -243,8 +254,10 @@ export async function POST(request: NextRequest) {
       hash,
       txId,
       cid,
-      frontUrl,
-      transcriptUrl,
+      frontUrl: cid ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${cid}` : frontUrl,
+      transcriptUrl: transcriptCid
+        ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${transcriptCid}`
+        : transcriptUrl || undefined,
       verificationUrl,
       record: certRecord,
     });

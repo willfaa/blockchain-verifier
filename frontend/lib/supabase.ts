@@ -82,19 +82,32 @@ export async function fetchCertificateFromSupabase(id: string) {
       } catch (e) {}
     }
 
-    // Smart Resolution for Pre-Issued Certificate Images
+    // Smart Resolution for Certificate Images & Decentralized IPFS
+    const cleanCid = item.cid ? item.cid.trim() : "";
+    const isCidHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
+    const ipfsGateway =
+      process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+      "https://green-real-rhinoceros-350.mypinata.cloud";
+    const normalizedGateway = ipfsGateway.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
+
     let resolvedFrontUrl = item.frontUrl || "";
     if (!resolvedFrontUrl) {
-      if (item.cid && (item.cid.startsWith("http://") || item.cid.startsWith("https://"))) {
-        resolvedFrontUrl = item.cid;
-      } else if (item.layoutMode === "PRE_ISSUED_STAMP") {
-        resolvedFrontUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${item.certId}_front.png`;
+      if (isCidHttp) {
+        resolvedFrontUrl = cleanCid;
+      } else if (cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("Qm000") && !cleanCid.startsWith("undefined")) {
+        resolvedFrontUrl = `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`;
       }
     }
 
-    let resolvedTranscriptUrl = item.transcriptUrl || item.backUrl || undefined;
-    if (!resolvedTranscriptUrl && item.layoutMode === "PRE_ISSUED_STAMP") {
-      resolvedTranscriptUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${item.certId}_transcript.png`;
+    // Safely resolve transcript URL without EVER fabricating a non-existent _transcript.png URL
+    let resolvedTranscriptUrl: string | undefined = item.transcriptUrl || item.backUrl || undefined;
+    if (!resolvedTranscriptUrl && competencyUnits && typeof competencyUnits === "object" && !Array.isArray(competencyUnits)) {
+      if (competencyUnits.transcriptUrl) {
+        resolvedTranscriptUrl = competencyUnits.transcriptUrl;
+      } else if (competencyUnits.transcriptCid) {
+        const transCid = String(competencyUnits.transcriptCid).trim();
+        resolvedTranscriptUrl = `${normalizedGateway}/ipfs/${transCid.replace(/^ipfs:\/\//, "")}`;
+      }
     }
 
     return {

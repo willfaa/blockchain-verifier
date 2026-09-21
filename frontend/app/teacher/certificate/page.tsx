@@ -3381,11 +3381,17 @@ export default function SmartIssueCertificatePage() {
             preIssuedSuccessResult.hash ||
             preIssuedSuccessResult.record?.hash ||
             "SHA256_MATCHED";
+          const cid =
+            preIssuedSuccessResult.cid ||
+            preIssuedSuccessResult.record?.cid ||
+            "";
           const frontUrl =
+            (cid && !cid.startsWith("PENDING") && !cid.startsWith("undefined") && !cid.startsWith("http")
+              ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${cid.replace(/^ipfs:\/\//, "")}`
+              : "") ||
             preIssuedSuccessResult.frontUrl ||
             preIssuedSuccessResult.record?.frontUrl ||
-            preIssuedSuccessResult.cid ||
-            preIssuedSuccessResult.record?.cid;
+            "";
 
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">

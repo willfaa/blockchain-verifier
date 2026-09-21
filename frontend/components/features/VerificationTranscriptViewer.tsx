@@ -87,26 +87,33 @@ export function VerificationTranscriptViewer({
   const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
   const [layoutSettings, setLayoutSettings] = useState<any>({});
 
-  const isPreIssued =
-    layoutMode === "PRE_ISSUED_STAMP" ||
-    Boolean(frontUrl) ||
-    Boolean(cid && (cid.startsWith("http") || cid.startsWith("/storage") || cid.includes("supabase.co")));
-
   const cleanCid = cid ? cid.trim() : "";
   const isCidHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
   const normalizedGateway = (ipfsGateway || "https://green-real-rhinoceros-350.mypinata.cloud")
     .replace(/\/ipfs\/?$/, "")
     .replace(/\/$/, "");
 
-  const effectiveFrontImage =
-    frontUrl ||
-    (isCidHttp
+  // Prioritize Decentralized IPFS Gateway URL for genuine blockchain artifact preview
+  const ipfsFrontUrl =
+    isCidHttp
       ? cleanCid
-      : cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("undefined")
+      : cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("undefined") && !cleanCid.startsWith("Qm000")
       ? `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
-      : "");
+      : "";
 
-  const effectiveTranscriptImage = transcriptUrl;
+  const effectiveFrontImage = ipfsFrontUrl || frontUrl || "";
+  const effectiveTranscriptImage = transcriptUrl || "";
+
+  const isPreIssued =
+    layoutMode === "PRE_ISSUED_STAMP" ||
+    Boolean(frontUrl) ||
+    Boolean(ipfsFrontUrl);
+
+  // Determine whether certificate has a genuine 2nd page (Transcript / Duplex)
+  const hasSecondPage =
+    layoutMode === "DUPLEX_2_PAGES" ||
+    Boolean(effectiveTranscriptImage) ||
+    (!isPreIssued && Boolean(competencyUnits && competencyUnits.length > 0));
 
   const [frontZoom, setFrontZoom] = useState<number>(isPreIssued ? 75 : 55);
   const [transcriptZoom, setTranscriptZoom] = useState<number>(effectiveTranscriptImage ? 75 : 55);
@@ -195,43 +202,50 @@ export function VerificationTranscriptViewer({
 
   return (
     <div className="space-y-6">
-      {/* Top Header Controls: Switch Tab & PDF Download */}
+      {/* Top Header Controls: Switch Tab & Download */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl">
-        {/* Dual Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-white/10 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("front")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "front"
-                ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Award size={15} />
-            <span>
-              {isPreIssued ? "Sertifikat Bertanda (Halaman 1)" : "Sertifikat Utama (Depan)"}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("transcript")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "transcript"
-                ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <FileText size={15} />
-            <span>
-              {effectiveTranscriptImage ? "Transkrip / Hal 2" : "Transkrip SKKNI (Belakang)"}
-            </span>
-          </button>
-        </div>
+        {/* Dual Tab Switcher or Single Badge */}
+        {hasSecondPage ? (
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-white/10 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab("front")}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "front"
+                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                  : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Award size={15} />
+              <span>
+                {isPreIssued ? "Sertifikat Bertanda (Halaman 1)" : "Sertifikat Utama (Depan)"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("transcript")}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "transcript"
+                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                  : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <FileText size={15} />
+              <span>
+                {effectiveTranscriptImage ? "Transkrip / Hal 2" : "Transkrip SKKNI (Belakang)"}
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-900/90 rounded-xl border border-emerald-500/30 text-emerald-400 font-bold text-xs">
+            <Award size={16} />
+            <span>Sertifikat Terverifikasi (Halaman Tunggal)</span>
+          </div>
+        )}
 
         {/* Actions Button */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {isPreIssued && effectiveFrontImage ? (
+          {effectiveFrontImage ? (
             <a
               href={effectiveFrontImage}
               target="_blank"
@@ -249,7 +263,7 @@ export function VerificationTranscriptViewer({
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
             >
               <Printer size={15} />
-              <span>Unduh PDF Resmi (2 Halaman Duplex)</span>
+              <span>Unduh PDF Resmi</span>
             </a>
           )}
         </div>
@@ -381,24 +395,23 @@ export function VerificationTranscriptViewer({
             </div>
           </div>
 
-          {cid && (
+          {cleanCid && (
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] text-white/50 font-mono">
               <span className="flex items-center gap-2">
                 <ShieldCheck size={14} className="text-emerald-400" />
-                IPFS / Supabase Storage Reference: {cid.substring(0, 32)}...
+                IPFS Decentralized Artifact: {cleanCid.substring(0, 32)}...
               </span>
               <a
                 href={
-                  effectiveFrontImage ||
-                  (isCidHttp
+                  isCidHttp
                     ? cleanCid
-                    : `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`)
+                    : `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
                 }
                 target="_blank"
                 rel="noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-sans font-bold text-xs"
               >
-                Buka Artifak Digital Asli <ExternalLink size={12} />
+                Buka Artifak Digital Asli (IPFS) <ExternalLink size={12} />
               </a>
             </div>
           )}
