@@ -164,6 +164,10 @@ export default function SmartIssueCertificatePage() {
 
   const [preIssuedStudent, setPreIssuedStudent] =
     useState<StudentRecord | null>(null);
+  const [preIssuedStudentName, setPreIssuedStudentName] =
+    useState<string>("student1");
+  const [preIssuedStudentId, setPreIssuedStudentId] =
+    useState<string>("21050974058");
   const [preIssuedStudentSearch, setPreIssuedStudentSearch] =
     useState<string>("");
   const [isPreIssuedStudentDropdownOpen, setIsPreIssuedStudentDropdownOpen] =
@@ -1015,9 +1019,24 @@ export default function SmartIssueCertificatePage() {
     const marginX = Math.round(canvas.width * 0.06);
     const marginY = Math.round(canvas.height * 0.07);
 
+    // Resolve Admin's layout configuration
+    const adminQr =
+      layoutSettings.layoutConfig?.elements?.qrCode ||
+      layoutSettings.layoutConfig?.qrCode;
+
     if (customPos && customPos.x !== undefined && customPos.y !== undefined) {
       stampX = Math.round(customPos.x * scale);
       stampY = Math.round(customPos.y * scale);
+    } else if (adminQr && typeof adminQr.x === "number" && typeof adminQr.y === "number") {
+      const isLandscape = canvas.width >= canvas.height;
+      const refW = isLandscape ? 1754 : 1240;
+      const refH = isLandscape ? 1240 : 1754;
+      const scaleX = canvas.width / refW;
+      const scaleY = canvas.height / refH;
+      const centerX = Math.round(adminQr.x * scaleX);
+      const centerY = Math.round(adminQr.y * scaleY);
+      stampX = Math.round(centerX - stampWidth / 2);
+      stampY = Math.round(centerY - stampHeight / 2);
     } else if (preset === "bottom-left") {
       stampX = marginX;
       stampY = canvas.height - stampHeight - marginY;
@@ -1178,17 +1197,21 @@ export default function SmartIssueCertificatePage() {
       return;
     }
 
-    const targetStudentName = preIssuedStudent?.name || foundStudent?.name;
+    const targetStudentName =
+      preIssuedStudentName.trim() ||
+      preIssuedStudent?.name ||
+      foundStudent?.name ||
+      "";
     const targetStudentId =
+      preIssuedStudentId.trim() ||
       preIssuedStudent?.studentId ||
       preIssuedStudent?.nim ||
       preIssuedStudent?.nisn ||
-      preIssuedStudent?.id ||
       foundStudent?.studentId ||
       "";
 
     if (!targetStudentName || !targetStudentId) {
-      toast.error("Pilih atau tentukan siswa penerima terlebih dahulu.");
+      toast.error("Nama Lengkap Siswa dan NISN/ID Siswa wajib diisi.");
       return;
     }
 
@@ -1307,17 +1330,21 @@ export default function SmartIssueCertificatePage() {
       return;
     }
 
-    const targetStudentName = preIssuedStudent?.name || foundStudent?.name;
+    const targetStudentName =
+      preIssuedStudentName.trim() ||
+      preIssuedStudent?.name ||
+      foundStudent?.name ||
+      "";
     const targetStudentId =
+      preIssuedStudentId.trim() ||
       preIssuedStudent?.studentId ||
       preIssuedStudent?.nim ||
       preIssuedStudent?.nisn ||
-      preIssuedStudent?.id ||
       foundStudent?.studentId ||
       "";
 
     if (!targetStudentName || !targetStudentId) {
-      toast.error("Pilih atau tentukan siswa penerima terlebih dahulu.");
+      toast.error("Nama Lengkap Siswa dan NISN/ID Siswa wajib diisi.");
       return;
     }
 
@@ -1606,203 +1633,155 @@ export default function SmartIssueCertificatePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {preIssuedStudent ? (
-                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-200">
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <Avatar className="h-11 w-11 border border-emerald-500/40 shrink-0">
-                          <AvatarFallback className="bg-emerald-950 text-emerald-300 font-bold text-xs">
-                            {getInitials(preIssuedStudent.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-white uppercase truncate">
-                            {preIssuedStudent.name}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                            <span className="text-[11px] text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
-                              NISN: {preIssuedStudent.studentId || preIssuedStudent.nisn || preIssuedStudent.nim || "-"}
-                            </span>
-                            {(preIssuedStudent.majority || preIssuedStudent.studyProgram) && (
-                              <span className="text-[10px] text-slate-300 bg-white/5 px-2 py-0.5 rounded truncate max-w-[200px]">
-                                {typeof preIssuedStudent.majority === "object"
-                                  ? preIssuedStudent.majority.name
-                                  : preIssuedStudent.majority ||
-                                    (typeof preIssuedStudent.studyProgram === "object"
-                                      ? preIssuedStudent.studyProgram.name
-                                      : preIssuedStudent.studyProgram)}
+                  {/* Search Bar Input */}
+                  <div className="relative">
+                    <Search
+                      className="absolute left-3.5 top-3.5 text-slate-400"
+                      size={16}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Cari dari database siswa (Ketik NISN atau Nama)..."
+                      value={preIssuedStudentSearch}
+                      onChange={(e) => {
+                        setPreIssuedStudentSearch(e.target.value);
+                        setIsPreIssuedStudentDropdownOpen(true);
+                      }}
+                      className="w-full bg-slate-950 border border-white/10 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    {preIssuedStudentSearch && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreIssuedStudentSearch("");
+                        }}
+                        className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* As-You-Type Live Matching Results Container */}
+                  {preIssuedStudentSearch.trim() && isPreIssuedStudentDropdownOpen && (
+                    <div className="space-y-2 max-h-56 overflow-y-auto custom-scrollbar p-1.5 bg-slate-950/95 rounded-2xl border border-white/10 shadow-2xl">
+                      <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider px-2 pt-1">
+                        Hasil Pencarian ({filteredPreIssuedStudents.length} siswa ditemukan):
+                      </p>
+
+                      {filteredPreIssuedStudents.length > 0 ? (
+                        filteredPreIssuedStudents.map((s) => {
+                          const sMajor =
+                            typeof s.majority === "object"
+                              ? s.majority.name
+                              : s.majority ||
+                                (typeof s.studyProgram === "object"
+                                  ? s.studyProgram.name
+                                  : s.studyProgram);
+
+                          const nisnValue =
+                            s.studentId || s.nisn || s.nim || "-";
+
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => {
+                                setPreIssuedStudent(s);
+                                setPreIssuedStudentName(s.name);
+                                setPreIssuedStudentId(s.studentId || s.nisn || s.nim || s.id);
+                                setPreIssuedStudentSearch("");
+                                if (sMajor) {
+                                  setPreIssuedMajor(sMajor);
+                                  setPreIssuedProgram(sMajor);
+                                }
+                                if (s.schoolOrigin) {
+                                  setPreIssuedSchoolName(s.schoolOrigin);
+                                }
+                                setIsPreIssuedStudentDropdownOpen(false);
+                              }}
+                              className="w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/40 border border-white/5 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <Avatar className="h-8 w-8 border border-white/10 group-hover:border-emerald-500/50 shrink-0">
+                                  <AvatarFallback className="bg-slate-900 text-slate-300 group-hover:text-emerald-300 font-bold text-xs">
+                                    {getInitials(s.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-white group-hover:text-emerald-300 uppercase truncate">
+                                    {s.name}
+                                  </p>
+                                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                    <span className="text-[10px] text-cyan-300 font-mono font-bold">
+                                      NISN: {nisnValue}
+                                    </span>
+                                    {sMajor && (
+                                      <span className="text-[9px] text-slate-400 truncate max-w-[150px]">
+                                        • {sMajor}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500 group-hover:text-slate-950 px-2.5 py-1 rounded-lg border border-emerald-500/30 transition-all shrink-0">
+                                Pilih &rarr;
                               </span>
-                            )}
-                          </div>
-                          {preIssuedStudent.schoolOrigin && (
-                            <p className="text-[10px] text-slate-400 mt-1 truncate">
-                              🏫 {preIssuedStudent.schoolOrigin}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
-                          ✓ Terpilih
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreIssuedStudent(null);
-                            setPreIssuedStudentSearch("");
-                          }}
-                          className="text-[10px] text-slate-400 hover:text-red-400 transition-colors underline"
-                        >
-                          Ganti Siswa
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {/* Search Bar Input */}
-                      <div className="relative">
-                        <Search
-                          className="absolute left-3.5 top-3.5 text-slate-400"
-                          size={16}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Ketik NISN (contoh: 0084...), Nama Siswa, atau Jurusan..."
-                          value={preIssuedStudentSearch}
-                          onChange={(e) => {
-                            setPreIssuedStudentSearch(e.target.value);
-                            setIsPreIssuedStudentDropdownOpen(true);
-                          }}
-                          className="w-full bg-slate-950 border border-white/10 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
-                        />
-                        {preIssuedStudentSearch && (
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="p-3 text-center text-xs text-slate-400 space-y-2">
+                          <p>Tidak ada siswa di database dengan kata kunci ini.</p>
                           <button
                             type="button"
                             onClick={() => {
+                              const trimmed = preIssuedStudentSearch.trim();
+                              setPreIssuedStudentName(trimmed);
+                              setPreIssuedStudentId(trimmed);
                               setPreIssuedStudentSearch("");
+                              setIsPreIssuedStudentDropdownOpen(false);
                             }}
-                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white"
+                            className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 font-bold rounded-lg text-xs hover:bg-emerald-500/30 transition-all"
                           >
-                            <X size={14} />
+                            Gunakan Nama/NISN Ini Langsung
                           </button>
-                        )}
-                      </div>
-
-                      {/* As-You-Type Live Matching Results Container */}
-                      {preIssuedStudentSearch.trim() ? (
-                        <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar p-1">
-                          <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider px-1">
-                            Hasil Pencarian ({filteredPreIssuedStudents.length} siswa ditemukan):
-                          </p>
-
-                          {filteredPreIssuedStudents.length > 0 ? (
-                            filteredPreIssuedStudents.map((s) => {
-                              const sMajor =
-                                typeof s.majority === "object"
-                                  ? s.majority.name
-                                  : s.majority ||
-                                    (typeof s.studyProgram === "object"
-                                      ? s.studyProgram.name
-                                      : s.studyProgram);
-
-                              const nisnValue =
-                                s.studentId || s.nisn || s.nim || "-";
-
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setPreIssuedStudent(s);
-                                    setPreIssuedStudentSearch(s.name);
-                                    if (sMajor) {
-                                      setPreIssuedMajor(sMajor);
-                                      setPreIssuedProgram(sMajor);
-                                    }
-                                    if (s.schoolOrigin) {
-                                      setPreIssuedSchoolName(s.schoolOrigin);
-                                    }
-                                    setIsPreIssuedStudentDropdownOpen(false);
-                                  }}
-                                  className="w-full text-left p-3 rounded-2xl bg-slate-950/80 hover:bg-emerald-950/30 border border-white/10 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group"
-                                >
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <Avatar className="h-9 w-9 border border-white/10 group-hover:border-emerald-500/50 shrink-0">
-                                      <AvatarFallback className="bg-slate-900 text-slate-300 group-hover:text-emerald-300 font-bold text-xs">
-                                        {getInitials(s.name)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-bold text-white group-hover:text-emerald-300 uppercase truncate">
-                                        {s.name}
-                                      </p>
-                                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                        <span className="text-[10px] text-cyan-300 font-mono font-bold bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-500/30">
-                                          NISN: {nisnValue}
-                                        </span>
-                                        {sMajor && (
-                                          <span className="text-[9px] text-slate-300 bg-white/5 px-2 py-0.5 rounded truncate max-w-[150px]">
-                                            {sMajor}
-                                          </span>
-                                        )}
-                                      </div>
-                                      {s.schoolOrigin && (
-                                        <p className="text-[9px] text-slate-400 mt-0.5 truncate">
-                                          {s.schoolOrigin}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500 group-hover:text-slate-950 px-3 py-1.5 rounded-xl border border-emerald-500/30 transition-all shrink-0">
-                                    Pilih &rarr;
-                                  </span>
-                                </button>
-                              );
-                            })
-                          ) : (
-                            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 text-center text-xs text-slate-400 space-y-3">
-                              <p>
-                                Tidak ada siswa di database dengan kata kunci "
-                                <span className="text-white font-medium">
-                                  {preIssuedStudentSearch}
-                                </span>
-                                ".
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const trimmed = preIssuedStudentSearch.trim();
-                                  setPreIssuedStudent({
-                                    id: `ext-${Date.now()}`,
-                                    name: trimmed,
-                                    studentId: trimmed,
-                                    nisn: trimmed,
-                                    schoolOrigin: preIssuedSchoolName,
-                                  });
-                                  setIsPreIssuedStudentDropdownOpen(false);
-                                }}
-                                className="px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl text-xs border border-emerald-500/30 transition-all inline-flex items-center gap-1.5"
-                              >
-                                <Plus size={13} />
-                                <span>
-                                  Gunakan Nama/NISN Ini (Alumni / Luar Database)
-                                </span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/5 text-[11px] text-slate-400 flex items-center gap-2.5">
-                          <span className="text-base">💡</span>
-                          <span>
-                            Ketik NISN (angka) atau nama siswa di atas. Siswa
-                            yang belum ada di database tetap bisa diamankan
-                            tanpa harus mendaftar akun.
-                          </span>
                         </div>
                       )}
                     </div>
                   )}
+
+                  {/* Explicit Editable Recipient Name and Student ID Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                        <span>Nama Lengkap Siswa Penerima <span className="text-red-400">*</span></span>
+                        <span className="text-[10px] text-slate-400 font-normal">Dapat diubah / diketik bebas</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={preIssuedStudentName}
+                        onChange={(e) => setPreIssuedStudentName(e.target.value)}
+                        placeholder="Contoh: Muhammad Farhan"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                        <span>NISN / Student ID <span className="text-red-400">*</span></span>
+                        <span className="text-[10px] text-slate-400 font-normal">Nomor Induk / Identitas Siswa</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={preIssuedStudentId}
+                        onChange={(e) => setPreIssuedStudentId(e.target.value)}
+                        placeholder="Contoh: 0084920194"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -2004,75 +1983,6 @@ export default function SmartIssueCertificatePage() {
                 </div>
               </div>
 
-              {/* Step 4: Stamp Placement Presets */}
-              <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <QrCode size={16} className="text-fuchsia-400" />
-                    Posisi QR Verifikasi
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreIssuedStampPreset("admin");
-                      setPreIssuedStampPos(null);
-                    }}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
-                      preIssuedStampPreset === "admin"
-                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    ⚙️ Standar / Otomatis
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreIssuedStampPreset("bottom-right");
-                      setPreIssuedStampPos(null);
-                    }}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
-                      preIssuedStampPreset === "bottom-right"
-                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    ↘ Pojok Kanan Bawah
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreIssuedStampPreset("bottom-center");
-                      setPreIssuedStampPos(null);
-                    }}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
-                      preIssuedStampPreset === "bottom-center"
-                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    ↓ Tengah Bawah
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreIssuedStampPreset("bottom-left");
-                      setPreIssuedStampPos(null);
-                    }}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left ${
-                      preIssuedStampPreset === "bottom-left"
-                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    ↙ Pojok Kiri Bawah
-                  </button>
-                </div>
-              </div>
-
               {/* Action Button: Mint to Blockchain */}
               <button
                 type="button"
@@ -2173,49 +2083,68 @@ export default function SmartIssueCertificatePage() {
                           className="w-full h-auto object-contain select-none block"
                         />
 
-                        {/* QR Code Live Placement Overlay */}
-                        <div
-                          className="absolute pointer-events-none flex flex-col items-center justify-center"
-                          style={{
-                            right:
-                              preIssuedStampPreset === "bottom-left"
-                                ? "auto"
-                                : preIssuedStampPreset === "bottom-center"
-                                  ? "50%"
-                                  : "6%",
-                            left:
-                              preIssuedStampPreset === "bottom-left"
-                                ? "6%"
-                                : preIssuedStampPreset === "bottom-center"
-                                  ? "auto"
-                                  : "auto",
-                            transform:
-                              preIssuedStampPreset === "bottom-center"
-                                ? "translateX(50%)"
-                                : "none",
-                            bottom: "7%",
-                          }}
-                        >
-                          <div className="bg-white p-1.5 rounded-lg border border-slate-300 shadow-xl flex flex-col items-center justify-center">
-                            {preIssuedQrBase64 ? (
-                              <img
-                                src={preIssuedQrBase64}
-                                alt="QR Code"
-                                className="w-16 h-16 object-contain"
-                              />
-                            ) : (
-                              <QrCode size={56} className="text-slate-900" />
-                            )}
-                            <div className="mt-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 text-center">
-                              <span className="text-[8px] font-mono font-bold text-sky-700 block whitespace-nowrap">
-                                ID: CERT-2026-XXXX
-                              </span>
-                              <span className="text-[7px] text-slate-500 font-sans block uppercase tracking-tight">
-                                SCAN TO VERIFY
-                              </span>
+                        {/* QR Code Live Placement Overlay (Admin Configured Position) */}
+                        {(() => {
+                          const adminQr =
+                            layoutSettings.layoutConfig?.elements?.qrCode ||
+                            layoutSettings.layoutConfig?.qrCode;
+
+                          let rightStyle: string | number = "6%";
+                          let leftStyle: string | number = "auto";
+                          let topStyle: string | number = "auto";
+                          let bottomStyle: string | number = "7%";
+                          let transformStyle = "none";
+
+                          if (
+                            adminQr &&
+                            typeof adminQr.x === "number" &&
+                            typeof adminQr.y === "number"
+                          ) {
+                            const posXPercent = (adminQr.x / 1754) * 100;
+                            const posYPercent = (adminQr.y / 1240) * 100;
+                            leftStyle = `${posXPercent}%`;
+                            topStyle = `${posYPercent}%`;
+                            rightStyle = "auto";
+                            bottomStyle = "auto";
+                            transformStyle = "translate(-50%, -50%)";
+                          }
+
+                          return (
+                            <div
+                              className="absolute pointer-events-none flex flex-col items-center justify-center"
+                              style={{
+                                right: rightStyle,
+                                left: leftStyle,
+                                top: topStyle,
+                                bottom: bottomStyle,
+                                transform: transformStyle,
+                              }}
+                            >
+                              <div className="bg-white p-1.5 rounded-lg border border-slate-300 shadow-xl flex flex-col items-center justify-center">
+                                {preIssuedQrBase64 ? (
+                                  <img
+                                    src={preIssuedQrBase64}
+                                    alt="QR Code"
+                                    className="w-16 h-16 object-contain"
+                                  />
+                                ) : (
+                                  <QrCode
+                                    size={56}
+                                    className="text-slate-900"
+                                  />
+                                )}
+                                <div className="mt-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 text-center">
+                                  <span className="text-[8px] font-mono font-bold text-sky-700 block whitespace-nowrap">
+                                    ID: CERT-2026-XXXX
+                                  </span>
+                                  <span className="text-[7px] text-slate-500 font-sans block uppercase tracking-tight">
+                                    SCAN TO VERIFY
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center p-12 text-slate-400 space-y-3">
