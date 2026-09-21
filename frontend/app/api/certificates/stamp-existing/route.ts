@@ -85,30 +85,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Resolve User in Supabase
-    let user = await findUserByIdentifier(studentId);
-    if (!user) {
-      try {
-        const dummyEmail = `${studentId.toLowerCase().replace(/[^a-z0-9]/g, "")}@chainnesa.com`;
-        user = await createSupabaseUser({
-          id: crypto.randomUUID(),
-          name: studentName,
-          email: dummyEmail,
-          password: "$2a$10$dummyHashForAutoProvisionedStudentCertOnly",
-          role: "student",
-          studentId,
-          majority,
-          studyProgram: program,
-          isVerified: true,
-          isApproved: true,
-          isActive: true,
-        });
-      } catch (userErr: any) {
-        user = await findUserByIdentifier(studentId);
-        if (!user) {
-          throw new Error("Unable to link certificate to student account");
-        }
+    // 1. Resolve User in Supabase (Optional: Link if user already registered in LMS, else keep null)
+    let userId: string | null = null;
+    try {
+      const user = await findUserByIdentifier(studentId);
+      if (user) {
+        userId = user.id;
       }
+    } catch (e) {
+      console.warn("[User Lookup Note]:", (e as any)?.message);
     }
 
     // 2. Upload Page 1 and Page 2 (if present) to Supabase Storage
@@ -192,7 +177,7 @@ export async function POST(request: NextRequest) {
       program,
       majority,
       courseId,
-      userId: user.id,
+      userId,
       issuedAt: formattedDate,
       cid,
       hash,

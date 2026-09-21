@@ -59,7 +59,7 @@ import CertificateTranscriptPage, {
 interface StudentRecord {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   studentId?: string;
   nim?: string;
   nisn?: string;
@@ -1541,8 +1541,34 @@ export default function SmartIssueCertificatePage() {
                               );
                             })
                           ) : (
-                            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 text-center text-xs text-slate-400">
-                              Tidak ada siswa dengan NISN atau nama "{preIssuedStudentSearch}". Coba ketik kata kunci lain.
+                            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 text-center text-xs text-slate-400 space-y-3">
+                              <p>
+                                Tidak ada siswa di database dengan kata kunci "
+                                <span className="text-white font-medium">
+                                  {preIssuedStudentSearch}
+                                </span>
+                                ".
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const trimmed = preIssuedStudentSearch.trim();
+                                  setPreIssuedStudent({
+                                    id: `ext-${Date.now()}`,
+                                    name: trimmed,
+                                    studentId: trimmed,
+                                    nisn: trimmed,
+                                    schoolOrigin: preIssuedSchoolName,
+                                  });
+                                  setIsPreIssuedStudentDropdownOpen(false);
+                                }}
+                                className="px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl text-xs border border-emerald-500/30 transition-all inline-flex items-center gap-1.5"
+                              >
+                                <Plus size={13} />
+                                <span>
+                                  Gunakan Nama/NISN Ini (Alumni / Luar Database)
+                                </span>
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1550,7 +1576,9 @@ export default function SmartIssueCertificatePage() {
                         <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/5 text-[11px] text-slate-400 flex items-center gap-2.5">
                           <span className="text-base">💡</span>
                           <span>
-                            Ketik NISN (angka) atau nama siswa di atas. Data lengkap siswa penerima akan otomatis muncul di bawah.
+                            Ketik NISN (angka) atau nama siswa di atas. Siswa
+                            yang belum ada di database tetap bisa diamankan
+                            tanpa harus mendaftar akun.
                           </span>
                         </div>
                       )}
