@@ -387,7 +387,7 @@ export default function AdminDashboard() {
 
     setSubmittingSupersede(true);
     try {
-      const res = await api.post("/certificates/supersede", {
+      const payload = {
         oldCertId: selectedDiscrepancy.certificate.certId || selectedDiscrepancy.certificate.id,
         correctedName: correctedName.trim(),
         correctedProgram: correctedProgram.trim(),
@@ -395,16 +395,35 @@ export default function AdminDashboard() {
         reason: supersedeReason.trim(),
         requestId: selectedDiscrepancy.pendingRequest?.id || null,
         updateUserProfile: updateUserProfile,
-      });
+      };
 
-      if (res.data.ok) {
-        toast.success("Sertifikat berhasil digantikan (Superseded) dan diterbitkan ulang di Blockchain!");
+      let resData: any = null;
+      try {
+        const cloudRes = await fetch("/api/certificates/supersede", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (cloudRes.ok) {
+          resData = await cloudRes.json();
+        }
+      } catch (cloudErr) {}
+
+      if (!resData || !resData.ok) {
+        const res = await api.post("/certificates/supersede", payload);
+        resData = res.data;
+      }
+
+      if (resData?.ok) {
+        toast.success("Sertifikat berhasil digantikan (Superseded) dan diterbitkan ulang!");
         setShowSupersedeModal(false);
         fetchStats(false);
+      } else {
+        toast.error(resData?.error || "Gagal melakukan supersede sertifikat");
       }
     } catch (err: any) {
       console.error("Failed to supersede certificate:", err);
-      toast.error(err.response?.data?.error || "Gagal melakukan supersede sertifikat");
+      toast.error(err.response?.data?.error || err.message || "Gagal melakukan supersede sertifikat");
     } finally {
       setSubmittingSupersede(false);
     }

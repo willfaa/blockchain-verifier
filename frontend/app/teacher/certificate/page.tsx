@@ -220,6 +220,18 @@ export default function SmartIssueCertificatePage() {
     useState<boolean>(false);
   const [preIssuedPreviewZoom, setPreIssuedPreviewZoom] = useState<number>(65);
 
+  // Existing Certificate Detection States (Pencegahan Penerbitan Duplikat)
+  const [preIssuedExistingCert, setPreIssuedExistingCert] = useState<any | null>(null);
+  const [preIssuedChecking, setPreIssuedChecking] = useState<boolean>(false);
+
+  const [singleExistingCert, setSingleExistingCert] = useState<any | null>(null);
+  const [singleChecking, setSingleChecking] = useState<boolean>(false);
+
+  const [courseExistingCerts, setCourseExistingCerts] = useState<{
+    byStudentId: Record<string, any>;
+    byUserId: Record<string, any>;
+  }>({ byStudentId: {}, byUserId: {} });
+
   // Confirmation Modal State (Pengaman Missclick)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -242,9 +254,7 @@ export default function SmartIssueCertificatePage() {
           .includes(q);
         const emailMatch = (s.email || "").toLowerCase().includes(q);
         const majorStr =
-          typeof s.majority === "object"
-            ? s.majority.name
-            : s.majority || "";
+          typeof s.majority === "object" ? s.majority.name : s.majority || "";
         const progStr =
           typeof s.studyProgram === "object"
             ? s.studyProgram.name
@@ -254,11 +264,7 @@ export default function SmartIssueCertificatePage() {
           progStr.toLowerCase().includes(q);
         const schoolMatch = (s.schoolOrigin || "").toLowerCase().includes(q);
         return (
-          nameMatch ||
-          nisnMatch ||
-          emailMatch ||
-          majorMatch ||
-          schoolMatch
+          nameMatch || nisnMatch || emailMatch || majorMatch || schoolMatch
         );
       })
       .sort((a, b) => {
@@ -336,6 +342,137 @@ export default function SmartIssueCertificatePage() {
     };
     initData();
   }, []);
+
+  // 1b. Check existing certificate for Pre-Issued mode (Amankan Berkas Jadi)
+  useEffect(() => {
+    const targetStudentId = (
+      preIssuedStudentId.trim() ||
+      preIssuedStudent?.studentId ||
+      preIssuedStudent?.nim ||
+      preIssuedStudent?.nisn ||
+      ""
+    );
+    const targetStudentName = (
+      preIssuedStudentName.trim() ||
+      preIssuedStudent?.name ||
+      ""
+    );
+
+    if (!targetStudentId && !targetStudentName) {
+      setPreIssuedExistingCert(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setPreIssuedChecking(true);
+      try {
+        const queryParams = new URLSearchParams();
+        if (targetStudentId) queryParams.set("studentId", targetStudentId);
+        if (targetStudentName) queryParams.set("name", targetStudentName);
+        if (preIssuedStudent?.id) queryParams.set("userId", preIssuedStudent.id);
+
+        const res = await fetch(`/api/certificates/check-existing?${queryParams.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.hasExisting && data.existingCert) {
+            setPreIssuedExistingCert(data.existingCert);
+          } else {
+            setPreIssuedExistingCert(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check existing certificate for pre-issued:", err);
+      } finally {
+        setPreIssuedChecking(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [preIssuedStudentId, preIssuedStudentName, preIssuedStudent]);
+
+  // 1c. Check existing certificate for Single Mode (Standard UKK)
+  useEffect(() => {
+    if (!foundStudent) {
+      setSingleExistingCert(null);
+      return;
+    }
+
+    const stdId =
+      foundStudent.studentId ||
+      foundStudent.nim ||
+      foundStudent.nisn ||
+      foundStudent.id;
+    const stdName = foundStudent.name;
+    const userId = foundStudent.id;
+
+    const checkCert = async () => {
+      setSingleChecking(true);
+      try {
+        const queryParams = new URLSearchParams();
+        if (stdId) queryParams.set("studentId", stdId);
+        if (stdName) queryParams.set("name", stdName);
+        if (userId) queryParams.set("userId", userId);
+        if (courseId) queryParams.set("courseId", courseId);
+
+        const res = await fetch(`/api/certificates/check-existing?${queryParams.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.hasExisting && data.existingCert) {
+            setSingleExistingCert(data.existingCert);
+          } else {
+            setSingleExistingCert(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check existing certificate for single student:", err);
+      } finally {
+        setSingleChecking(false);
+      }
+    };
+
+    checkCert();
+  }, [foundStudent, courseId]);
+
+  // 1d. Fetch existing certificates for current course (Batch Mode)
+  useEffect(() => {
+    if (!courseId) {
+      setCourseExistingCerts({ byStudentId: {}, byUserId: {} });
+      return;
+    }
+
+    const fetchCourseCerts = async () => {
+      try {
+        const res = await fetch(`/api/certificates/check-existing?courseId=${encodeURIComponent(courseId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok) {
+            setCourseExistingCerts({
+              byStudentId: data.byStudentId || {},
+              byUserId: data.byUserId || {},
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch course existing certificates:", err);
+      }
+    };
+
+    fetchCourseCerts();
+  }, [courseId]);
+
+  // Batch duplicate count among selected students
+  const selectedDuplicatesCount = useMemo(() => {
+    if (selectedStudentIds.length === 0) return 0;
+    return selectedStudentIds.filter((sId) => {
+      const std = allStudents.find((s) => s.id === sId);
+      if (!std) return false;
+      const stdId = std.studentId || std.nim || std.nisn || std.id;
+      return (
+        Boolean(courseExistingCerts.byUserId[std.id]) ||
+        (stdId && Boolean(courseExistingCerts.byStudentId[stdId]))
+      );
+    }).length;
+  }, [selectedStudentIds, allStudents, courseExistingCerts]);
 
   // 2. Fetch Course / Master Competency Units when Course Selection Changes
   useEffect(() => {
@@ -941,8 +1078,17 @@ export default function SmartIssueCertificatePage() {
   const stampImageWithQr = async (
     source: File | string,
     targetCertId: string,
-    preset: "admin" | "bottom-right" | "bottom-left" | "bottom-center" = "admin",
-    customPos?: { x?: number; y?: number; width?: number; height?: number } | null,
+    preset:
+      | "admin"
+      | "bottom-right"
+      | "bottom-left"
+      | "bottom-center" = "admin",
+    customPos?: {
+      x?: number;
+      y?: number;
+      width?: number;
+      height?: number;
+    } | null,
   ): Promise<{ file: File; dataUrl: string }> => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -1027,7 +1173,11 @@ export default function SmartIssueCertificatePage() {
     if (customPos && customPos.x !== undefined && customPos.y !== undefined) {
       stampX = Math.round(customPos.x * scale);
       stampY = Math.round(customPos.y * scale);
-    } else if (adminQr && typeof adminQr.x === "number" && typeof adminQr.y === "number") {
+    } else if (
+      adminQr &&
+      typeof adminQr.x === "number" &&
+      typeof adminQr.y === "number"
+    ) {
       const isLandscape = canvas.width >= canvas.height;
       const refW = isLandscape ? 1754 : 1240;
       const refH = isLandscape ? 1240 : 1754;
@@ -1083,13 +1233,25 @@ export default function SmartIssueCertificatePage() {
 
     ctx.fillStyle = "#f8fafc";
     ctx.beginPath();
-    ctx.roundRect(labelBoxX, labelBoxY, labelBoxWidth, labelBoxHeight, Math.round(radius * 0.6));
+    ctx.roundRect(
+      labelBoxX,
+      labelBoxY,
+      labelBoxWidth,
+      labelBoxHeight,
+      Math.round(radius * 0.6),
+    );
     ctx.fill();
 
     ctx.strokeStyle = "#e2e8f0";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(labelBoxX, labelBoxY, labelBoxWidth, labelBoxHeight, Math.round(radius * 0.6));
+    ctx.roundRect(
+      labelBoxX,
+      labelBoxY,
+      labelBoxWidth,
+      labelBoxHeight,
+      Math.round(radius * 0.6),
+    );
     ctx.stroke();
 
     ctx.textAlign = "center";
@@ -1282,7 +1444,9 @@ export default function SmartIssueCertificatePage() {
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || `Server responded with ${res.status}`);
+          throw new Error(
+            errData.error || `Server responded with ${res.status}`,
+          );
         }
       } catch (cloudErr) {
         // Fallback to Express backend directly
@@ -1299,7 +1463,7 @@ export default function SmartIssueCertificatePage() {
       if (resData.ok) {
         setPreIssuedSuccessResult(resData);
         toast.success(
-          "🛡️ Sertifikat Jadi Berhasil Diamankan & Terverifikasi Blockchain!",
+          "🛡️ Sertifikat Berhasil Tercetak & Terverifikasi Blockchain!",
           {
             description: `QR Code verifikasi telah tertera permanen pada sertifikat dan tercatat di Ledger Fabric.`,
           },
@@ -1348,18 +1512,31 @@ export default function SmartIssueCertificatePage() {
       return;
     }
 
+    const hasDup = Boolean(preIssuedExistingCert);
+
     setConfirmModal({
       isOpen: true,
       type: "pre_issued",
-      title: "Konfirmasi Pengamanan & Minting Sertifikat Jadi",
-      description:
-        "Sertifikat ini akan dibubuhi stempel QR verifikasi kriptografis permanen dan dicatat langsung ke Hyperledger Fabric Blockchain & IPFS. Pastikan seluruh data di bawah ini sudah akurat.",
+      title: hasDup
+        ? "⚠️ Konfirmasi Penerbitan Ulang (Sertifikat Duplikat / Pengganti)"
+        : "Konfirmasi Pengamanan & Minting Sertifikat Jadi",
+      description: hasDup
+        ? `PERHATIAN: Siswa ${targetStudentName} (${targetStudentId}) sudah memiliki sertifikat aktif #${preIssuedExistingCert.certId || preIssuedExistingCert.id} di Ledger Blockchain. Menerbitkan ulang akan mencatat sertifikat baru tambahan. Jika hanya ingin memperbaiki data/typo sertifikat lama, disarankan menggunakan fitur Revoke & Supersede di Dashboard Admin.`
+        : "Sertifikat ini akan dibubuhi stempel QR verifikasi kriptografis permanen dan dicatat langsung ke Hyperledger Fabric Blockchain & IPFS. Pastikan seluruh data di bawah ini sudah akurat.",
       details: [
         { label: "Nama Siswa / Alumni", value: targetStudentName },
         { label: "NISN / Student ID", value: targetStudentId },
-        { label: "Nomor Sertifikat", value: preIssuedCertNumber || "-" },
+        { label: "Nomor Peserta", value: preIssuedCertNumber || "-" },
         { label: "Program / Jurusan", value: preIssuedMajor || "-" },
         { label: "Satuan Pendidikan", value: preIssuedSchoolName || "-" },
+        ...(hasDup
+          ? [
+              {
+                label: "Status Sertifikat di Sistem",
+                value: `⚠️ Sudah Terbit (#${preIssuedExistingCert.certId || preIssuedExistingCert.id})`,
+              },
+            ]
+          : []),
         {
           label: "Format Berkas",
           value:
@@ -1387,12 +1564,18 @@ export default function SmartIssueCertificatePage() {
         toast.error("Harap cari dan pilih siswa terlebih dahulu.");
         return;
       }
+
+      const hasDup = Boolean(singleExistingCert);
+
       setConfirmModal({
         isOpen: true,
         type: "standard",
-        title: "Konfirmasi Penerbitan Sertifikat Siswa",
-        description:
-          "Sertifikat resmi dan transkrip SKKNI akan dimint ke Hyperledger Fabric Blockchain dan dicatat permanen ke ledger. Pastikan seluruh nilai dan nama siswa sudah sesuai.",
+        title: hasDup
+          ? "⚠️ Konfirmasi Penerbitan Ulang Sertifikat Siswa"
+          : "Konfirmasi Penerbitan Sertifikat Siswa",
+        description: hasDup
+          ? `PERINGATAN: Siswa ${foundStudent.name} sudah memiliki sertifikat aktif #${singleExistingCert.certId || singleExistingCert.id} untuk skema/kursus ini. Menerbitkan ulang akan mencatat sertifikat baru di ledger blockchain (kecuali direvoke & supersede di Admin Dashboard).`
+          : "Sertifikat resmi dan transkrip SKKNI akan dimint ke Hyperledger Fabric Blockchain dan dicatat permanen ke ledger. Pastikan seluruh nilai dan nama siswa sudah sesuai.",
         details: [
           { label: "Nama Siswa", value: foundStudent.name },
           {
@@ -1404,6 +1587,14 @@ export default function SmartIssueCertificatePage() {
             label: "Skema / Kursus",
             value: selectedCourse?.title || "Kursus Keahlian",
           },
+          ...(hasDup
+            ? [
+                {
+                  label: "Status Sertifikat di Sistem",
+                  value: `⚠️ Sudah Terbit (#${singleExistingCert.certId || singleExistingCert.id})`,
+                },
+              ]
+            : []),
           {
             label: "Jurusan",
             value:
@@ -1431,16 +1622,31 @@ export default function SmartIssueCertificatePage() {
         );
         return;
       }
+
+      const hasDups = selectedDuplicatesCount > 0;
+
       setConfirmModal({
         isOpen: true,
         type: "standard",
-        title: `Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa)`,
-        description: `Sebanyak ${selectedStudentIds.length} sertifikat akan diterbitkan dan dicatat langsung ke Hyperledger Fabric Blockchain secara bersamaan.`,
+        title: hasDups
+          ? `⚠️ Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa - Termasuk ${selectedDuplicatesCount} Duplikat)`
+          : `Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa)`,
+        description: hasDups
+          ? `PERINGATAN: Terdapat ${selectedDuplicatesCount} dari ${selectedStudentIds.length} siswa terpilih yang sudah memiliki sertifikat untuk kursus ini. Penerbitan massal akan mencatat sertifikat baru tambahan ke Hyperledger Fabric Blockchain.`
+          : `Sebanyak ${selectedStudentIds.length} sertifikat akan diterbitkan dan dicatat langsung ke Hyperledger Fabric Blockchain secara bersamaan.`,
         details: [
           {
             label: "Jumlah Penerima",
             value: `${selectedStudentIds.length} Siswa Terpilih`,
           },
+          ...(hasDups
+            ? [
+                {
+                  label: "Peringatan Duplikasi",
+                  value: `⚠️ ${selectedDuplicatesCount} Siswa Sudah Pernah Terbit Sertifikat`,
+                },
+              ]
+            : []),
           {
             label: "Skema / Kursus",
             value: selectedCourse?.title || "Kursus Keahlian",
@@ -1601,7 +1807,8 @@ export default function SmartIssueCertificatePage() {
                   Amankan Sertifikat Fisik / Terbitan Sekolah
                 </h2>
                 <p className="text-xs text-emerald-200/70 mt-1">
-                  Bubuhkan QR Code dan identitas verifikasi otomatis pada dokumen jadi, lalu minting bukti ke Blockchain.
+                  Bubuhkan QR Code dan identitas verifikasi otomatis pada
+                  dokumen jadi, lalu minting bukti ke Blockchain.
                 </p>
               </div>
             </div>
@@ -1663,106 +1870,119 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   {/* As-You-Type Live Matching Results Container */}
-                  {preIssuedStudentSearch.trim() && isPreIssuedStudentDropdownOpen && (
-                    <div className="space-y-2 max-h-56 overflow-y-auto custom-scrollbar p-1.5 bg-slate-950/95 rounded-2xl border border-white/10 shadow-2xl">
-                      <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider px-2 pt-1">
-                        Hasil Pencarian ({filteredPreIssuedStudents.length} siswa ditemukan):
-                      </p>
+                  {preIssuedStudentSearch.trim() &&
+                    isPreIssuedStudentDropdownOpen && (
+                      <div className="space-y-2 max-h-56 overflow-y-auto custom-scrollbar p-1.5 bg-slate-950/95 rounded-2xl border border-white/10 shadow-2xl">
+                        <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider px-2 pt-1">
+                          Hasil Pencarian ({filteredPreIssuedStudents.length}{" "}
+                          siswa ditemukan):
+                        </p>
 
-                      {filteredPreIssuedStudents.length > 0 ? (
-                        filteredPreIssuedStudents.map((s) => {
-                          const sMajor =
-                            typeof s.majority === "object"
-                              ? s.majority.name
-                              : s.majority ||
-                                (typeof s.studyProgram === "object"
-                                  ? s.studyProgram.name
-                                  : s.studyProgram);
+                        {filteredPreIssuedStudents.length > 0 ? (
+                          filteredPreIssuedStudents.map((s) => {
+                            const sMajor =
+                              typeof s.majority === "object"
+                                ? s.majority.name
+                                : s.majority ||
+                                  (typeof s.studyProgram === "object"
+                                    ? s.studyProgram.name
+                                    : s.studyProgram);
 
-                          const nisnValue =
-                            s.studentId || s.nisn || s.nim || "-";
+                            const nisnValue =
+                              s.studentId || s.nisn || s.nim || "-";
 
-                          return (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => {
-                                setPreIssuedStudent(s);
-                                setPreIssuedStudentName(s.name);
-                                setPreIssuedStudentId(s.studentId || s.nisn || s.nim || s.id);
-                                setPreIssuedStudentSearch("");
-                                if (sMajor) {
-                                  setPreIssuedMajor(sMajor);
-                                  setPreIssuedProgram(sMajor);
-                                }
-                                if (s.schoolOrigin) {
-                                  setPreIssuedSchoolName(s.schoolOrigin);
-                                }
-                                setIsPreIssuedStudentDropdownOpen(false);
-                              }}
-                              className="w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/40 border border-white/5 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <Avatar className="h-8 w-8 border border-white/10 group-hover:border-emerald-500/50 shrink-0">
-                                  <AvatarFallback className="bg-slate-900 text-slate-300 group-hover:text-emerald-300 font-bold text-xs">
-                                    {getInitials(s.name)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-white group-hover:text-emerald-300 uppercase truncate">
-                                    {s.name}
-                                  </p>
-                                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] text-cyan-300 font-mono font-bold">
-                                      NISN: {nisnValue}
-                                    </span>
-                                    {sMajor && (
-                                      <span className="text-[9px] text-slate-400 truncate max-w-[150px]">
-                                        • {sMajor}
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => {
+                                  setPreIssuedStudent(s);
+                                  setPreIssuedStudentName(s.name);
+                                  setPreIssuedStudentId(
+                                    s.studentId || s.nisn || s.nim || s.id,
+                                  );
+                                  setPreIssuedStudentSearch("");
+                                  if (sMajor) {
+                                    setPreIssuedMajor(sMajor);
+                                    setPreIssuedProgram(sMajor);
+                                  }
+                                  if (s.schoolOrigin) {
+                                    setPreIssuedSchoolName(s.schoolOrigin);
+                                  }
+                                  setIsPreIssuedStudentDropdownOpen(false);
+                                }}
+                                className="w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/40 border border-white/5 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <Avatar className="h-8 w-8 border border-white/10 group-hover:border-emerald-500/50 shrink-0">
+                                    <AvatarFallback className="bg-slate-900 text-slate-300 group-hover:text-emerald-300 font-bold text-xs">
+                                      {getInitials(s.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-white group-hover:text-emerald-300 uppercase truncate">
+                                      {s.name}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] text-cyan-300 font-mono font-bold">
+                                        NISN: {nisnValue}
                                       </span>
-                                    )}
+                                      {sMajor && (
+                                        <span className="text-[9px] text-slate-400 truncate max-w-[150px]">
+                                          • {sMajor}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
 
-                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500 group-hover:text-slate-950 px-2.5 py-1 rounded-lg border border-emerald-500/30 transition-all shrink-0">
-                                Pilih &rarr;
-                              </span>
+                                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500 group-hover:text-slate-950 px-2.5 py-1 rounded-lg border border-emerald-500/30 transition-all shrink-0">
+                                  Pilih &rarr;
+                                </span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="p-3 text-center text-xs text-slate-400 space-y-2">
+                            <p>
+                              Tidak ada siswa di database dengan kata kunci ini.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const trimmed = preIssuedStudentSearch.trim();
+                                setPreIssuedStudentName(trimmed);
+                                setPreIssuedStudentId(trimmed);
+                                setPreIssuedStudentSearch("");
+                                setIsPreIssuedStudentDropdownOpen(false);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 font-bold rounded-lg text-xs hover:bg-emerald-500/30 transition-all"
+                            >
+                              Gunakan Nama/NISN Ini Langsung
                             </button>
-                          );
-                        })
-                      ) : (
-                        <div className="p-3 text-center text-xs text-slate-400 space-y-2">
-                          <p>Tidak ada siswa di database dengan kata kunci ini.</p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const trimmed = preIssuedStudentSearch.trim();
-                              setPreIssuedStudentName(trimmed);
-                              setPreIssuedStudentId(trimmed);
-                              setPreIssuedStudentSearch("");
-                              setIsPreIssuedStudentDropdownOpen(false);
-                            }}
-                            className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 font-bold rounded-lg text-xs hover:bg-emerald-500/30 transition-all"
-                          >
-                            Gunakan Nama/NISN Ini Langsung
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   {/* Explicit Editable Recipient Name and Student ID Inputs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="space-y-1 sm:col-span-2">
                       <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                        <span>Nama Lengkap Siswa Penerima <span className="text-red-400">*</span></span>
-                        <span className="text-[10px] text-slate-400 font-normal">Dapat diubah / diketik bebas</span>
+                        <span>
+                          Nama Lengkap Siswa Penerima{" "}
+                          <span className="text-red-400">*</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          Dapat diubah / diketik bebas
+                        </span>
                       </label>
                       <input
                         type="text"
                         value={preIssuedStudentName}
-                        onChange={(e) => setPreIssuedStudentName(e.target.value)}
+                        onChange={(e) =>
+                          setPreIssuedStudentName(e.target.value)
+                        }
                         placeholder="Contoh: Muhammad Farhan"
                         className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:ring-1 focus:ring-emerald-500"
                       />
@@ -1770,8 +1990,13 @@ export default function SmartIssueCertificatePage() {
 
                     <div className="space-y-1 sm:col-span-2">
                       <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                        <span>NISN / Student ID <span className="text-red-400">*</span></span>
-                        <span className="text-[10px] text-slate-400 font-normal">Nomor Induk / Identitas Siswa</span>
+                        <span>
+                          NISN / Student ID{" "}
+                          <span className="text-red-400">*</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          Nomor Induk / Identitas Siswa
+                        </span>
                       </label>
                       <input
                         type="text"
@@ -1907,8 +2132,9 @@ export default function SmartIssueCertificatePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="font-bold text-slate-300">
-                      Nomor Sertifikat
+                    <label className="font-bold text-slate-300 flex items-center justify-between">
+                      <span>Nomor Peserta Uji / Sertifikat</span>
+                      <span className="text-[10px] text-slate-400 font-normal">No. Peserta / No. Registrasi UKK</span>
                     </label>
                     <input
                       type="text"
@@ -1983,6 +2209,31 @@ export default function SmartIssueCertificatePage() {
                 </div>
               </div>
 
+              {/* Duplicate Certificate Alert Banner */}
+              {preIssuedExistingCert && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-2.5 animate-in fade-in duration-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-300">
+                      <AlertCircle size={16} className="text-amber-400 shrink-0" />
+                      <span>Perhatian: Siswa Ini Sudah Memiliki Sertifikat Aktif!</span>
+                    </div>
+                    <a
+                      href={`/verify/${preIssuedExistingCert.certId || preIssuedExistingCert.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-[11px] font-bold transition-all w-fit"
+                    >
+                      <span>Buka Sertifikat Aktif ({preIssuedExistingCert.certId || preIssuedExistingCert.id})</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                  <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                    Siswa <b>{preIssuedExistingCert.studentName || preIssuedExistingCert.name}</b> telah tercatat memiliki sertifikat pada sistem (Terbit: {new Date(preIssuedExistingCert.issuedAt || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}).
+                    Jika Anda tetap menerbitkan, sertifikat baru akan dicatat ke Ledger Blockchain. Jika ada kesalahan data pada sertifikat lama, gunakan fitur <b>Revoke & Supersede</b> di Dashboard Admin.
+                  </p>
+                </div>
+              )}
+
               {/* Action Button: Mint to Blockchain */}
               <button
                 type="button"
@@ -1991,12 +2242,21 @@ export default function SmartIssueCertificatePage() {
                   preIssuedLoading ||
                   (!preIssuedPage1File && !preIssuedPage1Preview)
                 }
-                className="w-full py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 transform active:scale-95 transition-all disabled:opacity-50 text-sm uppercase tracking-wider"
+                className={`w-full py-4 font-black rounded-2xl shadow-xl flex items-center justify-center gap-3 transform active:scale-95 transition-all disabled:opacity-50 text-sm uppercase tracking-wider ${
+                  preIssuedExistingCert
+                    ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/25 ring-2 ring-amber-400/40"
+                    : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 shadow-emerald-500/25"
+                }`}
               >
                 {preIssuedLoading ? (
                   <>
                     <Loader2 size={20} className="animate-spin" />
                     <span>Membubuhkan QR & Menerbitkan ke Ledger...</span>
+                  </>
+                ) : preIssuedExistingCert ? (
+                  <>
+                    <AlertCircle size={20} className="text-slate-950" />
+                    <span>⚠️ Tetap Terbitkan Ulang Sertifikat (Duplikat / Pengganti)</span>
                   </>
                 ) : (
                   <>
@@ -2024,20 +2284,21 @@ export default function SmartIssueCertificatePage() {
                       <Award size={14} />
                       <span>Halaman 1 (Depan)</span>
                     </button>
-                    {preIssuedPageMode === "DOUBLE" && preIssuedPage2Preview && (
-                      <button
-                        type="button"
-                        onClick={() => setPreIssuedActivePreviewPage("page2")}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          preIssuedActivePreviewPage === "page2"
-                            ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <FileText size={14} />
-                        <span>Halaman 2 (Transkrip)</span>
-                      </button>
-                    )}
+                    {preIssuedPageMode === "DOUBLE" &&
+                      preIssuedPage2Preview && (
+                        <button
+                          type="button"
+                          onClick={() => setPreIssuedActivePreviewPage("page2")}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                            preIssuedActivePreviewPage === "page2"
+                              ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
+                              : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          <FileText size={14} />
+                          <span>Halaman 2 (Transkrip)</span>
+                        </button>
+                      )}
                   </div>
 
                   {/* Zoom Controls */}
@@ -2504,9 +2765,23 @@ export default function SmartIssueCertificatePage() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <p className="font-bold text-white">
-                                      {std.name}
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-bold text-white">
+                                        {std.name}
+                                      </p>
+                                      {Boolean(
+                                        courseExistingCerts.byUserId[std.id] ||
+                                          (std.studentId &&
+                                            courseExistingCerts.byStudentId[
+                                              std.studentId
+                                            ]),
+                                      ) && (
+                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold flex items-center gap-1">
+                                          <AlertCircle size={10} />
+                                          <span>Sudah Bersertifikat</span>
+                                        </span>
+                                      )}
+                                    </div>
                                     <p className="text-[10px] text-slate-400 truncate">
                                       {std.email}
                                     </p>
@@ -2720,54 +2995,79 @@ export default function SmartIssueCertificatePage() {
                   </div>
 
                   {/* Batch Issuance Bottom Bar */}
-                  <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs text-slate-300 font-medium">
-                        Total <b>{selectedStudentIds.length} sertifikat</b> siap
-                        diterbitkan & dikunci ke ledger blockchain.
-                      </p>
-                    </div>
+                  <div className="pt-4 border-t border-white/10 space-y-3">
+                    {selectedDuplicatesCount > 0 && (
+                      <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle size={16} className="text-amber-400 shrink-0" />
+                          <span>
+                            <b>Perhatian:</b> Sebanyak <b>{selectedDuplicatesCount} dari {selectedStudentIds.length} siswa</b> terpilih sudah memiliki sertifikat untuk kursus ini.
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-amber-300/80 hidden sm:inline">
+                          Sertifikat baru akan diterbitkan on-chain kecuali jika ingin merevoke di Admin Dashboard.
+                        </span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (selectedStudentIds.length > 0) {
-                            const firstStd = allStudents.find(
-                              (s) => s.id === selectedStudentIds[0],
-                            );
-                            if (firstStd) handleOpenPreviewForStudent(firstStd);
-                          }
-                        }}
-                        className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                      >
-                        <Eye size={16} /> Pratinjau Duplex Sample
-                      </button>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs text-slate-300 font-medium">
+                          Total <b>{selectedStudentIds.length} sertifikat</b> siap
+                          diterbitkan & dikunci ke ledger blockchain.
+                        </p>
+                      </div>
 
-                      <button
-                        type="button"
-                        onClick={handleExecuteIssue}
-                        disabled={loadingIssue}
-                        className="flex-1 sm:flex-initial px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-95 text-slate-950 font-bold rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 text-xs uppercase tracking-wider transform active:scale-95 transition-all disabled:opacity-50"
-                      >
-                        {loadingIssue ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            <span>
-                              Menerbitkan {batchProgress?.current || 0}/
-                              {batchProgress?.total || 0}...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Send size={16} />
-                            <span>
-                              Terbitkan {selectedStudentIds.length} Sertifikat
-                              Massal
-                            </span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedStudentIds.length > 0) {
+                              const firstStd = allStudents.find(
+                                (s) => s.id === selectedStudentIds[0],
+                              );
+                              if (firstStd) handleOpenPreviewForStudent(firstStd);
+                            }
+                          }}
+                          className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                        >
+                          <Eye size={16} /> Pratinjau Duplex Sample
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleRequestExecuteIssue}
+                          disabled={loadingIssue}
+                          className={`flex-1 sm:flex-initial px-8 py-3.5 font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider transform active:scale-95 transition-all disabled:opacity-50 ${
+                            selectedDuplicatesCount > 0
+                              ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/20 ring-2 ring-amber-400/40"
+                              : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-95 text-slate-950 shadow-emerald-500/20"
+                          }`}
+                        >
+                          {loadingIssue ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" />
+                              <span>
+                                Menerbitkan {batchProgress?.current || 0}/
+                                {batchProgress?.total || 0}...
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              {selectedDuplicatesCount > 0 ? (
+                                <AlertCircle size={16} />
+                              ) : (
+                                <Send size={16} />
+                              )}
+                              <span>
+                                {selectedDuplicatesCount > 0
+                                  ? `⚠️ Terbitkan ${selectedStudentIds.length} Sertifikat (${selectedDuplicatesCount} Duplikat)`
+                                  : `Terbitkan ${selectedStudentIds.length} Sertifikat Massal`}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2939,6 +3239,30 @@ export default function SmartIssueCertificatePage() {
                       </div>
                     </div>
 
+                    {/* Duplicate Certificate Alert in Single Mode */}
+                    {singleExistingCert && (
+                      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-2 animate-in fade-in duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 font-bold text-amber-300">
+                            <AlertCircle size={16} className="text-amber-400 shrink-0" />
+                            <span>Perhatian: Siswa Ini Sudah Memiliki Sertifikat untuk Kursus Ini!</span>
+                          </div>
+                          <a
+                            href={`/verify/${singleExistingCert.certId || singleExistingCert.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-[11px] font-bold transition-all w-fit"
+                          >
+                            <span>Buka Sertifikat Aktif ({singleExistingCert.certId || singleExistingCert.id})</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                          Sertifikat untuk <b>{foundStudent.name}</b> pada skema ini telah terdaftar sejak {new Date(singleExistingCert.issuedAt || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}. Jika Anda ingin memperbaiki data lama, gunakan fitur Revoke & Supersede di Admin Dashboard.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="pt-4 border-t border-white/10 flex justify-end">
                       <button
                         type="button"
@@ -2946,10 +3270,23 @@ export default function SmartIssueCertificatePage() {
                           handleOpenPreviewForStudent(foundStudent)
                         }
                         disabled={!courseId}
-                        className="px-8 py-3.5 bg-gradient-to-r from-fuchsia-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white font-bold rounded-2xl shadow-xl shadow-fuchsia-500/20 flex items-center justify-center gap-2 transform active:scale-98 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
+                        className={`px-8 py-3.5 font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 transform active:scale-98 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-wider ${
+                          singleExistingCert
+                            ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/20 ring-2 ring-amber-400/40"
+                            : "bg-gradient-to-r from-fuchsia-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white shadow-fuchsia-500/20"
+                        }`}
                       >
-                        <Award size={16} />
-                        Pratinjau & Terbitkan Sertifikat
+                        {singleExistingCert ? (
+                          <>
+                            <AlertCircle size={16} />
+                            <span>⚠️ Pratinjau & Terbitkan Ulang (Sudah Ada Sertifikat)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Award size={16} />
+                            <span>Pratinjau & Terbitkan Sertifikat</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -2999,7 +3336,10 @@ export default function SmartIssueCertificatePage() {
 
             {/* Warning Alert */}
             <div className="my-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
-              <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+              <AlertCircle
+                size={18}
+                className="text-amber-400 shrink-0 mt-0.5"
+              />
               <p className="text-xs text-amber-200/90 leading-relaxed">
                 {confirmModal.description}
               </p>
@@ -3008,7 +3348,10 @@ export default function SmartIssueCertificatePage() {
             {/* Summary Details */}
             <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 space-y-2.5 text-xs">
               {confirmModal.details.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between gap-4 pb-2 border-b border-white/5 last:border-b-0 last:pb-0">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between gap-4 pb-2 border-b border-white/5 last:border-b-0 last:pb-0"
+                >
                   <span className="text-slate-400 uppercase font-semibold text-[10px]">
                     {item.label}
                   </span>
@@ -3032,10 +3375,22 @@ export default function SmartIssueCertificatePage() {
               <button
                 type="button"
                 onClick={confirmModal.onConfirm}
-                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 flex items-center gap-2 active:scale-95"
+                className={`px-6 py-2.5 font-black rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 active:scale-95 ${
+                  confirmModal.title.includes("⚠️") || confirmModal.title.includes("Duplikat") || confirmModal.title.includes("Penerbitan Ulang")
+                    ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/25 ring-2 ring-amber-400/40"
+                    : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/25"
+                }`}
               >
-                <CheckCircle2 size={16} />
-                <span>Yakin & Terbitkan ke Blockchain ⚡</span>
+                {confirmModal.title.includes("⚠️") ? (
+                  <AlertCircle size={16} />
+                ) : (
+                  <CheckCircle2 size={16} />
+                )}
+                <span>
+                  {confirmModal.title.includes("⚠️")
+                    ? "⚠️ Yakin & Terbitkan Ulang ke Blockchain"
+                    : "Yakin & Terbitkan ke Blockchain ⚡"}
+                </span>
               </button>
             </div>
           </div>
@@ -3326,7 +3681,11 @@ export default function SmartIssueCertificatePage() {
                   type="button"
                   onClick={handleRequestExecuteIssue}
                   disabled={loadingIssue}
-                  className="px-7 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
+                  className={`px-7 py-2.5 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transform active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-wider ${
+                    (issueMode === "single" && singleExistingCert) || (issueMode === "batch" && selectedDuplicatesCount > 0)
+                      ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/25 ring-2 ring-amber-400/40"
+                      : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/25"
+                  }`}
                 >
                   {loadingIssue ? (
                     <>
@@ -3335,11 +3694,19 @@ export default function SmartIssueCertificatePage() {
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={16} />
+                      {((issueMode === "single" && singleExistingCert) || (issueMode === "batch" && selectedDuplicatesCount > 0)) ? (
+                        <AlertCircle size={16} />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
                       <span>
                         {issueMode === "batch"
-                          ? `Terbitkan ${selectedStudentIds.length} Sertifikat Sekarang`
-                          : "Terbitkan Sertifikat Siswa Ini"}
+                          ? selectedDuplicatesCount > 0
+                            ? `⚠️ Terbitkan ${selectedStudentIds.length} Sertifikat (${selectedDuplicatesCount} Duplikat)`
+                            : `Terbitkan ${selectedStudentIds.length} Sertifikat Sekarang`
+                          : singleExistingCert
+                            ? "⚠️ Tetap Terbitkan Ulang Sertifikat"
+                            : "Terbitkan Sertifikat Siswa Ini"}
                       </span>
                     </>
                   )}
@@ -3386,7 +3753,10 @@ export default function SmartIssueCertificatePage() {
             preIssuedSuccessResult.record?.cid ||
             "";
           const frontUrl =
-            (cid && !cid.startsWith("PENDING") && !cid.startsWith("undefined") && !cid.startsWith("http")
+            (cid &&
+            !cid.startsWith("PENDING") &&
+            !cid.startsWith("undefined") &&
+            !cid.startsWith("http")
               ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${cid.replace(/^ipfs:\/\//, "")}`
               : "") ||
             preIssuedSuccessResult.frontUrl ||
@@ -3407,7 +3777,7 @@ export default function SmartIssueCertificatePage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        Sertifikat Jadi Berhasil Diamankan!
+                        Sertifikat Jadi Berhasil Dicetak!
                         <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                           On-Chain Verified
                         </span>
@@ -3442,7 +3812,7 @@ export default function SmartIssueCertificatePage() {
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-bold">
-                        Nomor Sertifikat Resmi
+                        Nomor Peserta / Sertifikat
                       </p>
                       <p className="text-sm font-mono font-bold text-emerald-400 mt-0.5">
                         {certNumber}

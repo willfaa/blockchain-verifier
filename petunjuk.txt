@@ -45,7 +45,7 @@ A. Jalankan perintah deployCC (Pastikan flag -c chainnesa disertakan):
      -cci InitLedger
 
 -----------------------------------------------------------------------------
-4. PENGUJIAN / VALIDASI VIA PEER CLI (Jalankan di WSL)
+4. PENGUJIAN / VALIDASI VIA PEER CLI & QUERY DATA (Jalankan di WSL)
 -----------------------------------------------------------------------------
 A. Set Environment variables terlebih dahulu (Gunakan absolute path agar bisa dijalankan dari folder mana saja di WSL):
    export PATH=~/fabric-samples/bin:$PATH
@@ -60,8 +60,33 @@ B. Check list channel & chaincode terinstall:
    peer channel list
    peer lifecycle chaincode queryinstalled
 
-C. Query data awal (pastikan CORE_PEER di atas sudah di-export):
+C. Query SELURUH data sertifikat di ledger:
+   # Output standar:
    peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}'
+   
+   # Output rapi & terformat JSON (Gunakan jq):
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq .
+
+D. Query data SPESIFIK berdasarkan ID Sertifikat (certId):
+   peer chaincode query -C chainnesa -n basic -c '{"function":"ReadCertificate","Args":["<CERT_ID>"]}' | jq .
+   # Contoh:
+   peer chaincode query -C chainnesa -n basic -c '{"function":"ReadCertificate","Args":["4cb4c5b3-c1ea-42b7-84bc-2f92f2549a37"]}' | jq .
+
+E. Query data SPESIFIK Siswa / User (Filter via jq):
+   # 1. Filter berdasarkan NISN / Student ID:
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq '.[] | select(.student_id=="2024001")'
+   
+   # 2. Filter berdasarkan Nama Siswa (Case-Insensitive):
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq '.[] | select(.name | test("Budi"; "i"))'
+   
+   # 3. Filter berdasarkan Status (ISSUED / SUPERSEDED / REVOKED):
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq '.[] | select(.status=="ISSUED")'
+   
+   # 4. Hitung total sertifikat yang tercatat di ledger:
+   peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq 'length'
+
+F. Cek keberadaan sertifikat di ledger (Boolean true/false):
+   peer chaincode query -C chainnesa -n basic -c '{"function":"CertificateExists","Args":["<CERT_ID>"]}'
 
 -----------------------------------------------------------------------------
 5. KONFIGURASI BACKEND & WALLET SINKRONISASI

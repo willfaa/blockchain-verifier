@@ -350,6 +350,42 @@ export async function insertCertificateToSupabase(certRecord: any) {
   }
 }
 
+export async function updateCertificateInSupabase(idOrCertId: string, updates: any) {
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrCertId.trim());
+    const filter = isUuid ? `or=(id.eq.${idOrCertId},certId.eq.${idOrCertId})` : `certId=eq.${idOrCertId}`;
+    const url = `${SUPABASE_API_URL}/rest/v1/certificates?${filter}`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        ...getHeaders(),
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Failed to update certificate in database");
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data[0] : data;
+  } catch (err: any) {
+    console.error("[Supabase Update Certificate Error]:", err.message);
+    throw err;
+  }
+}
+
+export async function updateCorrectionRequestInSupabase(requestId: string, updates: any) {
+  try {
+    const url = `${SUPABASE_API_URL}/rest/v1/certificate_correction_requests?id=eq.${encodeURIComponent(requestId)}`;
+    await fetch(url, {
+      method: "PATCH",
+      headers: getHeaders(),
+      body: JSON.stringify(updates),
+    });
+  } catch (e) {}
+}
+
 export async function fetchCourseUnitsFromSupabase(courseId: string) {
   try {
     const url = `${SUPABASE_API_URL}/rest/v1/course_competency_units?courseId.eq.${encodeURIComponent(courseId)}&order=order.asc`;

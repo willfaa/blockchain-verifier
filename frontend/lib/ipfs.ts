@@ -78,8 +78,13 @@ export async function pinFileToPinata(
 
   try {
     const formData = new FormData();
-    const blob = new Blob([new Uint8Array(fileBuffer)], { type: mimeType });
-    formData.append("file", blob, filename);
+    const bufArray = new Uint8Array(Buffer.from(fileBuffer));
+    const filePayload =
+      typeof File !== "undefined"
+        ? new File([bufArray as any], filename, { type: mimeType })
+        : new Blob([bufArray as any], { type: mimeType });
+
+    formData.append("file", filePayload, filename);
     formData.append("pinataMetadata", JSON.stringify({ name: filename }));
     formData.append("pinataOptions", JSON.stringify({ cidVersion: 0 }));
 
@@ -89,7 +94,7 @@ export async function pinFileToPinata(
         ...authHeaders,
       },
       body: formData,
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!res.ok) {
