@@ -121,9 +121,8 @@ C. Container Docker Mati (Exited / Stopped)
    - Gejala: Error saat backend melakukan query ke channel/peer.
    - Solusi: Nyalakan ulang semua container yang mati tanpa restart network total:
      docker start $(docker ps -aq -f status=exited)
-   - Jika masih gagal, lakukan down-up bersih:
-      cd ~/fabric-samples/test-network && ./network.sh down && ./network.sh up createChannel -c chainnesa -ca
-
+   - Jika masih gagal, lakukan down-up bersih
+    
 D. Daemon Docker Tidak Terdeteksi di WSL
    - Gejala: `Cannot connect to the Docker daemon...`
    - Solusi:
