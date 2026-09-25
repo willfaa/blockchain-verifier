@@ -1911,46 +1911,120 @@ export const getDepartments = async (req: Request, res: Response) => {
 export const getCourseCompetencyUnits = async (req: Request, res: Response) => {
   try {
     const { id: courseId } = req.params;
-    let units = await db.courseCompetencyUnit.findMany({
-      where: { courseId },
-      orderBy: { order: "asc" },
-    });
+    const { konsentrasiId, syncFromMaster } = req.query;
 
-    if (units.length === 0) {
-      const course = await db.course.findUnique({
-        where: { id: courseId },
-        select: { studyProgram: true, title: true },
+    // 1. If explicitly requesting units for a specific Master Konsentrasi
+    if (konsentrasiId) {
+      const masterUnits = await db.masterCompetencyUnit.findMany({
+        where: { konsentrasiKeahlianId: String(konsentrasiId) },
+        include: {
+          konsentrasiKeahlian: true,
+        },
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       });
 
-      if (course?.studyProgram) {
-        const konsentrasi = await db.konsentrasiKeahlian.findFirst({
-          where: {
-            OR: [
-              { name: { equals: course.studyProgram, mode: "insensitive" } },
-              { name: { contains: course.studyProgram, mode: "insensitive" } },
-            ],
-          },
-          include: {
-            masterUnits: {
-              orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-            },
-          },
-        });
-
-        if (konsentrasi && konsentrasi.masterUnits.length > 0) {
-          units = konsentrasi.masterUnits.map((mu) => ({
+      if (masterUnits.length > 0) {
+        return res.json({
+          ok: true,
+          source: "MASTER_BANK",
+          konsentrasiId: String(konsentrasiId),
+          konsentrasiName: masterUnits[0].konsentrasiKeahlian?.name || "",
+          data: masterUnits.map((mu) => ({
             id: mu.id,
             courseId,
             code: mu.code,
             title: mu.title,
             standard: mu.standard,
             order: mu.order,
-          }));
-        }
+          })),
+        });
       }
     }
 
-    return res.json({ ok: true, data: units });
+    // 2. Check course-specific units if not forcing sync from master
+    if (syncFromMaster !== "true") {
+      let units = await db.courseCompetencyUnit.findMany({
+        where: { courseId },
+        orderBy: { order: "asc" },
+      });
+
+      if (units.length > 0) {
+        return res.json({ ok: true, source: "COURSE_CUSTOM", data: units });
+      }
+    }
+
+    // 3. Fallback to matching Konsentrasi by Course's studyProgram or title
+    const course = await db.course.findUnique({
+      where: { id: courseId },
+      select: { studyProgram: true, title: true },
+    });
+
+    let konsentrasi = null;
+    if (course?.studyProgram) {
+      konsentrasi = await db.konsentrasiKeahlian.findFirst({
+        where: {
+          OR: [
+            { name: { equals: course.studyProgram, mode: "insensitive" } },
+            { name: { contains: course.studyProgram, mode: "insensitive" } },
+          ],
+        },
+        include: {
+          masterUnits: {
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          },
+        },
+      });
+    }
+
+    if (!konsentrasi && course?.title) {
+      konsentrasi = await db.konsentrasiKeahlian.findFirst({
+        where: {
+          OR: [
+            { name: { contains: course.title, mode: "insensitive" } },
+            { name: { in: course.title.split(" ") } },
+          ],
+        },
+        include: {
+          masterUnits: {
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          },
+        },
+      });
+    }
+
+    // 4. If still no konsentrasi found, grab first available konsentrasi with master units
+    if (!konsentrasi || konsentrasi.masterUnits.length === 0) {
+      konsentrasi = await db.konsentrasiKeahlian.findFirst({
+        where: {
+          masterUnits: { some: {} },
+        },
+        include: {
+          masterUnits: {
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          },
+        },
+      });
+    }
+
+    if (konsentrasi && konsentrasi.masterUnits.length > 0) {
+      const formatted = konsentrasi.masterUnits.map((mu) => ({
+        id: mu.id,
+        courseId,
+        code: mu.code,
+        title: mu.title,
+        standard: mu.standard,
+        order: mu.order,
+      }));
+      return res.json({
+        ok: true,
+        source: "MASTER_BANK",
+        konsentrasiId: konsentrasi.id,
+        konsentrasiName: konsentrasi.name,
+        data: formatted,
+      });
+    }
+
+    return res.json({ ok: true, source: "EMPTY", data: [] });
   } catch (err: any) {
     console.error("[LMS] getCourseCompetencyUnits Error:", err.message);
     return res.status(500).json({ error: "Failed to fetch competency units" });

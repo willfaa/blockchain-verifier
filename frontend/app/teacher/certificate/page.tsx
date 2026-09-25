@@ -129,6 +129,17 @@ export default function SmartIssueCertificatePage() {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [majorsList, setMajorsList] = useState<any[]>([]);
 
+  // Expertise Field (Konsentrasi Keahlian) Sync State
+  const [selectedKonsentrasiId, setSelectedKonsentrasiId] = useState<string>("");
+  const [isSyncingUnits, setIsSyncingUnits] = useState<boolean>(false);
+  const [customUnitModalOpen, setCustomUnitModalOpen] = useState<boolean>(false);
+  const [customUnitForm, setCustomUnitForm] = useState({
+    code: "",
+    title: "",
+    standard: "SKKNI",
+    score: "90.00",
+  });
+
   // Page Format & Master Units State
   const [pageMode, setPageMode] = useState<"SINGLE" | "DOUBLE">("DOUBLE");
   const [availableUnits, setAvailableUnits] = useState<CompetencyItem[]>([]);
@@ -474,12 +485,87 @@ export default function SmartIssueCertificatePage() {
     }).length;
   }, [selectedStudentIds, allStudents, courseExistingCerts]);
 
+  // Helper: Load Master Units from Admin Expertise Field (Konsentrasi Keahlian)
+  const loadUnitsFromExpertiseKonsentrasi = async (
+    targetKonsentrasiId: string,
+    showToast = false,
+  ) => {
+    if (!targetKonsentrasiId) return;
+    setIsSyncingUnits(true);
+    try {
+      const res = await api.get(
+        `/admin/departments/units?konsentrasiId=${targetKonsentrasiId}`,
+      );
+      if (
+        res.data.ok &&
+        Array.isArray(res.data.data) &&
+        res.data.data.length > 0
+      ) {
+        const mapped: CompetencyItem[] = res.data.data.map(
+          (u: any, idx: number) => ({
+            code: u.code || `UNIT-${idx + 1}`,
+            title: u.title || `Unit Kompetensi ${idx + 1}`,
+            standard: u.standard || "SKKNI",
+            score: "90.00",
+            result: "KOMPETEN",
+          }),
+        );
+        setAvailableUnits(mapped);
+        setSelectedUnitCodes(mapped.map((u) => u.code || ""));
+
+        const initialScores: Record<string, string> = {};
+        mapped.forEach((u) => {
+          if (u.code) initialScores[u.code] = "90.00";
+        });
+        setDefaultUnitScores(initialScores);
+
+        // Also update batch scores
+        setBatchScores((prev) => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach((sId) => {
+            updated[sId] = {
+              ...updated[sId],
+              scores: { ...initialScores },
+            };
+          });
+          return updated;
+        });
+
+        const targetKons = majorsList.find(
+          (m) => m.id === targetKonsentrasiId,
+        );
+        if (showToast) {
+          toast.success(
+            `Unit kompetensi berhasil disinkronkan dengan Master Bank Admin (${targetKons?.name || "Keahlian"}).`,
+            {
+              description: `Memuat ${mapped.length} unit kompetensi standar kurikulum.`,
+            },
+          );
+        }
+      } else {
+        if (showToast) {
+          toast.info(
+            "Konsentrasi keahlian ini belum memiliki unit di Master Bank Admin. Anda dapat menambahkan Unit Custom.",
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load units from expertise field:", err);
+      if (showToast) {
+        toast.error("Gagal menyinkronkan unit kompetensi dari Master Bank.");
+      }
+    } finally {
+      setIsSyncingUnits(false);
+    }
+  };
+
   // 2. Fetch Course / Master Competency Units when Course Selection Changes
   useEffect(() => {
     if (!courseId) {
       setSelectedCourse(null);
       setAvailableUnits([]);
       setSelectedUnitCodes([]);
+      setSelectedKonsentrasiId("");
       return;
     }
 
@@ -490,9 +576,45 @@ export default function SmartIssueCertificatePage() {
       setSchoolOrigin(matched.schoolName);
     }
 
+    // Auto-detect matching Konsentrasi Keahlian from Admin Expertise Fields
+    let detectedKonsentrasiId = "";
+    if (majorsList.length > 0) {
+      const courseProg = (matched?.studyProgram || "").toLowerCase().trim();
+      const courseTitle = (matched?.title || "").toLowerCase().trim();
+
+      const exactMatch = majorsList.find(
+        (m) =>
+          courseProg &&
+          (m.name.toLowerCase() === courseProg ||
+            m.name.toLowerCase().includes(courseProg) ||
+            courseProg.includes(m.name.toLowerCase())),
+      );
+
+      const titleMatch = majorsList.find(
+        (m) =>
+          courseTitle &&
+          (courseTitle.includes(m.name.toLowerCase()) ||
+            m.name.toLowerCase().includes(courseTitle)),
+      );
+
+      if (exactMatch) {
+        detectedKonsentrasiId = exactMatch.id;
+      } else if (titleMatch) {
+        detectedKonsentrasiId = titleMatch.id;
+      } else if (majorsList.length > 0) {
+        detectedKonsentrasiId = majorsList[0].id;
+      }
+    }
+
+    if (detectedKonsentrasiId) {
+      setSelectedKonsentrasiId(detectedKonsentrasiId);
+    }
+
     setLoadingUnits(true);
     api
-      .get(`/lms/courses/${courseId}/competency-units`)
+      .get(
+        `/lms/courses/${courseId}/competency-units${detectedKonsentrasiId ? `?konsentrasiId=${detectedKonsentrasiId}` : ""}`,
+      )
       .then((res) => {
         if (
           res.data.ok &&
@@ -519,6 +641,12 @@ export default function SmartIssueCertificatePage() {
             if (u.code) initialScores[u.code] = String(u.score || "90.00");
           });
           setDefaultUnitScores(initialScores);
+
+          if (res.data.konsentrasiId) {
+            setSelectedKonsentrasiId(res.data.konsentrasiId);
+          }
+        } else if (detectedKonsentrasiId) {
+          loadUnitsFromExpertiseKonsentrasi(detectedKonsentrasiId, false);
         } else {
           // Provide standard initial vocational units fallback
           const standardFallbacks: CompetencyItem[] = [
@@ -568,27 +696,12 @@ export default function SmartIssueCertificatePage() {
         }
       })
       .catch(() => {
-        const standardFallbacks: CompetencyItem[] = [
-          {
-            code: "J.620100.004.01",
-            title: "Memahami dasar pemrograman",
-            score: "90.00",
-            standard: "SKKNI",
-            result: "KOMPETEN",
-          },
-          {
-            code: "J.620100.009.02",
-            title: "Memahami tipe data dan variable",
-            score: "90.00",
-            standard: "SKKNI",
-            result: "KOMPETEN",
-          },
-        ];
-        setAvailableUnits(standardFallbacks);
-        setSelectedUnitCodes(standardFallbacks.map((u) => u.code || ""));
+        if (detectedKonsentrasiId) {
+          loadUnitsFromExpertiseKonsentrasi(detectedKonsentrasiId, false);
+        }
       })
       .finally(() => setLoadingUnits(false));
-  }, [courseId, courses]);
+  }, [courseId, courses, majorsList]);
 
   // Active units included in transcript based on teacher checklist
   const activeTranscriptUnits = useMemo(() => {
@@ -695,30 +808,68 @@ export default function SmartIssueCertificatePage() {
     }
   };
 
-  // Add a new Custom Unit on the fly
+  // Add a new Custom Unit on the fly (Open Modal)
   const handleAddNewCustomUnit = () => {
-    const newCode = `UNIT-CUST-${availableUnits.length + 1}`;
+    setCustomUnitForm({
+      code: `UNIT-CUST-${availableUnits.length + 1}`,
+      title: "",
+      standard: "SKKNI",
+      score: "90.00",
+    });
+    setCustomUnitModalOpen(true);
+  };
+
+  // Save new custom unit from modal
+  const handleSaveCustomUnit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customUnitForm.code.trim() || !customUnitForm.title.trim()) {
+      toast.error("Kode Unit dan Judul Unit Kompetensi wajib diisi.");
+      return;
+    }
+
+    const newCode = customUnitForm.code.trim();
+    if (availableUnits.some((u) => u.code === newCode)) {
+      toast.error(`Kode unit ${newCode} sudah ada di daftar.`);
+      return;
+    }
+
     const newUnit: CompetencyItem = {
       code: newCode,
-      title: "Unit Kompetensi Proyek Khusus",
-      standard: "IDUKA",
-      score: "90.00",
+      title: customUnitForm.title.trim(),
+      standard: customUnitForm.standard || "IDUKA",
+      score: customUnitForm.score || "90.00",
       result: "KOMPETEN",
     };
+
     setAvailableUnits((prev) => [...prev, newUnit]);
     setSelectedUnitCodes((prev) => [...prev, newCode]);
-    setDefaultUnitScores((prev) => ({ ...prev, [newCode]: "90.00" }));
+    setDefaultUnitScores((prev) => ({
+      ...prev,
+      [newCode]: customUnitForm.score || "90.00",
+    }));
 
     // Update existing batch records with new unit
     setBatchScores((prev) => {
       const copy = { ...prev };
       Object.keys(copy).forEach((sId) => {
-        copy[sId].scores[newCode] = "90.00";
+        copy[sId].scores[newCode] = customUnitForm.score || "90.00";
       });
       return copy;
     });
 
-    toast.success("Unit kompetensi baru berhasil ditambahkan ke daftar.");
+    setCustomUnitModalOpen(false);
+    toast.success("Unit kompetensi kustom berhasil ditambahkan ke transkrip.");
+  };
+
+  // Delete / Exclude a unit
+  const handleDeleteUnit = (unitCode: string) => {
+    if (availableUnits.length <= 1) {
+      toast.warning("Minimal harus ada 1 unit kompetensi di transkrip.");
+      return;
+    }
+    setAvailableUnits((prev) => prev.filter((u) => u.code !== unitCode));
+    setSelectedUnitCodes((prev) => prev.filter((c) => c !== unitCode));
+    toast.success(`Unit ${unitCode} berhasil dihapus dari daftar.`);
   };
 
   // Update Individual Student Score in Batch Table
@@ -2534,21 +2685,42 @@ export default function SmartIssueCertificatePage() {
 
           {/* --- STEP 2: MASTER COMPETENCY UNITS CHECKLIST (IF 2-PAGE MODE & COURSE SELECTED) --- */}
           {pageMode === "DOUBLE" && courseId && (
-            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-5 shadow-xl animate-in fade-in duration-300">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <FileText size={16} className="text-amber-400" />
-                    Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI /
-                    IDUKA)
+                    Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI / IDUKA)
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Centang unit kompetensi yang diikutsertakan dalam transkrip
-                    nilai sertifikat siswa.
+                    Pilih dan sinkronkan unit kompetensi dari Master Expertise Fields Admin atau tambahkan unit khusus industri.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      loadUnitsFromExpertiseKonsentrasi(
+                        selectedKonsentrasiId,
+                        true,
+                      )
+                    }
+                    disabled={isSyncingUnits || !selectedKonsentrasiId}
+                    className="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    title="Sinkronkan ulang daftar unit kompetensi dari database Master Bank Admin"
+                  >
+                    <RefreshCw
+                      size={14}
+                      className={isSyncingUnits ? "animate-spin" : ""}
+                    />
+                    <span>
+                      {isSyncingUnits
+                        ? "Menyinkronkan..."
+                        : "Sinkronkan dari Master Admin"}
+                    </span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleAddNewCustomUnit}
@@ -2559,28 +2731,130 @@ export default function SmartIssueCertificatePage() {
                 </div>
               </div>
 
+              {/* Master Expertise Field (Konsentrasi Keahlian) Selector Bar */}
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex-1 space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <Layers size={14} className="text-cyan-400" />
+                    <span>Sinkronisasi Bank Keahlian (Admin Expertise Field)</span>
+                  </label>
+                  <Select
+                    value={selectedKonsentrasiId}
+                    onValueChange={(val) => {
+                      setSelectedKonsentrasiId(val);
+                      loadUnitsFromExpertiseKonsentrasi(val, true);
+                    }}
+                  >
+                    <SelectTrigger className="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:ring-cyan-500 h-11">
+                      <SelectValue placeholder="-- Pilih Konsentrasi Keahlian / Jurusan dari Master Admin --" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-64">
+                      {majorsList.length > 0 ? (
+                        majorsList.map((m: any) => {
+                          const progName = m.programKeahlian?.name || "";
+                          const bidangName =
+                            m.programKeahlian?.bidangKeahlian?.name || "";
+                          return (
+                            <SelectItem
+                              key={m.id}
+                              value={m.id}
+                              className="cursor-pointer py-2 text-xs"
+                            >
+                              <div className="flex flex-col text-left">
+                                <span className="font-semibold text-white">
+                                  {m.name}
+                                </span>
+                                {progName && (
+                                  <span className="text-[10px] text-slate-400">
+                                    {bidangName ? `${bidangName} › ` : ""}
+                                    {progName}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })
+                      ) : (
+                        <div className="p-3 text-xs text-slate-400 text-center">
+                          Belum ada data konsentrasi keahlian di Master Admin.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedUnitCodes(
+                        availableUnits.map((u) => u.code || ""),
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5"
+                  >
+                    <CheckSquare size={13} /> Pilih Semua ({availableUnits.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        availableUnits.length > 0 &&
+                        availableUnits[0].code
+                      ) {
+                        setSelectedUnitCodes([availableUnits[0].code]);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-slate-400 hover:text-white border border-white/10 transition-all"
+                  >
+                    Pilih Minimal (1)
+                  </button>
+                </div>
+              </div>
+
               {/* Units Inclusion Checklist */}
-              {loadingUnits ? (
-                <div className="py-8 flex items-center justify-center gap-2 text-cyan-400 text-xs font-mono">
-                  <RefreshCw size={16} className="animate-spin" /> Memuat unit
-                  kompetensi...
+              {loadingUnits || isSyncingUnits ? (
+                <div className="py-10 flex items-center justify-center gap-2.5 text-cyan-400 text-xs font-mono bg-slate-950/40 rounded-2xl border border-white/5">
+                  <RefreshCw size={16} className="animate-spin" />
+                  <span>
+                    Menyinkronkan unit kompetensi dari Master Bank Admin...
+                  </span>
+                </div>
+              ) : availableUnits.length === 0 ? (
+                <div className="py-10 text-center bg-slate-950/40 rounded-2xl border border-dashed border-white/10 space-y-2 p-6">
+                  <AlertCircle size={28} className="mx-auto text-amber-400/80" />
+                  <p className="text-xs font-semibold text-slate-300">
+                    Belum ada unit kompetensi untuk konsentrasi ini di Master
+                    Bank Admin.
+                  </p>
+                  <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                    Admin dapat mengisi unit SKKNI di menu <b>Expertise Fields</b>{" "}
+                    atau Guru dapat menambahkan unit custom secara mandiri.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddNewCustomUnit}
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold transition-all"
+                  >
+                    <Plus size={14} /> Tambah Unit Kompetensi Sekarang
+                  </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {availableUnits.map((u) => {
+                  {availableUnits.map((u, idx) => {
                     const isChecked = u.code
                       ? selectedUnitCodes.includes(u.code)
                       : false;
 
                     return (
                       <div
-                        key={u.code}
+                        key={u.code || idx}
                         onClick={() =>
                           u.code && handleToggleUnitInclusion(u.code)
                         }
-                        className={`p-3.5 rounded-2xl border cursor-pointer select-none transition-all flex items-start gap-3 ${
+                        className={`p-3.5 rounded-2xl border cursor-pointer select-none transition-all flex items-start gap-3 group relative ${
                           isChecked
-                            ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-md shadow-cyan-500/5"
+                            ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-md shadow-cyan-500/5 hover:border-cyan-400/60"
                             : "bg-white/[0.02] border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-400"
                         }`}
                       >
@@ -2588,18 +2862,37 @@ export default function SmartIssueCertificatePage() {
                           {isChecked ? (
                             <CheckSquare size={18} className="text-cyan-400" />
                           ) : (
-                            <Square size={18} className="text-slate-600" />
+                            <Square
+                              size={18}
+                              className="text-slate-600 group-hover:text-slate-400"
+                            />
                           )}
                         </div>
 
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-cyan-500/30 font-bold">
-                              {u.code}
-                            </span>
-                            <span className="text-[9px] font-mono text-slate-400 uppercase">
-                              {u.standard || "SKKNI"}
-                            </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1.5 mb-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-cyan-500/30 font-bold">
+                                {u.code}
+                              </span>
+                              <span className="text-[9px] font-mono text-slate-400 uppercase px-1.5 py-0.5 rounded bg-white/5">
+                                {u.standard || "SKKNI"}
+                              </span>
+                            </div>
+
+                            {u.code && u.code.startsWith("UNIT-CUST-") && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (u.code) handleDeleteUnit(u.code);
+                                }}
+                                className="text-slate-500 hover:text-red-400 p-1 rounded hover:bg-red-500/10 transition-colors"
+                                title="Hapus Unit Custom"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
                           </div>
                           <p className="text-xs font-semibold leading-snug line-clamp-2">
                             {u.title}
@@ -2610,6 +2903,21 @@ export default function SmartIssueCertificatePage() {
                   })}
                 </div>
               )}
+
+              {/* Synchronized Footer Info */}
+              <div className="p-3 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] text-cyan-200/80 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={15} className="text-cyan-400 shrink-0" />
+                  <span>
+                    Terhubung dengan Master Database <b>Expertise Fields</b>.
+                    Transkrip sertifikat akan mencantumkan{" "}
+                    <b>{selectedUnitCodes.length} unit kompetensi</b> terpilih.
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-cyan-400/70 hidden sm:inline">
+                  Standar SKKNI / IDUKA
+                </span>
+              </div>
             </div>
           )}
 
@@ -4010,6 +4318,131 @@ export default function SmartIssueCertificatePage() {
                 Selesai
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* --- CUSTOM COMPETENCY UNIT MODAL --- */}
+      {customUnitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-cyan-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  <Plus size={18} />
+                </div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Tambah Unit Kompetensi Custom
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCustomUnitModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCustomUnit} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300">
+                  Kode Unit Kompetensi
+                </label>
+                <input
+                  type="text"
+                  value={customUnitForm.code}
+                  onChange={(e) =>
+                    setCustomUnitForm((prev) => ({
+                      ...prev,
+                      code: e.target.value,
+                    }))
+                  }
+                  placeholder="Contoh: J.620100.099.01 atau UKK-IDUKA-01"
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white font-mono text-xs outline-none focus:ring-1 focus:ring-cyan-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300">
+                  Judul Unit Kompetensi
+                </label>
+                <textarea
+                  value={customUnitForm.title}
+                  onChange={(e) =>
+                    setCustomUnitForm((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
+                  placeholder="Contoh: Rancang Bangun dan Konfigurasi Layanan Server Cloud"
+                  rows={2}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-cyan-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300">
+                    Standar / Acuan
+                  </label>
+                  <select
+                    value={customUnitForm.standard}
+                    onChange={(e) =>
+                      setCustomUnitForm((prev) => ({
+                        ...prev,
+                        standard: e.target.value,
+                      }))
+                    }
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
+                  >
+                    <option value="SKKNI">SKKNI</option>
+                    <option value="IDUKA">IDUKA / Industri</option>
+                    <option value="LSP-P1">LSP-P1</option>
+                    <option value="LSP-P2">LSP-P2</option>
+                    <option value="LSP-P3">LSP-P3</option>
+                    <option value="INTERNASIONAL">Internasional</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300">
+                    Nilai Default
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={customUnitForm.score}
+                    onChange={(e) =>
+                      setCustomUnitForm((prev) => ({
+                        ...prev,
+                        score: e.target.value,
+                      }))
+                    }
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-amber-300 font-mono font-bold text-xs outline-none focus:ring-1 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCustomUnitModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md"
+                >
+                  Simpan & Tambahkan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
