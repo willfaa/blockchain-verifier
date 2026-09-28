@@ -63,31 +63,35 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
       ...commonColumns,
       {
         key: "studentId",
-        label: "Account Information",
+        label: "NISN / Student ID",
         sortable: true,
         render: (row: any) => (
-          <code className="text-teal-300 bg-teal-900/10 px-1 py-0.5 rounded text-[10px] border border-teal-500/20">
-            {row.studentId || "N/A"}
+          <code className="text-teal-300 bg-teal-900/10 px-1 py-0.5 rounded text-[10px] border border-teal-500/20 font-mono">
+            {row.studentId || row.nim || row.nisn || "N/A"}
           </code>
         ),
       },
       {
         key: "studyProgram",
-        label: "Study_Program",
+        label: "Program Keahlian",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">
-            {row.studyProgram || "-"}
+            {typeof row.studyProgram === "object"
+              ? row.studyProgram?.name
+              : row.studyProgram || "-"}
           </span>
         ),
       },
       {
         key: "majority",
-        label: "Majority",
+        label: "Konsentrasi / Jurusan",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">
-            {row.majority || "-"}
+            {typeof row.majority === "object"
+              ? row.majority?.name
+              : row.majority || "-"}
           </span>
         ),
       },
@@ -173,17 +177,33 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
         label: "NIP",
         sortable: true,
         render: (row: any) => (
-          <code className="text-teal-300 bg-teal-900/10 px-1 py-0.5 rounded text-[10px] border border-teal-500/20">
+          <code className="text-teal-300 bg-teal-900/10 px-1 py-0.5 rounded text-[10px] border border-teal-500/20 font-mono">
             {row.nip || "N/A"}
           </code>
         ),
       },
       {
-        key: "majority",
-        label: "Department / Homebase",
+        key: "studyProgram",
+        label: "Program Keahlian",
         sortable: true,
         render: (row: any) => (
-          <span className="text-slate-300 text-xs">{row.majority || "-"}</span>
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.studyProgram === "object"
+              ? row.studyProgram?.name
+              : row.studyProgram || "-"}
+          </span>
+        ),
+      },
+      {
+        key: "majority",
+        label: "Konsentrasi / Keahlian",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.majority === "object"
+              ? row.majority?.name
+              : row.majority || "-"}
+          </span>
         ),
       },
       {
@@ -280,6 +300,30 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
         ),
       },
       {
+        key: "studyProgram",
+        label: "Program Keahlian",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.studyProgram === "object"
+              ? row.studyProgram?.name
+              : row.studyProgram || "-"}
+          </span>
+        ),
+      },
+      {
+        key: "majority",
+        label: "Konsentrasi / Jurusan",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.majority === "object"
+              ? row.majority?.name
+              : row.majority || "-"}
+          </span>
+        ),
+      },
+      {
         key: "status",
         label: "Status",
         sortable: true,
@@ -311,17 +355,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
     ];
   } else if (activeTab === "pending") {
     return [
-      {
-        key: "name",
-        label: "Account Name",
-        sortable: true,
-        render: (row: any) => (
-          <div>
-            <p className="font-bold text-teal-100 text-sm">{row.name}</p>
-            <p className="text-[10px] text-teal-500/70">{row.email}</p>
-          </div>
-        ),
-      },
+      ...commonColumns,
       {
         key: "role",
         label: "Requested Role",
@@ -329,6 +363,30 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
         render: (row: any) => (
           <span className="uppercase text-xs font-bold text-purple-400">
             {row.role}
+          </span>
+        ),
+      },
+      {
+        key: "studyProgram",
+        label: "Program Keahlian",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.studyProgram === "object"
+              ? row.studyProgram?.name
+              : row.studyProgram || "-"}
+          </span>
+        ),
+      },
+      {
+        key: "majority",
+        label: "Konsentrasi / Jurusan",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs text-nowrap">
+            {typeof row.majority === "object"
+              ? row.majority?.name
+              : row.majority || "-"}
           </span>
         ),
       },
@@ -368,11 +426,21 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
     return [
       ...commonColumns,
       {
+        key: "studyProgram",
+        label: "Program / Divisi",
+        sortable: true,
+        render: (row: any) => (
+          <span className="text-slate-300 text-xs">
+            {row.studyProgram || row.majority || "Sistem Administrator"}
+          </span>
+        ),
+      },
+      {
         key: "status",
         label: "Status",
         sortable: true,
         render: (row: any) => (
-          <span className="text-teal-500 text-[10px] uppercase tracking-wider">
+          <span className="text-teal-500 text-[10px] uppercase tracking-wider font-mono">
             [SYSTEM_ROOT]
           </span>
         ),

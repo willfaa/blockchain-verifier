@@ -188,6 +188,8 @@ export const getActiveUsers = async (req: Request, res: Response) => {
         { email: { contains: String(search), mode: "insensitive" } },
         { studentId: { contains: String(search), mode: "insensitive" } },
         { nip: { contains: String(search), mode: "insensitive" } },
+        { majority: { contains: String(search), mode: "insensitive" } },
+        { studyProgram: { contains: String(search), mode: "insensitive" } },
       ];
     }
 

@@ -129,8 +129,11 @@ export default function SmartIssueCertificatePage() {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [majorsList, setMajorsList] = useState<any[]>([]);
 
-  // Expertise Field (Konsentrasi Keahlian) Sync State
+  // Expertise Field (Konsentrasi Keahlian) & Judul Penugasan State
   const [selectedKonsentrasiId, setSelectedKonsentrasiId] = useState<string>("");
+  const [assignmentSchemeTitle, setAssignmentSchemeTitle] = useState<string>(
+    "Rancang Bangun Keamanan Jaringan dan Konfigurasi Server",
+  );
   const [isSyncingUnits, setIsSyncingUnits] = useState<boolean>(false);
   const [customUnitModalOpen, setCustomUnitModalOpen] = useState<boolean>(false);
   const [customUnitForm, setCustomUnitForm] = useState({
@@ -139,6 +142,23 @@ export default function SmartIssueCertificatePage() {
     standard: "SKKNI",
     score: "90.00",
   });
+
+  // Derived Selected Expertise Field Names
+  const selectedKonsentrasi = useMemo(() => {
+    return majorsList.find((m) => m.id === selectedKonsentrasiId) || null;
+  }, [majorsList, selectedKonsentrasiId]);
+
+  const selectedKonsentrasiName = useMemo(() => {
+    return selectedKonsentrasi?.name || "Teknik Komputer dan Jaringan";
+  }, [selectedKonsentrasi]);
+
+  const selectedProgramName = useMemo(() => {
+    return (
+      selectedKonsentrasi?.programKeahlian?.name ||
+      selectedKonsentrasi?.name ||
+      "Teknik Jaringan Komputer dan Telekomunikasi"
+    );
+  }, [selectedKonsentrasi]);
 
   // Page Format & Master Units State
   const [pageMode, setPageMode] = useState<"SINGLE" | "DOUBLE">("DOUBLE");
@@ -320,7 +340,15 @@ export default function SmartIssueCertificatePage() {
         }
 
         if (majorsRes.status === "fulfilled" && majorsRes.value?.data?.data) {
-          setMajorsList(majorsRes.value.data.data || []);
+          const mList = majorsRes.value.data.data || [];
+          setMajorsList(mList);
+          if (mList.length > 0) {
+            setSelectedKonsentrasiId((prev) => {
+              const targetId = prev || mList[0].id;
+              loadUnitsFromExpertiseKonsentrasi(targetId, false);
+              return targetId;
+            });
+          }
         }
 
         if (
@@ -543,9 +571,63 @@ export default function SmartIssueCertificatePage() {
           );
         }
       } else {
+        // Provide standard vocational UKK units fallback based on konsentrasi
+        const targetKons = majorsList.find(
+          (m) => m.id === targetKonsentrasiId,
+        );
+        const standardFallbacks: CompetencyItem[] = [
+          {
+            code: "J.620100.004.01",
+            title: "Mengkonfigurasi Perangkat Jaringan Nirkabel dan Routing",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
+          {
+            code: "J.620100.009.02",
+            title: "Memasang dan Mengkonfigurasi Server Layanan Berbasis Linux / Windows",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
+          {
+            code: "J.620100.017.02",
+            title: "Menerapkan Sistem Keamanan Jaringan dan Firewall",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
+          {
+            code: "J.620100.025.02",
+            title: "Melakukan Pengujian dan Troubleshooting Jaringan Komputer",
+            score: "90.00",
+            standard: "SKKNI",
+            result: "KOMPETEN",
+          },
+        ];
+        setAvailableUnits(standardFallbacks);
+        setSelectedUnitCodes(standardFallbacks.map((u) => u.code || ""));
+        const initialScores: Record<string, string> = {};
+        standardFallbacks.forEach((u) => {
+          if (u.code) initialScores[u.code] = "90.00";
+        });
+        setDefaultUnitScores(initialScores);
+
+        // Update batch scores
+        setBatchScores((prev) => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach((sId) => {
+            updated[sId] = {
+              ...updated[sId],
+              scores: { ...initialScores },
+            };
+          });
+          return updated;
+        });
+
         if (showToast) {
           toast.info(
-            "Konsentrasi keahlian ini belum memiliki unit di Master Bank Admin. Anda dapat menambahkan Unit Custom.",
+            `Unit kompetensi kurikulum dimuat untuk ${targetKons?.name || "Konsentrasi Keahlian"}. Anda dapat menambah atau mengedit unit custom.`,
           );
         }
       }
@@ -559,13 +641,10 @@ export default function SmartIssueCertificatePage() {
     }
   };
 
-  // 2. Fetch Course / Master Competency Units when Course Selection Changes
+  // 2. Fetch Course metadata when optional Course Selection Changes
   useEffect(() => {
     if (!courseId) {
       setSelectedCourse(null);
-      setAvailableUnits([]);
-      setSelectedUnitCodes([]);
-      setSelectedKonsentrasiId("");
       return;
     }
 
@@ -575,133 +654,7 @@ export default function SmartIssueCertificatePage() {
     if (matched?.schoolName && !schoolOrigin) {
       setSchoolOrigin(matched.schoolName);
     }
-
-    // Auto-detect matching Konsentrasi Keahlian from Admin Expertise Fields
-    let detectedKonsentrasiId = "";
-    if (majorsList.length > 0) {
-      const courseProg = (matched?.studyProgram || "").toLowerCase().trim();
-      const courseTitle = (matched?.title || "").toLowerCase().trim();
-
-      const exactMatch = majorsList.find(
-        (m) =>
-          courseProg &&
-          (m.name.toLowerCase() === courseProg ||
-            m.name.toLowerCase().includes(courseProg) ||
-            courseProg.includes(m.name.toLowerCase())),
-      );
-
-      const titleMatch = majorsList.find(
-        (m) =>
-          courseTitle &&
-          (courseTitle.includes(m.name.toLowerCase()) ||
-            m.name.toLowerCase().includes(courseTitle)),
-      );
-
-      if (exactMatch) {
-        detectedKonsentrasiId = exactMatch.id;
-      } else if (titleMatch) {
-        detectedKonsentrasiId = titleMatch.id;
-      } else if (majorsList.length > 0) {
-        detectedKonsentrasiId = majorsList[0].id;
-      }
-    }
-
-    if (detectedKonsentrasiId) {
-      setSelectedKonsentrasiId(detectedKonsentrasiId);
-    }
-
-    setLoadingUnits(true);
-    api
-      .get(
-        `/lms/courses/${courseId}/competency-units${detectedKonsentrasiId ? `?konsentrasiId=${detectedKonsentrasiId}` : ""}`,
-      )
-      .then((res) => {
-        if (
-          res.data.ok &&
-          Array.isArray(res.data.data) &&
-          res.data.data.length > 0
-        ) {
-          const formatted: CompetencyItem[] = res.data.data.map(
-            (u: any, idx: number) => ({
-              code: u.code || `UNIT-${idx + 1}`,
-              title: u.title || `Unit Kompetensi ${idx + 1}`,
-              standard: u.standard || "SKKNI",
-              score:
-                u.score !== undefined && u.score !== null
-                  ? String(u.score)
-                  : "90.00",
-              result: u.result || "KOMPETEN",
-            }),
-          );
-          setAvailableUnits(formatted);
-          setSelectedUnitCodes(formatted.map((u) => u.code || ""));
-
-          const initialScores: Record<string, string> = {};
-          formatted.forEach((u) => {
-            if (u.code) initialScores[u.code] = String(u.score || "90.00");
-          });
-          setDefaultUnitScores(initialScores);
-
-          if (res.data.konsentrasiId) {
-            setSelectedKonsentrasiId(res.data.konsentrasiId);
-          }
-        } else if (detectedKonsentrasiId) {
-          loadUnitsFromExpertiseKonsentrasi(detectedKonsentrasiId, false);
-        } else {
-          // Provide standard initial vocational units fallback
-          const standardFallbacks: CompetencyItem[] = [
-            {
-              code: "J.620100.004.01",
-              title: "Memahami dasar pemrograman",
-              score: "90.00",
-              standard: "SKKNI",
-              result: "KOMPETEN",
-            },
-            {
-              code: "J.620100.009.02",
-              title: "Memahami tipe data dan variable",
-              score: "90.00",
-              standard: "SKKNI",
-              result: "KOMPETEN",
-            },
-            {
-              code: "J.620100.017.02",
-              title: "Menerapkan operator dan percabangan",
-              score: "90.00",
-              standard: "SKKNI",
-              result: "KOMPETEN",
-            },
-            {
-              code: "J.620100.025.02",
-              title: "Menerapkan algoritma pemrograman",
-              score: "90.00",
-              standard: "SKKNI",
-              result: "KOMPETEN",
-            },
-            {
-              code: "J.620100.033.02",
-              title: "Menerapkan debugging dan error handling",
-              score: "90.00",
-              standard: "SKKNI",
-              result: "KOMPETEN",
-            },
-          ];
-          setAvailableUnits(standardFallbacks);
-          setSelectedUnitCodes(standardFallbacks.map((u) => u.code || ""));
-          const initialScores: Record<string, string> = {};
-          standardFallbacks.forEach((u) => {
-            if (u.code) initialScores[u.code] = "90.00";
-          });
-          setDefaultUnitScores(initialScores);
-        }
-      })
-      .catch(() => {
-        if (detectedKonsentrasiId) {
-          loadUnitsFromExpertiseKonsentrasi(detectedKonsentrasiId, false);
-        }
-      })
-      .finally(() => setLoadingUnits(false));
-  }, [courseId, courses, majorsList]);
+  }, [courseId, courses]);
 
   // Active units included in transcript based on teacher checklist
   const activeTranscriptUnits = useMemo(() => {
@@ -960,8 +913,10 @@ export default function SmartIssueCertificatePage() {
 
   // Open Preview Modal (Single or Specific Student from Batch)
   const handleOpenPreviewForStudent = (student: StudentRecord) => {
-    if (!courseId) {
-      toast.error("Harap pilih Course / Program Pelatihan terlebih dahulu.");
+    if (!selectedKonsentrasiId && !assignmentSchemeTitle) {
+      toast.error(
+        "Harap pilih Program & Konsentrasi Keahlian terlebih dahulu.",
+      );
       return;
     }
     setPreviewTargetStudent(student);
@@ -989,8 +944,10 @@ export default function SmartIssueCertificatePage() {
 
   // Execute Certificate Issuance (Batch or Single)
   const handleExecuteIssue = async () => {
-    if (!courseId) {
-      toast.error("Harap pilih Course terlebih dahulu.");
+    if (!selectedKonsentrasiId && !assignmentSchemeTitle) {
+      toast.error(
+        "Harap pilih Program & Konsentrasi Keahlian terlebih dahulu.",
+      );
       return;
     }
 
@@ -1064,17 +1021,27 @@ export default function SmartIssueCertificatePage() {
           item.student.nisn ||
           item.student.id,
         program:
-          typeof item.student.studyProgram === "object"
+          selectedProgramName ||
+          (typeof item.student.studyProgram === "object"
             ? (item.student.studyProgram as any)?.name
-            : item.student.studyProgram ||
-              selectedCourse?.title ||
-              "Program Keahlian",
+            : item.student.studyProgram) ||
+          selectedKonsentrasiName ||
+          "Program Keahlian",
         majority:
-          typeof item.student.majority === "object"
+          selectedKonsentrasiName ||
+          (typeof item.student.majority === "object"
             ? (item.student.majority as any)?.name
-            : item.student.majority || "Teknik Informatika",
-        courseId: courseId,
-        courseName: selectedCourse?.title,
+            : item.student.majority) ||
+          "Teknik Komputer dan Jaringan",
+        courseId: courseId || undefined,
+        courseName:
+          assignmentSchemeTitle ||
+          selectedCourse?.title ||
+          selectedKonsentrasiName,
+        assignmentTitle:
+          assignmentSchemeTitle ||
+          selectedCourse?.title ||
+          selectedKonsentrasiName,
         schoolName:
           schoolOrigin ||
           selectedCourse?.schoolName ||
@@ -1705,8 +1672,10 @@ export default function SmartIssueCertificatePage() {
 
   // Standard UKK Confirmation Trigger (Pengaman Missclick)
   const handleRequestExecuteIssue = () => {
-    if (!courseId) {
-      toast.error("Harap pilih Course terlebih dahulu.");
+    if (!selectedKonsentrasiId && !assignmentSchemeTitle) {
+      toast.error(
+        "Harap pilih Program & Konsentrasi Keahlian terlebih dahulu.",
+      );
       return;
     }
 
@@ -1725,18 +1694,32 @@ export default function SmartIssueCertificatePage() {
           ? "⚠️ Konfirmasi Penerbitan Ulang Sertifikat Siswa"
           : "Konfirmasi Penerbitan Sertifikat Siswa",
         description: hasDup
-          ? `PERINGATAN: Siswa ${foundStudent.name} sudah memiliki sertifikat aktif #${singleExistingCert.certId || singleExistingCert.id} untuk skema/kursus ini. Menerbitkan ulang akan mencatat sertifikat baru di ledger blockchain (kecuali direvoke & supersede di Admin Dashboard).`
+          ? `PERINGATAN: Siswa ${foundStudent.name} sudah memiliki sertifikat aktif #${singleExistingCert.certId || singleExistingCert.id} di sistem. Menerbitkan ulang akan mencatat sertifikat baru di ledger blockchain (kecuali direvoke & supersede di Admin Dashboard).`
           : "Sertifikat resmi dan transkrip SKKNI akan dimint ke Hyperledger Fabric Blockchain dan dicatat permanen ke ledger. Pastikan seluruh nilai dan nama siswa sudah sesuai.",
         details: [
           { label: "Nama Siswa", value: foundStudent.name },
           {
             label: "NISN / ID Siswa",
             value:
-              foundStudent.studentId || foundStudent.nim || foundStudent.id,
+              foundStudent.studentId ||
+              foundStudent.nim ||
+              foundStudent.nisn ||
+              foundStudent.id,
           },
           {
-            label: "Skema / Kursus",
-            value: selectedCourse?.title || "Kursus Keahlian",
+            label: "Judul Penugasan / Skema",
+            value:
+              assignmentSchemeTitle ||
+              selectedCourse?.title ||
+              selectedKonsentrasiName,
+          },
+          {
+            label: "Kompetensi Keahlian",
+            value: selectedKonsentrasiName,
+          },
+          {
+            label: "Program Keahlian",
+            value: selectedProgramName,
           },
           ...(hasDup
             ? [
@@ -1746,13 +1729,6 @@ export default function SmartIssueCertificatePage() {
                 },
               ]
             : []),
-          {
-            label: "Jurusan",
-            value:
-              typeof foundStudent.majority === "object"
-                ? (foundStudent.majority as any)?.name
-                : foundStudent.majority || "Teknik Informatika",
-          },
           {
             label: "Format Tata Letak",
             value:
@@ -1783,7 +1759,7 @@ export default function SmartIssueCertificatePage() {
           ? `⚠️ Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa - Termasuk ${selectedDuplicatesCount} Duplikat)`
           : `Konfirmasi Penerbitan Massal (${selectedStudentIds.length} Siswa)`,
         description: hasDups
-          ? `PERINGATAN: Terdapat ${selectedDuplicatesCount} dari ${selectedStudentIds.length} siswa terpilih yang sudah memiliki sertifikat untuk kursus ini. Penerbitan massal akan mencatat sertifikat baru tambahan ke Hyperledger Fabric Blockchain.`
+          ? `PERINGATAN: Terdapat ${selectedDuplicatesCount} dari ${selectedStudentIds.length} siswa terpilih yang sudah memiliki sertifikat di sistem. Penerbitan massal akan mencatat sertifikat baru tambahan ke Hyperledger Fabric Blockchain.`
           : `Sebanyak ${selectedStudentIds.length} sertifikat akan diterbitkan dan dicatat langsung ke Hyperledger Fabric Blockchain secara bersamaan.`,
         details: [
           {
@@ -1799,8 +1775,19 @@ export default function SmartIssueCertificatePage() {
               ]
             : []),
           {
-            label: "Skema / Kursus",
-            value: selectedCourse?.title || "Kursus Keahlian",
+            label: "Judul Penugasan / Skema",
+            value:
+              assignmentSchemeTitle ||
+              selectedCourse?.title ||
+              selectedKonsentrasiName,
+          },
+          {
+            label: "Kompetensi Keahlian",
+            value: selectedKonsentrasiName,
+          },
+          {
+            label: "Program Keahlian",
+            value: selectedProgramName,
           },
           {
             label: "Format Tata Letak",
@@ -2594,53 +2581,94 @@ export default function SmartIssueCertificatePage() {
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-300">
-          {/* --- TOP SETTINGS: COURSE SELECTOR & PAGE FORMAT --- */}
+          {/* --- TOP SETTINGS: PROGRAM & KONSENTRASI KEAHLIAN & PAGE FORMAT --- */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Course / Skema Selector */}
+            {/* Step 1: Program & Konsentrasi Keahlian & Judul Penugasan */}
             <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <BookOpen size={16} className="text-cyan-400" />
-                  Langkah 1: Pilih Course / Skema Sertifikasi{" "}
+                  <Layers size={16} className="text-cyan-400" />
+                  Langkah 1: Tentukan Program Keahlian & Skema Penugasan UKK{" "}
                   <span className="text-red-400">*</span>
                 </h3>
-                {courseId && (
+                {selectedKonsentrasiId && (
                   <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
-                    ✓ Kursus Aktif
+                    ✓ Terhubung Master Admin
                   </span>
                 )}
               </div>
 
-              <Select value={courseId} onValueChange={setCourseId}>
-                <SelectTrigger className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:ring-cyan-500 h-14">
-                  <SelectValue placeholder="-- Pilih Course / Skema Sertifikasi UKK --" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700 text-white">
-                  {courses.length > 0 ? (
-                    courses.map((course: any) => (
-                      <SelectItem
-                        key={course.id}
-                        value={course.id}
-                        className="cursor-pointer py-3"
-                      >
-                        {course.title}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="p-4 text-xs text-slate-400 text-center">
-                      Belum ada kursus yang dibuat oleh guru ini.
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
+              <div className="space-y-3">
+                {/* Selector Konsentrasi Keahlian */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                    <span>Kompetensi / Konsentrasi Keahlian (Master Admin)</span>
+                    <span className="text-[10px] text-cyan-400 font-normal">
+                      Sinkron otomatis ke Unit SKKNI
+                    </span>
+                  </label>
+                  <Select
+                    value={selectedKonsentrasiId}
+                    onValueChange={(val) => {
+                      setSelectedKonsentrasiId(val);
+                      loadUnitsFromExpertiseKonsentrasi(val, true);
+                    }}
+                  >
+                    <SelectTrigger className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:ring-cyan-500 h-12">
+                      <SelectValue placeholder="-- Pilih Program & Konsentrasi Keahlian dari Master Admin --" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-64">
+                      {majorsList.length > 0 ? (
+                        majorsList.map((m: any) => {
+                          const progName = m.programKeahlian?.name || "";
+                          const bidangName =
+                            m.programKeahlian?.bidangKeahlian?.name || "";
+                          return (
+                            <SelectItem
+                              key={m.id}
+                              value={m.id}
+                              className="cursor-pointer py-2.5 text-xs"
+                            >
+                              <div className="flex flex-col text-left">
+                                <span className="font-bold text-white">
+                                  {m.name}
+                                </span>
+                                {progName && (
+                                  <span className="text-[10px] text-slate-400">
+                                    {bidangName ? `${bidangName} › ` : ""}
+                                    {progName}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-xs text-slate-400 text-center">
+                          Belum ada data konsentrasi keahlian di Master Admin.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {!courseId && (
-                <p className="text-xs text-amber-300/90 flex items-center gap-1.5">
-                  <AlertCircle size={14} className="shrink-0" />
-                  Pilih Course terlebih dahulu untuk memuat unit kompetensi
-                  SKKNI dan template sertifikat.
-                </p>
-              )}
+                {/* Judul Penugasan / Skema Uji UKK */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                    <span>Judul Penugasan / Skema Uji UKK (on Assignment)</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      Sesuai format sertifikat resmi
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={assignmentSchemeTitle}
+                    onChange={(e) => setAssignmentSchemeTitle(e.target.value)}
+                    placeholder="Contoh: Rancang Bangun Keamanan Jaringan dan Konfigurasi Server"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white font-medium focus:ring-1 focus:ring-cyan-500 outline-none"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Page Format & Layout Controls */}
@@ -2683,17 +2711,22 @@ export default function SmartIssueCertificatePage() {
             </div>
           </div>
 
-          {/* --- STEP 2: MASTER COMPETENCY UNITS CHECKLIST (IF 2-PAGE MODE & COURSE SELECTED) --- */}
-          {pageMode === "DOUBLE" && courseId && (
+          {/* --- STEP 2: MASTER COMPETENCY UNITS CHECKLIST (IF 2-PAGE MODE) --- */}
+          {pageMode === "DOUBLE" && (
             <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-5 shadow-xl animate-in fade-in duration-300">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <FileText size={16} className="text-amber-400" />
-                    Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI / IDUKA)
-                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <FileText size={16} className="text-amber-400" />
+                      Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI / IDUKA)
+                    </h3>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">
+                      {selectedKonsentrasiName}
+                    </span>
+                  </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Pilih dan sinkronkan unit kompetensi dari Master Expertise Fields Admin atau tambahkan unit khusus industri.
+                    Unit kompetensi kurikulum dari Master Bank Keahlian Admin untuk Program: <b>{selectedProgramName}</b>.
                   </p>
                 </div>
 
@@ -2731,59 +2764,13 @@ export default function SmartIssueCertificatePage() {
                 </div>
               </div>
 
-              {/* Master Expertise Field (Konsentrasi Keahlian) Selector Bar */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1 space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Layers size={14} className="text-cyan-400" />
-                    <span>Sinkronisasi Bank Keahlian (Admin Expertise Field)</span>
-                  </label>
-                  <Select
-                    value={selectedKonsentrasiId}
-                    onValueChange={(val) => {
-                      setSelectedKonsentrasiId(val);
-                      loadUnitsFromExpertiseKonsentrasi(val, true);
-                    }}
-                  >
-                    <SelectTrigger className="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:ring-cyan-500 h-11">
-                      <SelectValue placeholder="-- Pilih Konsentrasi Keahlian / Jurusan dari Master Admin --" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-64">
-                      {majorsList.length > 0 ? (
-                        majorsList.map((m: any) => {
-                          const progName = m.programKeahlian?.name || "";
-                          const bidangName =
-                            m.programKeahlian?.bidangKeahlian?.name || "";
-                          return (
-                            <SelectItem
-                              key={m.id}
-                              value={m.id}
-                              className="cursor-pointer py-2 text-xs"
-                            >
-                              <div className="flex flex-col text-left">
-                                <span className="font-semibold text-white">
-                                  {m.name}
-                                </span>
-                                {progName && (
-                                  <span className="text-[10px] text-slate-400">
-                                    {bidangName ? `${bidangName} › ` : ""}
-                                    {progName}
-                                  </span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          );
-                        })
-                      ) : (
-                        <div className="p-3 text-xs text-slate-400 text-center">
-                          Belum ada data konsentrasi keahlian di Master Admin.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Quick Select & Counts Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-950/60 border border-white/10">
+                <span className="text-xs text-slate-300">
+                  Total Unit Tersedia: <b>{availableUnits.length}</b> ({selectedUnitCodes.length} unit aktif masuk transkrip)
+                </span>
 
-                <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                   <button
                     type="button"
                     onClick={() =>
@@ -3111,7 +3098,7 @@ export default function SmartIssueCertificatePage() {
                                   onClick={() =>
                                     handleOpenPreviewForStudent(std)
                                   }
-                                  disabled={!courseId}
+                                  disabled={!selectedKonsentrasiId && !assignmentSchemeTitle}
                                   className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                   title="Pratinjau Sertifikat Siswa Ini"
                                 >
@@ -3854,18 +3841,24 @@ export default function SmartIssueCertificatePage() {
                         activeTargetStudent.nisn ||
                         activeTargetStudent.id
                       }
-                      courseName={selectedCourse?.title || "Program Keahlian"}
+                      courseName={
+                        assignmentSchemeTitle ||
+                        selectedCourse?.title ||
+                        selectedKonsentrasiName
+                      }
                       program={
-                        typeof activeTargetStudent.studyProgram === "object"
+                        selectedProgramName ||
+                        (typeof activeTargetStudent.studyProgram === "object"
                           ? (activeTargetStudent.studyProgram as any)?.name
-                          : activeTargetStudent.studyProgram ||
-                            selectedCourse?.title ||
-                            "Program Keahlian"
+                          : activeTargetStudent.studyProgram) ||
+                        "Program Keahlian"
                       }
                       majority={
-                        typeof activeTargetStudent.majority === "object"
+                        selectedKonsentrasiName ||
+                        (typeof activeTargetStudent.majority === "object"
                           ? (activeTargetStudent.majority as any)?.name
-                          : activeTargetStudent.majority || "Teknik Informatika"
+                          : activeTargetStudent.majority) ||
+                        "Teknik Komputer dan Jaringan"
                       }
                       issuedAt={new Date().toISOString()}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
@@ -3905,18 +3898,24 @@ export default function SmartIssueCertificatePage() {
                         activeTargetStudent.id
                       }
                       majority={
-                        typeof activeTargetStudent.majority === "object"
+                        selectedKonsentrasiName ||
+                        (typeof activeTargetStudent.majority === "object"
                           ? (activeTargetStudent.majority as any)?.name
-                          : activeTargetStudent.majority ||
-                            "Teknik Komputer dan Jaringan"
+                          : activeTargetStudent.majority) ||
+                        "Teknik Komputer dan Jaringan"
                       }
                       program={
-                        typeof activeTargetStudent.studyProgram === "object"
+                        selectedProgramName ||
+                        (typeof activeTargetStudent.studyProgram === "object"
                           ? (activeTargetStudent.studyProgram as any)?.name
-                          : activeTargetStudent.studyProgram ||
-                            selectedCourse?.title
+                          : activeTargetStudent.studyProgram) ||
+                        "Program Keahlian"
                       }
-                      courseTitle={selectedCourse?.title}
+                      courseTitle={
+                        assignmentSchemeTitle ||
+                        selectedCourse?.title ||
+                        selectedKonsentrasiName
+                      }
                       units={targetStudentUnits}
                       averageScore={targetAvgScore}
                       examinerName={

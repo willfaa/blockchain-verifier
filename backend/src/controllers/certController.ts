@@ -321,7 +321,7 @@ export class CertController {
       const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
 
       // --- RESOLVE DYNAMIC COURSE & INSTRUCTOR CONTEXT ---
-      let courseName = "Program Completion";
+      let courseName = req.body.courseName || req.body.assignmentTitle || "Program Completion";
       let customTemplatePath = undefined;
       let instructorName = undefined;
       let instructorNip = undefined;
