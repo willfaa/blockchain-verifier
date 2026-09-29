@@ -37,7 +37,7 @@ async function main() {
 
   console.log("\n=======================================================");
   console.log(`🎉 SINKRONISASI SELESAI:`);
-  console.log(`   • Total Diproses : ${result.count} sertifikat`);
+  console.log(`   • Total Diproses : ${result.total} sertifikat`);
   console.log(`   • Berhasil Sync  : ${result.synced.length} sertifikat`);
   console.log(`   • Gagal          : ${result.errors.length}`);
   console.log("=======================================================\n");

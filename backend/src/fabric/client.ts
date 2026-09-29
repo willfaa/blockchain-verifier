@@ -723,11 +723,38 @@ export async function syncPendingCertificatesToFabric() {
   for (const cert of pendingCerts) {
     try {
       if (cert.status === "SUPERSEDED" && cert.supersededBy) {
+        // Check if certificate exists in Fabric; if not (e.g. after network reset), issue it first
+        const existing = await getCertificateFromFabric(cert.certId);
+        if (!existing) {
+          let finalCid = cert.cid || `Qm${(cert.hash || cert.certId).substring(0, 44)}`;
+          const fabricRecord: CertificateRecord = {
+            certId: cert.certId,
+            studentId: cert.studentId,
+            name: cert.studentName,
+            program: cert.program,
+            majority: cert.majority,
+            score: "",
+            cid: finalCid,
+            hash: cert.hash,
+            status: "ISSUED",
+            issuedAt: cert.issuedAt,
+            courseId: cert.courseId || null,
+          };
+          await issueCertificateOnFabric(fabricRecord, "admin", "admin");
+        }
         await supersedeCertificateOnFabric(
           cert.certId,
           cert.supersededBy,
           cert.revocationReason || "Superseded during ledger sync"
         );
+        await db.certificate.update({
+          where: { id: cert.id },
+          data: {
+            blockchainSyncStatus: "SYNCED",
+            syncedAt: new Date(),
+          },
+        });
+        synced.push(cert.certId);
       } else {
         let finalCid = cert.cid;
 
@@ -736,42 +763,58 @@ export async function syncPendingCertificatesToFabric() {
           finalCid = `Qm${(cert.hash || cert.certId).substring(0, 44)}`;
         }
 
-        const fabricRecord: CertificateRecord = {
-          certId: cert.certId,
-          studentId: cert.studentId,
-          name: cert.studentName,
-          program: cert.program,
-          majority: cert.majority,
-          score: "",
-          cid: finalCid || `Qm${cert.hash.substring(0, 44)}`,
-          hash: cert.hash,
-          status: "ISSUED",
-          issuedAt: cert.issuedAt,
-          courseId: cert.courseId || null,
-        };
+        const existing = await getCertificateFromFabric(cert.certId);
+        let txId = `TX_SYNC_${Date.now()}`;
+        if (!existing) {
+          const fabricRecord: CertificateRecord = {
+            certId: cert.certId,
+            studentId: cert.studentId,
+            name: cert.studentName,
+            program: cert.program,
+            majority: cert.majority,
+            score: "",
+            cid: finalCid || `Qm${cert.hash.substring(0, 44)}`,
+            hash: cert.hash,
+            status: "ISSUED",
+            issuedAt: cert.issuedAt,
+            courseId: cert.courseId || null,
+          };
+          const txResult = await issueCertificateOnFabric(fabricRecord, "admin", "admin");
+          txId = txResult?.txId || txId;
+        } else {
+          console.log(`ℹ️ Certificate ${cert.certId} already exists on Fabric ledger. Updating DB status to SYNCED.`);
+        }
 
-        const txResult = await issueCertificateOnFabric(fabricRecord, "admin", "admin");
         await db.certificate.update({
           where: { id: cert.id },
           data: {
-            status: "ISSUED",
+            status: cert.status === "PENDING" ? "ISSUED" : cert.status,
             cid: finalCid || cert.cid,
             blockchainSyncStatus: "SYNCED",
-            blockchainTxId: txResult?.txId || `TX_SYNC_${Date.now()}`,
+            blockchainTxId: txId,
             syncedAt: new Date(),
           },
         });
         synced.push(cert.certId);
       }
     } catch (err: any) {
-      console.warn(`[Sync Pending Cert Error ${cert.certId}]:`, err.message);
-      errors.push({ certId: cert.certId, error: err.message });
-      await db.certificate.update({
-        where: { id: cert.id },
-        data: {
-          blockchainSyncStatus: "FAILED",
-        },
-      });
+      if (String(err?.message || "").includes("already exists")) {
+        console.log(`ℹ️ Certificate ${cert.certId} already exists on Fabric ledger. Updating DB status to SYNCED.`);
+        await db.certificate.update({
+          where: { id: cert.id },
+          data: { blockchainSyncStatus: "SYNCED", syncedAt: new Date() },
+        });
+        synced.push(cert.certId);
+      } else {
+        console.warn(`[Sync Pending Cert Error ${cert.certId}]:`, err.message);
+        errors.push({ certId: cert.certId, error: err.message });
+        await db.certificate.update({
+          where: { id: cert.id },
+          data: {
+            blockchainSyncStatus: "FAILED",
+          },
+        });
+      }
     }
   }
 
