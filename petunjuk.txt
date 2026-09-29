@@ -92,6 +92,9 @@ A. Inisialisasi Environment Peer:
    export CORE_PEER_MSPCONFIGPATH=~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
    export CORE_PEER_ADDRESS=localhost:7051
 
+peer lifecycle chaincode queryinstalled
+
+
 B. Query Semua Data Sertifikat di Ledger:
    peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq .
 
