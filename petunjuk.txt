@@ -92,14 +92,17 @@ A. Inisialisasi Environment Peer:
    export CORE_PEER_MSPCONFIGPATH=~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
    export CORE_PEER_ADDRESS=localhost:7051
 
+check status :
 peer lifecycle chaincode queryinstalled
+peer lifecycle chaincode querycommitted -C chainnesa -n basic
+
 
 
 B. Query Semua Data Sertifikat di Ledger:
    peer chaincode query -C chainnesa -n basic -c '{"function":"GetAllCertificates","Args":[]}' | jq .
 
 C. Query Spesifik Berdasarkan ID Sertifikat:
-   peer chaincode query -C chainnesa -n basic -c '{"function":"ReadCertificate","Args":["<CERT_ID>"]}' | jq .
+   peer chaincode query -C chainnesa -n basic -c '{"function":"ReadCertificate","Args":["CERT-2026-6776"]}' | jq .
 
 -----------------------------------------------------------------------------
 7. SAFE SHUTDOWN VS RESET TOTAL (PERLINDUNGAN DATA)
@@ -126,7 +129,7 @@ B. RESET TOTAL / FRESH TESTING (Data Ledger DIHAPUS TOTAL):
 C. DISASTER RECOVERY (Sinkronkan Ulang Antrean DB ke Fabric Baru):
    Jika network baru saja di-reset dan ingin memasukkan kembali data pending dari DB:
    cd C:\Users\willfaa\Documents\VSCode-Project\blockchain-verifier\backend
-   npm run sync:fabric
+   npm run sync:fabric -- --force
 
 -----------------------------------------------------------------------------
 8. MITIGASI ERROR UMUM
@@ -144,3 +147,4 @@ B. Error "Cannot connect to the Docker daemon":
 C. Port Terkunci / Conflict:
    - Cek port: netstat -ano | findstr :7051
    - Matikan PID: taskkill /PID <PID_PROSES> /F
+

@@ -18,9 +18,20 @@ async function main() {
     process.exit(1);
   }
 
+  const isForce = process.argv.includes("--force") || process.argv.includes("-f");
+  if (isForce) {
+    console.log("⚠️ Force sync requested: Marking all database certificates as PENDING_SYNC...");
+    const { db } = require("../config/db");
+    const updated = await db.certificate.updateMany({
+      where: { status: { not: "REVOKED" } },
+      data: { blockchainSyncStatus: "PENDING_SYNC" },
+    });
+    console.log(`🔄 Marked ${updated.count} certificate(s) for re-sync.\n`);
+  }
+
   const ch = process.env.FABRIC_CHANNEL || "chainnesa";
   console.log(`✅ Fabric Network Online and Authenticated (Org1MSP / channel: ${ch}).\n`);
-  console.log("2. Scanning Supabase Cloud for PENDING_SYNC certificates...");
+  console.log("2. Scanning Supabase Cloud for certificates to sync...");
 
   const result = await syncPendingCertificatesToFabric();
 
