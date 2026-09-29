@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import api from "@/lib/api";
 
@@ -32,6 +33,7 @@ const IPFS_GATEWAY =
   "https://green-real-rhinoceros-350.mypinata.cloud";
 
 export default function VerifyPage() {
+  const router = useRouter();
   const [certId, setCertId] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -54,41 +56,9 @@ export default function VerifyPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!certId.trim()) return;
     setLoading(true);
-    setErrorMsg(null);
-    setResult(null);
-
-    try {
-      let data: any = null;
-      try {
-        const res = await api.get(`/certificates/${encodeURIComponent(certId.trim())}/verify`);
-        data = res.data;
-      } catch (primaryErr: any) {
-        // Fallback to /certificates/:id direct lookup
-        const fallbackRes = await api.get(`/certificates/${encodeURIComponent(certId.trim())}`);
-        data = fallbackRes.data;
-      }
-
-      // backend may return 200 with ok=false (revoked, superseded, etc.)
-      if (!data || data?.ok === false) {
-        setErrorMsg(data?.error || data?.reason || "Verification failed");
-        return;
-      }
-
-      const payload = data.data || data.record || data;
-      setResult({
-        ...payload,
-        // derive helpful flags
-        onChain: data.source === "blockchain" || data.source === "fabric",
-        note: data.fabricError
-          ? `Fabric warning: ${data.fabricError}`
-          : payload.note,
-      });
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || err.message || "Network error");
-    } finally {
-      setLoading(false);
-    }
+    router.push(`/verify/${encodeURIComponent(certId.trim())}`);
   }
 
   const cleanCid = result?.cid ? result.cid.trim() : "";

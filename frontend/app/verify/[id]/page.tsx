@@ -388,8 +388,14 @@ export default async function VerificationPage({
                     Academic Credentials
                   </p>
                   <p className="text-[13px] font-bold text-white/60 tracking-tight leading-relaxed">
-                    {cert.program} in{" "}
-                    <span className="text-white">{cert.majority}</span>
+                    {cert.program && cert.program.trim().toLowerCase() !== (cert.majority || "").trim().toLowerCase() ? (
+                      <>
+                        {cert.program} in{" "}
+                        <span className="text-white">{cert.majority}</span>
+                      </>
+                    ) : (
+                      <span className="text-white">{cert.majority || cert.program}</span>
+                    )}
                   </p>
                 </div>
               </div>
