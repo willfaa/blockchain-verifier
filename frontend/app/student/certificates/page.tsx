@@ -26,13 +26,25 @@ interface Certificate {
   status: string;
   issuedAt: string;
   hash: string;
-  course: {
+  program?: string;
+  layoutMode?: string;
+  frontUrl?: string;
+  studentName?: string;
+  course?: {
     title: string;
-    imageUrl: string | null;
+    imageUrl?: string | null;
   };
 }
 
-const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://green-real-rhinoceros-350.mypinata.cloud";
+
+function getCertImageUrl(cert: Certificate): string {
+  const cid = cert.cid?.trim() || "";
+  if (!cid || cid.startsWith("PENDING") || cid.startsWith("undefined") || cid.startsWith("Qm000")) return "";
+  if (cid.startsWith("http://") || cid.startsWith("https://")) return cid;
+  const gw = IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
+  return `${gw}/ipfs/${cid.replace(/^ipfs:\/\//, "")}`;
+}
 
 export default function MyCertificatesPage() {
   const [certs, setCerts] = useState<Certificate[]>([]);
@@ -167,11 +179,27 @@ export default function MyCertificatesPage() {
                 style={{ animationDelay: `${idx * 120}ms` }}
               >
                 {/* Certificate Visual Banner */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-purple-950/40 p-6 flex flex-col justify-between border-b border-white/5 group-hover:border-neon-purple/30 transition-all">
+                <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-purple-950/40 border-b border-white/5 group-hover:border-neon-purple/30 transition-all">
+                  {/* Show actual Pinata IPFS certificate image if available */}
+                  {(() => {
+                    const imgUrl = getCertImageUrl(cert);
+                    if (imgUrl) {
+                      return (
+                        <img
+                          src={imgUrl}
+                          alt={`Sertifikat ${cert.studentName || ""}`}
+                          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                          loading="lazy"
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
                   <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-neon-purple/10 rounded-full blur-2xl pointer-events-none" />
 
                   {/* Verified / Pending Badge */}
-                  <div className="flex items-center justify-between z-10">
+                  <div className="relative flex items-center justify-between z-10 p-6 pb-0">
                     <div
                       className={`flex items-center gap-2 px-3 py-1 backdrop-blur-xl border rounded-full ${
                         cert.status === "PENDING"
@@ -194,17 +222,17 @@ export default function MyCertificatesPage() {
                           : "VERIFIED"}
                       </span>
                     </div>
-                    <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-500/20">
+                    <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-950/60 backdrop-blur-md px-2.5 py-0.5 rounded-lg border border-cyan-500/20">
                       #{cert.certId ? cert.certId.substring(0, 8).toUpperCase() : "CERT"}
                     </span>
                   </div>
 
-                  <div className="z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="relative z-10 p-6 pt-0 mt-auto flex flex-col justify-end h-full">
                     <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest mb-1">
                       Certificate of Achievement
                     </p>
                     <h3 className="font-bold text-white text-base line-clamp-2 leading-tight drop-shadow-2xl group-hover:text-neon-blue transition-colors tracking-tight">
-                      {cert.course?.title || (cert as any).program || "Sertifikat Kompetensi"}
+                      {cert.course?.title || cert.program || "Sertifikat Kompetensi"}
                     </h3>
                   </div>
                 </div>

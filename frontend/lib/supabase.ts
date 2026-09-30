@@ -163,11 +163,15 @@ export async function fetchCertificatesFromSupabase(limit = 100) {
       status: item.status || "ISSUED",
       issuedAt: item.issuedAt || item.createdAt,
       createdAt: item.createdAt || item.issuedAt,
+      syncedAt: item.syncedAt || undefined,
       courseName: item.course?.title || undefined,
       certificateNumber: item.certificateNumber || undefined,
+      schoolName: item.schoolName || undefined,
       blockchainTxId: item.blockchainTxId || undefined,
       blockchainSyncStatus: item.blockchainSyncStatus || "SYNCED",
       layoutMode: item.layoutMode || "STANDARD",
+      signers: item.signers || undefined,
+      competencyUnits: item.competencyUnits || undefined,
     }));
   } catch (err: any) {
     console.error("[Supabase Direct Fetch All Certificates Error]:", err.message);

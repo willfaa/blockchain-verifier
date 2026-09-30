@@ -17,6 +17,9 @@ import {
   Printer,
   ExternalLink,
   Clock,
+  ZoomIn,
+  ZoomOut,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -46,6 +49,11 @@ interface CertificateDetail {
   competencyUnits?: any[];
   signers?: any[];
   schoolName?: string;
+  layoutMode?: string;
+  frontUrl?: string;
+  transcriptUrl?: string;
+  blockchainTxId?: string;
+  blockchainSyncStatus?: string;
 }
 
 export default function StudentCertificateDetailPage() {
@@ -55,9 +63,12 @@ export default function StudentCertificateDetailPage() {
   const [cert, setCert] = useState<CertificateDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"front" | "transcript">("front");
-  const [aspectRatio, setAspectRatio] = useState<string>("aspect-[1.414/1]");
   const [layoutSettings, setLayoutSettings] = useState<any>({});
   const [qrCodeBase64, setQrCodeBase64] = useState<string>("");
+
+  // Zoom states
+  const [frontZoom, setFrontZoom] = useState<number>(75);
+  const [transcriptZoom, setTranscriptZoom] = useState<number>(75);
 
   // Correction Modal State
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
@@ -67,6 +78,10 @@ export default function StudentCertificateDetailPage() {
   const [correctionReason, setCorrectionReason] = useState("");
   const [submittingCorrection, setSubmittingCorrection] = useState(false);
   const [hasSubmittedCorrection, setHasSubmittedCorrection] = useState(false);
+
+  const IPFS_GATEWAY =
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+    "https://green-real-rhinoceros-350.mypinata.cloud";
 
   useEffect(() => {
     // Fetch certificate settings & layout from public LMS settings endpoint
@@ -115,6 +130,49 @@ export default function StudentCertificateDetailPage() {
         .catch(() => {});
     }
   }, [cert]);
+
+  // Compute IPFS image URLs
+  const cleanCid = cert?.cid ? cert.cid.trim() : "";
+  const isCidHttp =
+    cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
+  const normalizedGateway = IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(
+    /\/$/,
+    ""
+  );
+
+  const ipfsFrontUrl =
+    isCidHttp
+      ? cleanCid
+      : cleanCid &&
+        !cleanCid.startsWith("PENDING") &&
+        !cleanCid.startsWith("undefined") &&
+        !cleanCid.startsWith("Qm000")
+      ? `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+      : "";
+
+  const effectiveFrontImage = ipfsFrontUrl || cert?.frontUrl || "";
+  const effectiveTranscriptImage = cert?.transcriptUrl || "";
+
+  const isPreIssued =
+    cert?.layoutMode === "PRE_ISSUED_STAMP" ||
+    cert?.layoutMode === "DUPLEX_2_PAGES" ||
+    Boolean(effectiveFrontImage);
+
+  const hasSecondPage =
+    cert?.layoutMode === "DUPLEX_2_PAGES" ||
+    Boolean(effectiveTranscriptImage) ||
+    (!isPreIssued &&
+      Boolean(cert?.competencyUnits && cert.competencyUnits.length > 0));
+
+  // Template canvas sizing
+  const isLandscape =
+    (layoutSettings.certificateLayout || "HORIZONTAL") !== "VERTICAL";
+  const defaultW = isLandscape ? 29.7 : 21.0;
+  const defaultH = isLandscape ? 21.0 : 29.7;
+  const paperWCm = layoutSettings.paperWidthCm || defaultW;
+  const paperHCm = layoutSettings.paperHeightCm || defaultH;
+  const templateCanvasW = Math.round(paperWCm * (150 / 2.54));
+  const templateCanvasH = Math.round(paperHCm * (150 / 2.54));
 
   const handleCorrectionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,12 +226,7 @@ export default function StudentCertificateDetailPage() {
     );
   }
 
-  const ipfsGateway =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud";
-  const ipfsUrl = `${ipfsGateway}/ipfs/${cert.cid}`;
-
   const API_BASE = getApiBase();
-  const pdfUrl = `${API_BASE}/api/certificates/${cert.certId}/pdf`;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 p-6 md:p-12 font-sans">
@@ -208,9 +261,9 @@ export default function StudentCertificateDetailPage() {
               Cetak / Simpan PDF
             </button>
 
-            {cert.cid && !cert.cid.startsWith("PENDING") && (
+            {effectiveFrontImage && (
               <a
-                href={getIpfsGatewayUrl(cert.cid)}
+                href={effectiveFrontImage}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700 text-slate-300"
@@ -271,7 +324,7 @@ export default function StudentCertificateDetailPage() {
           {/* Main Preview */}
           <div className="lg:col-span-2 space-y-4">
             {/* Dual Tab Switcher */}
-            {cert.status !== "PENDING" && (
+            {cert.status !== "PENDING" && hasSecondPage && (
               <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-2xl border border-white/10 w-full sm:w-auto">
                 <button
                   type="button"
@@ -283,7 +336,7 @@ export default function StudentCertificateDetailPage() {
                   }`}
                 >
                   <Award size={15} />
-                  <span>Halaman 1 (Sertifikat Utama)</span>
+                  <span>{isPreIssued ? "Sertifikat Bertanda (Halaman 1)" : "Halaman 1 (Sertifikat Utama)"}</span>
                 </button>
                 <button
                   type="button"
@@ -294,15 +347,16 @@ export default function StudentCertificateDetailPage() {
                       : "text-white/60 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <FileCheck size={15} />
-                  <span>Halaman 2 (Transkrip Nilai)</span>
+                  <FileText size={15} />
+                  <span>{effectiveTranscriptImage ? "Transkrip / Hal 2" : "Halaman 2 (Transkrip Nilai)"}</span>
                 </button>
               </div>
             )}
 
-            <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 p-4 sm:p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-2xl min-h-[350px]">
+            {/* Certificate Viewer with Zoom */}
+            <div className="w-full bg-slate-950/80 rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-2xl min-h-[350px]">
               {cert.status === "PENDING" ? (
-                <div className="p-8 text-center space-y-4 max-w-md m-auto">
+                <div className="p-8 text-center space-y-4 max-w-md m-auto flex-1 flex flex-col items-center justify-center">
                   <div className="inline-flex p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     <Clock size={32} className="animate-pulse" />
                   </div>
@@ -314,53 +368,229 @@ export default function StudentCertificateDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="flex items-center justify-center shrink-0 m-auto">
-                  {activeTab === "front" ? (
-                    <CertificateTemplate
-                      studentName={cert.studentName}
-                      studentId={cert.studentId || (cert as any).studentId}
-                      courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
-                      certificateId={cert.certId || cert.id}
-                      program={cert.program}
-                      majority={cert.majority}
-                      issuedAt={cert.issuedAt}
-                      qrCodeBase64={qrCodeBase64}
-                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                      paperSize={layoutSettings.certificatePaperSize || "A4"}
-                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                      instructorName={layoutSettings.instructorName}
-                      instructorNip={layoutSettings.instructorNip}
-                      instructors={layoutSettings.instructors}
-                      institutionLogo={layoutSettings.institutionLogo}
-                      institutionName={layoutSettings.institutionName}
-                      institutionSubtext={layoutSettings.institutionSubtext}
-                      bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
-                      layoutConfig={layoutSettings.layoutConfig}
-                    />
-                  ) : (
-                    <CertificateTranscriptPage
-                      studentName={cert.studentName}
-                      studentId={cert.studentId || (cert as any).studentId}
-                      majority={cert.majority || "Teknik Komputer dan Jaringan"}
-                      program={cert.program || cert.course?.title}
-                      courseTitle={cert.course?.title}
-                      units={cert.competencyUnits}
-                      examinerName={layoutSettings.instructorName || "Penguji / Asesor"}
-                      examinerNip={layoutSettings.instructorNip}
-                      institutionLogo={layoutSettings.institutionLogo}
-                      institutionName={layoutSettings.institutionName}
-                      institutionSubtext={layoutSettings.institutionSubtext}
-                      schoolName={layoutSettings.institutionName || cert.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
-                      paperSize={layoutSettings.certificatePaperSize || "A4"}
-                      paperWidthCm={layoutSettings.paperWidthCm || 29.7}
-                      paperHeightCm={layoutSettings.paperHeightCm || 21.0}
-                      layout={layoutSettings.certificateLayout || "HORIZONTAL"}
-                      bgPath={layoutSettings.transcriptTemplate || layoutSettings.transcriptBgPath}
-                      layoutConfig={layoutSettings.transcriptLayoutConfig}
-                    />
+                <>
+                  {/* Zoom Toolbar */}
+                  <div className="w-full flex items-center justify-between p-3 sm:p-4 border-b border-white/10">
+                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <ShieldCheck size={16} />
+                      {activeTab === "front" ? "Dokumen Sertifikat Terverifikasi" : "Transkrip Nilai (Halaman 2)"}
+                    </span>
+                    <div className="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeTab === "front"
+                            ? setFrontZoom((z) => Math.max(30, z - 10))
+                            : setTranscriptZoom((z) => Math.max(30, z - 10))
+                        }
+                        className="p-1 text-slate-400 hover:text-white transition-colors"
+                        title="Perkecil (Zoom Out)"
+                      >
+                        <ZoomOut size={14} />
+                      </button>
+                      <span className="text-xs font-mono text-white/90 w-12 text-center select-none font-semibold">
+                        {activeTab === "front" ? frontZoom : transcriptZoom}%
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeTab === "front"
+                            ? setFrontZoom((z) => Math.min(180, z + 10))
+                            : setTranscriptZoom((z) => Math.min(180, z + 10))
+                        }
+                        className="p-1 text-slate-400 hover:text-white transition-colors"
+                        title="Perbesar (Zoom In)"
+                      >
+                        <ZoomIn size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeTab === "front"
+                            ? setFrontZoom(isPreIssued ? 75 : 55)
+                            : setTranscriptZoom(effectiveTranscriptImage ? 75 : 55)
+                        }
+                        className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/5 text-slate-300 hover:text-cyan-400 hover:bg-white/10 transition-all ml-1"
+                        title="Fit Layar"
+                      >
+                        Fit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeTab === "front"
+                            ? setFrontZoom(100)
+                            : setTranscriptZoom(100)
+                        }
+                        className="text-[10px] font-bold px-2 py-0.5 rounded text-slate-400 hover:text-white transition-colors"
+                        title="Ukuran Asli 100%"
+                      >
+                        100%
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Content: Front or Transcript */}
+                  <div
+                    onWheel={(e) => {
+                      if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        const setter =
+                          activeTab === "front" ? setFrontZoom : setTranscriptZoom;
+                        if (e.deltaY < 0) {
+                          setter((z) => Math.min(180, z + 5));
+                        } else {
+                          setter((z) => Math.max(30, z - 5));
+                        }
+                      }
+                    }}
+                    className="w-full overflow-auto max-h-[75vh] flex items-center justify-center p-2 sm:p-4 custom-scrollbar"
+                  >
+                    {activeTab === "front" ? (
+                      /* FRONT PAGE */
+                      isPreIssued && effectiveFrontImage ? (
+                        <img
+                          src={effectiveFrontImage}
+                          alt={`Sertifikat ${cert.studentName}`}
+                          style={{
+                            width: `${frontZoom}%`,
+                            maxWidth: frontZoom <= 100 ? "100%" : "none",
+                            maxHeight: frontZoom <= 100 ? "65vh" : "none",
+                            objectFit: "contain",
+                            transition: "width 0.15s ease-out",
+                          }}
+                          className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: `${Math.round(templateCanvasW * (frontZoom / 100))}px`,
+                            height: `${Math.round(templateCanvasH * (frontZoom / 100))}px`,
+                            minWidth: `${Math.round(templateCanvasW * (frontZoom / 100))}px`,
+                            minHeight: `${Math.round(templateCanvasH * (frontZoom / 100))}px`,
+                            transition: "width 0.15s ease-out, height 0.15s ease-out",
+                          }}
+                          className="relative shrink-0 shadow-2xl rounded-xl overflow-hidden border border-white/10 m-auto"
+                        >
+                          <div
+                            style={{
+                              width: `${templateCanvasW}px`,
+                              height: `${templateCanvasH}px`,
+                              transform: `scale(${frontZoom / 100})`,
+                              transformOrigin: "top left",
+                              transition: "transform 0.15s ease-out",
+                            }}
+                            className="absolute top-0 left-0 select-none pointer-events-auto"
+                          >
+                            <CertificateTemplate
+                              studentName={cert.studentName}
+                              studentId={cert.studentId || (cert as any).studentId}
+                              courseName={cert.course?.title || cert.program || "Sertifikat Kelulusan"}
+                              certificateId={cert.certId || cert.id}
+                              program={cert.program}
+                              majority={cert.majority}
+                              issuedAt={cert.issuedAt}
+                              qrCodeBase64={qrCodeBase64}
+                              layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                              paperSize={layoutSettings.certificatePaperSize || "A4"}
+                              paperWidthCm={layoutSettings.paperWidthCm || defaultW}
+                              paperHeightCm={layoutSettings.paperHeightCm || defaultH}
+                              instructorName={layoutSettings.instructorName}
+                              instructorNip={layoutSettings.instructorNip}
+                              instructors={layoutSettings.instructors}
+                              institutionLogo={layoutSettings.institutionLogo}
+                              institutionName={layoutSettings.institutionName}
+                              institutionSubtext={layoutSettings.institutionSubtext}
+                              bgPath={layoutSettings.certificateTemplate || layoutSettings.bgPath}
+                              layoutConfig={layoutSettings.layoutConfig}
+                            />
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      /* TRANSCRIPT PAGE */
+                      effectiveTranscriptImage ? (
+                        <img
+                          src={effectiveTranscriptImage}
+                          alt={`Transkrip ${cert.studentName}`}
+                          style={{
+                            width: `${transcriptZoom}%`,
+                            maxWidth: transcriptZoom <= 100 ? "100%" : "none",
+                            maxHeight: transcriptZoom <= 100 ? "65vh" : "none",
+                            objectFit: "contain",
+                            transition: "width 0.15s ease-out",
+                          }}
+                          className="rounded-xl shadow-2xl border border-white/10 select-none m-auto"
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: `${Math.round(templateCanvasW * (transcriptZoom / 100))}px`,
+                            height: `${Math.round(templateCanvasH * (transcriptZoom / 100))}px`,
+                            minWidth: `${Math.round(templateCanvasW * (transcriptZoom / 100))}px`,
+                            minHeight: `${Math.round(templateCanvasH * (transcriptZoom / 100))}px`,
+                            transition: "width 0.15s ease-out, height 0.15s ease-out",
+                          }}
+                          className="relative shrink-0 shadow-2xl rounded-xl overflow-hidden border border-white/10 m-auto"
+                        >
+                          <div
+                            style={{
+                              width: `${templateCanvasW}px`,
+                              height: `${templateCanvasH}px`,
+                              transform: `scale(${transcriptZoom / 100})`,
+                              transformOrigin: "top left",
+                              transition: "transform 0.15s ease-out",
+                            }}
+                            className="absolute top-0 left-0 select-none pointer-events-auto"
+                          >
+                            <CertificateTranscriptPage
+                              studentName={cert.studentName}
+                              studentId={cert.studentId || (cert as any).studentId}
+                              majority={cert.majority || "Teknik Komputer dan Jaringan"}
+                              program={cert.program || cert.course?.title}
+                              courseTitle={cert.course?.title}
+                              units={cert.competencyUnits}
+                              examinerName={layoutSettings.instructorName || "Penguji / Asesor"}
+                              examinerNip={layoutSettings.instructorNip}
+                              institutionLogo={layoutSettings.institutionLogo}
+                              institutionName={layoutSettings.institutionName}
+                              institutionSubtext={layoutSettings.institutionSubtext}
+                              schoolName={layoutSettings.institutionName || cert.schoolName || layoutSettings.schoolName || "SMK Mitra IDUKA"}
+                              paperSize={layoutSettings.certificatePaperSize || "A4"}
+                              paperWidthCm={layoutSettings.paperWidthCm || defaultW}
+                              paperHeightCm={layoutSettings.paperHeightCm || defaultH}
+                              layout={layoutSettings.certificateLayout || "HORIZONTAL"}
+                              bgPath={layoutSettings.transcriptTemplate || layoutSettings.transcriptBgPath}
+                              layoutConfig={layoutSettings.transcriptLayoutConfig}
+                            />
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  {/* IPFS CID Badge */}
+                  {cleanCid && (
+                    <div className="px-4 py-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-white/50 font-mono">
+                      <span className="flex items-center gap-2">
+                        <ShieldCheck size={14} className="text-emerald-400" />
+                        IPFS Artifact: {cleanCid.substring(0, 32)}...
+                      </span>
+                      <a
+                        href={
+                          isCidHttp
+                            ? cleanCid
+                            : `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-sans font-bold text-xs"
+                      >
+                        Buka Artifak IPFS Asli <ExternalLink size={12} />
+                      </a>
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -400,11 +630,19 @@ export default function StudentCertificateDetailPage() {
                       Issued Date
                     </p>
                     <p className="text-sm font-medium text-slate-300">
-                      {new Date(cert.issuedAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {(() => {
+                        try {
+                          const d = new Date(cert.issuedAt);
+                          if (isNaN(d.getTime())) return cert.issuedAt;
+                          return d.toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          });
+                        } catch {
+                          return cert.issuedAt;
+                        }
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -432,6 +670,20 @@ export default function StudentCertificateDetailPage() {
                     </p>
                   </div>
                 </div>
+
+                {cert.blockchainTxId && (
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="text-slate-500 mt-0.5" size={16} />
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-slate-500 font-bold">
+                        Transaction ID
+                      </p>
+                      <p className="text-xs font-mono text-cyan-400/80 break-all">
+                        {cert.blockchainTxId}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

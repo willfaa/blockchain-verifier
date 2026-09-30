@@ -153,11 +153,19 @@ export default function CertificateLedgerPage() {
         const dateStr = r.issuedAt || r.createdAt;
         let formattedDate = "-";
         try {
-          formattedDate = new Date(dateStr).toLocaleDateString("id-ID", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          });
+          const d = new Date(dateStr);
+          if (!isNaN(d.getTime())) {
+            formattedDate = d.toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }) + " · " + d.toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          } else {
+            formattedDate = dateStr || "-";
+          }
         } catch (e) {
           formattedDate = dateStr || "-";
         }
@@ -205,10 +213,10 @@ export default function CertificateLedgerPage() {
       render: (r: any) => (
         <div className="space-y-0.5">
           <p className="font-mono text-xs font-bold text-emerald-400">
-            {r.certificateNumber || "UKK/DEFAULT"}
+            {r.certificateNumber || "-"}
           </p>
           <p className="text-[10px] text-slate-400 truncate max-w-xs">
-            {r.schoolName || r.courseName || "SMK Mitra IDUKA"}
+            {r.schoolName || r.courseName || "-"}
           </p>
         </div>
       ),
@@ -217,7 +225,7 @@ export default function CertificateLedgerPage() {
       key: "hash",
       label: "Merkle Hash & Tx ID",
       render: (r: any) => {
-        const txId = r.blockchainTxId || r.txId || "ON_CHAIN_CONSENSUS";
+        const txId = r.blockchainTxId || r.txId || "-";
         const hash = r.hash || "";
 
         return (
