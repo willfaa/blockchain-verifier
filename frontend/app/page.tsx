@@ -94,7 +94,7 @@ export default function Home() {
               Web3 ecosystem - Chainnesa LMS
             </div>
             <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
-              Blockchain-Based Learning Management System
+              Blockchain-Based Learning Management System.
             </h1>
             <p className="max-w-2xl text-base text-slate-200 sm:text-lg">
               Learn any course with verifiable records. Chainnesa anchors
