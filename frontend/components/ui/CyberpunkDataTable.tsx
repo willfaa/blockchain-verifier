@@ -82,9 +82,9 @@ export default function CyberpunkDataTable({
                 </tr>
               ))
             ) : data.length > 0 ? (
-              data.map((row) => (
+              data.map((row, idx) => (
                 <tr
-                  key={row.id}
+                  key={row.id || row.certId || `row-${idx}`}
                   className="group hover:bg-cyan-500/5 transition-colors"
                 >
                   {columns.map((col) => (

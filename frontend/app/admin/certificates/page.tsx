@@ -34,6 +34,8 @@ export default function CertificateLedgerPage() {
     process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
     "https://green-real-rhinoceros-350.mypinata.cloud";
 
+  const [syncingLedger, setSyncingLedger] = useState(false);
+
   const fetchCertificates = async () => {
     setLoading(true);
     try {
@@ -69,6 +71,24 @@ export default function CertificateLedgerPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncLedger = async () => {
+    setSyncingLedger(true);
+    try {
+      const res = await api.post("/certificates/sync-ledger");
+      if (res.data?.ok) {
+        toast.success(res.data.message || "Sinkronisasi antrean ledger blockchain berhasil!");
+        await fetchCertificates();
+      } else {
+        toast.info(res.data?.message || "Tidak ada sertifikat dalam antrean sinkronisasi.");
+      }
+    } catch (err: any) {
+      console.error("Sync Ledger Error:", err);
+      toast.error(err.response?.data?.error || "Gagal menyinkronkan ke blockchain.");
+    } finally {
+      setSyncingLedger(false);
     }
   };
 
@@ -170,19 +190,20 @@ export default function CertificateLedgerPage() {
           formattedDate = dateStr || "-";
         }
 
-        return (
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono text-xs text-cyan-400 font-bold">{certId}</span>
-              <button
-                type="button"
-                onClick={() => handleCopy(certId, `id-${certId}`)}
-                className="text-slate-500 hover:text-cyan-400 transition-colors"
-                title="Salin ID"
-              >
-                {copiedId === `id-${certId}` ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-              </button>
-            </div>
+          const uniqueId = r.id || r.certId || `cert-${Math.random()}`;
+          return (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-xs text-cyan-400 font-bold">{certId}</span>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(certId, `id-${uniqueId}`)}
+                  className="text-slate-500 hover:text-cyan-400 transition-colors"
+                  title="Salin ID"
+                >
+                  {copiedId === `id-${uniqueId}` ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                </button>
+              </div>
             <p className="text-[10px] text-slate-400 font-mono">{formattedDate}</p>
             {r.layoutMode === "PRE_ISSUED_STAMP" && (
               <span className="inline-block text-[9px] px-1.5 py-0.2 rounded bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30 font-bold uppercase">
@@ -341,15 +362,28 @@ export default function CertificateLedgerPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchCertificates}
-          disabled={loading}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-white rounded-xl text-xs font-bold border border-cyan-500/30 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          <span>Segarkan Data</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleSyncLedger}
+            disabled={syncingLedger || loading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-xl text-xs font-bold border border-cyan-500/30 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            title="Sinkronkan data pending ke ledger Fabric"
+          >
+            <ShieldCheck size={14} className={syncingLedger ? "animate-pulse text-cyan-400" : ""} />
+            <span>{syncingLedger ? "Menyinkronkan..." : "Sinkronkan Blockchain"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={fetchCertificates}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-white rounded-xl text-xs font-bold border border-cyan-500/30 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            <span>Segarkan Data</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Overview */}
