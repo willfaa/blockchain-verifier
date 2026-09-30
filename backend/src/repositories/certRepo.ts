@@ -1,5 +1,6 @@
 import { db } from "../config/db";
 import { CertificateRecord } from "../types";
+import bcrypt from "bcryptjs";
 
 // Helper: Ubah snake_case DB ke camelCase App
 // Helper: Ubah snake_case DB ke camelCase App
@@ -46,7 +47,7 @@ export const saveCertificate = async (cert: CertificateRecord) => {
           id: crypto.randomUUID(),
           name: cert.name,
           email: dummyEmail,
-          password: "$2a$10$dummyHashForAutoProvisionedStudentCertOnly",
+          password: bcrypt.hashSync(cert.studentId || sanitizedId, 10),
           role: "student",
           studentId: cert.studentId,
           majority: cert.majority,

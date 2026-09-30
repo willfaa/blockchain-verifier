@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import {
   findUserByIdentifier,
   createSupabaseUser,
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
           id: crypto.randomUUID(),
           name: studentName,
           email: dummyEmail,
-          password: "$2a$10$dummyHashForAutoProvisionedStudentCertOnly",
+          password: await bcrypt.hash(studentId, 10),
           role: "student",
           studentId,
           majority,
