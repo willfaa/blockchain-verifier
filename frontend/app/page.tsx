@@ -87,7 +87,7 @@ export default function Home() {
       <main className="max-w-[1400px] mx-auto px-10  pb-10 relative">
         <section
           id="home"
-          className="grid grid-cols-1 items-center gap-10 pb-16 pt-32 lg:grid-cols-[1.1fr_0.9fr]"
+          className="grid grid-cols-1 items-center gap-10 pb-10 pt-32 lg:grid-cols-[1.1fr_0.9fr]"
         >
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-100 ring-1 ring-white/20">
@@ -158,7 +158,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="courses" className="space-y-6 pb-14">
+        <section id="courses" className="space-y-6 pb-10">
           <div className="text-center">
             <p className="text-sm uppercase tracking-[0.2em] text-cyan-100">
               Our Courses
@@ -206,7 +206,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="space-y-6 pb-14">
+        <section id="features" className="space-y-6 pb-10">
           <div className="text-center">
             <p className="text-sm uppercase tracking-[0.2em] text-cyan-100">
               Our Features
@@ -243,7 +243,7 @@ export default function Home() {
 
         <section
           id="about"
-          className="grid grid-cols-1 items-center gap-10 pb-14 lg:grid-cols-[1.05fr_0.95fr]"
+          className="grid grid-cols-1 items-center gap-10 pb-5 lg:grid-cols-[1.05fr_0.95fr]"
         >
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.2em] text-cyan-100">
