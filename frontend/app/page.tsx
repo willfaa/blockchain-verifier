@@ -84,7 +84,7 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="max-w-[1400px] mx-auto px-10  pb-32 relative">
+      <main className="max-w-[1400px] mx-auto px-10  pb-10 relative">
         <section
           id="home"
           className="grid grid-cols-1 items-center gap-10 pb-16 pt-32 lg:grid-cols-[1.1fr_0.9fr]"
@@ -158,7 +158,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="courses" className="space-y-6 pb-14">
+        <section id="courses" className="space-y-6 pb-12">
           <div className="text-center">
             <p className="text-sm uppercase tracking-[0.2em] text-cyan-100">
               Our Courses
