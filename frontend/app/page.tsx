@@ -242,55 +242,6 @@ export default function Home() {
         </section>
 
         <section
-          id="verification"
-          className="grid grid-cols-1 gap-6 pb-14 lg:grid-cols-[1.1fr_0.9fr]"
-        >
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-cyan-100">
-              Verification
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold text-white">
-              Check a certificate in three steps
-            </h2>
-            <p className="mt-1 text-sm text-slate-200">
-              Use the certId from the learner. We look up the on-chain record,
-              cross-check the IPFS CID, and surface the stored hash.
-            </p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {["Distribute", "Verify"].map((title, idx) => (
-                <div
-                  key={title}
-                  className="rounded-2xl border border-white/10 bg-slate-900/70 p-4"
-                >
-                  <div className="flex items-center gap-2 text-xs font-semibold text-cyan-100">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white">
-                      {idx + 1}
-                    </span>
-                    {title}
-                  </div>
-                  <p className="mt-2 text-xs text-slate-200">
-                    {idx === 0 &&
-                      "Share the certId or verification link with learners and partners."}
-                    {idx === 1 &&
-                      "Confirm integrity by checking the chain-stored hash and CID."}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 flex flex-wrap gap-3 text-sm">
-              {/* Issue button removed */}
-              <Link
-                href="/verify"
-                className="rounded-full border border-white/30 px-4 py-2 font-semibold text-slate-50 transition hover:border-white hover:-translate-y-0.5"
-              >
-                Verify now
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section
           id="about"
           className="grid grid-cols-1 items-center gap-10 pb-14 lg:grid-cols-[1.05fr_0.95fr]"
         >
