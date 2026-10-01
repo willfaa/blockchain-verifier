@@ -288,47 +288,6 @@ export default function Home() {
               </Link>
             </div>
           </div>
-
-          <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/25">
-            <p className="text-sm font-semibold text-white">
-              How this verify endpoint works
-            </p>
-            <ul className="mt-3 space-y-3 text-sm text-slate-200">
-              <li className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-                The frontend sends
-                <code className="ml-1 rounded bg-slate-950/60 px-1 py-0.5 text-[0.7rem]">
-                  certId
-                </code>
-                to
-                <code className="ml-1 rounded bg-slate-950/60 px-1 py-0.5 text-[0.7rem]">
-                  POST http://localhost:4000/verify
-                </code>
-                .
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-cyan-400" />
-                Backend reads metadata from PostgreSQL and cross-checks anchors
-                on Hyperledger Fabric.
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-blue-400" />
-                The IPFS CID renders the original file via gateway
-                <code className="ml-1 rounded bg-slate-950/60 px-1 py-0.5 text-[0.7rem]">
-                  127.0.0.1:8080/ipfs/[cid]
-                </code>
-                , while the SHA-256 hash guarantees integrity.
-              </li>
-            </ul>
-            <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-slate-100">
-              <p className="font-semibold text-white">Current endpoints</p>
-              <p className="mt-2">POST http://localhost:4000/issue</p>
-              <p>POST http://localhost:4000/verify</p>
-              <p className="mt-2 text-slate-300">
-                Hook these into your frontend or partner portals.
-              </p>
-            </div>
-          </div>
         </section>
 
         <section
