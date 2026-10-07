@@ -3162,31 +3162,31 @@ export default function SmartIssueCertificatePage() {
 
                   {/* Dynamic Batch Table */}
                   <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 max-h-[460px] custom-scrollbar">
-                    <table className="w-full text-left text-xs border-collapse">
+                    <table className="min-w-max w-full text-left text-xs border-collapse">
                       <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
                         <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                          <th className="py-2 px-2 text-center">No</th>
-                          <th className="py-3 px-4 min-w-[200px]">
+                          <th className="py-2 px-3 text-center whitespace-nowrap w-10 shrink-0">No</th>
+                          <th className="py-3 px-4 min-w-[180px] whitespace-nowrap">
                             Nama Siswa
                           </th>
                           {pageMode === "DOUBLE" ? (
                             activeTranscriptUnits.map((u) => (
                               <th
                                 key={u.code}
-                                className="py-3 px-3 min-w-[130px] text-center font-mono text-[10px]"
+                                className="py-3 px-3 min-w-[120px] text-center font-mono text-[10px] whitespace-nowrap"
                               >
                                 {u.code}
                               </th>
                             ))
                           ) : (
-                            <th className="py-3 px-4 text-center">
+                            <th className="py-3 px-4 text-center whitespace-nowrap">
                               Status Kelulusan
                             </th>
                           )}
-                          <th className="py-3 px-4 text-center w-28">
+                          <th className="py-3 px-4 text-center whitespace-nowrap w-28">
                             Rata-Rata
                           </th>
-                          <th className="py-3 px-4 text-right w-24">Aksi</th>
+                          <th className="py-3 px-4 text-right whitespace-nowrap w-20">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -3204,10 +3204,10 @@ export default function SmartIssueCertificatePage() {
                               key={sId}
                               className="hover:bg-white/[0.02] transition-colors"
                             >
-                              <td className="py-3 px-3 text-center font-mono text-slate-500">
+                              <td className="py-3 px-3 text-center font-mono text-slate-500 whitespace-nowrap">
                                 {idx + 1}
                               </td>
-                              <td className="py-3 px-4">
+                              <td className="py-3 px-4 whitespace-nowrap">
                                 <p className="font-bold text-white truncate">
                                   {std.name}
                                 </p>
@@ -3249,16 +3249,16 @@ export default function SmartIssueCertificatePage() {
                                   );
                                 })
                               ) : (
-                                <td className="py-3 px-4 text-center text-emerald-400 font-bold">
+                                <td className="py-3 px-4 text-center text-emerald-400 font-bold whitespace-nowrap">
                                   KOMPETEN (LULUS)
                                 </td>
                               )}
 
-                              <td className="py-3 px-4 text-center font-mono font-bold text-amber-300">
+                              <td className="py-3 px-4 text-center font-mono font-bold text-amber-300 whitespace-nowrap">
                                 {avg}
                               </td>
 
-                              <td className="py-3 px-4 text-right">
+                              <td className="py-3 px-4 text-right whitespace-nowrap">
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
                                     type="button"
