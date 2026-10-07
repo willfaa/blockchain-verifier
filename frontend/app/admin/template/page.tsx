@@ -731,7 +731,12 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Tata letak Halaman 1 (Sertifikat) berhasil direset ke default");
         setLayoutConfig(null);
-        setPreviewKey(Date.now());
+        // Clear blob so React preview shows default layout immediately
+        setPreviewBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+        setActivePreviewTab("front");
       }
     } catch (err) {
       console.error(err);
@@ -776,7 +781,8 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Tata letak transkrip (Halaman 2) berhasil direset ke default");
         setTranscriptLayoutConfig(null);
-        setPreviewKey(Date.now());
+        // Switch to transcript preview so user sees the reset result immediately
+        setActivePreviewTab("transcript");
       }
     } catch (err) {
       console.error(err);
@@ -839,6 +845,11 @@ export default function CertificateTemplatePage() {
           onClick={() => {
             setActiveConfigTab("front");
             setActivePreviewTab("front");
+            // Clear blob so Halaman 1 React preview is always fresh when switching back
+            setPreviewBlobUrl((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return null;
+            });
           }}
           className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeConfigTab === "front"

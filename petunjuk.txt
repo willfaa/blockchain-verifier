@@ -115,7 +115,7 @@ A. SAFE SHUTDOWN (Data Ledger AMAN - RAM & CPU Bebas):
    docker stop $(docker ps -q)
 
    # Menyalakan kembali besok:
-   docker start ca_orderer ca_org1 ca_org2 orderer.example.com peer0.org1.example.com peer0.org2.example.com
+   docker start ca_orderer ca_org1 ca_org2 orderer.example.untucom peer0.org1.example.com peer0.org2.example.com
 
 B. RESET TOTAL / FRESH TESTING (Data Ledger DIHAPUS TOTAL):
    Hanya gunakan ini jika ingin mengosongkan riwayat dari nol.
