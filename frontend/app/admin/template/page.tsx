@@ -472,7 +472,12 @@ export default function CertificateTemplatePage() {
 
       if (res.data.ok) {
         toast.success("Identitas lembaga berhasil disimpan!");
-        setPreviewKey(Date.now());
+        // Clear blob so React preview component reflects new institutionName/subtext immediately
+        // (React state already has the new values, no need to re-fetch backend PNG)
+        setPreviewBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -693,7 +698,13 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Konfigurasi tata letak berhasil disimpan");
         setLayoutConfig(config);
-        setPreviewKey(Date.now());
+        // Clear blob preview so the live React component is shown immediately
+        // (React state is already in sync, no need to re-fetch backend PNG)
+        setPreviewBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+        setActivePreviewTab("front");
       }
     } catch (err: any) {
       console.error(err);
@@ -737,7 +748,8 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Konfigurasi tata letak transkrip (Halaman 2) berhasil disimpan");
         setTranscriptLayoutConfig(config);
-        setPreviewKey(Date.now());
+        // Switch to transcript preview tab — React component is immediately in sync
+        setActivePreviewTab("transcript");
       }
     } catch (err: any) {
       console.error(err);
