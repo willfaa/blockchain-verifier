@@ -888,7 +888,7 @@ export default function WindowsExplorerExpertisePage() {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
-                      <th className="py-3 px-4 w-12 text-center">No</th>
+                      <th className="py-3 px-2 w-12 text-center">No</th>
                       <th className="py-3 px-4">Nama Item / Unit</th>
                       <th className="py-3 px-4">Tipe / Kode</th>
                       <th className="py-3 px-4">Isi / Standar</th>
@@ -910,8 +910,8 @@ export default function WindowsExplorerExpertisePage() {
                           }`}
                         >
                           <td className="py-3 px-4 text-center font-mono text-slate-500">{idx + 1}</td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2.5">
+                          <td className="py-2 px-2">
+                            <div className="flex items-center gap-1">
                               {isFolder ? (
                                 <Folder
                                   size={16}
@@ -926,7 +926,7 @@ export default function WindowsExplorerExpertisePage() {
                               ) : (
                                 <FileText size={16} className="text-emerald-400 shrink-0" />
                               )}
-                              <span className="font-bold text-white truncate max-w-md">{item.name}</span>
+                              <span className="font-bold text-white truncate max-w-xs ">{item.name}</span>
                             </div>
                           </td>
                           <td className="py-3 px-4 font-mono text-slate-300">
@@ -1155,9 +1155,6 @@ export default function WindowsExplorerExpertisePage() {
                         className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-semibold focus:outline-none focus:border-cyan-400 transition-all text-sm cursor-pointer"
                       >
                         <option value="SKKNI">SKKNI (Standar Nasional)</option>
-                        <option value="LSP">LSP (Lembaga Sertifikasi Profesi)</option>
-                        <option value="IDUKA">IDUKA / Mitra Industri</option>
-                        <option value="DUDI">DUDI (Dunia Usaha Dunia Industri)</option>
                       </select>
                     </div>
                   </div>
