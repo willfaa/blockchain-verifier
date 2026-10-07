@@ -53,6 +53,8 @@ import {
   Table,
   Edit2,
   Check,
+  Building2,
+  AlignJustify,
 } from "lucide-react";
 
 export interface CustomGroup {
@@ -2159,18 +2161,29 @@ export default function CertificateEditor({
 
   // Helper render thumbnail gambar di sidebar layer
   const renderLayerThumbnail = (el: LayoutElement) => {
-    if (
-      el.id === "universityLogo" ||
-      el.imageUrl === "DEFAULT_LOGO" ||
-      el.imageUrl === "/assets/unesa-logo.png"
-    ) {
-      return (
-        <img
-          src="/assets/unesa-logo.png"
-          alt="Logo"
-          className="w-6 h-6 rounded object-contain bg-white/5 p-0.5 border border-white/10 shrink-0"
-        />
-      );
+    // universityLogo: show actual logo image (from el.imageUrl which is synced from institutionLogo prop)
+    if (el.id === "universityLogo") {
+      const logoSrc = el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" && el.imageUrl !== "/assets/unesa-logo.png"
+        ? el.imageUrl
+        : institutionLogo || null;
+      if (logoSrc) {
+        return (
+          <img
+            src={logoSrc}
+            alt="Logo"
+            className="w-6 h-6 rounded object-contain bg-white/5 p-0.5 border border-white/10 shrink-0"
+          />
+        );
+      }
+      return <Building2 size={15} className="text-amber-400 shrink-0" />;
+    }
+    // universityTitle: Nama Lembaga icon
+    if (el.id === "universityTitle") {
+      return <Building2 size={15} className="text-amber-300 shrink-0" />;
+    }
+    // majorProgram: Sub-Judul Lembaga icon
+    if (el.id === "majorProgram") {
+      return <AlignJustify size={15} className="text-amber-300/70 shrink-0" />;
     }
     if (el.type === "table") {
       return <Table size={15} className="text-emerald-400 shrink-0" />;
