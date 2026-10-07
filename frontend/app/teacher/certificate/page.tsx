@@ -3932,6 +3932,16 @@ export default function SmartIssueCertificatePage() {
                         layoutSettings.instructorNip ||
                         "-"
                       }
+                      examinerTitle={
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.title) ||
+                        "Penguji / Asesor Uji Kompetensi"
+                      }
+                      signatureUrl={
+                        (layoutSettings.instructors &&
+                          layoutSettings.instructors[0]?.signatureUrl) ||
+                        null
+                      }
                       institutionLogo={layoutSettings.institutionLogo}
                       institutionName={layoutSettings.institutionName}
                       institutionSubtext={layoutSettings.institutionSubtext}
@@ -3951,6 +3961,10 @@ export default function SmartIssueCertificatePage() {
                         layoutSettings.transcriptTemplate ||
                         layoutSettings.transcriptBgPath
                       }
+                      theme={layoutSettings.transcriptConfig?.theme || "light"}
+                      headerTitle={layoutSettings.transcriptConfig?.headerTitle}
+                      subHeaderTitle={layoutSettings.transcriptConfig?.subHeaderTitle}
+                      footerNote={layoutSettings.transcriptConfig?.footerNote}
                       layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   )}
