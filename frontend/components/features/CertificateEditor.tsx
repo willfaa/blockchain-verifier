@@ -193,15 +193,15 @@ const DEFAULT_SUPABASE_LOGO =
 
 // Tata letak default Horizontal Halaman 1 (Landscape ~1754 x 1240 px, Center X = 877)
 const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
-  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
-  universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 877, y: 220, width: 700, height: 35, fontSize: 24, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
+  universityLogo: { id: "universityLogo", type: "image", label: "Logo", x: 877, y: 110, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
+  universityTitle: { id: "universityTitle", type: "text", label: "Nama Lembaga", text: "UNIVERSITAS NEGERI SURABAYA", x: 877, y: 220, width: 700, height: 35, fontSize: 24, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
   certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN", x: 877, y: 295, width: 1000, height: 80, fontSize: 52, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
   certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 877, y: 355, width: 500, height: 26, fontSize: 16, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
   certIdLabel: { id: "certIdLabel", type: "text", label: "ID Registrasi Blockchain", text: "ID: CERT-2026-0001", x: 877, y: 385, width: 350, height: 25, fontSize: 14, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
   presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "DIBERIKAN KEPADA", x: 877, y: 440, width: 320, height: 36, fontSize: 16, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
   studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 877, y: 510, width: 1000, height: 90, fontSize: 72, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
   schoolName: { id: "schoolName", type: "text", label: "Asal Sekolah / Satuan Pendidikan", text: "SMK NEGERI 1 SURABAYA", x: 877, y: 590, width: 700, height: 30, fontSize: 19, fontFamily: "Arial", color: "#e2e8f0", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15.5 },
-  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "TEKNOLOGI INFORMASI - REKAYASA PERANGKAT LUNAK", x: 877, y: 625, width: 750, height: 30, fontSize: 18, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
+  majorProgram: { id: "majorProgram", type: "text", label: "Sub-Judul Lembaga", text: "TEKNOLOGI INFORMASI - REKAYASA PERANGKAT LUNAK", x: 877, y: 625, width: 750, height: 30, fontSize: 18, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
   studentId: { id: "studentId", type: "text", label: "NISN / ID Siswa", text: "NISN / ID : 0056789123", x: 877, y: 665, width: 500, height: 30, fontSize: 17, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
   courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "Telah memenuhi standar kelulusan dan kompetensi pada skema:", x: 877, y: 720, width: 800, height: 26, fontSize: 16, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
   courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK) REKAYASA PERANGKAT LUNAK", x: 877, y: 765, width: 1000, height: 60, fontSize: 38, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
@@ -227,15 +227,15 @@ const DEFAULT_HORIZONTAL_ELEMENTS: Record<string, LayoutElement> = {
 
 // Tata letak default Vertikal Halaman 1 (Portrait ~1240 x 1754 px, Center X = 620)
 const DEFAULT_VERTICAL_ELEMENTS: Record<string, LayoutElement> = {
-  universityLogo: { id: "universityLogo", type: "image", label: "Logo Universitas", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
-  universityTitle: { id: "universityTitle", type: "text", label: "Nama Universitas", text: "UNIVERSITAS NEGERI SURABAYA", x: 620, y: 235, width: 600, height: 35, fontSize: 22, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
+  universityLogo: { id: "universityLogo", type: "image", label: "Logo", x: 620, y: 130, width: 120, height: 120, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: DEFAULT_SUPABASE_LOGO, lockAspectRatio: true, locked: false, zIndex: 10 },
+  universityTitle: { id: "universityTitle", type: "text", label: "Nama Lembaga", text: "UNIVERSITAS NEGERI SURABAYA", x: 620, y: 235, width: 600, height: 35, fontSize: 22, fontFamily: "Arial", color: "#cbd5e1", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 11 },
   certificateTitle: { id: "certificateTitle", type: "text", label: "Judul Sertifikat", text: "SERTIFIKAT UJI KOMPETENSI", x: 620, y: 310, width: 700, height: 70, fontSize: 44, fontFamily: "Arial", color: "#38bdf8", colorMode: "solid", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12 },
   certificateNumber: { id: "certificateNumber", type: "text", label: "Nomor Sertifikat Resmi", text: "No: 421.5/089/SMKN1/RPL/2026", x: 620, y: 365, width: 450, height: 26, fontSize: 15, fontFamily: "Arial", color: "#38bdf8", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 12.5 },
   certIdLabel: { id: "certIdLabel", type: "text", label: "ID Registrasi Blockchain", text: "ID: CERT-2026-0001", x: 620, y: 390, width: 350, height: 25, fontSize: 13, fontFamily: "Courier New", color: "#0ea5e9", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 13 },
   presentedTo: { id: "presentedTo", type: "text", label: "Pill Proudly Presented", text: "DIBERIKAN KEPADA", x: 620, y: 450, width: 300, height: 36, fontSize: 15, fontFamily: "Arial", color: "#67e8f9", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 14 },
   studentName: { id: "studentName", type: "text", label: "Nama Penerima (Siswa)", text: "Student Name", x: 620, y: 535, width: 750, height: 85, fontSize: 60, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15 },
   schoolName: { id: "schoolName", type: "text", label: "Asal Sekolah / Satuan Pendidikan", text: "SMK NEGERI 1 SURABAYA", x: 620, y: 605, width: 600, height: 28, fontSize: 17, fontFamily: "Arial", color: "#e2e8f0", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 15.5 },
-  majorProgram: { id: "majorProgram", type: "text", label: "Jurusan & Program Studi", text: "TEKNIK - REKAYASA PERANGKAT LUNAK", x: 620, y: 635, width: 650, height: 30, fontSize: 16, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
+  majorProgram: { id: "majorProgram", type: "text", label: "Sub-Judul Lembaga", text: "TEKNIK - REKAYASA PERANGKAT LUNAK", x: 620, y: 635, width: 650, height: 30, fontSize: 16, fontFamily: "Arial", color: "#cbd5e1", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
   studentId: { id: "studentId", type: "text", label: "NISN / ID Siswa", text: "NISN / ID : 0056789123", x: 620, y: 670, width: 450, height: 30, fontSize: 15, fontFamily: "Arial", color: "#06b6d4", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
   courseSubtitle: { id: "courseSubtitle", type: "text", label: "Sub-keterangan Pelatihan", text: "Telah memenuhi standar kelulusan pada skema:", x: 620, y: 735, width: 650, height: 26, fontSize: 14, fontFamily: "Arial", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
   courseTitle: { id: "courseTitle", type: "text", label: "Nama Kursus / Pelatihan", text: "UJI KOMPETENSI KEAHLIAN (UKK)", x: 620, y: 785, width: 750, height: 55, fontSize: 32, fontFamily: "Arial", color: "#ffffff", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 19 },
@@ -752,14 +752,28 @@ export default function CertificateEditor({
       });
       delete merged.background;
 
-      if (institutionLogo && merged.universityLogo && (!merged.universityLogo.imageUrl || merged.universityLogo.imageUrl === "/assets/unesa-logo.png" || merged.universityLogo.imageUrl === "DEFAULT_LOGO")) {
-        merged.universityLogo.imageUrl = institutionLogo;
+      // Always sync logo, name, subtext from props — unconditionally overwrite
+      // so WYSIWYG: what's in the form fields is what you see in the editor
+      if (merged.universityLogo) {
+        merged.universityLogo = {
+          ...merged.universityLogo,
+          label: "Logo",
+          ...(institutionLogo ? { imageUrl: institutionLogo } : {}),
+        };
       }
-      if (institutionName && merged.universityTitle && (merged.universityTitle.text === "UNIVERSITAS NEGERI SURABAYA" || !merged.universityTitle.text)) {
-        merged.universityTitle.text = institutionName;
+      if (merged.universityTitle) {
+        merged.universityTitle = {
+          ...merged.universityTitle,
+          label: "Nama Lembaga",
+          ...(institutionName ? { text: institutionName } : {}),
+        };
       }
-      if (institutionSubtext && merged.majorProgram && (merged.majorProgram.text === "TEKNOLOGI INFORMASI - REKAYASA PERANGKAT LUNAK" || merged.majorProgram.text === "TEKNIK - REKAYASA PERANGKAT LUNAK" || !merged.majorProgram.text)) {
-        merged.majorProgram.text = institutionSubtext;
+      if (merged.majorProgram) {
+        merged.majorProgram = {
+          ...merged.majorProgram,
+          label: "Sub-Judul Lembaga",
+          ...(institutionSubtext ? { text: institutionSubtext } : {}),
+        };
       }
 
       setElements(merged);
@@ -811,7 +825,7 @@ export default function CertificateEditor({
       setShowDecorativeFrame(!isTranscript);
       setFollowTemplateDesign(true);
     }
-  }, [initialConfig, layout, isTranscript, institutionLogo, institutionName]);
+  }, [initialConfig, layout, isTranscript, institutionLogo, institutionName, institutionSubtext]);
 
   // Sinkronisasi perubahan props dimensi
   useEffect(() => {
