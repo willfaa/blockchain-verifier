@@ -748,9 +748,12 @@ export default function CertificateEditor({
       const hasWrappedElements = "elements" in initialConfig && (initialConfig as any).elements;
       const loadedElements = (hasWrappedElements ? (initialConfig as any).elements : initialConfig) as Record<string, LayoutElement>;
 
-      const merged: Record<string, LayoutElement> = { ...fallbackDefaults };
+      // Fix: Start ONLY from loadedElements keys — this respects user deletions.
+      // fallbackDefaults is used only to fill in missing properties of existing elements,
+      // NOT to add back deleted elements.
+      const merged: Record<string, LayoutElement> = {};
       Object.keys(loadedElements).forEach((k) => {
-        merged[k] = { ...(merged[k] || {}), ...loadedElements[k] };
+        merged[k] = { ...(fallbackDefaults[k] || {}), ...loadedElements[k] };
       });
       delete merged.background;
 
