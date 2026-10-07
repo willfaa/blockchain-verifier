@@ -2982,7 +2982,7 @@ export default function SmartIssueCertificatePage() {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
                       <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        <th className="py-3 px-4 w-12 text-center">Pilih</th>
+                        <th className="py-3 px-4 w-30 text-center">Pilih</th>
                         <th className="py-3 px-4">Nama Siswa</th>
                         <th className="py-3 px-4">NISN / ID</th>
                         <th className="py-3 px-4">Jurusan / Konsentrasi</th>
@@ -3165,7 +3165,7 @@ export default function SmartIssueCertificatePage() {
                     <table className="w-full text-left text-xs border-collapse">
                       <thead className="sticky top-0 bg-slate-900 border-b border-white/10 z-10">
                         <tr className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                          <th className="py-3 px-3 w-10 text-center">No</th>
+                          <th className="py-2 px-2 text-center">No</th>
                           <th className="py-3 px-4 min-w-[200px]">
                             Nama Siswa
                           </th>

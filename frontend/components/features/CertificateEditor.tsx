@@ -51,6 +51,8 @@ import {
   RectangleHorizontal,
   Badge,
   Table,
+  Edit2,
+  Check,
 } from "lucide-react";
 
 export interface CustomGroup {
@@ -404,7 +406,7 @@ export default function CertificateEditor({
     ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
     : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
 
-  // Inject dynamic institution logo & name into defaults if provided
+  // Inject dynamic institution logo & name & subtext into defaults if provided
   const defaultElements: Record<string, LayoutElement> = { ...rawDefaults };
   if (institutionLogo && defaultElements.universityLogo) {
     defaultElements.universityLogo = {
@@ -418,6 +420,12 @@ export default function CertificateEditor({
       text: institutionName,
     };
   }
+  if (institutionSubtext && defaultElements.majorProgram) {
+    defaultElements.majorProgram = {
+      ...defaultElements.majorProgram,
+      text: institutionSubtext,
+    };
+  }
 
   // Elements & Custom Groups state
   const [elements, setElements] = useState<Record<string, LayoutElement>>(defaultElements);
@@ -426,6 +434,10 @@ export default function CertificateEditor({
 
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Inline Layer Label Renaming state
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+  const [tempLabel, setTempLabel] = useState<string>("");
 
   // History state for Undo and Redo
   const [history, setHistory] = useState<{ elements: Record<string, LayoutElement>; customGroups: Record<string, CustomGroup> }[]>([
@@ -723,6 +735,12 @@ export default function CertificateEditor({
         text: institutionName,
       };
     }
+    if (institutionSubtext && fallbackDefaults.majorProgram) {
+      fallbackDefaults.majorProgram = {
+        ...fallbackDefaults.majorProgram,
+        text: institutionSubtext,
+      };
+    }
 
     if (initialConfig) {
       const hasWrappedElements = "elements" in initialConfig && (initialConfig as any).elements;
@@ -737,8 +755,11 @@ export default function CertificateEditor({
       if (institutionLogo && merged.universityLogo && (!merged.universityLogo.imageUrl || merged.universityLogo.imageUrl === "/assets/unesa-logo.png" || merged.universityLogo.imageUrl === "DEFAULT_LOGO")) {
         merged.universityLogo.imageUrl = institutionLogo;
       }
-      if (institutionName && merged.universityTitle && (merged.universityTitle.text === "UNIVERSITAS NEGERI SURABAYA")) {
+      if (institutionName && merged.universityTitle && (merged.universityTitle.text === "UNIVERSITAS NEGERI SURABAYA" || !merged.universityTitle.text)) {
         merged.universityTitle.text = institutionName;
+      }
+      if (institutionSubtext && merged.majorProgram && (merged.majorProgram.text === "TEKNOLOGI INFORMASI - REKAYASA PERANGKAT LUNAK" || merged.majorProgram.text === "TEKNIK - REKAYASA PERANGKAT LUNAK" || !merged.majorProgram.text)) {
+        merged.majorProgram.text = institutionSubtext;
       }
 
       setElements(merged);
@@ -845,6 +866,12 @@ export default function CertificateEditor({
       fallbackDefaults.universityTitle = {
         ...fallbackDefaults.universityTitle,
         text: institutionName,
+      };
+    }
+    if (institutionSubtext && fallbackDefaults.majorProgram) {
+      fallbackDefaults.majorProgram = {
+        ...fallbackDefaults.majorProgram,
+        text: institutionSubtext,
       };
     }
 
@@ -2326,17 +2353,74 @@ export default function CertificateEditor({
             <Square size={14} className="text-white/20 shrink-0" />
           )}
           {renderLayerThumbnail(el)}
-          <span
-            className={`text-xs truncate ${
-              isSelected
-                ? el.isCustom
-                  ? "text-white font-semibold"
-                  : "text-cyan-300 font-medium"
-                : "text-slate-300"
-            }`}
-          >
-            {el.label || el.id}
-          </span>
+          {editingLabelId === key ? (
+            <div className="flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={tempLabel}
+                onChange={(e) => setTempLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (tempLabel.trim()) {
+                      updateElement(key, { label: tempLabel.trim() });
+                    }
+                    setEditingLabelId(null);
+                  } else if (e.key === "Escape") {
+                    setEditingLabelId(null);
+                  }
+                }}
+                autoFocus
+                className="w-full bg-slate-950 border border-cyan-400 rounded px-1.5 py-0.5 text-xs text-white font-medium outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (tempLabel.trim()) {
+                    updateElement(key, { label: tempLabel.trim() });
+                  }
+                  setEditingLabelId(null);
+                }}
+                className="p-1 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded"
+                title="Simpan Nama Label"
+              >
+                <Check size={12} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-1.5 flex-1 min-w-0 group/label"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setEditingLabelId(key);
+                setTempLabel(el.label || el.id);
+              }}
+              title="Klik dua kali untuk ganti nama layer"
+            >
+              <span
+                className={`text-xs truncate ${
+                  isSelected
+                    ? el.isCustom
+                      ? "text-white font-semibold"
+                      : "text-cyan-300 font-medium"
+                    : "text-slate-300"
+                }`}
+              >
+                {el.label || el.id}
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingLabelId(key);
+                  setTempLabel(el.label || el.id);
+                }}
+                className="opacity-0 group-hover/label:opacity-100 p-0.5 text-white/40 hover:text-cyan-300 transition-opacity"
+                title="Ubah nama objek"
+              >
+                <Edit2 size={11} />
+              </button>
+            </div>
+          )}
           <span className="text-[9px] font-mono text-white/30 ml-auto mr-1 shrink-0">
             z:{el.zIndex ?? 10}
           </span>
@@ -3701,9 +3785,64 @@ export default function CertificateEditor({
               {/* Element Title & Meta */}
               <div className="flex flex-col justify-center gap-0.5 shrink-0 pr-3 border-r border-white/10">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider max-w-[140px] truncate" title={primarySelectedEl.label || primarySelectedEl.id}>
-                    {primarySelectedEl.label || primarySelectedEl.id}
-                  </span>
+                  {editingLabelId === primarySelectedEl.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={tempLabel}
+                        onChange={(e) => setTempLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            if (tempLabel.trim()) {
+                              updateElement(primarySelectedEl.id, { label: tempLabel.trim() });
+                            }
+                            setEditingLabelId(null);
+                          } else if (e.key === "Escape") {
+                            setEditingLabelId(null);
+                          }
+                        }}
+                        autoFocus
+                        className="bg-slate-950 border border-cyan-400 rounded px-1.5 py-0.5 text-xs text-white font-medium outline-none w-32"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tempLabel.trim()) {
+                            updateElement(primarySelectedEl.id, { label: tempLabel.trim() });
+                          }
+                          setEditingLabelId(null);
+                        }}
+                        className="p-1 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded"
+                        title="Simpan Nama Label"
+                      >
+                        <Check size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 group/inspectlabel">
+                      <span
+                        className="text-xs font-bold text-cyan-400 uppercase tracking-wider max-w-[140px] truncate cursor-pointer"
+                        title="Klik untuk rename label objek"
+                        onClick={() => {
+                          setEditingLabelId(primarySelectedEl.id);
+                          setTempLabel(primarySelectedEl.label || primarySelectedEl.id);
+                        }}
+                      >
+                        {primarySelectedEl.label || primarySelectedEl.id}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingLabelId(primarySelectedEl.id);
+                          setTempLabel(primarySelectedEl.label || primarySelectedEl.id);
+                        }}
+                        className="opacity-60 hover:opacity-100 p-0.5 text-white/40 hover:text-cyan-300 transition-opacity"
+                        title="Rename nama objek ini"
+                      >
+                        <Edit2 size={10} />
+                      </button>
+                    </div>
+                  )}
                   {primarySelectedEl.locked && (
                     <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1 py-0.2 rounded font-mono font-bold flex items-center gap-0.5">
                       <Lock size={8} /> Kunci

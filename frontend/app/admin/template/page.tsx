@@ -902,11 +902,10 @@ export default function CertificateTemplatePage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <img
-                      src="/assets/unesa-logo.png"
-                      alt="Logo Default"
-                      className="w-full h-full object-contain opacity-70"
-                    />
+                    <div className="flex flex-col items-center justify-center text-slate-400 gap-1">
+                      <ImageIcon size={32} className="text-slate-500 opacity-80" />
+                      <span className="text-[9px] font-medium text-slate-400">Belum ada logo</span>
+                    </div>
                   )}
                 </div>
 

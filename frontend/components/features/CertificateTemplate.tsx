@@ -134,7 +134,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
       presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
       schoolName: institutionName || "SMK NEGERI 1 SURABAYA",
-      majorProgram: `${majority.toUpperCase()} - ${program.toUpperCase()}`,
+      majorProgram: institutionSubtext || `${majority.toUpperCase()} - ${program.toUpperCase()}`,
       studentId: `NISN / ID : ${studentId}`,
       courseSubtitle: "Telah memenuhi standar kelulusan dan kompetensi pada skema:",
       courseTitle: courseName,
