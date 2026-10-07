@@ -28,6 +28,7 @@ import {
   Info,
   Check,
   HardDrive,
+  Loader2,
   Copy,
   ExternalLink,
 } from "lucide-react";
@@ -91,6 +92,7 @@ export default function WindowsExplorerExpertisePage() {
   const [editingItem, setEditingItem] = useState<any | null>(null);
 
   // Form State
+  const [isSaving, setIsSaving] = useState(false);
   const [formName, setFormName] = useState("");
   const [formBidangId, setFormBidangId] = useState("");
   const [formProgramId, setFormProgramId] = useState("");
@@ -419,11 +421,14 @@ export default function WindowsExplorerExpertisePage() {
   // Submit Modal Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
 
+    setIsSaving(true);
     try {
       if (modalType === "bidang") {
         if (!formName.trim()) {
           toast.error("Nama Bidang Keahlian wajib diisi");
+          setIsSaving(false);
           return;
         }
         if (editingItem) {
@@ -433,9 +438,11 @@ export default function WindowsExplorerExpertisePage() {
           await api.post("/admin/departments/bidang", { name: formName.trim() });
           toast.success("Bidang Keahlian baru berhasil dibuat.");
         }
+        await fetchData();
       } else if (modalType === "program") {
         if (!formName.trim() || !formBidangId) {
           toast.error("Nama Program & Bidang Keahlian wajib diisi");
+          setIsSaving(false);
           return;
         }
         if (editingItem) {
@@ -451,9 +458,11 @@ export default function WindowsExplorerExpertisePage() {
           });
           toast.success("Program Keahlian baru berhasil dibuat.");
         }
+        await fetchData();
       } else if (modalType === "konsentrasi") {
         if (!formName.trim() || !formProgramId) {
           toast.error("Nama Konsentrasi & Program Keahlian wajib diisi");
+          setIsSaving(false);
           return;
         }
         if (editingItem) {
@@ -469,9 +478,11 @@ export default function WindowsExplorerExpertisePage() {
           });
           toast.success("Konsentrasi Keahlian baru berhasil dibuat.");
         }
+        await fetchData();
       } else if (modalType === "unit") {
         if (!formUnitCode.trim() || !formUnitTitle.trim() || !formKonsentrasiId) {
           toast.error("Kode Unit, Judul Unit, dan Jurusan wajib diisi");
+          setIsSaving(false);
           return;
         }
         const payload = {
@@ -483,19 +494,30 @@ export default function WindowsExplorerExpertisePage() {
         };
 
         if (editingItem) {
-          await api.put(`/admin/departments/units/${editingItem.id}`, payload);
+          const res = await api.put(`/admin/departments/units/${editingItem.id}`, payload);
+          if (res.data?.ok && res.data?.data) {
+            setUnitsList((prev) => prev.map((u) => (u.id === editingItem.id ? res.data.data : u)));
+          } else {
+            await fetchData();
+          }
           toast.success("Unit Kompetensi SKKNI berhasil diperbarui.");
         } else {
-          await api.post("/admin/departments/units", payload);
+          const res = await api.post("/admin/departments/units", payload);
+          if (res.data?.ok && res.data?.data) {
+            setUnitsList((prev) => [...prev, res.data.data]);
+          } else {
+            await fetchData();
+          }
           toast.success("Unit Kompetensi SKKNI baru berhasil dibuat.");
         }
       }
 
       setModalType(null);
       setEditingItem(null);
-      fetchData();
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Terjadi kesalahan saat menyimpan data");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1191,16 +1213,25 @@ export default function WindowsExplorerExpertisePage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setModalType(null)}
-                  className="flex-1 py-3.5 border border-white/10 text-white hover:bg-white/5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all"
+                  className="flex-1 py-3.5 border border-white/10 text-white hover:bg-white/5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold rounded-2xl text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
+                  disabled={isSaving}
+                  className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold rounded-2xl text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition-all cursor-pointer active:scale-95 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Simpan Data
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Data</span>
+                  )}
                 </button>
               </div>
             </form>
