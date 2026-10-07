@@ -3761,15 +3761,28 @@ export default function CertificateEditor({
                                 className="text-slate-900 w-full h-full"
                               />
                             </div>
-                          ) : el.id === "universityLogo" ||
-                            el.imageUrl === "/assets/unesa-logo.png" ||
-                            el.imageUrl === "DEFAULT_LOGO" ? (
-                            <img
-                              src="/assets/unesa-logo.png"
-                              alt="Logo Universitas"
-                              className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                            />
-                          ) : el.imageUrl ? (
+                          ) : el.id === "universityLogo" ? (
+                            // Render logo aktual dari el.imageUrl (sudah disync dari institutionLogo prop)
+                            (() => {
+                              const logoSrc =
+                                (el.imageUrl && el.imageUrl !== "DEFAULT_LOGO" && el.imageUrl !== "/assets/unesa-logo.png")
+                                  ? el.imageUrl
+                                  : institutionLogo || null;
+                              return logoSrc ? (
+                                <img
+                                  src={logoSrc}
+                                  alt="Logo"
+                                  className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                                  style={{ opacity: el.opacity !== undefined ? el.opacity / 100 : 1 }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-amber-400/50 bg-amber-950/20 rounded-xl text-amber-300 p-1 text-center select-none">
+                                  <Building2 size={el.width ? el.width / 3 : 36} />
+                                  <span className="text-[10px] font-bold mt-1 uppercase tracking-wider">Logo</span>
+                                </div>
+                              );
+                            })()
+                          ) : el.imageUrl && el.imageUrl !== "/assets/unesa-logo.png" && el.imageUrl !== "DEFAULT_LOGO" ? (
                             <img
                               src={el.imageUrl}
                               alt={el.label || "Layer image"}
