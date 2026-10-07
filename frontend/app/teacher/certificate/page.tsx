@@ -3326,7 +3326,7 @@ export default function SmartIssueCertificatePage() {
                           }}
                           className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                         >
-                          <Eye size={16} /> Pratinjau Duplex Sample
+                          <Eye size={16} /> Pratinjau Sertifikat Sample
                         </button>
 
                         <button
