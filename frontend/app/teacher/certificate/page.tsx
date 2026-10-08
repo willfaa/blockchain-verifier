@@ -153,11 +153,7 @@ export default function SmartIssueCertificatePage() {
   }, [selectedKonsentrasi]);
 
   const selectedProgramName = useMemo(() => {
-    return (
-      selectedKonsentrasi?.programKeahlian?.name ||
-      selectedKonsentrasi?.name ||
-      "Teknik Jaringan Komputer dan Telekomunikasi"
-    );
+    return selectedKonsentrasi?.programKeahlian?.name || "";
   }, [selectedKonsentrasi]);
 
   // Page Format & Master Units State
@@ -2602,7 +2598,7 @@ export default function SmartIssueCertificatePage() {
                 {/* Selector Konsentrasi Keahlian */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                    <span>Kompetensi / Konsentrasi Keahlian (Master Admin)</span>
+                    <span>Kompetensi / Konsentrasi Keahlian</span>
                     <span className="text-[10px] text-cyan-400 font-normal">
                       Sinkron otomatis ke Unit SKKNI
                     </span>
@@ -2719,7 +2715,7 @@ export default function SmartIssueCertificatePage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                       <FileText size={16} className="text-amber-400" />
-                      Langkah 2: Penentuan Unit Kompetensi Transkrip (SKKNI / IDUKA)
+                      Langkah 2: Penentuan Unit Kompetensi Transkrip
                     </h3>
                     <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">
                       {selectedKonsentrasiName}
@@ -3916,7 +3912,7 @@ export default function SmartIssueCertificatePage() {
                         selectedCourse?.title ||
                         selectedKonsentrasiName
                       }
-                      units={targetStudentUnits}
+                      units={targetStudentUnits.length > 0 ? targetStudentUnits : availableUnits}
                       averageScore={targetAvgScore}
                       examinerName={
                         examinerName ||
@@ -3965,6 +3961,10 @@ export default function SmartIssueCertificatePage() {
                       headerTitle={layoutSettings.transcriptConfig?.headerTitle}
                       subHeaderTitle={layoutSettings.transcriptConfig?.subHeaderTitle}
                       footerNote={layoutSettings.transcriptConfig?.footerNote}
+                      showCodeColumn={layoutSettings.transcriptConfig?.showCodeColumn ?? true}
+                      showScoreColumn={layoutSettings.transcriptConfig?.showScoreColumn ?? true}
+                      showStandardColumn={layoutSettings.transcriptConfig?.showStandardColumn ?? true}
+                      transcriptSigner={layoutSettings.transcriptConfig?.transcriptSigner}
                       layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   )}

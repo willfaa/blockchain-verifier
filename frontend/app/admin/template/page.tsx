@@ -48,6 +48,17 @@ export interface TranscriptConfigSetting {
   subHeaderTitle?: string;
   footerNote?: string;
   theme?: "light" | "formal_border" | "gold_accent" | "dark";
+  // Pengaturan kolom tabel transkrip
+  showCodeColumn?: boolean;      // Kolom Kode/Tipe Unit SKKNI
+  showScoreColumn?: boolean;     // Kolom Nilai angka
+  showStandardColumn?: boolean;  // Kolom Standar (SKKNI/IDUKA)
+  // Penandatangan khusus Halaman 2 (Transkrip) — terpisah dari halaman 1
+  transcriptSigner?: {
+    name?: string;
+    title?: string;
+    nip?: string;
+    signatureUrl?: string | null;
+  };
 }
 
 const PAPER_PRESETS: Record<
@@ -154,6 +165,15 @@ export default function CertificateTemplatePage() {
     subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
     footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
     theme: "light",
+    showCodeColumn: true,
+    showScoreColumn: true,
+    showStandardColumn: true,
+    transcriptSigner: {
+      name: "",
+      title: "Kepala Sekolah / Ketua Tim Penguji",
+      nip: "",
+      signatureUrl: null,
+    },
   });
 
   // Zoom & Fullscreen Lightbox State
@@ -1642,6 +1662,73 @@ export default function CertificateTemplatePage() {
                     placeholder="Contoh: Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA"
                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-amber-400"
                   />
+                </div>
+
+                {/* Toggle Kolom Tabel Transkrip */}
+                <div className="border-t border-white/5 pt-4 space-y-2">
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
+                    Visibilitas Kolom Tabel Transkrip
+                  </label>
+                  <p className="text-[10px] text-white/30 mb-3">Kolom "Nama Item" selalu wajib tampil. Toggle kolom opsional di bawah ini.</p>
+                  {[
+                    { key: "showCodeColumn" as const, label: "Kolom Kode / Tipe Unit (SKKNI)", desc: "Contoh: J.620100.001.01" },
+                    { key: "showScoreColumn" as const, label: "Kolom Nilai Angka", desc: "Contoh: 90.00 / 95.00" },
+                    { key: "showStandardColumn" as const, label: "Kolom Standar (SKKNI / IDUKA)", desc: "Sumber standar unit kompetensi" },
+                  ].map(({ key, label, desc }) => (
+                    <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{label}</p>
+                        <p className="text-[10px] text-white/30">{desc}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTranscriptConfig((prev) => ({ ...prev, [key]: !(prev[key] ?? true) }))}
+                        className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+                          (transcriptConfig[key] ?? true) ? "bg-amber-500" : "bg-white/10"
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                          (transcriptConfig[key] ?? true) ? "translate-x-5" : "translate-x-0.5"
+                        }`} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Penandatangan Khusus Halaman 2 (Transkrip) */}
+                <div className="border-t border-white/5 pt-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Penandatangan Halaman 2 (Transkrip)</p>
+                      <p className="text-[10px] text-white/30">Selalu tampil di bawah tabel kompetensi. Terpisah dari penandatangan Halaman 1.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={transcriptConfig.transcriptSigner?.name || ""}
+                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, name: e.target.value } }))}
+                      placeholder="Nama Penandatangan (wajib)"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-semibold text-xs focus:outline-none focus:border-emerald-400"
+                    />
+                    <input
+                      type="text"
+                      value={transcriptConfig.transcriptSigner?.title || ""}
+                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, title: e.target.value } }))}
+                      placeholder="Jabatan / Gelar (contoh: Kepala Sekolah / Ketua Tim Penguji)"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
+                    />
+                    <input
+                      type="text"
+                      value={transcriptConfig.transcriptSigner?.nip || ""}
+                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, nip: e.target.value } }))}
+                      placeholder="NIP / No. Registrasi (opsional)"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-400"
+                    />
+                  </div>
                 </div>
               </div>
 

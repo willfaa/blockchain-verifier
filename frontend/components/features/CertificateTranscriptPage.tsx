@@ -45,6 +45,17 @@ export interface TranscriptProps {
   signatureUrl?: string | null;
   layoutConfig?: CertificateLayoutConfig | Record<string, LayoutElement> | null;
   backgroundConfig?: BackgroundConfig;
+  // Column visibility toggles (from admin transcriptConfig)
+  showCodeColumn?: boolean;
+  showScoreColumn?: boolean;
+  showStandardColumn?: boolean;
+  // Dedicated back-page signer (from admin transcriptConfig.transcriptSigner)
+  transcriptSigner?: {
+    name?: string;
+    title?: string;
+    nip?: string;
+    signatureUrl?: string | null;
+  };
 }
 
 const DPI = 150;
@@ -99,6 +110,10 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   signatureUrl,
   layoutConfig,
   backgroundConfig,
+  showCodeColumn: showCodeColumnProp,
+  showScoreColumn: showScoreColumnProp,
+  showStandardColumn: showStandardColumnProp,
+  transcriptSigner,
 }) => {
   // Extract custom layout configuration
   const hasWrapped =
@@ -202,19 +217,78 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       majorProgramMeta: `Program Keahlian : ${(majority || program || "REKAYASA PERANGKAT LUNAK").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
-      signer1Title: examinerTitle || "Kepala Sekolah / Ketua Tim Penguji",
-      signer1Name: examinerName || "Sonny Michael Wijaya, S.Kom",
-      signer1Nip: examinerNip
-        ? examinerNip.startsWith("NIP")
-          ? examinerNip
-          : `NIP: ${examinerNip}`
-        : "NIP: 197204121998021003",
+      // Gunakan transcriptSigner jika ada, fallback ke examiner props
+      signer1Title: (transcriptSigner?.title || examinerTitle) || "Kepala Sekolah / Ketua Tim Penguji",
+      signer1Name: (transcriptSigner?.name || examinerName) || "Sonny Michael Wijaya, S.Kom",
+      signer1Nip: (() => {
+        const nip = transcriptSigner?.nip || examinerNip;
+        if (!nip) return "NIP: 197204121998021003";
+        return nip.startsWith("NIP") ? nip : `NIP: ${nip}`;
+      })(),
       signer2Title: "Asesor Industri (Mitra DUDI)",
       signer2Name: "Ir. Hendra Kusuma, M.Kom.",
       signer2Nip: "PT. TELKOM INDONESIA TBK",
     };
 
-    const sortedElements = Object.entries(elements).sort(
+    // Override column visibility on tableCompetencies element from props
+    const overriddenElements: Record<string, LayoutElement> = {};
+    let hasTable = false;
+    Object.entries(elements).forEach(([k, el]) => {
+      if (el.type === "table") {
+        hasTable = true;
+        overriddenElements[k] = {
+          ...el,
+          visible: true,
+          ...(showCodeColumnProp !== undefined ? { showCodeColumn: showCodeColumnProp } : {}),
+          ...(showScoreColumnProp !== undefined ? { showScoreColumn: showScoreColumnProp } : {}),
+          ...(showStandardColumnProp !== undefined ? { showStandardColumn: showStandardColumnProp } : {}),
+        };
+      } else {
+        overriddenElements[k] = el;
+      }
+    });
+
+    if (!hasTable) {
+      overriddenElements["tableCompetencies"] = {
+        id: "tableCompetencies",
+        type: "table",
+        label: "Tabel Unit Kompetensi SKKNI",
+        x: Math.round(canvasWidth / 2),
+        y: Math.round(canvasHeight * 0.46),
+        width: Math.min(1550, Math.round(canvasWidth * 0.92)),
+        height: 430,
+        fontSize: 13,
+        tableFontSize: 13,
+        tableHeaderFontSize: 14,
+        fontFamily: "Arial",
+        color: "#0f172a",
+        tableHeaderBg: "#0f172a",
+        tableHeaderColor: "#ffffff",
+        tableRowBg: "#ffffff",
+        tableRowAltBg: "#f8fafc",
+        tableBorderColor: "#cbd5e1",
+        tableTextColor: "#0f172a",
+        tableScoreColor: "#0f172a",
+        bold: false,
+        italic: false,
+        visible: true,
+        locked: false,
+        zIndex: 15,
+        showScoreColumn: showScoreColumnProp ?? true,
+        showStandardColumn: showStandardColumnProp ?? true,
+        showCodeColumn: showCodeColumnProp ?? true,
+        showAverageRow: true,
+      };
+    }
+
+    const resolvedTranscriptSigUrl = resolveTranscriptBgUrl(
+      transcriptSigner?.signatureUrl || signatureUrl
+    );
+    const signerName = transcriptSigner?.name || examinerName;
+    const signerTitle = transcriptSigner?.title || examinerTitle;
+    const signerNip = transcriptSigner?.nip || examinerNip;
+
+    const sortedElements = Object.entries(overriddenElements).sort(
       ([, a], [, b]) => (a.zIndex || 0) - (b.zIndex || 0)
     );
 
@@ -562,6 +636,48 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
 
           return null;
         })}
+
+        {/* Transcript Signer Block — always at bottom-right, below table */}
+        {signerName && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "32px",
+              right: "48px",
+              zIndex: 50,
+              textAlign: "center",
+              minWidth: "200px",
+            }}
+          >
+            {signerTitle && (
+              <p style={{ fontSize: "11px", fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", marginBottom: "6px" }}>
+                {signerTitle}
+              </p>
+            )}
+            <div style={{ width: "144px", height: "48px", margin: "0 auto 4px" }}>
+              {resolvedTranscriptSigUrl ? (
+                <img
+                  src={resolvedTranscriptSigUrl}
+                  alt="Tanda Tangan"
+                  style={{ height: "100%", objectFit: "contain", filter: "contrast(1.25)" }}
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <svg viewBox="0 0 140 40" style={{ width: "100%", height: "100%", stroke: isDark ? "#cbd5e1" : "#1e293b", fill: "none", strokeWidth: 2, strokeLinecap: "round", opacity: 0.8 }}>
+                  <path d="M10 28 Q 30 5, 50 25 T 90 20 T 130 15 M35 30 L45 8 L55 35 M75 12 Q 85 28, 95 10" />
+                </svg>
+              )}
+            </div>
+            <div style={{ borderTop: `1px solid ${isDark ? "#475569" : "#1e293b"}`, paddingTop: "4px", fontWeight: "bold", fontSize: "11px", color: isDark ? "#f1f5f9" : "#0f172a" }}>
+              {signerName}
+            </div>
+            {signerNip && (
+              <p style={{ fontSize: "10px", color: isDark ? "#94a3b8" : "#64748b", fontFamily: "monospace", marginTop: "2px" }}>
+                {signerNip.startsWith("NIP") ? signerNip : `NIP: ${signerNip}`}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -663,19 +779,24 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
         )}
       </div>
 
-      {/* 4. TABLE OF COMPETENCIES & SCORES */}
+        {/* 4. TABLE OF COMPETENCIES & SCORES */}
       <div className={`relative z-10 flex-1 my-2 overflow-hidden flex flex-col justify-start rounded-xl ${resolvedBg ? "bg-white/95 backdrop-blur-xs p-2 border border-slate-300 shadow-sm" : ""}`}>
         <table className="w-full border-collapse border border-slate-400 text-xs">
           <thead>
             <tr className={`${isDark ? "bg-slate-800 text-white" : isGold ? "bg-amber-100/90 text-amber-950" : "bg-slate-100 text-slate-900"} font-bold border-b border-slate-400`}>
               <th className="border border-slate-400 py-2 px-3 w-12 text-center">No</th>
-              <th className="border border-slate-400 py-2 px-3 w-36 text-center">Kode Unit</th>
+              {(showCodeColumnProp ?? true) && (
+                <th className="border border-slate-400 py-2 px-3 w-36 text-center">Kode Unit</th>
+              )}
               <th className="border border-slate-400 py-2 px-4 text-left uppercase">
                 DAFTAR UNIT KOMPETENSI / SUB-KOMPETENSI
               </th>
-              <th className="border border-slate-400 py-2 px-4 w-28 text-center uppercase">
-                Nilai
-              </th>
+              {(showStandardColumnProp ?? true) && (
+                <th className="border border-slate-400 py-2 px-3 w-24 text-center">Standar</th>
+              )}
+              {(showScoreColumnProp ?? true) && (
+                <th className="border border-slate-400 py-2 px-4 w-28 text-center uppercase">Nilai</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -699,23 +820,33 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                   <td className="border border-slate-300 py-1.5 px-3 text-center font-mono font-semibold text-slate-600">
                     {idx + 1}
                   </td>
-                  <td className="border border-slate-300 py-1.5 px-3 text-center font-mono font-bold text-sky-800 text-[11px]">
-                    {item.code || `UNIT-${idx + 1}`}
-                  </td>
+                  {(showCodeColumnProp ?? true) && (
+                    <td className="border border-slate-300 py-1.5 px-3 text-center font-mono font-bold text-sky-800 text-[11px]">
+                      {item.code || `UNIT-${idx + 1}`}
+                    </td>
+                  )}
                   <td className="border border-slate-300 py-1.5 px-4 font-medium text-slate-900">
                     {item.title}
                   </td>
-                  <td className="border border-slate-300 py-1.5 px-4 text-center font-mono font-extrabold text-slate-950">
-                    {formattedScore}
-                  </td>
+                  {(showStandardColumnProp ?? true) && (
+                    <td className="border border-slate-300 py-1.5 px-3 text-center text-[11px] font-semibold text-slate-500">
+                      {item.standard || "SKKNI"}
+                    </td>
+                  )}
+                  {(showScoreColumnProp ?? true) && (
+                    <td className="border border-slate-300 py-1.5 px-4 text-center font-mono font-extrabold text-slate-950">
+                      {formattedScore}
+                    </td>
+                  )}
                 </tr>
               );
             })}
 
             {/* SUMMARY ROW: NILAI RATA-RATA */}
+            {(showScoreColumnProp ?? true) && (
             <tr className={`${isDark ? "bg-slate-800" : isGold ? "bg-amber-100" : "bg-slate-100"} font-extrabold border-t-2 border-slate-500`}>
               <td
-                colSpan={3}
+                colSpan={1 + (showCodeColumnProp ?? true ? 1 : 0) + 1 + (showStandardColumnProp ?? true ? 1 : 0)}
                 className="border border-slate-400 py-2.5 px-4 text-right tracking-wider uppercase text-slate-900"
               >
                 NILAI RATA-RATA KOMPETENSI :
@@ -724,6 +855,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                 {calculatedAvg}
               </td>
             </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -735,39 +867,37 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
           <p>Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain</p>
         </div>
 
-        <div className="text-center min-w-[220px]">
-          <p className="text-xs font-semibold text-slate-600 mb-2">
-            {issuedDate ? `${issuedDate}` : examinerTitle || "Penguji / Asesor Uji Kompetensi"}
-          </p>
-
-          {/* Signature Rendering: Image or SVG Simulated */}
-          <div className="w-36 h-12 mx-auto my-1 flex items-center justify-center">
-            {resolvedSig ? (
-              <img
-                src={resolvedSig}
-                alt="Tanda Tangan Asesor"
-                className="h-full object-contain filter contrast-125"
-                crossOrigin="anonymous"
-              />
-            ) : (
-              <svg
-                viewBox="0 0 140 40"
-                className="w-full h-full stroke-slate-900 fill-none stroke-2 stroke-linecap-round opacity-80"
-              >
-                <path d="M10 28 Q 30 5, 50 25 T 90 20 T 130 15 M35 30 L45 8 L55 35 M75 12 Q 85 28, 95 10" />
-              </svg>
-            )}
-          </div>
-
-          <div className="border-t border-slate-800 pt-1 font-bold text-xs text-slate-950">
-            {examinerName}
-          </div>
-          {examinerNip && (
-            <p className="text-[10px] text-slate-600 font-mono mt-0.5">
-              NIP / REG: {examinerNip}
-            </p>
-          )}
-        </div>
+        {/* Gunakan transcriptSigner jika tersedia, fallback ke examiner props */}
+        {(() => {
+          const sName = transcriptSigner?.name || examinerName;
+          const sTitle = transcriptSigner?.title || examinerTitle;
+          const sNip = transcriptSigner?.nip || examinerNip;
+          const sSigUrl = resolveTranscriptBgUrl(transcriptSigner?.signatureUrl || signatureUrl);
+          return (
+            <div className="text-center min-w-[220px]">
+              <p className="text-xs font-semibold text-slate-600 mb-2">
+                {sTitle || "Penguji / Asesor Uji Kompetensi"}
+              </p>
+              <div className="w-36 h-12 mx-auto my-1 flex items-center justify-center">
+                {sSigUrl ? (
+                  <img src={sSigUrl} alt="Tanda Tangan" className="h-full object-contain filter contrast-125" crossOrigin="anonymous" />
+                ) : (
+                  <svg viewBox="0 0 140 40" className="w-full h-full stroke-slate-900 fill-none stroke-2 stroke-linecap-round opacity-80">
+                    <path d="M10 28 Q 30 5, 50 25 T 90 20 T 130 15 M35 30 L45 8 L55 35 M75 12 Q 85 28, 95 10" />
+                  </svg>
+                )}
+              </div>
+              <div className="border-t border-slate-800 pt-1 font-bold text-xs text-slate-950">
+                {sName}
+              </div>
+              {sNip && (
+                <p className="text-[10px] text-slate-600 font-mono mt-0.5">
+                  {sNip.startsWith("NIP") ? sNip : `NIP: ${sNip}`}
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

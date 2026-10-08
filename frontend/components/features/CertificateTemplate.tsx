@@ -120,6 +120,19 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
   const canvasWidth = Math.round((isVertical ? heightCm : widthCm) * CM_TO_PX);
   const canvasHeight = Math.round((isVertical ? widthCm : heightCm) * CM_TO_PX);
 
+  const cleanMajority = (majority || "").trim();
+  const cleanProgram = (program || "").trim();
+  const isProgramRedundant =
+    !cleanProgram ||
+    cleanProgram.toLowerCase() === cleanMajority.toLowerCase() ||
+    cleanProgram.toLowerCase() === "program keahlian";
+
+  const combinedMajorProgram =
+    institutionSubtext ||
+    (isProgramRedundant
+      ? cleanMajority.toUpperCase()
+      : `${cleanMajority.toUpperCase()} - ${cleanProgram.toUpperCase()}`);
+
   // If custom layout elements are provided, render purely data-driven layers
   if (elements && Object.keys(elements).length > 0) {
     const s1 = instructors?.[0];
@@ -134,7 +147,9 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
       presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
       schoolName: institutionName || "SMK NEGERI 1 SURABAYA",
-      majorProgram: institutionSubtext || `${majority.toUpperCase()} - ${program.toUpperCase()}`,
+      majorProgram: combinedMajorProgram,
+      majority: cleanMajority,
+      program: isProgramRedundant ? "" : cleanProgram,
       studentId: `NISN / ID : ${studentId}`,
       courseSubtitle: "Telah memenuhi standar kelulusan dan kompetensi pada skema:",
       courseTitle: courseName,
@@ -438,7 +453,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
           {studentName}
         </h2>
         <div className="text-slate-300 text-base uppercase tracking-wider font-medium space-y-0.5">
-          <p>{majority} - {program}</p>
+          <p>{isProgramRedundant ? cleanMajority : `${cleanMajority} - ${cleanProgram}`}</p>
           <p className="text-cyan-400 font-bold">Student ID : {studentId}</p>
         </div>
         <div className="text-slate-400 text-base max-w-2xl leading-relaxed mt-4 font-light">
