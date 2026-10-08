@@ -127,11 +127,11 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
     cleanProgram.toLowerCase() === cleanMajority.toLowerCase() ||
     cleanProgram.toLowerCase() === "program keahlian";
 
-  const combinedMajorProgram =
-    institutionSubtext ||
-    (isProgramRedundant
+  const dynamicMajorProgram = cleanMajority
+    ? isProgramRedundant
       ? cleanMajority.toUpperCase()
-      : `${cleanMajority.toUpperCase()} - ${cleanProgram.toUpperCase()}`);
+      : `${cleanMajority.toUpperCase()} - ${cleanProgram.toUpperCase()}`
+    : institutionSubtext || "";
 
   // If custom layout elements are provided, render purely data-driven layers
   if (elements && Object.keys(elements).length > 0) {
@@ -147,7 +147,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
       presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
       schoolName: institutionName || "SMK NEGERI 1 SURABAYA",
-      majorProgram: combinedMajorProgram,
+      majorProgram: dynamicMajorProgram,
       majority: cleanMajority,
       program: isProgramRedundant ? "" : cleanProgram,
       studentId: `NISN / ID : ${studentId}`,
@@ -453,7 +453,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
           {studentName}
         </h2>
         <div className="text-slate-300 text-base uppercase tracking-wider font-medium space-y-0.5">
-          <p>{isProgramRedundant ? cleanMajority : `${cleanMajority} - ${cleanProgram}`}</p>
+          <p>{cleanMajority ? (isProgramRedundant ? cleanMajority : `${cleanMajority} - ${cleanProgram}`) : (institutionSubtext || "")}</p>
           <p className="text-cyan-400 font-bold">Student ID : {studentId}</p>
         </div>
         <div className="text-slate-400 text-base max-w-2xl leading-relaxed mt-4 font-light">

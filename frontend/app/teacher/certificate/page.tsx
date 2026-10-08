@@ -117,7 +117,7 @@ export default function SmartIssueCertificatePage() {
   // Student Directory State (for Batch Issuance)
   const [allStudents, setAllStudents] = useState<StudentRecord[]>([]);
   const [dirSearch, setDirSearch] = useState("");
-  const [dirMajorFilter, setDirMajorFilter] = useState("ALL");
+  const [dirMajorFilter, setDirMajorFilter] = useState("SELECTED");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [batchScores, setBatchScores] = useState<
     Record<string, BatchStudentScore>
@@ -659,7 +659,7 @@ export default function SmartIssueCertificatePage() {
     );
   }, [availableUnits, selectedUnitCodes]);
 
-  // Filtered Students in Student Directory
+  // Filtered Students in Student Directory (Otomatis filter konsentrasi terpilih)
   const filteredStudents = useMemo(() => {
     return allStudents.filter((std) => {
       const q = dirSearch.toLowerCase().trim();
@@ -674,13 +674,20 @@ export default function SmartIssueCertificatePage() {
         majorStr = (std.majority as any).name || "";
       else majorStr = String(std.majority || "");
 
-      const majorMatch =
-        dirMajorFilter === "ALL" ||
-        majorStr.toLowerCase().includes(dirMajorFilter.toLowerCase());
+      let majorMatch = true;
+      if (dirMajorFilter === "SELECTED") {
+        if (selectedKonsentrasiName) {
+          const s1 = majorStr.toLowerCase().trim();
+          const s2 = selectedKonsentrasiName.toLowerCase().trim();
+          majorMatch = Boolean(s1 && (s1 === s2 || s1.includes(s2) || s2.includes(s1)));
+        }
+      } else if (dirMajorFilter !== "ALL") {
+        majorMatch = majorStr.toLowerCase().includes(dirMajorFilter.toLowerCase());
+      }
 
       return nameMatch && majorMatch;
     });
-  }, [allStudents, dirSearch, dirMajorFilter]);
+  }, [allStudents, dirSearch, dirMajorFilter, selectedKonsentrasiName]);
 
   // Toggle selection for a single student in Directory
   const handleToggleSelectStudent = (student: StudentRecord) => {
@@ -1017,27 +1024,26 @@ export default function SmartIssueCertificatePage() {
           item.student.nisn ||
           item.student.id,
         program:
-          selectedProgramName ||
-          (typeof item.student.studyProgram === "object"
-            ? (item.student.studyProgram as any)?.name
-            : item.student.studyProgram) ||
-          selectedKonsentrasiName ||
-          "Program Keahlian",
+          selectedKonsentrasiId
+            ? selectedProgramName
+            : (typeof item.student.studyProgram === "object"
+                ? (item.student.studyProgram as any)?.name
+                : item.student.studyProgram) || "",
         majority:
-          selectedKonsentrasiName ||
-          (typeof item.student.majority === "object"
-            ? (item.student.majority as any)?.name
-            : item.student.majority) ||
-          "Teknik Komputer dan Jaringan",
+          selectedKonsentrasiId
+            ? selectedKonsentrasiName
+            : (typeof item.student.majority === "object"
+                ? (item.student.majority as any)?.name
+                : item.student.majority) || "",
         courseId: courseId || undefined,
         courseName:
           assignmentSchemeTitle ||
           selectedCourse?.title ||
-          selectedKonsentrasiName,
+          "UJI KOMPETENSI KEAHLIAN (UKK)",
         assignmentTitle:
           assignmentSchemeTitle ||
           selectedCourse?.title ||
-          selectedKonsentrasiName,
+          "UJI KOMPETENSI KEAHLIAN (UKK)",
         schoolName:
           schoolOrigin ||
           selectedCourse?.schoolName ||
@@ -2608,6 +2614,9 @@ export default function SmartIssueCertificatePage() {
                     onValueChange={(val) => {
                       setSelectedKonsentrasiId(val);
                       loadUnitsFromExpertiseKonsentrasi(val, true);
+                      setDirMajorFilter("SELECTED");
+                      setSelectedStudentIds([]);
+                      setBatchScores({});
                     }}
                   >
                     <SelectTrigger className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:ring-cyan-500 h-12">
@@ -2919,6 +2928,18 @@ export default function SmartIssueCertificatePage() {
                       Gunakan pencarian, filter jurusan, dan centang siswa yang
                       akan diterbitkan sertifikatnya secara massal.
                     </p>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">
+                        {dirMajorFilter === "SELECTED"
+                          ? `Sinkron Konsentrasi: ${selectedKonsentrasiName}`
+                          : dirMajorFilter === "ALL"
+                            ? "Semua Jurusan"
+                            : `Filter: ${dirMajorFilter}`}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {filteredStudents.length} siswa tersedia
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -2961,9 +2982,12 @@ export default function SmartIssueCertificatePage() {
                     <select
                       value={dirMajorFilter}
                       onChange={(e) => setDirMajorFilter(e.target.value)}
-                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all cursor-pointer"
+                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all cursor-pointer font-medium"
                     >
-                      <option value="ALL">Semua Jurusan / Konsentrasi</option>
+                      <option value="SELECTED">
+                        🎯 Sesuai Konsentrasi: {selectedKonsentrasiName}
+                      </option>
+                      <option value="ALL">🌐 Semua Jurusan (Lintas Konsentrasi)</option>
                       {majorsList.map((m) => (
                         <option key={m.id} value={m.name}>
                           {m.name}
@@ -2999,9 +3023,14 @@ export default function SmartIssueCertificatePage() {
                         <tr>
                           <td
                             colSpan={5}
-                            className="py-8 text-center text-slate-500"
+                            className="py-10 text-center text-slate-400 space-y-1"
                           >
-                            Tidak ada siswa yang sesuai dengan filter pencarian.
+                            <p className="font-semibold text-xs text-slate-300">
+                              Tidak ada siswa yang terdaftar pada konsentrasi &quot;{selectedKonsentrasiName}&quot;.
+                            </p>
+                            <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                              Pilih &quot;Semua Jurusan (Lintas Konsentrasi)&quot; pada dropdown filter di atas jika data jurusan siswa belum diset di profil mereka.
+                            </p>
                           </td>
                         </tr>
                       ) : (
@@ -3840,21 +3869,25 @@ export default function SmartIssueCertificatePage() {
                       courseName={
                         assignmentSchemeTitle ||
                         selectedCourse?.title ||
-                        selectedKonsentrasiName
+                        "UJI KOMPETENSI KEAHLIAN (UKK)"
                       }
                       program={
-                        selectedProgramName ||
-                        (typeof activeTargetStudent.studyProgram === "object"
-                          ? (activeTargetStudent.studyProgram as any)?.name
-                          : activeTargetStudent.studyProgram) ||
-                        "Program Keahlian"
+                        selectedKonsentrasiId
+                          ? selectedProgramName
+                          : (activeTargetStudent
+                              ? (typeof activeTargetStudent.studyProgram === "object"
+                                  ? (activeTargetStudent.studyProgram as any)?.name
+                                  : activeTargetStudent.studyProgram)
+                              : "") || ""
                       }
                       majority={
-                        selectedKonsentrasiName ||
-                        (typeof activeTargetStudent.majority === "object"
-                          ? (activeTargetStudent.majority as any)?.name
-                          : activeTargetStudent.majority) ||
-                        "Teknik Komputer dan Jaringan"
+                        selectedKonsentrasiId
+                          ? selectedKonsentrasiName
+                          : (activeTargetStudent
+                              ? (typeof activeTargetStudent.majority === "object"
+                                  ? (activeTargetStudent.majority as any)?.name
+                                  : activeTargetStudent.majority)
+                              : "") || ""
                       }
                       issuedAt={new Date().toISOString()}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
@@ -3894,23 +3927,27 @@ export default function SmartIssueCertificatePage() {
                         activeTargetStudent.id
                       }
                       majority={
-                        selectedKonsentrasiName ||
-                        (typeof activeTargetStudent.majority === "object"
-                          ? (activeTargetStudent.majority as any)?.name
-                          : activeTargetStudent.majority) ||
-                        "Teknik Komputer dan Jaringan"
+                        selectedKonsentrasiId
+                          ? selectedKonsentrasiName
+                          : (activeTargetStudent
+                              ? (typeof activeTargetStudent.majority === "object"
+                                  ? (activeTargetStudent.majority as any)?.name
+                                  : activeTargetStudent.majority)
+                              : "") || ""
                       }
                       program={
-                        selectedProgramName ||
-                        (typeof activeTargetStudent.studyProgram === "object"
-                          ? (activeTargetStudent.studyProgram as any)?.name
-                          : activeTargetStudent.studyProgram) ||
-                        "Program Keahlian"
+                        selectedKonsentrasiId
+                          ? selectedProgramName
+                          : (activeTargetStudent
+                              ? (typeof activeTargetStudent.studyProgram === "object"
+                                  ? (activeTargetStudent.studyProgram as any)?.name
+                                  : activeTargetStudent.studyProgram)
+                              : "") || ""
                       }
                       courseTitle={
                         assignmentSchemeTitle ||
                         selectedCourse?.title ||
-                        selectedKonsentrasiName
+                        "UJI KOMPETENSI KEAHLIAN (UKK)"
                       }
                       units={targetStudentUnits.length > 0 ? targetStudentUnits : availableUnits}
                       averageScore={targetAvgScore}

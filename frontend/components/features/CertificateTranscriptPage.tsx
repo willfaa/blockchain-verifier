@@ -199,7 +199,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   const resolvedBg = resolveTranscriptBgUrl(bgPath);
   const resolvedSig = resolveTranscriptBgUrl(signatureUrl);
 
-  const finalHeaderTitle = headerTitle || `KOMPETENSI KEAHLIAN ${(majority || program || "TEKNOLOGI INFORMASI").toUpperCase()}`;
+  const finalHeaderTitle = headerTitle || (majority ? `KOMPETENSI KEAHLIAN ${majority.toUpperCase()}` : "KOMPETENSI KEAHLIAN");
   const finalSubHeaderTitle = subHeaderTitle || "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)";
   const finalFooterNote = footerNote || "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA";
 
@@ -210,11 +210,11 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       subHeaderTitle: finalSubHeaderTitle,
       courseSubtitle: courseTitle
         ? `Skema Sertifikasi: ${courseTitle}`
-        : "Skema Sertifikasi: Rekayasa Perangkat Lunak & Sistem Terdistribusi",
+        : "Skema Sertifikasi: Uji Kompetensi Keahlian",
       studentNameMeta: `Nama : ${studentName}`,
       studentIdMeta: `NIS / ID : ${studentId}`,
       schoolNameMeta: `Satuan Pendidikan : ${institutionName || schoolName || "SMK NEGERI 1 SURABAYA"}`,
-      majorProgramMeta: `Program Keahlian : ${(majority || program || "REKAYASA PERANGKAT LUNAK").toUpperCase()}`,
+      majorProgramMeta: `Kompetensi Keahlian : ${(majority || program || "").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
       // Gunakan transcriptSigner jika ada, fallback ke examiner props
