@@ -1687,8 +1687,8 @@ export default function CertificateTemplatePage() {
                           (transcriptConfig[key] ?? true) ? "bg-amber-500" : "bg-white/10"
                         }`}
                       >
-                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                          (transcriptConfig[key] ?? true) ? "translate-x-5" : "translate-x-0.5"
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                          (transcriptConfig[key] ?? true) ? "translate-x-5" : "translate-x-0"
                         }`} />
                       </button>
                     </div>
