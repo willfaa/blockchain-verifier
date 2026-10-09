@@ -523,7 +523,11 @@ export default function CertificateEditor({
     startBoxX: number;
     startBoxY: number;
     initialPositions: Record<string, { x: number; y: number }>;
+    initialBoxPositions: Record<string, { boxX: number; boxY: number }>;
   } | null>(null);
+
+  // Real-time drag delta for moving multiple selected elements in sync
+  const [dragDelta, setDragDelta] = useState<{ dx: number; dy: number; draggedId: string } | null>(null);
 
   // Helper untuk mencatat history snapshot baru
   const pushHistory = useCallback(
@@ -1499,7 +1503,10 @@ export default function CertificateEditor({
           return already ? prev.filter((pId) => !groupMemberIds.includes(pId)) : Array.from(new Set([...prev, ...groupMemberIds]));
         });
       } else {
-        setSelectedIds(groupMemberIds);
+        setSelectedIds((prev) => {
+          const alreadyAll = groupMemberIds.every((gId) => prev.includes(gId));
+          return alreadyAll ? prev : groupMemberIds;
+        });
       }
       return;
     }
@@ -1509,7 +1516,7 @@ export default function CertificateEditor({
         prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
       );
     } else {
-      setSelectedIds([id]);
+      setSelectedIds((prev) => (prev.includes(id) ? prev : [id]));
     }
   };
 
@@ -1526,16 +1533,18 @@ export default function CertificateEditor({
     const el = elements[id];
     if (el?.locked) return;
 
-    let currentSelected = selectedIds;
+    const currentSelected = selectedIds.includes(id) ? selectedIds : [id];
     if (!selectedIds.includes(id)) {
-      currentSelected = [id];
       setSelectedIds([id]);
     }
 
     const positions: Record<string, { x: number; y: number }> = {};
+    const boxPositions: Record<string, { boxX: number; boxY: number }> = {};
     currentSelected.forEach((selId) => {
       if (elements[selId] && !elements[selId].locked) {
         positions[selId] = { x: elements[selId].x, y: elements[selId].y };
+        const box = getBoxPosition(elements[selId]);
+        boxPositions[selId] = { boxX: box.boxX, boxY: box.boxY };
       }
     });
 
@@ -1546,6 +1555,7 @@ export default function CertificateEditor({
       startBoxX: boxX,
       startBoxY: boxY,
       initialPositions: positions,
+      initialBoxPositions: boxPositions,
     };
   };
 
@@ -1581,6 +1591,13 @@ export default function CertificateEditor({
       guidelinesRef.current = activeGuides;
       setGuidelines(activeGuides);
     }
+
+    // Real-time delta update for all other selected elements
+    if (Object.keys(dragTrackerRef.current.initialPositions).length > 1) {
+      const deltaX = dX - dragTrackerRef.current.startBoxX;
+      const deltaY = dY - dragTrackerRef.current.startBoxY;
+      setDragDelta({ dx: deltaX, dy: deltaY, draggedId: id });
+    }
   };
 
   const handleDragStop = (id: string, dX: number, dY: number, el: LayoutElement, e: any) => {
@@ -1589,6 +1606,7 @@ export default function CertificateEditor({
     dragTrackerRef.current = null;
     guidelinesRef.current = {};
     setGuidelines({});
+    setDragDelta(null);
 
     const renderW = el.width || (el.type === "table" ? 1550 : 300);
     const renderH = el.height || (el.type === "table" ? 430 : 40);
@@ -4539,11 +4557,23 @@ export default function CertificateEditor({
 
                 const { boxX, boxY, renderW, renderH } = getBoxPosition(el);
 
+                let currentBoxX = boxX;
+                let currentBoxY = boxY;
+                if (
+                  dragDelta &&
+                  dragDelta.draggedId !== el.id &&
+                  isSelected &&
+                  !el.locked
+                ) {
+                  currentBoxX = boxX + dragDelta.dx;
+                  currentBoxY = boxY + dragDelta.dy;
+                }
+
                 return (
                   <Rnd
                     key={el.id}
                     scale={scale}
-                    position={{ x: boxX, y: boxY }}
+                    position={{ x: currentBoxX, y: currentBoxY }}
                     size={{ width: renderW, height: renderH }}
                     lockAspectRatio={el.lockAspectRatio || isShiftPressed}
                     onDragStart={(e, d) => {
