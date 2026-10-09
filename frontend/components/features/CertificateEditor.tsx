@@ -328,7 +328,7 @@ export const DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS: Record<string, LayoutElemen
   signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 420, y: 1090, width: 140, height: 65, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
   signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 420, y: 1130, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: true, locked: false, zIndex: 20 },
   signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Sonny Michael Wijaya, S.Kom", x: 420, y: 1150, width: 340, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
-  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP Penandatangan 1", text: "NIP: 197204121998021003", x: 420, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP Penandatangan 1", text: "197204121998021003", x: 420, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
 
   // Signer 2 (Eksternal / DUDI) - Right Bottom (X = 1334)
   signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Penandatangan 2", text: "Asesor Industri (Mitra DUDI)", x: 1334, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 23 },
@@ -793,14 +793,14 @@ export default function CertificateEditor({
     if (target.instructorNip) {
       target.instructorNip = {
         ...target.instructorNip,
-        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : target.instructorNip.text,
+        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `${s1.nip}`) : target.instructorNip.text,
         label: "NIP Penandatangan 1",
       };
     }
     if (target.signer1Nip) {
       target.signer1Nip = {
         ...target.signer1Nip,
-        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : target.signer1Nip.text,
+        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `${s1.nip}`) : target.signer1Nip.text,
         label: "NIP Penandatangan 1",
       };
     }
