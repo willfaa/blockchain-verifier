@@ -17,6 +17,14 @@ export interface CompetencyItem {
   result?: string;
 }
 
+export interface InstructorSetting {
+  id: string;
+  name: string;
+  title: string;
+  nip: string;
+  signatureUrl?: string | null;
+}
+
 export interface TranscriptProps {
   studentName?: string;
   studentId?: string;
@@ -49,6 +57,8 @@ export interface TranscriptProps {
   showCodeColumn?: boolean;
   showScoreColumn?: boolean;
   showStandardColumn?: boolean;
+  // Instructors array for multi-signer sync
+  instructors?: InstructorSetting[];
   // Dedicated back-page signer (from admin transcriptConfig.transcriptSigner)
   transcriptSigner?: {
     name?: string;
@@ -113,6 +123,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   showCodeColumn: showCodeColumnProp,
   showScoreColumn: showScoreColumnProp,
   showStandardColumn: showStandardColumnProp,
+  instructors,
   transcriptSigner,
 }) => {
   // Extract custom layout configuration
@@ -203,6 +214,30 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   const finalSubHeaderTitle = subHeaderTitle || "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)";
   const finalFooterNote = footerNote || "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA";
 
+  // Bangun daftar penandatangan / penguji untuk Halaman 2 (Format Khusus: hanya Nama dan Identitas / NIP)
+  const displaySigners: { title: string; name: string; identity: string }[] = [];
+  if (instructors && instructors.length > 0) {
+    instructors.forEach((inst, idx) => {
+      displaySigners.push({
+        title: inst.title || (idx === 0 ? "Penguji Internal" : idx === 1 ? "Penguji Eksternal (DUDI)" : `Penguji ${idx + 1}`),
+        name: inst.name || "-",
+        identity: inst.nip ? (inst.nip.startsWith("NIP") ? inst.nip : `NIP: ${inst.nip}`) : "",
+      });
+    });
+  } else if (transcriptSigner && transcriptSigner.name) {
+    displaySigners.push({
+      title: transcriptSigner.title || examinerTitle || "Penguji",
+      name: transcriptSigner.name,
+      identity: transcriptSigner.nip || examinerNip || "",
+    });
+  } else {
+    displaySigners.push({
+      title: examinerTitle || "Penguji Internal",
+      name: examinerName || "Sonny Michael Wijaya, S.Kom",
+      identity: examinerNip ? (examinerNip.startsWith("NIP") ? examinerNip : `NIP: ${examinerNip}`) : "NIP: 197204121998021003",
+    });
+  }
+
   // If custom layout elements are defined, render fully customized dynamic canvas
   if (elements && Object.keys(elements).length > 0) {
     const dynamicValues: Record<string, string> = {
@@ -217,18 +252,30 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       majorProgramMeta: `Kompetensi Keahlian : ${(majority || program || "").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
-      // Gunakan transcriptSigner jika ada, fallback ke examiner props
-      signer1Title: (transcriptSigner?.title || examinerTitle) || "Kepala Sekolah / Ketua Tim Penguji",
-      signer1Name: (transcriptSigner?.name || examinerName) || "Sonny Michael Wijaya, S.Kom",
+      // Signer dynamic texts
+      signer1Title: (instructors && instructors[0]?.title) || (transcriptSigner?.title || examinerTitle) || "Penguji Internal",
+      signer1Name: (instructors && instructors[0]?.name) || (transcriptSigner?.name || examinerName) || "Sonny Michael Wijaya, S.Kom",
       signer1Nip: (() => {
-        const nip = transcriptSigner?.nip || examinerNip;
-        if (!nip) return "NIP: 197204121998021003";
+        const nip = (instructors && instructors[0]?.nip) || transcriptSigner?.nip || examinerNip;
+        if (!nip) return "";
         return nip.startsWith("NIP") ? nip : `NIP: ${nip}`;
       })(),
-      signer2Title: "Asesor Industri (Mitra DUDI)",
-      signer2Name: "Ir. Hendra Kusuma, M.Kom.",
-      signer2Nip: "PT. TELKOM INDONESIA TBK",
+      signer2Title: (instructors && instructors[1]?.title) || "Penguji Eksternal / Mitra DUDI",
+      signer2Name: (instructors && instructors[1]?.name) || "Ir. Hendra Kusuma, M.Kom.",
+      signer2Nip: (instructors && instructors[1]?.nip) || "PT. TELKOM INDONESIA TBK",
     };
+
+    if (instructors && instructors.length > 0) {
+      instructors.forEach((inst, idx) => {
+        const num = idx + 1;
+        dynamicValues[`signer${num}Title`] = inst.title || (idx === 0 ? "Penguji Internal" : "Penguji Eksternal");
+        dynamicValues[`signer${num}Name`] = inst.name;
+        dynamicValues[`signer${num}Nip`] = inst.nip ? (inst.nip.startsWith("NIP") ? inst.nip : `NIP: ${inst.nip}`) : "";
+      });
+      dynamicValues["instructorName"] = instructors[0]?.name || "";
+      dynamicValues["instructorTitle"] = instructors[0]?.title || "Penguji Internal";
+      dynamicValues["instructorNip"] = instructors[0]?.nip || "";
+    }
 
     // Override column visibility on tableCompetencies element from props
     const overriddenElements: Record<string, LayoutElement> = {};
@@ -637,45 +684,33 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
           return null;
         })}
 
-        {/* Transcript Signer Block — always at bottom-right, below table */}
-        {signerName && (
+        {/* Transcript Signer Block — always at bottom-right, below table with clean Name & Identity format */}
+        {displaySigners.length > 0 && (
           <div
             style={{
               position: "absolute",
-              bottom: "32px",
+              bottom: "28px",
               right: "48px",
               zIndex: 50,
-              textAlign: "center",
-              minWidth: "200px",
             }}
+            className="flex flex-col gap-2 items-end text-right"
           >
-            {signerTitle && (
-              <p style={{ fontSize: "11px", fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", marginBottom: "6px" }}>
-                {signerTitle}
-              </p>
-            )}
-            <div style={{ width: "144px", height: "48px", margin: "0 auto 4px" }}>
-              {resolvedTranscriptSigUrl ? (
-                <img
-                  src={resolvedTranscriptSigUrl}
-                  alt="Tanda Tangan"
-                  style={{ height: "100%", objectFit: "contain", filter: "contrast(1.25)" }}
-                  crossOrigin="anonymous"
-                />
-              ) : (
-                <svg viewBox="0 0 140 40" style={{ width: "100%", height: "100%", stroke: isDark ? "#cbd5e1" : "#1e293b", fill: "none", strokeWidth: 2, strokeLinecap: "round", opacity: 0.8 }}>
-                  <path d="M10 28 Q 30 5, 50 25 T 90 20 T 130 15 M35 30 L45 8 L55 35 M75 12 Q 85 28, 95 10" />
-                </svg>
-              )}
-            </div>
-            <div style={{ borderTop: `1px solid ${isDark ? "#475569" : "#1e293b"}`, paddingTop: "4px", fontWeight: "bold", fontSize: "11px", color: isDark ? "#f1f5f9" : "#0f172a" }}>
-              {signerName}
-            </div>
-            {signerNip && (
-              <p style={{ fontSize: "10px", color: isDark ? "#94a3b8" : "#64748b", fontFamily: "monospace", marginTop: "2px" }}>
-                {signerNip.startsWith("NIP") ? signerNip : `NIP: ${signerNip}`}
-              </p>
-            )}
+            {displaySigners.map((s, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-xs">
+                <span className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                  {s.title}
+                </span>
+                <span className="text-slate-400">:</span>
+                <span className={`font-bold uppercase ${isDark ? "text-white" : "text-slate-900"}`}>
+                  {s.name}
+                </span>
+                {s.identity && (
+                  <span className={`font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                    ( {s.identity} )
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -867,37 +902,21 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
           <p>Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain</p>
         </div>
 
-        {/* Gunakan transcriptSigner jika tersedia, fallback ke examiner props */}
-        {(() => {
-          const sName = transcriptSigner?.name || examinerName;
-          const sTitle = transcriptSigner?.title || examinerTitle;
-          const sNip = transcriptSigner?.nip || examinerNip;
-          const sSigUrl = resolveTranscriptBgUrl(transcriptSigner?.signatureUrl || signatureUrl);
-          return (
-            <div className="text-center min-w-[220px]">
-              <p className="text-xs font-semibold text-slate-600 mb-2">
-                {sTitle || "Penguji / Asesor Uji Kompetensi"}
-              </p>
-              <div className="w-36 h-12 mx-auto my-1 flex items-center justify-center">
-                {sSigUrl ? (
-                  <img src={sSigUrl} alt="Tanda Tangan" className="h-full object-contain filter contrast-125" crossOrigin="anonymous" />
-                ) : (
-                  <svg viewBox="0 0 140 40" className="w-full h-full stroke-slate-900 fill-none stroke-2 stroke-linecap-round opacity-80">
-                    <path d="M10 28 Q 30 5, 50 25 T 90 20 T 130 15 M35 30 L45 8 L55 35 M75 12 Q 85 28, 95 10" />
-                  </svg>
+        {/* Daftar Penandatangan / Penguji Halaman 2 (Format Bersih: Nama & Identitas) */}
+        {displaySigners.length > 0 && (
+          <div className="flex flex-col gap-1.5 items-end text-right">
+            {displaySigners.map((s, idx) => (
+              <div key={idx} className="flex flex-wrap items-center justify-end gap-1.5 text-xs">
+                <span className="font-semibold text-slate-700">{s.title}</span>
+                <span className="text-slate-400">:</span>
+                <span className="font-bold text-slate-950 uppercase">{s.name}</span>
+                {s.identity && (
+                  <span className="text-slate-600 font-medium">({s.identity})</span>
                 )}
               </div>
-              <div className="border-t border-slate-800 pt-1 font-bold text-xs text-slate-950">
-                {sName}
-              </div>
-              {sNip && (
-                <p className="text-[10px] text-slate-600 font-mono mt-0.5">
-                  {sNip.startsWith("NIP") ? sNip : `NIP: ${sNip}`}
-                </p>
-              )}
-            </div>
-          );
-        })()}
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

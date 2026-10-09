@@ -1471,6 +1471,8 @@ export default function CertificateTemplatePage() {
                 institutionLogo={resolveUploadUrl(institutionLogo)}
                 institutionName={institutionName}
                 institutionSubtext={institutionSubtext}
+                instructors={instructors}
+                onConfigChange={(newCfg) => setLayoutConfig(newCfg)}
                 onSave={handleSaveConfig}
                 onReset={handleResetConfig}
                 isSaving={savingConfig}
@@ -1767,6 +1769,8 @@ export default function CertificateTemplatePage() {
                 institutionLogo={resolveUploadUrl(institutionLogo)}
                 institutionName={institutionName}
                 institutionSubtext={institutionSubtext}
+                instructors={instructors}
+                onConfigChange={(newCfg) => setTranscriptLayoutConfig(newCfg)}
                 onSave={handleSaveTranscriptLayoutConfig}
                 onReset={handleResetTranscriptLayoutConfig}
                 isSaving={savingTranscriptLayoutConfig}
@@ -1907,51 +1911,34 @@ export default function CertificateTemplatePage() {
             className="w-full max-h-[640px] min-h-[400px] bg-slate-950/90 rounded-2xl border border-white/10 p-6 overflow-auto custom-scrollbar flex items-center justify-center relative shadow-inner"
           >
             {activePreviewTab === "front" ? (
-              previewBlobUrl ? (
-                <div
-                  style={{
-                    width: `${previewZoom}%`,
-                    maxWidth: "none",
-                    transition: "width 0.12s ease-out",
-                  }}
-                  className="flex items-center justify-center shrink-0 m-auto"
-                >
-                  <img
-                    src={previewBlobUrl}
-                    alt="Pratinjau Sertifikat"
-                    className="w-full h-auto object-contain rounded-lg shadow-2xl border border-white/10 select-none animate-in fade-in duration-300"
-                  />
-                </div>
-              ) : (
-                <div
-                  style={{
-                    transform: `scale(${previewZoom / 100})`,
-                    transformOrigin: "center center",
-                    transition: "transform 0.12s ease-out",
-                  }}
-                  className="flex items-center justify-center shrink-0 m-auto"
-                >
-                  <CertificateTemplate
-                    studentName="John Doe"
-                    studentId="2024150042"
-                    courseName="Blockchain & Distributed Systems"
-                    majority="Teknik Informatika"
-                    program="Rekayasa Perangkat Lunak"
-                    instructorName={instructorName}
-                    instructorNip={instructorNip}
-                    instructors={instructors}
-                    institutionLogo={resolveUploadUrl(institutionLogo)}
-                    institutionName={institutionName}
-                    institutionSubtext={institutionSubtext}
-                    layout={layout}
-                    paperSize={paperSize}
-                    paperWidthCm={paperWidthCm}
-                    paperHeightCm={paperHeightCm}
-                    bgPath={fullBgUrl}
-                    layoutConfig={layoutConfig}
-                  />
-                </div>
-              )
+              <div
+                style={{
+                  transform: `scale(${previewZoom / 100})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+              >
+                <CertificateTemplate
+                  studentName="John Doe"
+                  studentId="2024150042"
+                  courseName="Blockchain & Distributed Systems"
+                  majority="Teknik Informatika"
+                  program="Rekayasa Perangkat Lunak"
+                  instructorName={instructorName}
+                  instructorNip={instructorNip}
+                  instructors={instructors}
+                  institutionLogo={resolveUploadUrl(institutionLogo)}
+                  institutionName={institutionName}
+                  institutionSubtext={institutionSubtext}
+                  layout={layout}
+                  paperSize={paperSize}
+                  paperWidthCm={paperWidthCm}
+                  paperHeightCm={paperHeightCm}
+                  bgPath={fullBgUrl}
+                  layoutConfig={layoutConfig}
+                />
+              </div>
             ) : (
               <div
                 style={{
@@ -1971,6 +1958,7 @@ export default function CertificateTemplatePage() {
                   examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
                   examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
+                  instructors={instructors}
                   institutionLogo={resolveUploadUrl(institutionLogo)}
                   institutionName={institutionName}
                   institutionSubtext={institutionSubtext}
@@ -2121,53 +2109,35 @@ export default function CertificateTemplatePage() {
             }}
           >
             {activePreviewTab === "front" ? (
-              previewBlobUrl ? (
-                <div
-                  style={{
-                    width: `${fullscreenZoom}%`,
-                    maxWidth: "none",
-                    transition: "width 0.12s ease-out",
-                  }}
-                  className="flex items-center justify-center shrink-0 m-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <img
-                    src={previewBlobUrl}
-                    alt="Pratinjau Sertifikat Layar Penuh"
-                    className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/15"
-                  />
-                </div>
-              ) : (
-                <div
-                  style={{
-                    transform: `scale(${fullscreenZoom / 100})`,
-                    transformOrigin: "center center",
-                    transition: "transform 0.12s ease-out",
-                  }}
-                  className="flex items-center justify-center shrink-0 m-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <CertificateTemplate
-                    studentName="John Doe"
-                    studentId="2024150042"
-                    courseName="Blockchain & Distributed Systems"
-                    majority="Teknik Informatika"
-                    program="Rekayasa Perangkat Lunak"
-                    instructorName={instructorName}
-                    instructorNip={instructorNip}
-                    instructors={instructors}
-                    institutionLogo={resolveUploadUrl(institutionLogo)}
-                    institutionName={institutionName}
-                    institutionSubtext={institutionSubtext}
-                    layout={layout}
-                    paperSize={paperSize}
-                    paperWidthCm={paperWidthCm}
-                    paperHeightCm={paperHeightCm}
-                    bgPath={fullBgUrl}
-                    layoutConfig={layoutConfig}
-                  />
-                </div>
-              )
+              <div
+                style={{
+                  transform: `scale(${fullscreenZoom / 100})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.12s ease-out",
+                }}
+                className="flex items-center justify-center shrink-0 m-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CertificateTemplate
+                  studentName="John Doe"
+                  studentId="2024150042"
+                  courseName="Blockchain & Distributed Systems"
+                  majority="Teknik Informatika"
+                  program="Rekayasa Perangkat Lunak"
+                  instructorName={instructorName}
+                  instructorNip={instructorNip}
+                  instructors={instructors}
+                  institutionLogo={resolveUploadUrl(institutionLogo)}
+                  institutionName={institutionName}
+                  institutionSubtext={institutionSubtext}
+                  layout={layout}
+                  paperSize={paperSize}
+                  paperWidthCm={paperWidthCm}
+                  paperHeightCm={paperHeightCm}
+                  bgPath={fullBgUrl}
+                  layoutConfig={layoutConfig}
+                />
+              </div>
             ) : (
               <div
                 style={{
@@ -2188,6 +2158,7 @@ export default function CertificateTemplatePage() {
                   examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
                   examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
+                  instructors={instructors}
                   institutionLogo={resolveUploadUrl(institutionLogo)}
                   institutionName={institutionName}
                   institutionSubtext={institutionSubtext}

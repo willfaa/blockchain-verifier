@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Rnd } from "react-rnd";
+import { toast } from "sonner";
 import {
   Grid3X3,
   Save,
@@ -55,6 +56,9 @@ import {
   Check,
   Building2,
   AlignJustify,
+  GripVertical,
+  X,
+  PenTool,
 } from "lucide-react";
 
 export interface CustomGroup {
@@ -137,10 +141,19 @@ export interface CertificateLayoutConfig {
   layoutMode?: "STANDARD" | "QR_ONLY";
   backgroundConfig?: BackgroundConfig;
   customGroups?: Record<string, CustomGroup>;
+  categoryTitles?: Record<string, string>;
   elements: Record<string, LayoutElement>;
 }
 
-interface CertificateEditorProps {
+export interface InstructorSetting {
+  id: string;
+  name: string;
+  title: string;
+  nip: string;
+  signatureUrl?: string | null;
+}
+
+export interface CertificateEditorProps {
   initialConfig: CertificateLayoutConfig | Record<string, LayoutElement> | null;
   paperSize: string;
   paperWidthCm?: number;
@@ -151,6 +164,8 @@ interface CertificateEditorProps {
   institutionLogo?: string | null;
   institutionName?: string | null;
   institutionSubtext?: string | null;
+  instructors?: InstructorSetting[];
+  onConfigChange?: (config: CertificateLayoutConfig) => void;
   onSave: (config: CertificateLayoutConfig) => Promise<void>;
   onReset: () => Promise<void>;
   isSaving: boolean;
@@ -399,6 +414,8 @@ export default function CertificateEditor({
   institutionLogo,
   institutionName,
   institutionSubtext,
+  instructors,
+  onConfigChange,
   onSave,
   onReset,
   isSaving,
@@ -429,10 +446,22 @@ export default function CertificateEditor({
     };
   }
 
-  // Elements & Custom Groups state
+  // Elements, Custom Groups & Category Titles state
   const [elements, setElements] = useState<Record<string, LayoutElement>>(defaultElements);
   const [customGroups, setCustomGroups] = useState<Record<string, CustomGroup>>({});
+  const [categoryTitles, setCategoryTitles] = useState<Record<string, string>>({});
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+
+  // Drag and Drop & Renaming group state
+  const [draggedLayerKey, setDraggedLayerKey] = useState<string | null>(null);
+  const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [tempGroupName, setTempGroupName] = useState<string>("");
+  const [activeAddMenuGroupId, setActiveAddMenuGroupId] = useState<string | null>(null);
+  const [activeMoveMenuKey, setActiveMoveMenuKey] = useState<string | null>(null);
+  const [targetUploadGroupId, setTargetUploadGroupId] = useState<string | null>(null);
+  const groupImageUploadRef = useRef<HTMLInputElement>(null);
+  const lastEmittedConfigRef = useRef<CertificateLayoutConfig | null>(null);
 
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -718,8 +747,264 @@ export default function CertificateEditor({
     return () => window.removeEventListener("resize", handleResize);
   }, [canvasWidth, canvasHeight]);
 
-  // Sinkronisasi konfigurasi awal
+  // Helper untuk sinkronisasi penandatangan dinamis ke elements
+  const applyInstructorsToElements = (
+    target: Record<string, LayoutElement>,
+    instructorList: InstructorSetting[] | undefined
+  ) => {
+    if (!instructorList || instructorList.length === 0) return;
+
+    // Signer 1 (Utama)
+    const s1 = instructorList[0];
+    if (target.instructorName) {
+      target.instructorName = {
+        ...target.instructorName,
+        text: s1.name || target.instructorName.text,
+        label: "Nama Penandatangan 1 (Utama)",
+      };
+    }
+    if (target.signer1Name) {
+      target.signer1Name = {
+        ...target.signer1Name,
+        text: s1.name || target.signer1Name.text,
+        label: "Nama Penandatangan 1",
+      };
+    }
+    if (target.instructorTitle) {
+      target.instructorTitle = {
+        ...target.instructorTitle,
+        text: s1.title || target.instructorTitle.text,
+        label: "Jabatan Penandatangan 1",
+      };
+    }
+    if (target.signer1Title) {
+      target.signer1Title = {
+        ...target.signer1Title,
+        text: s1.title || target.signer1Title.text,
+        label: "Jabatan Penandatangan 1",
+      };
+    }
+    if (target.instructorNip) {
+      target.instructorNip = {
+        ...target.instructorNip,
+        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : target.instructorNip.text,
+        label: "NIP Penandatangan 1",
+      };
+    }
+    if (target.signer1Nip) {
+      target.signer1Nip = {
+        ...target.signer1Nip,
+        text: s1.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : target.signer1Nip.text,
+        label: "NIP Penandatangan 1",
+      };
+    }
+    if (s1.signatureUrl) {
+      if (target.instructorSignature) {
+        target.instructorSignature = {
+          ...target.instructorSignature,
+          imageUrl: s1.signatureUrl,
+          visible: true,
+        };
+      }
+      if (target.signer1Signature) {
+        target.signer1Signature = {
+          ...target.signer1Signature,
+          imageUrl: s1.signatureUrl,
+          visible: true,
+        };
+      }
+    }
+
+    // Signer 2 (Mitra DUDI)
+    if (instructorList.length >= 2) {
+      const s2 = instructorList[1];
+      if (target.signer2Name) {
+        target.signer2Name = {
+          ...target.signer2Name,
+          text: s2.name || target.signer2Name.text,
+          label: "Nama Penandatangan 2 (Mitra DUDI)",
+          visible: true,
+        };
+      }
+      if (target.signer2Title) {
+        target.signer2Title = {
+          ...target.signer2Title,
+          text: s2.title || target.signer2Title.text,
+          label: "Jabatan Penandatangan 2",
+          visible: true,
+        };
+      }
+      if (target.signer2Nip) {
+        target.signer2Nip = {
+          ...target.signer2Nip,
+          text: s2.nip ? (s2.nip.startsWith("NIP") ? s2.nip : s2.nip) : target.signer2Nip.text,
+          label: "Instansi / REG Signer 2",
+          visible: true,
+        };
+      }
+      if (target.signer2Line) {
+        target.signer2Line = {
+          ...target.signer2Line,
+          visible: true,
+        };
+      }
+      if (target.signer2Signature) {
+        target.signer2Signature = {
+          ...target.signer2Signature,
+          imageUrl: s2.signatureUrl || target.signer2Signature.imageUrl,
+          visible: true,
+        };
+      }
+    } else {
+      if (target.signer2Name) target.signer2Name.visible = false;
+      if (target.signer2Title) target.signer2Title.visible = false;
+      if (target.signer2Nip) target.signer2Nip.visible = false;
+      if (target.signer2Line) target.signer2Line.visible = false;
+      if (target.signer2Signature) target.signer2Signature.visible = false;
+    }
+
+    // Signer 3+ (jika ada lebih dari 2 penandatangan)
+    if (instructorList.length >= 3) {
+      for (let i = 2; i < instructorList.length; i++) {
+        const s = instructorList[i];
+        const num = i + 1;
+        const sKeyName = `signer${num}Name`;
+        const sKeyTitle = `signer${num}Title`;
+        const sKeyNip = `signer${num}Nip`;
+        const sKeySig = `signer${num}Signature`;
+        const sKeyLine = `signer${num}Line`;
+
+        const startX = 200 + Math.round((canvasWidth - 400) * (i / (instructorList.length - 1)));
+        const startY = isTranscript ? 1150 : 990;
+
+        if (!target[sKeyName]) {
+          target[sKeyName] = {
+            id: sKeyName,
+            type: "text",
+            label: `Nama Penandatangan ${num}`,
+            text: s.name,
+            x: startX,
+            y: startY,
+            width: 320,
+            height: 35,
+            fontSize: 22,
+            fontFamily: "Arial",
+            color: "#f8fafc",
+            bold: true,
+            italic: true,
+            visible: true,
+            align: "center",
+            locked: false,
+            zIndex: 25 + i,
+          };
+        } else {
+          target[sKeyName] = { ...target[sKeyName], text: s.name, visible: true };
+        }
+
+        if (!target[sKeyTitle]) {
+          target[sKeyTitle] = {
+            id: sKeyTitle,
+            type: "text",
+            label: `Jabatan Penandatangan ${num}`,
+            text: s.title || `PENANDATANGAN ${num}`,
+            x: startX,
+            y: startY + 50,
+            width: 300,
+            height: 24,
+            fontSize: 13,
+            fontFamily: "Arial",
+            color: "#cbd5e1",
+            bold: true,
+            italic: false,
+            visible: true,
+            align: "center",
+            locked: false,
+            zIndex: 26 + i,
+          };
+        } else {
+          target[sKeyTitle] = { ...target[sKeyTitle], text: s.title, visible: true };
+        }
+
+        if (!target[sKeyNip]) {
+          target[sKeyNip] = {
+            id: sKeyNip,
+            type: "text",
+            label: `NIP / Instansi Signer ${num}`,
+            text: s.nip || "",
+            x: startX,
+            y: startY + 80,
+            width: 300,
+            height: 24,
+            fontSize: 12,
+            fontFamily: "Courier New",
+            color: "#38bdf8",
+            bold: false,
+            italic: false,
+            visible: true,
+            align: "center",
+            locked: false,
+            zIndex: 27 + i,
+          };
+        } else {
+          target[sKeyNip] = { ...target[sKeyNip], text: s.nip, visible: true };
+        }
+
+        if (!target[sKeySig]) {
+          target[sKeySig] = {
+            id: sKeySig,
+            type: "image",
+            label: `Tanda Tangan Signer ${num}`,
+            imageUrl: s.signatureUrl || "",
+            x: startX,
+            y: startY - 55,
+            width: 140,
+            height: 65,
+            fontSize: 0,
+            fontFamily: "Arial",
+            color: "#ffffff",
+            bold: false,
+            italic: false,
+            visible: true,
+            lockAspectRatio: true,
+            locked: false,
+            zIndex: 24 + i,
+          };
+        } else {
+          target[sKeySig] = { ...target[sKeySig], imageUrl: s.signatureUrl || target[sKeySig].imageUrl, visible: true };
+        }
+
+        if (!target[sKeyLine]) {
+          target[sKeyLine] = {
+            id: sKeyLine,
+            type: "line",
+            label: `Garis TTD Signer ${num}`,
+            x: startX,
+            y: startY + 38,
+            width: 250,
+            height: 2,
+            fontSize: 0,
+            fontFamily: "Arial",
+            color: "#475569",
+            bold: false,
+            italic: false,
+            visible: true,
+            locked: false,
+            zIndex: 25 + i,
+          };
+        } else {
+          target[sKeyLine] = { ...target[sKeyLine], visible: true };
+        }
+      }
+    }
+  };
+
+  // Sinkronisasi konfigurasi awal & input eksternal
   useEffect(() => {
+    // Hindari re-inisialisasi tak terbatas jika update berasal dari editor ini sendiri
+    if (initialConfig && initialConfig === lastEmittedConfigRef.current) {
+      return;
+    }
+
     const rawFallbackDefaults = isTranscript
       ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
       : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
@@ -743,22 +1028,19 @@ export default function CertificateEditor({
         text: institutionSubtext,
       };
     }
+    applyInstructorsToElements(fallbackDefaults, instructors);
 
     if (initialConfig) {
       const hasWrappedElements = "elements" in initialConfig && (initialConfig as any).elements;
       const loadedElements = (hasWrappedElements ? (initialConfig as any).elements : initialConfig) as Record<string, LayoutElement>;
 
-      // Fix: Start ONLY from loadedElements keys — this respects user deletions.
-      // fallbackDefaults is used only to fill in missing properties of existing elements,
-      // NOT to add back deleted elements.
       const merged: Record<string, LayoutElement> = {};
       Object.keys(loadedElements).forEach((k) => {
         merged[k] = { ...(fallbackDefaults[k] || {}), ...loadedElements[k] };
       });
       delete merged.background;
 
-      // Always sync logo, name, subtext from props — unconditionally overwrite
-      // so WYSIWYG: what's in the form fields is what you see in the editor
+      // Always sync logo, name, subtext from props — WYSIWYG
       if (merged.universityLogo) {
         merged.universityLogo = {
           ...merged.universityLogo,
@@ -780,6 +1062,7 @@ export default function CertificateEditor({
           ...(institutionSubtext ? { text: institutionSubtext } : {}),
         };
       }
+      applyInstructorsToElements(merged, instructors);
 
       setElements(merged);
 
@@ -789,6 +1072,9 @@ export default function CertificateEditor({
         if (wrapped.customGroups) {
           initialCustomGroups = wrapped.customGroups;
           setCustomGroups(wrapped.customGroups);
+        }
+        if (wrapped.categoryTitles) {
+          setCategoryTitles(wrapped.categoryTitles);
         }
         if (wrapped.showDecorativeFrame !== undefined) {
           setShowDecorativeFrame(wrapped.showDecorativeFrame);
@@ -819,6 +1105,7 @@ export default function CertificateEditor({
     } else {
       setElements(fallbackDefaults);
       setCustomGroups({});
+      setCategoryTitles({});
       setLayoutMode("STANDARD");
       setHistory([{ elements: fallbackDefaults, customGroups: {} }]);
       setHistoryIndex(0);
@@ -830,7 +1117,74 @@ export default function CertificateEditor({
       setShowDecorativeFrame(!isTranscript);
       setFollowTemplateDesign(true);
     }
-  }, [initialConfig, layout, isTranscript, institutionLogo, institutionName, institutionSubtext]);
+  }, [initialConfig, layout, isTranscript, institutionLogo, institutionName, institutionSubtext, instructors]);
+
+  // Sinkronisasi realtime langsung saat input dari template certificate berubah (instructors, logo, nama institusi, subteks)
+  const prevInstructorsStrRef = useRef<string>(JSON.stringify(instructors || []));
+  const prevInstLogoRef = useRef<string | null | undefined>(institutionLogo);
+  const prevInstNameRef = useRef<string | null | undefined>(institutionName);
+  const prevInstSubRef = useRef<string | null | undefined>(institutionSubtext);
+
+  useEffect(() => {
+    const currentInstStr = JSON.stringify(instructors || []);
+    const instructorsChanged = currentInstStr !== prevInstructorsStrRef.current;
+    const logoChanged = institutionLogo !== prevInstLogoRef.current;
+    const nameChanged = institutionName !== prevInstNameRef.current;
+    const subChanged = institutionSubtext !== prevInstSubRef.current;
+
+    if (instructorsChanged || logoChanged || nameChanged || subChanged) {
+      prevInstructorsStrRef.current = currentInstStr;
+      prevInstLogoRef.current = institutionLogo;
+      prevInstNameRef.current = institutionName;
+      prevInstSubRef.current = institutionSubtext;
+
+      setElements((prev) => {
+        const next = { ...prev };
+        if (logoChanged && next.universityLogo && institutionLogo) {
+          next.universityLogo = { ...next.universityLogo, imageUrl: institutionLogo };
+        }
+        if (nameChanged && next.universityTitle && institutionName) {
+          next.universityTitle = { ...next.universityTitle, text: institutionName };
+        }
+        if (subChanged && next.majorProgram && institutionSubtext) {
+          next.majorProgram = { ...next.majorProgram, text: institutionSubtext };
+        }
+        if (instructorsChanged && instructors) {
+          applyInstructorsToElements(next, instructors);
+        }
+        return next;
+      });
+    }
+  }, [instructors, institutionLogo, institutionName, institutionSubtext]);
+
+  // Real-time parent notification when layout state changes
+  const isFirstSyncRef = useRef(true);
+  useEffect(() => {
+    if (isFirstSyncRef.current) {
+      isFirstSyncRef.current = false;
+      return;
+    }
+    if (onConfigChange) {
+      const cfg: CertificateLayoutConfig = {
+        paperSize,
+        paperWidthCm: finalWidthCm,
+        paperHeightCm: finalHeightCm,
+        canvasBgColor,
+        showDecorativeFrame,
+        followTemplateDesign,
+        layoutMode,
+        backgroundConfig: {
+          ...bgConfig,
+          canvasBgColor,
+        },
+        customGroups,
+        categoryTitles,
+        elements,
+      };
+      lastEmittedConfigRef.current = cfg;
+      onConfigChange(cfg);
+    }
+  }, [elements, customGroups, categoryTitles, bgConfig, canvasBgColor, showDecorativeFrame, followTemplateDesign, layoutMode, paperSize, finalWidthCm, finalHeightCm, onConfigChange]);
 
   // Sinkronisasi perubahan props dimensi
   useEffect(() => {
@@ -2157,8 +2511,10 @@ export default function CertificateEditor({
         canvasBgColor,
       },
       customGroups,
+      categoryTitles,
       elements,
     };
+    lastEmittedConfigRef.current = fullConfig;
     onSave(fullConfig);
   };
 
@@ -2217,10 +2573,58 @@ export default function CertificateEditor({
     return <Minus size={16} className="text-white/40 shrink-0" />;
   };
 
+  // Bangun Subgroup Penandatangan secara Dinamis
+  const signerCount = Math.max(instructors ? instructors.length : 0, 1);
+  const signerSubgroups: { key: string; title: string; keys: string[] }[] = [];
+
+  if (signerCount >= 2) {
+    // Penandatangan 1 (Utama)
+    signerSubgroups.push({
+      key: "cat_signer_1",
+      title: categoryTitles["cat_signer_1"] || (instructors?.[0]?.title ? `Penandatangan 1 (${instructors[0].title})` : "Penandatangan 1 (Utama)"),
+      keys: isTranscript
+        ? ["signer1Title", "signer1Signature", "signer1Line", "signer1Name", "signer1Nip"]
+        : ["instructorSignature", "instructorName", "instructorLine", "instructorTitle", "instructorNip"],
+    });
+
+    // Penandatangan 2 (Mitra DUDI)
+    signerSubgroups.push({
+      key: "cat_signer_2",
+      title: categoryTitles["cat_signer_2"] || (instructors?.[1]?.title ? `Penandatangan 2 (${instructors[1].title})` : "Penandatangan 2 (Mitra DUDI)"),
+      keys: ["signer2Signature", "signer2Name", "signer2Line", "signer2Title", "signer2Nip"],
+    });
+
+    // Penandatangan 3+ (jika ada)
+    if (instructors && instructors.length >= 3) {
+      for (let i = 2; i < instructors.length; i++) {
+        const num = i + 1;
+        signerSubgroups.push({
+          key: `cat_signer_${num}`,
+          title: categoryTitles[`cat_signer_${num}`] || (instructors[i]?.title ? `Penandatangan ${num} (${instructors[i].title})` : `Penandatangan ${num}`),
+          keys: [`signer${num}Signature`, `signer${num}Name`, `signer${num}Line`, `signer${num}Title`, `signer${num}Nip`],
+        });
+      }
+    }
+  } else {
+    // 1 Penandatangan Utama
+    signerSubgroups.push({
+      key: "cat_signer_1",
+      title: categoryTitles["cat_signer_1"] || (isTranscript ? "Penandatangan (Asesor / Kepsek)" : "Penandatangan & TTD Digital"),
+      keys: isTranscript
+        ? ["signer1Title", "signer1Signature", "signer1Line", "signer1Name", "signer1Nip"]
+        : [
+            "instructorSignature",
+            "instructorName",
+            "instructorLine",
+            "instructorTitle",
+            "instructorNip",
+          ],
+    });
+  }
+
   // Dynamic extraction of signer keys
   const allElementKeys = Object.keys(elements);
   const signerCategoryKeys = allElementKeys.filter((k) => {
-    if (elements[k]?.groupId) return false;
     return (
       k.startsWith("instructor") ||
       k.startsWith("signer") ||
@@ -2239,41 +2643,23 @@ export default function CertificateEditor({
   const standardCategories = [
     {
       key: "header",
-      title: "Header & Judul",
+      title: categoryTitles["header"] || "Header & Judul",
       keys: ["universityLogo", "universityTitle", "certificateTitle", "certificateNumber", "certIdLabel"],
     },
     {
       key: "recipient",
-      title: "Penerima Sertifikat",
+      title: categoryTitles["recipient"] || "Penerima Sertifikat",
       keys: ["presentedTo", "studentName", "schoolName", "majorProgram", "studentId"],
     },
     {
       key: "course",
-      title: "Materi Pelatihan / UKK",
+      title: categoryTitles["course"] || "Materi Pelatihan / UKK",
       keys: ["courseSubtitle", "courseTitle"],
     },
-    {
-      key: "instructor",
-      title: "Penandatangan & TTD Digital",
-      keys:
-        signerCategoryKeys.length > 0
-          ? signerCategoryKeys
-          : [
-              "instructorSignature",
-              "instructorName",
-              "instructorLine",
-              "instructorTitle",
-              "instructorNip",
-              "signer2Signature",
-              "signer2Name",
-              "signer2Line",
-              "signer2Title",
-              "signer2Nip",
-            ],
-    },
+    ...signerSubgroups,
     {
       key: "verification",
-      title: "Tanggal & Verifikasi",
+      title: categoryTitles["verification"] || "Tanggal & Verifikasi",
       keys: ["issuedDateTitle", "issuedDateBox", "qrCode", "scanToVerifyLabel"],
     },
   ];
@@ -2281,67 +2667,61 @@ export default function CertificateEditor({
   const transcriptCategories = [
     {
       key: "header",
-      title: "Header & Judul Halaman 2",
+      title: categoryTitles["header"] || "Header & Judul Halaman 2",
       keys: ["headerTitle", "subHeaderTitle", "courseSubtitle"],
     },
     {
       key: "recipient",
-      title: "Data Siswa & Lembaga",
+      title: categoryTitles["recipient"] || "Data Siswa & Lembaga",
       keys: ["studentMetaBox", "studentNameMeta", "studentIdMeta", "schoolNameMeta", "majorProgramMeta"],
     },
     {
       key: "table",
-      title: "Tabel Kompetensi SKKNI",
+      title: categoryTitles["table"] || "Tabel Kompetensi SKKNI",
       keys: ["tableCompetencies"],
     },
     {
       key: "footer",
-      title: "Catatan Kaki & Blockchain",
+      title: categoryTitles["footer"] || "Catatan Kaki & Blockchain",
       keys: ["footerNote", "blockchainHashNote"],
     },
-    {
-      key: "instructor",
-      title: "Penandatangan (Asesor & Kepsek)",
-      keys:
-        signerCategoryKeys.length > 0
-          ? signerCategoryKeys
-          : [
-              "signer1Title",
-              "signer1Signature",
-              "signer1Line",
-              "signer1Name",
-              "signer1Nip",
-              "signer2Title",
-              "signer2Signature",
-              "signer2Line",
-              "signer2Name",
-              "signer2Nip",
-            ],
-    },
+    ...signerSubgroups,
   ];
 
-  const standardUsedKeys = new Set([
-    "universityLogo", "universityTitle", "certificateTitle", "certificateNumber", "certIdLabel",
-    "presentedTo", "studentName", "schoolName", "majorProgram", "studentId",
-    "courseSubtitle", "courseTitle",
-    "issuedDateTitle", "issuedDateBox", "qrCode", "scanToVerifyLabel",
-    ...signerCategoryKeys,
-  ]);
-
-  const transcriptUsedKeys = new Set([
-    "headerTitle", "subHeaderTitle", "courseSubtitle",
-    "studentMetaBox", "studentNameMeta", "studentIdMeta", "schoolNameMeta", "majorProgramMeta",
-    "tableCompetencies",
-    "footerNote", "blockchainHashNote",
-    ...signerCategoryKeys,
-  ]);
-
   const activeCategories = isTranscript ? transcriptCategories : standardCategories;
-  const activeUsedKeys = isTranscript ? transcriptUsedKeys : standardUsedKeys;
 
-  const customKeys = Object.keys(elements).filter(
-    (k) => elements[k]?.isCustom && !activeUsedKeys.has(k)
-  );
+  // Helper untuk menentukan layer yang masuk ke dalam kategori/grup manapun
+  const getMemberKeysForCategory = (catKey: string, defaultKeys: string[]) => {
+    return Object.keys(elements).filter((k) => {
+      const el = elements[k];
+      if (!el) return false;
+      // Jika layer dipindahkan ke grup ini secara manual
+      if (el.groupId) {
+        return el.groupId === catKey;
+      }
+      // Jika tidak ada groupId manual, cek defaultKeys
+      return defaultKeys.includes(k);
+    });
+  };
+
+  const getMemberKeysForCustomGroup = (gId: string) => {
+    return Object.keys(elements).filter((k) => {
+      const el = elements[k];
+      return el && el.groupId === gId;
+    });
+  };
+
+  // Kumpulkan semua keys yang sudah terpetakan ke grup/kategori
+  const allAssignedKeys = new Set<string>();
+  activeCategories.forEach((cat) => {
+    getMemberKeysForCategory(cat.key, cat.keys).forEach((k) => allAssignedKeys.add(k));
+  });
+  Object.keys(customGroups).forEach((gId) => {
+    getMemberKeysForCustomGroup(gId).forEach((k) => allAssignedKeys.add(k));
+  });
+
+  const independentCustomKeys = Object.keys(elements).filter((k) => !allAssignedKeys.has(k));
+
   const primarySelectedEl = selectedIds.length === 1 ? elements[selectedIds[0]] : null;
 
   // Render elements in ascending zIndex order (REAL STACKING ORDER)
@@ -2352,14 +2732,247 @@ export default function CertificateEditor({
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
+  // Pindahkan layer ke group manapun (Drag & Drop)
+  const handleMoveLayerToGroup = (layerKey: string, targetGroupId: string | null) => {
+    if (!elements[layerKey]) return;
+    setElements((prev) => {
+      const next = { ...prev };
+      next[layerKey] = {
+        ...next[layerKey],
+        groupId: targetGroupId || undefined,
+      };
+      pushHistory(next);
+      return next;
+    });
+    toast.success(`Layer "${elements[layerKey]?.label || layerKey}" dipindahkan ke grup`);
+  };
+
+  // Mulai rename nama group
+  const handleStartRenameGroup = (groupId: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingGroupId(groupId);
+    setTempGroupName(currentTitle);
+  };
+
+  // Simpan rename nama group
+  const handleSaveGroupRename = (groupId: string, isCustomGroup = false) => {
+    if (!tempGroupName.trim()) {
+      setEditingGroupId(null);
+      return;
+    }
+    const cleanTitle = tempGroupName.trim();
+    if (isCustomGroup) {
+      setCustomGroups((prev) => {
+        const next = { ...prev };
+        if (next[groupId]) {
+          next[groupId] = { ...next[groupId], name: cleanTitle };
+        }
+        pushHistory(elements, next);
+        return next;
+      });
+    } else {
+      setCategoryTitles((prev) => ({
+        ...prev,
+        [groupId]: cleanTitle,
+      }));
+    }
+    setEditingGroupId(null);
+    toast.success(`Nama grup diubah menjadi "${cleanTitle}"`);
+  };
+
+  // Tambah layer baru langsung ke group tertentu
+  const handleAddTextToGroup = (groupId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const id = `customText_${Date.now()}`;
+    const newEl: LayoutElement = {
+      id,
+      type: "text",
+      label: "Teks Baru",
+      text: "Teks Baru",
+      x: Math.round(canvasWidth / 2),
+      y: Math.round(canvasHeight / 2),
+      width: 350,
+      height: 35,
+      fontSize: 20,
+      fontFamily: "Arial",
+      color: canvasBgColor === "#ffffff" ? "#0f172a" : "#ffffff",
+      bold: false,
+      italic: false,
+      visible: true,
+      align: "center",
+      isCustom: true,
+      groupId: groupId,
+      locked: false,
+      zIndex: Object.keys(elements).length + 10,
+    };
+    setElements((prev) => {
+      const next = { ...prev, [id]: newEl };
+      pushHistory(next);
+      return next;
+    });
+    setSelectedIds([id]);
+    setActiveAddMenuGroupId(null);
+    toast.success("Teks baru ditambahkan ke dalam grup");
+  };
+
+  const handleAddShapeToGroup = (groupId: string, shapeType: "rectangle" | "rounded-rect" | "circle" | "badge", e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const id = `customShape_${Date.now()}`;
+    const newEl: LayoutElement = {
+      id,
+      type: "shape",
+      shapeType,
+      label: shapeType === "circle" ? "Lingkaran" : shapeType === "badge" ? "Badge" : "Kotak",
+      x: Math.round(canvasWidth / 2),
+      y: Math.round(canvasHeight / 2),
+      width: shapeType === "circle" ? 140 : shapeType === "badge" ? 280 : 220,
+      height: shapeType === "circle" ? 140 : shapeType === "badge" ? 40 : 100,
+      fontSize: 0,
+      fontFamily: "Arial",
+      color: canvasBgColor === "#ffffff" ? "rgba(15, 23, 42, 0.05)" : "rgba(255, 255, 255, 0.08)",
+      bold: false,
+      italic: false,
+      fillType: "solid",
+      borderColor: canvasBgColor === "#ffffff" ? "#94a3b8" : "#38bdf8",
+      borderWidth: 2,
+      borderRadius: shapeType === "circle" ? 9999 : shapeType === "rounded-rect" ? 16 : shapeType === "badge" ? 20 : 0,
+      opacity: 100,
+      visible: true,
+      isCustom: true,
+      groupId: groupId,
+      locked: false,
+      zIndex: 5,
+    };
+    setElements((prev) => {
+      const next = { ...prev, [id]: newEl };
+      pushHistory(next);
+      return next;
+    });
+    setSelectedIds([id]);
+    setActiveAddMenuGroupId(null);
+    toast.success("Bentuk baru ditambahkan ke dalam grup");
+  };
+
+  const handleAddLineToGroup = (groupId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const id = `customLine_${Date.now()}`;
+    const newEl: LayoutElement = {
+      id,
+      type: "line",
+      label: "Garis Pembatas",
+      x: Math.round(canvasWidth / 2),
+      y: Math.round(canvasHeight / 2),
+      width: 280,
+      height: 2,
+      fontSize: 0,
+      fontFamily: "Arial",
+      color: canvasBgColor === "#ffffff" ? "#334155" : "#475569",
+      bold: false,
+      italic: false,
+      visible: true,
+      isCustom: true,
+      groupId: groupId,
+      locked: false,
+      zIndex: Object.keys(elements).length + 10,
+    };
+    setElements((prev) => {
+      const next = { ...prev, [id]: newEl };
+      pushHistory(next);
+      return next;
+    });
+    setSelectedIds([id]);
+    setActiveAddMenuGroupId(null);
+    toast.success("Garis baru ditambahkan ke dalam grup");
+  };
+
+  // Upload gambar langsung ke grup tertentu
+  const handleTriggerUploadToGroup = (groupId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setTargetUploadGroupId(groupId);
+    setActiveAddMenuGroupId(null);
+    groupImageUploadRef.current?.click();
+  };
+
+  const handleAddImageToGroup = (groupId: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const id = `customImage_${Date.now()}`;
+        const maxW = 200;
+        const maxH = 200;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const newEl: LayoutElement = {
+          id,
+          type: "image",
+          label: file.name ? file.name.replace(/\.[^/.]+$/, "") : "Gambar Kustom",
+          imageUrl: dataUrl,
+          x: Math.round(canvasWidth / 2),
+          y: Math.round(canvasHeight / 2),
+          width: w || 150,
+          height: h || 150,
+          fontSize: 0,
+          fontFamily: "Arial",
+          color: "#ffffff",
+          bold: false,
+          italic: false,
+          visible: true,
+          lockAspectRatio: true,
+          isCustom: true,
+          groupId: groupId,
+          locked: false,
+          zIndex: Object.keys(elements).length + 10,
+        };
+        setElements((prev) => {
+          const next = { ...prev, [id]: newEl };
+          pushHistory(next);
+          return next;
+        });
+        setSelectedIds([id]);
+        setActiveAddMenuGroupId(null);
+        toast.success("Gambar berhasil ditambahkan ke dalam grup");
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Daftar opsi grup lengkap untuk fitur Pindah Grup
+  const allGroupOptions = [
+    ...activeCategories.map((c) => ({ id: c.key, name: c.title })),
+    ...Object.keys(customGroups).map((gId) => ({ id: gId, name: customGroups[gId].name })),
+    { id: "root", name: "Tanpa Grup (Layer Bebas)" },
+  ];
+
   // Render Row Layer Item
   const renderLayerItem = (key: string, el: LayoutElement, isInsideGroup = false) => {
     const isSelected = selectedIds.includes(key);
+    const isDraggingThis = draggedLayerKey === key;
+    const isMoveMenuOpen = activeMoveMenuKey === key;
+
     return (
       <div
         key={key}
-        className={`flex items-center justify-between p-2 rounded-xl cursor-pointer ${
+        draggable={!el.locked}
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/plain", key);
+          setDraggedLayerKey(key);
+        }}
+        onDragEnd={() => {
+          setDraggedLayerKey(null);
+          setDragOverGroupId(null);
+        }}
+        className={`flex items-center justify-between p-2 rounded-xl cursor-pointer relative group/item transition-all ${
           isInsideGroup ? "ml-3 border-l-2 border-neon-purple/30 pl-2.5" : ""
+        } ${
+          isDraggingThis ? "opacity-40 scale-95 border-dashed border-cyan-400" : ""
         } ${
           isSelected
             ? el.isCustom
@@ -2369,7 +2982,18 @@ export default function CertificateEditor({
         }`}
         onClick={(e) => handleSelectElement(key, e)}
       >
-        <div className="flex items-center gap-2 overflow-hidden flex-1">
+        <div className="flex items-center gap-1.5 overflow-hidden flex-1">
+          {/* Drag Handle Icon */}
+          <div
+            className={`p-0.5 rounded cursor-grab active:cursor-grabbing text-white/20 hover:text-cyan-400 shrink-0 ${
+              el.locked ? "opacity-30 cursor-not-allowed" : ""
+            }`}
+            title={el.locked ? "Layer terkunci" : "Tahan & seret untuk memindahkan layer ke grup manapun"}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical size={13} />
+          </div>
+
           {isSelected ? (
             <CheckSquare
               size={14}
@@ -2457,6 +3081,47 @@ export default function CertificateEditor({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {/* Menu Cepat Pindah Grup */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveMoveMenuKey(isMoveMenuOpen ? null : key);
+              }}
+              className="p-1 text-white/30 hover:text-cyan-300 hover:bg-white/10 rounded transition-colors"
+              title="Pindahkan ke grup lain"
+            >
+              <FolderPlus size={13} />
+            </button>
+            {isMoveMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-1 w-52 bg-slate-900 border border-white/15 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in duration-150"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-2 py-1 text-[10px] font-bold text-white/40 border-b border-white/10 uppercase tracking-wider">
+                  Pindahkan Ke Grup
+                </div>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                  {allGroupOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        handleMoveLayerToGroup(key, opt.id === "root" ? null : opt.id);
+                        setActiveMoveMenuKey(null);
+                      }}
+                      className="w-full text-left px-2 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg truncate flex items-center gap-1.5"
+                    >
+                      <Folder size={11} className="text-cyan-400 shrink-0" />
+                      <span className="truncate">{opt.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={(e) => {
@@ -2526,6 +3191,18 @@ export default function CertificateEditor({
         onChange={(e) => {
           if (e.target.files && e.target.files[0]) {
             handleReplaceLayerImage(e.target.files[0]);
+            e.target.value = "";
+          }
+        }}
+      />
+      <input
+        type="file"
+        ref={groupImageUploadRef}
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0] && targetUploadGroupId) {
+            handleAddImageToGroup(targetUploadGroupId, e.target.files[0]);
             e.target.value = "";
           }
         }}
@@ -2726,39 +3403,178 @@ export default function CertificateEditor({
           {/* Custom Uploaded & User Created Groups */}
           {Object.keys(customGroups).map((gId) => {
             const group = customGroups[gId];
-            const memberKeys = Object.keys(elements).filter(
-              (k) => elements[k]?.groupId === gId,
-            );
-            if (memberKeys.length === 0) return null;
+            const memberKeys = getMemberKeysForCustomGroup(gId);
             const isCollapsed = !!collapsedCategories[gId];
             const memberElements = memberKeys.map((k) => elements[k]).filter(Boolean);
             const allVisible = memberElements.length > 0 && memberElements.every((el) => el.visible);
             const anyVisible = memberElements.some((el) => el.visible);
             const allGroupSelected = memberKeys.length > 0 && memberKeys.every((k) => selectedIds.includes(k));
             const anyGroupSelected = memberKeys.some((k) => selectedIds.includes(k));
+            const isDragOver = dragOverGroupId === gId;
 
             return (
               <div
                 key={gId}
-                className="border border-neon-purple/30 rounded-2xl p-1.5 bg-neon-purple/5 transition-all"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverGroupId !== gId) setDragOverGroupId(gId);
+                }}
+                onDragLeave={(e) => {
+                  if (dragOverGroupId === gId) setDragOverGroupId(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const lKey = e.dataTransfer.getData("text/plain") || draggedLayerKey;
+                  if (lKey) {
+                    handleMoveLayerToGroup(lKey, gId);
+                  }
+                  setDragOverGroupId(null);
+                  setDraggedLayerKey(null);
+                }}
+                className={`border rounded-2xl p-1.5 transition-all ${
+                  isDragOver
+                    ? "border-neon-purple bg-neon-purple/20 ring-2 ring-neon-purple/40 shadow-lg"
+                    : "border-neon-purple/30 bg-neon-purple/5"
+                }`}
               >
                 <div
                   className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
                   onClick={() => toggleCategoryCollapse(gId)}
                 >
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 overflow-hidden flex-1 mr-2">
                     {isCollapsed ? (
                       <ChevronRight size={13} className="text-neon-purple shrink-0" />
                     ) : (
                       <ChevronDown size={13} className="text-neon-purple shrink-0" />
                     )}
                     <Folder size={13} className="text-neon-purple shrink-0" />
-                    <span className="text-[11px] font-bold text-white uppercase tracking-wider truncate">
-                      {group.name}
-                    </span>
+
+                    {editingGroupId === gId ? (
+                      <div className="flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          value={tempGroupName}
+                          onChange={(e) => setTempGroupName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveGroupRename(gId, true);
+                            if (e.key === "Escape") setEditingGroupId(null);
+                          }}
+                          autoFocus
+                          className="w-full bg-slate-950 border border-neon-purple rounded px-1.5 py-0.5 text-xs text-white font-semibold outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveGroupRename(gId, true)}
+                          className="p-1 bg-neon-purple/30 text-neon-purple hover:bg-neon-purple/50 rounded"
+                          title="Simpan Nama Grup"
+                        >
+                          <Check size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingGroupId(null)}
+                          className="p-1 bg-white/10 text-white/50 hover:text-white rounded"
+                          title="Batal"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center gap-1.5 flex-1 min-w-0 group/gname"
+                        onDoubleClick={(e) => handleStartRenameGroup(gId, group.name, e)}
+                        title="Klik dua kali untuk ganti nama grup"
+                      >
+                        <span className="text-[11px] font-bold text-white uppercase tracking-wider truncate">
+                          {group.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleStartRenameGroup(gId, group.name, e)}
+                          className="opacity-0 group-hover/gname:opacity-100 p-0.5 text-white/40 hover:text-neon-purple transition-opacity"
+                          title="Ubah nama grup"
+                        >
+                          <Edit2 size={11} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
+                    {/* Menu Tambah Elemen Langsung Ke Grup */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveAddMenuGroupId(activeAddMenuGroupId === gId ? null : gId);
+                        }}
+                        className="p-1 rounded text-white/40 hover:text-neon-purple hover:bg-white/10 transition-colors"
+                        title="Tambah elemen baru ke dalam grup ini"
+                      >
+                        <Plus size={12} />
+                      </button>
+                      {activeAddMenuGroupId === gId && (
+                        <div
+                          className="absolute right-0 top-full mt-1 w-44 bg-slate-900 border border-white/15 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in duration-150"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="px-2 py-1 text-[9px] font-bold text-white/40 border-b border-white/10 uppercase tracking-wider">
+                            + Tambah Ke Grup
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddTextToGroup(gId, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Type size={12} className="text-cyan-400" />
+                            <span>+ Teks</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(gId, "rectangle", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <RectangleHorizontal size={12} className="text-amber-400" />
+                            <span>+ Kotak Shape</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(gId, "circle", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Circle size={12} className="text-amber-400" />
+                            <span>+ Lingkaran</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(gId, "badge", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Badge size={12} className="text-amber-400" />
+                            <span>+ Badge Pill</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddLineToGroup(gId, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Minus size={12} className="text-white/40" />
+                            <span>+ Garis</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleTriggerUploadToGroup(gId, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Upload size={12} className="text-neon-purple" />
+                            <span>+ Upload Gambar</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <span className="text-[9px] text-white/40 font-mono mr-1">
                       {memberElements.filter((e) => e.visible).length}/{memberKeys.length}
                     </span>
@@ -2811,79 +3627,9 @@ export default function CertificateEditor({
             );
           })}
 
-          {/* Custom Uploaded Independent Layers & Shapes */}
-          {customKeys.filter((k) => !elements[k]?.groupId).length > 0 && (() => {
-            const independentCustomKeys = customKeys.filter((k) => !elements[k]?.groupId);
-            const allCustomSelected = independentCustomKeys.length > 0 && independentCustomKeys.every((k) => selectedIds.includes(k));
-            const anyCustomSelected = independentCustomKeys.some((k) => selectedIds.includes(k));
-
-            return (
-              <div className="border border-white/5 rounded-2xl p-1.5 bg-white/[0.02]">
-                <div
-                  className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
-                  onClick={() => toggleCategoryCollapse("custom")}
-                >
-                  <div className="flex items-center gap-1.5">
-                    {collapsedCategories["custom"] ? (
-                      <ChevronRight size={13} className="text-neon-purple shrink-0" />
-                    ) : (
-                      <ChevronDown size={13} className="text-neon-purple shrink-0" />
-                    )}
-                    <h4 className="text-[10px] font-bold text-neon-purple uppercase tracking-widest">
-                      ★ Layer Kustom & Shape
-                    </h4>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[9px] text-white/30 font-mono mr-1">
-                      {independentCustomKeys.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (allCustomSelected) {
-                          setSelectedIds((prev) => prev.filter((k) => !independentCustomKeys.includes(k)));
-                        } else {
-                          setSelectedIds((prev) => Array.from(new Set([...prev, ...independentCustomKeys])));
-                        }
-                      }}
-                      className={`p-1 rounded hover:bg-white/10 ${
-                        allCustomSelected
-                          ? "text-neon-purple font-bold"
-                          : anyCustomSelected
-                          ? "text-neon-purple/60"
-                          : "text-white/30 hover:text-white"
-                      }`}
-                      title={allCustomSelected ? "Batalkan pilihan semua layer kustom" : "Pilih semua layer kustom"}
-                    >
-                      {allCustomSelected ? <CheckSquare size={13} /> : <Square size={13} />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => handleToggleCategoryVisibility(independentCustomKeys, e)}
-                      className="p-1 text-white/40 hover:text-white rounded hover:bg-white/10"
-                      title="Toggle seluruh layer kustom"
-                    >
-                      <Eye size={13} />
-                    </button>
-                  </div>
-                </div>
-                {!collapsedCategories["custom"] && (
-                  <div className="space-y-1 mt-1 pl-1">
-                    {independentCustomKeys.map((key) => {
-                      const el = elements[key];
-                      if (!el) return null;
-                      return renderLayerItem(key, el);
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
           {/* Standard & Transcript Categories with Folder Accordion & Bulk Eye Toggle */}
           {activeCategories.map((cat) => {
-            const memberKeys = cat.keys.filter((k) => !elements[k]?.groupId);
+            const memberKeys = getMemberKeysForCategory(cat.key, cat.keys);
             if (memberKeys.length === 0) return null;
             const isCollapsed = !!collapsedCategories[cat.key];
             const memberElements = memberKeys.map((k) => elements[k]).filter(Boolean);
@@ -2891,17 +3637,42 @@ export default function CertificateEditor({
             const anyVisible = memberElements.some((el) => el.visible);
             const allCatSelected = memberKeys.length > 0 && memberKeys.every((k) => selectedIds.includes(k));
             const anyCatSelected = memberKeys.some((k) => selectedIds.includes(k));
+            const isDragOver = dragOverGroupId === cat.key;
+            const isSignerGroup = cat.key.startsWith("cat_signer");
 
             return (
               <div
                 key={cat.key}
-                className="border border-white/5 rounded-2xl p-1.5 bg-white/[0.02] transition-all"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverGroupId !== cat.key) setDragOverGroupId(cat.key);
+                }}
+                onDragLeave={(e) => {
+                  if (dragOverGroupId === cat.key) setDragOverGroupId(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const lKey = e.dataTransfer.getData("text/plain") || draggedLayerKey;
+                  if (lKey) {
+                    handleMoveLayerToGroup(lKey, cat.key);
+                  }
+                  setDragOverGroupId(null);
+                  setDraggedLayerKey(null);
+                }}
+                className={`border rounded-2xl p-1.5 transition-all ${
+                  isDragOver
+                    ? "border-cyan-400 bg-cyan-500/20 ring-2 ring-cyan-400/40 shadow-lg"
+                    : isSignerGroup
+                    ? "border-purple-500/20 bg-purple-500/[0.03]"
+                    : "border-white/5 bg-white/[0.02]"
+                }`}
               >
                 <div
                   className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-white/5 rounded-lg select-none"
                   onClick={() => toggleCategoryCollapse(cat.key)}
                 >
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 overflow-hidden flex-1 mr-2">
                     {isCollapsed ? (
                       <ChevronRight size={13} className="text-white/40 shrink-0" />
                     ) : (
@@ -2909,18 +3680,148 @@ export default function CertificateEditor({
                     )}
                     <Folder
                       size={13}
-                      className={anyVisible ? "text-cyan-400 shrink-0" : "text-white/30 shrink-0"}
+                      className={
+                        isSignerGroup
+                          ? "text-purple-400 shrink-0"
+                          : anyVisible
+                          ? "text-cyan-400 shrink-0"
+                          : "text-white/30 shrink-0"
+                      }
                     />
-                    <h4
-                      className={`text-[10px] font-bold uppercase tracking-wider truncate ${
-                        anyVisible ? "text-white/80" : "text-white/40"
-                      }`}
-                    >
-                      {cat.title}
-                    </h4>
+
+                    {editingGroupId === cat.key ? (
+                      <div className="flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          value={tempGroupName}
+                          onChange={(e) => setTempGroupName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveGroupRename(cat.key, false);
+                            if (e.key === "Escape") setEditingGroupId(null);
+                          }}
+                          autoFocus
+                          className="w-full bg-slate-950 border border-cyan-400 rounded px-1.5 py-0.5 text-xs text-white font-semibold outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveGroupRename(cat.key, false)}
+                          className="p-1 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded"
+                          title="Simpan Nama Grup"
+                        >
+                          <Check size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingGroupId(null)}
+                          className="p-1 bg-white/10 text-white/50 hover:text-white rounded"
+                          title="Batal"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center gap-1.5 flex-1 min-w-0 group/cname"
+                        onDoubleClick={(e) => handleStartRenameGroup(cat.key, cat.title, e)}
+                        title="Klik dua kali untuk ganti nama folder"
+                      >
+                        <h4
+                          className={`text-[10px] font-bold uppercase tracking-wider truncate ${
+                            isSignerGroup
+                              ? "text-purple-300"
+                              : anyVisible
+                              ? "text-white/80"
+                              : "text-white/40"
+                          }`}
+                        >
+                          {cat.title}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={(e) => handleStartRenameGroup(cat.key, cat.title, e)}
+                          className="opacity-0 group-hover/cname:opacity-100 p-0.5 text-white/40 hover:text-cyan-300 transition-opacity"
+                          title="Ubah nama folder"
+                        >
+                          <Edit2 size={11} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
+                    {/* Menu Tambah Elemen Ke Grup Ini */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveAddMenuGroupId(activeAddMenuGroupId === cat.key ? null : cat.key);
+                        }}
+                        className="p-1 rounded text-white/40 hover:text-cyan-400 hover:bg-white/10 transition-colors"
+                        title="Tambah elemen baru ke dalam folder ini"
+                      >
+                        <Plus size={12} />
+                      </button>
+                      {activeAddMenuGroupId === cat.key && (
+                        <div
+                          className="absolute right-0 top-full mt-1 w-44 bg-slate-900 border border-white/15 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in duration-150"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="px-2 py-1 text-[9px] font-bold text-white/40 border-b border-white/10 uppercase tracking-wider">
+                            + Tambah Ke Folder
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddTextToGroup(cat.key, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Type size={12} className="text-cyan-400" />
+                            <span>+ Teks</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(cat.key, "rectangle", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <RectangleHorizontal size={12} className="text-amber-400" />
+                            <span>+ Kotak Shape</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(cat.key, "circle", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Circle size={12} className="text-amber-400" />
+                            <span>+ Lingkaran</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddShapeToGroup(cat.key, "badge", e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Badge size={12} className="text-amber-400" />
+                            <span>+ Badge Pill</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddLineToGroup(cat.key, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Minus size={12} className="text-white/40" />
+                            <span>+ Garis</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleTriggerUploadToGroup(cat.key, e)}
+                            className="w-full text-left px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                          >
+                            <Upload size={12} className="text-neon-purple" />
+                            <span>+ Upload Gambar</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <span className="text-[9px] text-white/30 font-mono mr-1">
                       {memberElements.filter((e) => e.visible).length}/{memberKeys.length}
                     </span>
@@ -2974,6 +3875,37 @@ export default function CertificateEditor({
               </div>
             );
           })}
+
+          {/* Zona Drop: Keluarkan Layer dari Grup (Layer Bebas) */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (dragOverGroupId !== "root") setDragOverGroupId("root");
+            }}
+            onDragLeave={() => {
+              if (dragOverGroupId === "root") setDragOverGroupId(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const lKey = e.dataTransfer.getData("text/plain") || draggedLayerKey;
+              if (lKey) {
+                handleMoveLayerToGroup(lKey, null);
+              }
+              setDragOverGroupId(null);
+              setDraggedLayerKey(null);
+            }}
+            className={`mt-4 p-3 rounded-2xl border border-dashed text-center transition-all cursor-pointer ${
+              dragOverGroupId === "root"
+                ? "border-cyan-400 bg-cyan-500/20 text-cyan-300 ring-2 ring-cyan-400/40 shadow-lg"
+                : "border-white/10 hover:border-white/20 text-white/30 hover:text-white/60 bg-white/[0.01]"
+            }`}
+          >
+            <p className="text-[10px] font-semibold flex items-center justify-center gap-1.5">
+              <FolderMinus size={13} className="text-white/40" />
+              <span>Lepaskan layer ke sini untuk <b>Keluarkan dari Grup</b></span>
+            </p>
+          </div>
         </div>
       </div>
 
