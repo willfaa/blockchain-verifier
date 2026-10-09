@@ -462,6 +462,11 @@ export default function CertificateEditor({
   const [targetUploadGroupId, setTargetUploadGroupId] = useState<string | null>(null);
   const groupImageUploadRef = useRef<HTMLInputElement>(null);
   const lastEmittedConfigRef = useRef<CertificateLayoutConfig | null>(null);
+  const prevEmittedJsonRef = useRef<string>("");
+  const onConfigChangeRef = useRef(onConfigChange);
+  useEffect(() => {
+    onConfigChangeRef.current = onConfigChange;
+  }, [onConfigChange]);
 
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1001,8 +1006,17 @@ export default function CertificateEditor({
   // Sinkronisasi konfigurasi awal & input eksternal
   useEffect(() => {
     // Hindari re-inisialisasi tak terbatas jika update berasal dari editor ini sendiri
-    if (initialConfig && initialConfig === lastEmittedConfigRef.current) {
-      return;
+    if (initialConfig) {
+      if (initialConfig === lastEmittedConfigRef.current) {
+        return;
+      }
+      try {
+        if (JSON.stringify(initialConfig) === prevEmittedJsonRef.current) {
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
     const rawFallbackDefaults = isTranscript
@@ -1102,6 +1116,10 @@ export default function CertificateEditor({
 
       setHistory([{ elements: merged, customGroups: initialCustomGroups }]);
       setHistoryIndex(0);
+      try {
+        prevEmittedJsonRef.current = JSON.stringify(initialConfig);
+        lastEmittedConfigRef.current = initialConfig as any;
+      } catch (e) {}
     } else {
       setElements(fallbackDefaults);
       setCustomGroups({});
@@ -1116,8 +1134,26 @@ export default function CertificateEditor({
       setCanvasBgColor(isTranscript ? "#ffffff" : "#0B0F19");
       setShowDecorativeFrame(!isTranscript);
       setFollowTemplateDesign(true);
+      try {
+        prevEmittedJsonRef.current = JSON.stringify({
+          paperSize,
+          paperWidthCm: finalWidthCm,
+          paperHeightCm: finalHeightCm,
+          canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+          showDecorativeFrame: !isTranscript,
+          followTemplateDesign: true,
+          layoutMode: "STANDARD",
+          backgroundConfig: {
+            ...DEFAULT_BG_CONFIG,
+            canvasBgColor: isTranscript ? "#ffffff" : "#0B0F19",
+          },
+          customGroups: {},
+          categoryTitles: {},
+          elements: fallbackDefaults,
+        });
+      } catch (e) {}
     }
-  }, [initialConfig, layout, isTranscript, institutionLogo, institutionName, institutionSubtext, instructors]);
+  }, [initialConfig, layout, isTranscript]);
 
   // Sinkronisasi realtime langsung saat input dari template certificate berubah (instructors, logo, nama institusi, subteks)
   const prevInstructorsStrRef = useRef<string>(JSON.stringify(instructors || []));
@@ -1159,32 +1195,54 @@ export default function CertificateEditor({
 
   // Real-time parent notification when layout state changes
   const isFirstSyncRef = useRef(true);
+
   useEffect(() => {
     if (isFirstSyncRef.current) {
       isFirstSyncRef.current = false;
       return;
     }
-    if (onConfigChange) {
-      const cfg: CertificateLayoutConfig = {
-        paperSize,
-        paperWidthCm: finalWidthCm,
-        paperHeightCm: finalHeightCm,
+    const cfg: CertificateLayoutConfig = {
+      paperSize,
+      paperWidthCm: finalWidthCm,
+      paperHeightCm: finalHeightCm,
+      canvasBgColor,
+      showDecorativeFrame,
+      followTemplateDesign,
+      layoutMode,
+      backgroundConfig: {
+        ...bgConfig,
         canvasBgColor,
-        showDecorativeFrame,
-        followTemplateDesign,
-        layoutMode,
-        backgroundConfig: {
-          ...bgConfig,
-          canvasBgColor,
-        },
-        customGroups,
-        categoryTitles,
-        elements,
-      };
-      lastEmittedConfigRef.current = cfg;
-      onConfigChange(cfg);
+      },
+      customGroups,
+      categoryTitles,
+      elements,
+    };
+    try {
+      const cfgJson = JSON.stringify(cfg);
+      if (cfgJson === prevEmittedJsonRef.current) {
+        return;
+      }
+      prevEmittedJsonRef.current = cfgJson;
+    } catch (e) {
+      // ignore
     }
-  }, [elements, customGroups, categoryTitles, bgConfig, canvasBgColor, showDecorativeFrame, followTemplateDesign, layoutMode, paperSize, finalWidthCm, finalHeightCm, onConfigChange]);
+    lastEmittedConfigRef.current = cfg;
+    if (onConfigChangeRef.current) {
+      onConfigChangeRef.current(cfg);
+    }
+  }, [
+    elements,
+    customGroups,
+    categoryTitles,
+    bgConfig,
+    canvasBgColor,
+    showDecorativeFrame,
+    followTemplateDesign,
+    layoutMode,
+    paperSize,
+    finalWidthCm,
+    finalHeightCm,
+  ]);
 
   // Sinkronisasi perubahan props dimensi
   useEffect(() => {

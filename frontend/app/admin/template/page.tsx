@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { getApiBase } from "@/lib/utils";
@@ -812,6 +812,29 @@ export default function CertificateTemplatePage() {
     }
   };
 
+  // Real-time synchronization handlers with deep comparison to prevent infinite render loops
+  const handleLayoutConfigChange = useCallback((newCfg: CertificateLayoutConfig) => {
+    setLayoutConfig((prev) => {
+      try {
+        if (prev && JSON.stringify(prev) === JSON.stringify(newCfg)) {
+          return prev;
+        }
+      } catch {}
+      return newCfg;
+    });
+  }, []);
+
+  const handleTranscriptLayoutConfigChange = useCallback((newCfg: CertificateLayoutConfig) => {
+    setTranscriptLayoutConfig((prev) => {
+      try {
+        if (prev && JSON.stringify(prev) === JSON.stringify(newCfg)) {
+          return prev;
+        }
+      } catch {}
+      return newCfg;
+    });
+  }, []);
+
   // Unduh Gambar Sertifikat Resolusi Penuh
   const handleDownloadCertificate = () => {
     if (!previewBlobUrl && activePreviewTab === "front") {
@@ -1472,7 +1495,7 @@ export default function CertificateTemplatePage() {
                 institutionName={institutionName}
                 institutionSubtext={institutionSubtext}
                 instructors={instructors}
-                onConfigChange={(newCfg) => setLayoutConfig(newCfg)}
+                onConfigChange={handleLayoutConfigChange}
                 onSave={handleSaveConfig}
                 onReset={handleResetConfig}
                 isSaving={savingConfig}
@@ -1770,7 +1793,7 @@ export default function CertificateTemplatePage() {
                 institutionName={institutionName}
                 institutionSubtext={institutionSubtext}
                 instructors={instructors}
-                onConfigChange={(newCfg) => setTranscriptLayoutConfig(newCfg)}
+                onConfigChange={handleTranscriptLayoutConfigChange}
                 onSave={handleSaveTranscriptLayoutConfig}
                 onReset={handleResetTranscriptLayoutConfig}
                 isSaving={savingTranscriptLayoutConfig}
