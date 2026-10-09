@@ -7,6 +7,7 @@ import * as net from "net";
 import * as dotenv from "dotenv"; // Tambahkan ini agar aman
 import { CertificateRecord } from "../types";
 import { db } from "../config/db";
+import { createPrismaWallet } from "./prismaWalletStore";
 
 // --- LOAD ENV FILE ---
 // Pastikan file .env terbaca sebelum variabel didefinisikan
@@ -100,14 +101,16 @@ function loadConnectionProfile() {
   return ccp;
 }
 
-// Helper: Determine wallet path based on role
-function getWalletPath(role?: string): string {
-  const root = getWalletRootPath();
+// Helper: Determine wallet namespace based on role
+function getWalletNamespace(role?: string): string {
   const normalized = (role || "").toLowerCase();
-  if (normalized === "teacher" || normalized === "lecture")
-    return path.join(root, "lecture");
-  if (normalized === "student") return path.join(root, "student");
-  return root; // Default/Admin
+  if (normalized === "teacher" || normalized === "lecture") return "lecture";
+  if (normalized === "student") return "student";
+  return "admin";
+}
+
+function getWallet(role?: string) {
+  return createPrismaWallet(getWalletNamespace(role));
 }
 
 // Helper Utama: Koneksi ke Gateway dengan JIT Enrollment & Fallback
@@ -119,9 +122,8 @@ export async function getContract(
   const ccp = loadConnectionProfile();
   const { asLocalhost, discoveryEnabled } = getDiscoveryAndLocalhostOptions(ccp);
 
-  // 1. Determine Wallet Path
-  const targetWalletPath = userId ? getWalletPath(role) : getWalletPath();
-  const wallet = await Wallets.newFileSystemWallet(targetWalletPath);
+  // 1. Determine Wallet (Database-backed)
+  const wallet = getWallet(userId ? role : undefined);
 
   // 2. Determine Identity Label
   const identityName = userId || IDENTITY_LABEL;
@@ -129,10 +131,10 @@ export async function getContract(
   // 3. Check Identity
   let identity = await wallet.get(identityName);
 
-  // JIT Auto-Enrollment: Jika user belum punya identitas di wallet, buatkan secara otomatis
+  // JIT Auto-Enrollment: Jika user belum punya identitas di database wallet, buatkan secara otomatis
   if (!identity && userId && userId !== IDENTITY_LABEL && userId !== "admin") {
     try {
-      console.log(`⚡ [JIT Enrollment] Identity "${identityName}" missing in wallet, attempting auto-enroll...`);
+      console.log(`⚡ [JIT Enrollment] Identity "${identityName}" missing in database wallet, attempting auto-enroll...`);
       await registerFabricUser(userId, role || "student");
       identity = await wallet.get(identityName);
     } catch (enrollErr: any) {
@@ -153,11 +155,23 @@ export async function getContract(
       },
     });
   } else {
-    // Graceful Fallback ke Admin Identity di Root Wallet
-    const adminWallet = await Wallets.newFileSystemWallet(getWalletRootPath());
-    const adminIdentity = await adminWallet.get("admin") || await adminWallet.get(IDENTITY_LABEL);
+    // Graceful Fallback ke Admin Identity di Database Wallet
+    const adminWallet = createPrismaWallet("admin");
+    let adminIdentity = (await adminWallet.get("admin")) || (await adminWallet.get(IDENTITY_LABEL));
+    if (!adminIdentity) {
+      // Coba migrasi otomatis jika file disk admin.id legacy ada
+      const legacyAdminPath = path.join(getWalletRootPath(), "admin.id");
+      if (fs.existsSync(legacyAdminPath)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(legacyAdminPath, "utf8"));
+          await adminWallet.put("admin", raw);
+          adminIdentity = (await adminWallet.get("admin")) || (await adminWallet.get(IDENTITY_LABEL));
+        } catch {}
+      }
+    }
+
     if (adminIdentity) {
-      console.warn(`⚠️ [Fabric Fallback] Using admin identity as fallback for "${identityName}".`);
+      console.warn(`⚠️ [Fabric Fallback] Using admin database identity as fallback for "${identityName}".`);
       await gateway.connect(ccp, {
         wallet: adminWallet,
         identity: "admin",
@@ -167,8 +181,8 @@ export async function getContract(
         },
       });
     } else {
-      console.error(`❌ Identity "${identityName}" not found in wallet: ${targetWalletPath}`);
-      throw new Error(`Identity ${identityName} not found in user wallet`);
+      console.error(`❌ Identity "${identityName}" not found in database wallet`);
+      throw new Error(`Identity ${identityName} not found in database wallet`);
     }
   }
 
@@ -335,7 +349,7 @@ export async function getCertificatesFromFabric(): Promise<
 // --- FUNGSI REGISTER USER ---
 export async function registerFabricUser(
   userId: string,
-  role: string,
+  role: string = "student",
 ): Promise<void> {
   try {
     const ccp = loadConnectionProfile();
@@ -347,29 +361,32 @@ export async function registerFabricUser(
       caInfo.caName,
     );
 
-    const walletRoot = getWalletRootPath();
-    const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
-
-    let targetWalletPath = walletRoot;
-    if (role === "student") {
-      targetWalletPath = path.join(walletRoot, "student");
-    } else if (role === "teacher") {
-      targetWalletPath = path.join(walletRoot, "lecture");
-    }
-
-    const userWallet = await Wallets.newFileSystemWallet(targetWalletPath);
-    console.log(`📂 Target Wallet Path for ${userId}: ${targetWalletPath}`);
+    const adminWallet = createPrismaWallet("admin");
+    const userWallet = getWallet(role);
 
     const userIdentity = await userWallet.get(userId);
     if (userIdentity) {
-      console.log(`⚠️ Identity "${userId}" already exists in wallet.`);
+      console.log(`⚠️ Identity "${userId}" already exists in database wallet.`);
       return;
     }
 
-    const adminIdentity = await adminWallet.get("admin");
+    let adminIdentity = (await adminWallet.get("admin")) as X509Identity | undefined;
+    if (!adminIdentity) {
+      // Coba migrasi otomatis jika file disk admin.id legacy ada
+      const legacyAdminPath = path.join(getWalletRootPath(), "admin.id");
+      if (fs.existsSync(legacyAdminPath)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(legacyAdminPath, "utf8"));
+          await adminWallet.put("admin", raw);
+          adminIdentity = (await adminWallet.get("admin")) as X509Identity;
+          console.log("✅ [registerFabricUser] Migrated admin identity from disk to database wallet.");
+        } catch {}
+      }
+    }
+
     if (!adminIdentity) {
       throw new Error(
-        'Identity "admin" not found in root wallet. Run enrollAdmin.ts first.',
+        'Identity "admin" not found in database wallet. Run autoSyncFabricWallet or enrollAdmin first.',
       );
     }
 
@@ -378,7 +395,7 @@ export async function registerFabricUser(
       .getProvider(adminIdentity.type);
     const adminUser = await provider.getUserContext(adminIdentity, "admin");
 
-    console.log(`⏳ Registering Fabric user: ${userId} (${role})...`);
+    console.log(`⏳ Registering Fabric user: ${userId} (${role}) in Fabric CA...`);
     const secret = await ca.register(
       {
         affiliation: "org1.department1",
@@ -403,7 +420,7 @@ export async function registerFabricUser(
       type: "X.509",
     };
     await userWallet.put(userId, x509Identity);
-    console.log(`✅ Successfully registered: ${userId} at ${targetWalletPath}`);
+    console.log(`✅ Successfully registered & stored in Database Wallet: ${userId} (${getWalletNamespace(role)})`);
   } catch (err: any) {
     console.error(`❌ Failed to register Fabric user ${userId}:`, err);
     throw err;
@@ -461,9 +478,20 @@ export async function checkFabricReady(
     }
 
     // 2. Fast Direct Gateway Ping without multi-peer discovery loop
-    const root = getWalletRootPath();
-    const wallet = await Wallets.newFileSystemWallet(root);
-    const adminIdentity = await wallet.get("admin") || await wallet.get(IDENTITY_LABEL);
+    const wallet = createPrismaWallet("admin");
+    let adminIdentity = (await wallet.get("admin")) || (await wallet.get(IDENTITY_LABEL));
+    if (!adminIdentity) {
+      // Fallback check legacy disk
+      const root = getWalletRootPath();
+      const legacyAdminPath = path.join(root, "admin.id");
+      if (fs.existsSync(legacyAdminPath)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(legacyAdminPath, "utf8"));
+          await wallet.put("admin", raw);
+          adminIdentity = (await wallet.get("admin")) || (await wallet.get(IDENTITY_LABEL));
+        } catch {}
+      }
+    }
     if (!adminIdentity) {
       lastHealthCheckResult = false;
       lastHealthCheckTime = Date.now();
@@ -515,14 +543,33 @@ export async function getAllCertificatesFromFabric(
 }
 
 /**
- * Remove a user's wallet identity file when the user is deleted from the database.
- * Also optionally revokes the user certificate from Fabric CA.
+ * Remove a user's wallet identity when the user is deleted from the database.
+ * Drops from database wallet and any legacy disk files, and revokes from Fabric CA.
  */
 export async function removeFabricUserWallet(
   identifier: string,
   role?: string,
 ): Promise<boolean> {
   try {
+    let removed = false;
+
+    // 1. Remove from Database-Backed Wallet (all relevant namespaces)
+    const namespaces = ["student", "lecture", "admin", "default"];
+    for (const ns of namespaces) {
+      try {
+        const wallet = createPrismaWallet(ns);
+        const exists = await wallet.get(identifier);
+        if (exists) {
+          await wallet.remove(identifier);
+          console.log(`🗑️ [Database Wallet Drop] Removed identity "${identifier}" from namespace "${ns}"`);
+          removed = true;
+        }
+      } catch (err: any) {
+        // ignore
+      }
+    }
+
+    // 2. Remove from legacy disk paths if present
     const walletRoot = getWalletRootPath();
     const targetPaths = [
       walletRoot,
@@ -530,32 +577,20 @@ export async function removeFabricUserWallet(
       path.join(walletRoot, "lecture"),
     ];
 
-    let removed = false;
     for (const p of targetPaths) {
       if (fs.existsSync(p)) {
         try {
-          const wallet = await Wallets.newFileSystemWallet(p);
-          const exists = await wallet.get(identifier);
-          if (exists) {
-            await wallet.remove(identifier);
-            console.log(`🗑️ [Wallet Drop] Removed Fabric wallet identity "${identifier}" from ${p}`);
+          const rawFilePath = path.join(p, `${identifier}.id`);
+          if (fs.existsSync(rawFilePath)) {
+            fs.unlinkSync(rawFilePath);
+            console.log(`🗑️ [Legacy Disk Drop] Deleted legacy file ${rawFilePath}`);
             removed = true;
           }
-        } catch (wErr: any) {
-          // ignore
-        }
-
-        // Check if raw .id file exists on disk directly
-        const rawFilePath = path.join(p, `${identifier}.id`);
-        if (fs.existsSync(rawFilePath)) {
-          fs.unlinkSync(rawFilePath);
-          console.log(`🗑️ [Wallet Drop] Deleted file ${rawFilePath}`);
-          removed = true;
-        }
+        } catch (e) {}
       }
     }
 
-    // Attempt CA Revocation if CA is available
+    // 3. Attempt CA Revocation if CA is available
     try {
       const ccp = loadConnectionProfile();
       const caInfo = ccp.certificateAuthorities?.["ca.org1.example.com"];
@@ -565,8 +600,17 @@ export async function removeFabricUserWallet(
           { trustedRoots: caInfo.tlsCACerts.pem, verify: false },
           caInfo.caName
         );
-        const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
-        const adminIdentity = await adminWallet.get("admin");
+        const adminWallet = createPrismaWallet("admin");
+        let adminIdentity = (await adminWallet.get("admin")) as X509Identity | undefined;
+        if (!adminIdentity) {
+          const legacyAdminPath = path.join(walletRoot, "admin.id");
+          if (fs.existsSync(legacyAdminPath)) {
+            try {
+              const raw = JSON.parse(fs.readFileSync(legacyAdminPath, "utf8"));
+              adminIdentity = raw as X509Identity;
+            } catch {}
+          }
+        }
         if (adminIdentity) {
           const provider = adminWallet.getProviderRegistry().getProvider(adminIdentity.type);
           const adminUser = await provider.getUserContext(adminIdentity, "admin");
@@ -587,7 +631,7 @@ export async function removeFabricUserWallet(
 
 /**
  * Auto-Sync Fabric Wallet on Server Startup.
- * Checks Admin enrollment, and ensures active DB users have identities in the wallet.
+ * Checks Admin enrollment in Database Wallet, and ensures ONLY active, approved DB users have identities in the wallet.
  */
 export async function autoSyncFabricWallet(): Promise<void> {
   if (process.env.FABRIC_ENABLED !== "true") return;
@@ -603,13 +647,25 @@ export async function autoSyncFabricWallet(): Promise<void> {
       caInfo.caName
     );
 
-    const walletRoot = getWalletRootPath();
-    const adminWallet = await Wallets.newFileSystemWallet(walletRoot);
+    const adminWallet = createPrismaWallet("admin");
 
-    // 1. Ensure Admin identity exists
+    // 1. Ensure Admin identity exists in Database Wallet
     let adminIdentity = (await adminWallet.get("admin")) as X509Identity | undefined;
     if (!adminIdentity) {
-      console.log("👤 [AutoSync] Enrolling Admin identity from Fabric CA...");
+      // Coba migrasi otomatis jika file disk admin.id legacy ada
+      const legacyAdminPath = path.join(getWalletRootPath(), "admin.id");
+      if (fs.existsSync(legacyAdminPath)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(legacyAdminPath, "utf8"));
+          await adminWallet.put("admin", raw);
+          adminIdentity = (await adminWallet.get("admin")) as X509Identity;
+          console.log("✅ [AutoSync] Admin identity migrated from legacy disk to Database Wallet.");
+        } catch {}
+      }
+    }
+
+    if (!adminIdentity) {
+      console.log("👤 [AutoSync] Enrolling Admin identity from Fabric CA into Database Wallet...");
       const enrollment = await ca.enroll({
         enrollmentID: "admin",
         enrollmentSecret: "adminpw",
@@ -623,13 +679,14 @@ export async function autoSyncFabricWallet(): Promise<void> {
         type: "X.509",
       };
       await adminWallet.put("admin", adminIdentity);
-      console.log("✅ [AutoSync] Admin identity enrolled successfully in wallet.");
+      console.log("✅ [AutoSync] Admin identity enrolled successfully in Database Wallet.");
     }
 
-    // 2. Fetch users from DB and sync missing wallets
+    // 2. Fetch users from DB and sync missing wallets (HANYA YANG SUDAH DI-APPROVE!)
     const users = await db.user.findMany({
       where: {
         role: { not: "admin", mode: "insensitive" as any },
+        isApproved: true, // WAJIB: Hanya user yang sudah disetujui admin
       },
       select: {
         id: true,
@@ -645,18 +702,7 @@ export async function autoSyncFabricWallet(): Promise<void> {
 
     for (const u of users) {
       const roleStr = (u.role || "student").toLowerCase();
-      let targetPath = walletRoot;
-      if (roleStr === "student") {
-        targetPath = path.join(walletRoot, "student");
-      } else if (roleStr === "teacher" || roleStr === "lecture") {
-        targetPath = path.join(walletRoot, "lecture");
-      }
-
-      if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
-      }
-
-      const userWallet = await Wallets.newFileSystemWallet(targetPath);
+      const userWallet = getWallet(roleStr);
       const identifier = u.email;
       if (!identifier) continue;
 
@@ -685,7 +731,7 @@ export async function autoSyncFabricWallet(): Promise<void> {
             type: "X.509",
           };
           await userWallet.put(identifier, x509);
-          console.log(`✅ [AutoSync] Enrolled missing wallet identity for ${identifier} (${roleStr})`);
+          console.log(`✅ [AutoSync] Enrolled missing database wallet identity for approved user ${identifier} (${roleStr})`);
         } catch (regErr: any) {
           // If already registered in CA or connection busy, skip silently
         }

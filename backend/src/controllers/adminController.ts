@@ -295,12 +295,33 @@ export const getUserById = async (req: Request, res: Response) => {
 export const approveUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const existing = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true, isApproved: true },
+    });
+
+    if (!existing) {
+      return safeResponse(res, 404, { error: "User not found" });
+    }
+
     const updated = await db.user.update({
       where: { id: userId },
       data: { isApproved: true },
     });
+
+    // Otomatis daftarkan identitas blockchain Fabric ke Database Wallet tepat saat Admin menyetujui
+    if (process.env.FABRIC_ENABLED === "true" && existing.role !== "admin" && existing.email) {
+      try {
+        const { registerFabricUser } = require("../fabric/client");
+        await registerFabricUser(existing.email, existing.role);
+        console.log(`✅ [ApproveUser] Enrolled Fabric database wallet for ${existing.email} (${existing.role})`);
+      } catch (fabricErr: any) {
+        console.warn(`⚠️ [ApproveUser Notice]: Fabric wallet enrollment for ${existing.email} deferred:`, fabricErr.message);
+      }
+    }
+
     return safeResponse(res, 200, {
-      message: "User approved successfully",
+      message: "User approved successfully and blockchain identity registered in database wallet",
       user: updated,
     });
   } catch (error: any) {

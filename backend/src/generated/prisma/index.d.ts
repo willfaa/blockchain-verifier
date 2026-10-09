@@ -108,6 +108,11 @@ export type KonsentrasiKeahlian = $Result.DefaultSelection<Prisma.$KonsentrasiKe
  * 
  */
 export type MasterCompetencyUnit = $Result.DefaultSelection<Prisma.$MasterCompetencyUnitPayload>
+/**
+ * Model FabricWallet
+ * 
+ */
+export type FabricWallet = $Result.DefaultSelection<Prisma.$FabricWalletPayload>
 
 /**
  * Enums
@@ -437,6 +442,16 @@ export class PrismaClient<
     * ```
     */
   get masterCompetencyUnit(): Prisma.MasterCompetencyUnitDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fabricWallet`: Exposes CRUD operations for the **FabricWallet** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more FabricWallets
+    * const fabricWallets = await prisma.fabricWallet.findMany()
+    * ```
+    */
+  get fabricWallet(): Prisma.FabricWalletDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -889,7 +904,8 @@ export namespace Prisma {
     BidangKeahlian: 'BidangKeahlian',
     ProgramKeahlian: 'ProgramKeahlian',
     KonsentrasiKeahlian: 'KonsentrasiKeahlian',
-    MasterCompetencyUnit: 'MasterCompetencyUnit'
+    MasterCompetencyUnit: 'MasterCompetencyUnit',
+    FabricWallet: 'FabricWallet'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -905,7 +921,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "courseCompetencyUnit" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian" | "masterCompetencyUnit"
+      modelProps: "user" | "category" | "course" | "attachment" | "module" | "lesson" | "assignment" | "assignmentSubmission" | "exam" | "enrollment" | "certificate" | "courseCompetencyUnit" | "certificateCorrectionRequest" | "examResult" | "systemSetting" | "bidangKeahlian" | "programKeahlian" | "konsentrasiKeahlian" | "masterCompetencyUnit" | "fabricWallet"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2315,6 +2331,80 @@ export namespace Prisma {
           }
         }
       }
+      FabricWallet: {
+        payload: Prisma.$FabricWalletPayload<ExtArgs>
+        fields: Prisma.FabricWalletFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.FabricWalletFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.FabricWalletFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          findFirst: {
+            args: Prisma.FabricWalletFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.FabricWalletFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          findMany: {
+            args: Prisma.FabricWalletFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>[]
+          }
+          create: {
+            args: Prisma.FabricWalletCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          createMany: {
+            args: Prisma.FabricWalletCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.FabricWalletCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>[]
+          }
+          delete: {
+            args: Prisma.FabricWalletDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          update: {
+            args: Prisma.FabricWalletUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          deleteMany: {
+            args: Prisma.FabricWalletDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.FabricWalletUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.FabricWalletUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>[]
+          }
+          upsert: {
+            args: Prisma.FabricWalletUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FabricWalletPayload>
+          }
+          aggregate: {
+            args: Prisma.FabricWalletAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateFabricWallet>
+          }
+          groupBy: {
+            args: Prisma.FabricWalletGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FabricWalletGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.FabricWalletCountArgs<ExtArgs>
+            result: $Utils.Optional<FabricWalletCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2442,6 +2532,7 @@ export namespace Prisma {
     programKeahlian?: ProgramKeahlianOmit
     konsentrasiKeahlian?: KonsentrasiKeahlianOmit
     masterCompetencyUnit?: MasterCompetencyUnitOmit
+    fabricWallet?: FabricWalletOmit
   }
 
   /* Types for Logging */
@@ -24935,6 +25026,1019 @@ export namespace Prisma {
 
 
   /**
+   * Model FabricWallet
+   */
+
+  export type AggregateFabricWallet = {
+    _count: FabricWalletCountAggregateOutputType | null
+    _min: FabricWalletMinAggregateOutputType | null
+    _max: FabricWalletMaxAggregateOutputType | null
+  }
+
+  export type FabricWalletMinAggregateOutputType = {
+    id: string | null
+    namespace: string | null
+    label: string | null
+    data: Bytes | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FabricWalletMaxAggregateOutputType = {
+    id: string | null
+    namespace: string | null
+    label: string | null
+    data: Bytes | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FabricWalletCountAggregateOutputType = {
+    id: number
+    namespace: number
+    label: number
+    data: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type FabricWalletMinAggregateInputType = {
+    id?: true
+    namespace?: true
+    label?: true
+    data?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FabricWalletMaxAggregateInputType = {
+    id?: true
+    namespace?: true
+    label?: true
+    data?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FabricWalletCountAggregateInputType = {
+    id?: true
+    namespace?: true
+    label?: true
+    data?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type FabricWalletAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FabricWallet to aggregate.
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FabricWallets to fetch.
+     */
+    orderBy?: FabricWalletOrderByWithRelationInput | FabricWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: FabricWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FabricWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FabricWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned FabricWallets
+    **/
+    _count?: true | FabricWalletCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FabricWalletMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FabricWalletMaxAggregateInputType
+  }
+
+  export type GetFabricWalletAggregateType<T extends FabricWalletAggregateArgs> = {
+        [P in keyof T & keyof AggregateFabricWallet]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFabricWallet[P]>
+      : GetScalarType<T[P], AggregateFabricWallet[P]>
+  }
+
+
+
+
+  export type FabricWalletGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FabricWalletWhereInput
+    orderBy?: FabricWalletOrderByWithAggregationInput | FabricWalletOrderByWithAggregationInput[]
+    by: FabricWalletScalarFieldEnum[] | FabricWalletScalarFieldEnum
+    having?: FabricWalletScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FabricWalletCountAggregateInputType | true
+    _min?: FabricWalletMinAggregateInputType
+    _max?: FabricWalletMaxAggregateInputType
+  }
+
+  export type FabricWalletGroupByOutputType = {
+    id: string
+    namespace: string
+    label: string
+    data: Bytes
+    createdAt: Date
+    updatedAt: Date
+    _count: FabricWalletCountAggregateOutputType | null
+    _min: FabricWalletMinAggregateOutputType | null
+    _max: FabricWalletMaxAggregateOutputType | null
+  }
+
+  type GetFabricWalletGroupByPayload<T extends FabricWalletGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FabricWalletGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FabricWalletGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FabricWalletGroupByOutputType[P]>
+            : GetScalarType<T[P], FabricWalletGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type FabricWalletSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    namespace?: boolean
+    label?: boolean
+    data?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fabricWallet"]>
+
+  export type FabricWalletSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    namespace?: boolean
+    label?: boolean
+    data?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fabricWallet"]>
+
+  export type FabricWalletSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    namespace?: boolean
+    label?: boolean
+    data?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fabricWallet"]>
+
+  export type FabricWalletSelectScalar = {
+    id?: boolean
+    namespace?: boolean
+    label?: boolean
+    data?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type FabricWalletOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "namespace" | "label" | "data" | "createdAt" | "updatedAt", ExtArgs["result"]["fabricWallet"]>
+
+  export type $FabricWalletPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "FabricWallet"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      namespace: string
+      label: string
+      data: Prisma.Bytes
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["fabricWallet"]>
+    composites: {}
+  }
+
+  type FabricWalletGetPayload<S extends boolean | null | undefined | FabricWalletDefaultArgs> = $Result.GetResult<Prisma.$FabricWalletPayload, S>
+
+  type FabricWalletCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FabricWalletFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FabricWalletCountAggregateInputType | true
+    }
+
+  export interface FabricWalletDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['FabricWallet'], meta: { name: 'FabricWallet' } }
+    /**
+     * Find zero or one FabricWallet that matches the filter.
+     * @param {FabricWalletFindUniqueArgs} args - Arguments to find a FabricWallet
+     * @example
+     * // Get one FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FabricWalletFindUniqueArgs>(args: SelectSubset<T, FabricWalletFindUniqueArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one FabricWallet that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FabricWalletFindUniqueOrThrowArgs} args - Arguments to find a FabricWallet
+     * @example
+     * // Get one FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FabricWalletFindUniqueOrThrowArgs>(args: SelectSubset<T, FabricWalletFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FabricWallet that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletFindFirstArgs} args - Arguments to find a FabricWallet
+     * @example
+     * // Get one FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FabricWalletFindFirstArgs>(args?: SelectSubset<T, FabricWalletFindFirstArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FabricWallet that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletFindFirstOrThrowArgs} args - Arguments to find a FabricWallet
+     * @example
+     * // Get one FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FabricWalletFindFirstOrThrowArgs>(args?: SelectSubset<T, FabricWalletFindFirstOrThrowArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more FabricWallets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FabricWallets
+     * const fabricWallets = await prisma.fabricWallet.findMany()
+     * 
+     * // Get first 10 FabricWallets
+     * const fabricWallets = await prisma.fabricWallet.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const fabricWalletWithIdOnly = await prisma.fabricWallet.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends FabricWalletFindManyArgs>(args?: SelectSubset<T, FabricWalletFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a FabricWallet.
+     * @param {FabricWalletCreateArgs} args - Arguments to create a FabricWallet.
+     * @example
+     * // Create one FabricWallet
+     * const FabricWallet = await prisma.fabricWallet.create({
+     *   data: {
+     *     // ... data to create a FabricWallet
+     *   }
+     * })
+     * 
+     */
+    create<T extends FabricWalletCreateArgs>(args: SelectSubset<T, FabricWalletCreateArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many FabricWallets.
+     * @param {FabricWalletCreateManyArgs} args - Arguments to create many FabricWallets.
+     * @example
+     * // Create many FabricWallets
+     * const fabricWallet = await prisma.fabricWallet.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends FabricWalletCreateManyArgs>(args?: SelectSubset<T, FabricWalletCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many FabricWallets and returns the data saved in the database.
+     * @param {FabricWalletCreateManyAndReturnArgs} args - Arguments to create many FabricWallets.
+     * @example
+     * // Create many FabricWallets
+     * const fabricWallet = await prisma.fabricWallet.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many FabricWallets and only return the `id`
+     * const fabricWalletWithIdOnly = await prisma.fabricWallet.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends FabricWalletCreateManyAndReturnArgs>(args?: SelectSubset<T, FabricWalletCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a FabricWallet.
+     * @param {FabricWalletDeleteArgs} args - Arguments to delete one FabricWallet.
+     * @example
+     * // Delete one FabricWallet
+     * const FabricWallet = await prisma.fabricWallet.delete({
+     *   where: {
+     *     // ... filter to delete one FabricWallet
+     *   }
+     * })
+     * 
+     */
+    delete<T extends FabricWalletDeleteArgs>(args: SelectSubset<T, FabricWalletDeleteArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one FabricWallet.
+     * @param {FabricWalletUpdateArgs} args - Arguments to update one FabricWallet.
+     * @example
+     * // Update one FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends FabricWalletUpdateArgs>(args: SelectSubset<T, FabricWalletUpdateArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more FabricWallets.
+     * @param {FabricWalletDeleteManyArgs} args - Arguments to filter FabricWallets to delete.
+     * @example
+     * // Delete a few FabricWallets
+     * const { count } = await prisma.fabricWallet.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends FabricWalletDeleteManyArgs>(args?: SelectSubset<T, FabricWalletDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FabricWallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FabricWallets
+     * const fabricWallet = await prisma.fabricWallet.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends FabricWalletUpdateManyArgs>(args: SelectSubset<T, FabricWalletUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FabricWallets and returns the data updated in the database.
+     * @param {FabricWalletUpdateManyAndReturnArgs} args - Arguments to update many FabricWallets.
+     * @example
+     * // Update many FabricWallets
+     * const fabricWallet = await prisma.fabricWallet.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more FabricWallets and only return the `id`
+     * const fabricWalletWithIdOnly = await prisma.fabricWallet.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends FabricWalletUpdateManyAndReturnArgs>(args: SelectSubset<T, FabricWalletUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one FabricWallet.
+     * @param {FabricWalletUpsertArgs} args - Arguments to update or create a FabricWallet.
+     * @example
+     * // Update or create a FabricWallet
+     * const fabricWallet = await prisma.fabricWallet.upsert({
+     *   create: {
+     *     // ... data to create a FabricWallet
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FabricWallet we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FabricWalletUpsertArgs>(args: SelectSubset<T, FabricWalletUpsertArgs<ExtArgs>>): Prisma__FabricWalletClient<$Result.GetResult<Prisma.$FabricWalletPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of FabricWallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletCountArgs} args - Arguments to filter FabricWallets to count.
+     * @example
+     * // Count the number of FabricWallets
+     * const count = await prisma.fabricWallet.count({
+     *   where: {
+     *     // ... the filter for the FabricWallets we want to count
+     *   }
+     * })
+    **/
+    count<T extends FabricWalletCountArgs>(
+      args?: Subset<T, FabricWalletCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FabricWalletCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a FabricWallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FabricWalletAggregateArgs>(args: Subset<T, FabricWalletAggregateArgs>): Prisma.PrismaPromise<GetFabricWalletAggregateType<T>>
+
+    /**
+     * Group by FabricWallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FabricWalletGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends FabricWalletGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FabricWalletGroupByArgs['orderBy'] }
+        : { orderBy?: FabricWalletGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, FabricWalletGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFabricWalletGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the FabricWallet model
+   */
+  readonly fields: FabricWalletFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FabricWallet.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FabricWalletClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the FabricWallet model
+   */
+  interface FabricWalletFieldRefs {
+    readonly id: FieldRef<"FabricWallet", 'String'>
+    readonly namespace: FieldRef<"FabricWallet", 'String'>
+    readonly label: FieldRef<"FabricWallet", 'String'>
+    readonly data: FieldRef<"FabricWallet", 'Bytes'>
+    readonly createdAt: FieldRef<"FabricWallet", 'DateTime'>
+    readonly updatedAt: FieldRef<"FabricWallet", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * FabricWallet findUnique
+   */
+  export type FabricWalletFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter, which FabricWallet to fetch.
+     */
+    where: FabricWalletWhereUniqueInput
+  }
+
+  /**
+   * FabricWallet findUniqueOrThrow
+   */
+  export type FabricWalletFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter, which FabricWallet to fetch.
+     */
+    where: FabricWalletWhereUniqueInput
+  }
+
+  /**
+   * FabricWallet findFirst
+   */
+  export type FabricWalletFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter, which FabricWallet to fetch.
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FabricWallets to fetch.
+     */
+    orderBy?: FabricWalletOrderByWithRelationInput | FabricWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FabricWallets.
+     */
+    cursor?: FabricWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FabricWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FabricWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FabricWallets.
+     */
+    distinct?: FabricWalletScalarFieldEnum | FabricWalletScalarFieldEnum[]
+  }
+
+  /**
+   * FabricWallet findFirstOrThrow
+   */
+  export type FabricWalletFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter, which FabricWallet to fetch.
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FabricWallets to fetch.
+     */
+    orderBy?: FabricWalletOrderByWithRelationInput | FabricWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FabricWallets.
+     */
+    cursor?: FabricWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FabricWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FabricWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FabricWallets.
+     */
+    distinct?: FabricWalletScalarFieldEnum | FabricWalletScalarFieldEnum[]
+  }
+
+  /**
+   * FabricWallet findMany
+   */
+  export type FabricWalletFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter, which FabricWallets to fetch.
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FabricWallets to fetch.
+     */
+    orderBy?: FabricWalletOrderByWithRelationInput | FabricWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing FabricWallets.
+     */
+    cursor?: FabricWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FabricWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FabricWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FabricWallets.
+     */
+    distinct?: FabricWalletScalarFieldEnum | FabricWalletScalarFieldEnum[]
+  }
+
+  /**
+   * FabricWallet create
+   */
+  export type FabricWalletCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * The data needed to create a FabricWallet.
+     */
+    data: XOR<FabricWalletCreateInput, FabricWalletUncheckedCreateInput>
+  }
+
+  /**
+   * FabricWallet createMany
+   */
+  export type FabricWalletCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many FabricWallets.
+     */
+    data: FabricWalletCreateManyInput | FabricWalletCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * FabricWallet createManyAndReturn
+   */
+  export type FabricWalletCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * The data used to create many FabricWallets.
+     */
+    data: FabricWalletCreateManyInput | FabricWalletCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * FabricWallet update
+   */
+  export type FabricWalletUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * The data needed to update a FabricWallet.
+     */
+    data: XOR<FabricWalletUpdateInput, FabricWalletUncheckedUpdateInput>
+    /**
+     * Choose, which FabricWallet to update.
+     */
+    where: FabricWalletWhereUniqueInput
+  }
+
+  /**
+   * FabricWallet updateMany
+   */
+  export type FabricWalletUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update FabricWallets.
+     */
+    data: XOR<FabricWalletUpdateManyMutationInput, FabricWalletUncheckedUpdateManyInput>
+    /**
+     * Filter which FabricWallets to update
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * Limit how many FabricWallets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FabricWallet updateManyAndReturn
+   */
+  export type FabricWalletUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * The data used to update FabricWallets.
+     */
+    data: XOR<FabricWalletUpdateManyMutationInput, FabricWalletUncheckedUpdateManyInput>
+    /**
+     * Filter which FabricWallets to update
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * Limit how many FabricWallets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FabricWallet upsert
+   */
+  export type FabricWalletUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * The filter to search for the FabricWallet to update in case it exists.
+     */
+    where: FabricWalletWhereUniqueInput
+    /**
+     * In case the FabricWallet found by the `where` argument doesn't exist, create a new FabricWallet with this data.
+     */
+    create: XOR<FabricWalletCreateInput, FabricWalletUncheckedCreateInput>
+    /**
+     * In case the FabricWallet was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FabricWalletUpdateInput, FabricWalletUncheckedUpdateInput>
+  }
+
+  /**
+   * FabricWallet delete
+   */
+  export type FabricWalletDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+    /**
+     * Filter which FabricWallet to delete.
+     */
+    where: FabricWalletWhereUniqueInput
+  }
+
+  /**
+   * FabricWallet deleteMany
+   */
+  export type FabricWalletDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FabricWallets to delete
+     */
+    where?: FabricWalletWhereInput
+    /**
+     * Limit how many FabricWallets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * FabricWallet without action
+   */
+  export type FabricWalletDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FabricWallet
+     */
+    select?: FabricWalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FabricWallet
+     */
+    omit?: FabricWalletOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -25229,6 +26333,18 @@ export namespace Prisma {
   export type MasterCompetencyUnitScalarFieldEnum = (typeof MasterCompetencyUnitScalarFieldEnum)[keyof typeof MasterCompetencyUnitScalarFieldEnum]
 
 
+  export const FabricWalletScalarFieldEnum: {
+    id: 'id',
+    namespace: 'namespace',
+    label: 'label',
+    data: 'data',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type FabricWalletScalarFieldEnum = (typeof FabricWalletScalarFieldEnum)[keyof typeof FabricWalletScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -25370,6 +26486,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Bytes'
+   */
+  export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+  /**
+   * Reference to a field of type 'Bytes[]'
+   */
+  export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
     
   /**
    * Deep Input Types
@@ -26867,6 +27997,64 @@ export namespace Prisma {
     konsentrasiKeahlianId?: StringWithAggregatesFilter<"MasterCompetencyUnit"> | string
     createdAt?: DateTimeWithAggregatesFilter<"MasterCompetencyUnit"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MasterCompetencyUnit"> | Date | string
+  }
+
+  export type FabricWalletWhereInput = {
+    AND?: FabricWalletWhereInput | FabricWalletWhereInput[]
+    OR?: FabricWalletWhereInput[]
+    NOT?: FabricWalletWhereInput | FabricWalletWhereInput[]
+    id?: StringFilter<"FabricWallet"> | string
+    namespace?: StringFilter<"FabricWallet"> | string
+    label?: StringFilter<"FabricWallet"> | string
+    data?: BytesFilter<"FabricWallet"> | Bytes
+    createdAt?: DateTimeFilter<"FabricWallet"> | Date | string
+    updatedAt?: DateTimeFilter<"FabricWallet"> | Date | string
+  }
+
+  export type FabricWalletOrderByWithRelationInput = {
+    id?: SortOrder
+    namespace?: SortOrder
+    label?: SortOrder
+    data?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FabricWalletWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    namespace_label?: FabricWalletNamespaceLabelCompoundUniqueInput
+    AND?: FabricWalletWhereInput | FabricWalletWhereInput[]
+    OR?: FabricWalletWhereInput[]
+    NOT?: FabricWalletWhereInput | FabricWalletWhereInput[]
+    namespace?: StringFilter<"FabricWallet"> | string
+    label?: StringFilter<"FabricWallet"> | string
+    data?: BytesFilter<"FabricWallet"> | Bytes
+    createdAt?: DateTimeFilter<"FabricWallet"> | Date | string
+    updatedAt?: DateTimeFilter<"FabricWallet"> | Date | string
+  }, "id" | "namespace_label">
+
+  export type FabricWalletOrderByWithAggregationInput = {
+    id?: SortOrder
+    namespace?: SortOrder
+    label?: SortOrder
+    data?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: FabricWalletCountOrderByAggregateInput
+    _max?: FabricWalletMaxOrderByAggregateInput
+    _min?: FabricWalletMinOrderByAggregateInput
+  }
+
+  export type FabricWalletScalarWhereWithAggregatesInput = {
+    AND?: FabricWalletScalarWhereWithAggregatesInput | FabricWalletScalarWhereWithAggregatesInput[]
+    OR?: FabricWalletScalarWhereWithAggregatesInput[]
+    NOT?: FabricWalletScalarWhereWithAggregatesInput | FabricWalletScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"FabricWallet"> | string
+    namespace?: StringWithAggregatesFilter<"FabricWallet"> | string
+    label?: StringWithAggregatesFilter<"FabricWallet"> | string
+    data?: BytesWithAggregatesFilter<"FabricWallet"> | Bytes
+    createdAt?: DateTimeWithAggregatesFilter<"FabricWallet"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"FabricWallet"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -28500,6 +29688,69 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type FabricWalletCreateInput = {
+    id?: string
+    namespace?: string
+    label: string
+    data: Bytes
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FabricWalletUncheckedCreateInput = {
+    id?: string
+    namespace?: string
+    label: string
+    data: Bytes
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FabricWalletUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    namespace?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    data?: BytesFieldUpdateOperationsInput | Bytes
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FabricWalletUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    namespace?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    data?: BytesFieldUpdateOperationsInput | Bytes
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FabricWalletCreateManyInput = {
+    id?: string
+    namespace?: string
+    label: string
+    data: Bytes
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FabricWalletUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    namespace?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    data?: BytesFieldUpdateOperationsInput | Bytes
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FabricWalletUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    namespace?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    data?: BytesFieldUpdateOperationsInput | Bytes
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -29805,6 +31056,55 @@ export namespace Prisma {
     order?: SortOrder
   }
 
+  export type BytesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Bytes
+  }
+
+  export type FabricWalletNamespaceLabelCompoundUniqueInput = {
+    namespace: string
+    label: string
+  }
+
+  export type FabricWalletCountOrderByAggregateInput = {
+    id?: SortOrder
+    namespace?: SortOrder
+    label?: SortOrder
+    data?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FabricWalletMaxOrderByAggregateInput = {
+    id?: SortOrder
+    namespace?: SortOrder
+    label?: SortOrder
+    data?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FabricWalletMinOrderByAggregateInput = {
+    id?: SortOrder
+    namespace?: SortOrder
+    label?: SortOrder
+    data?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BytesWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Bytes
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBytesFilter<$PrismaModel>
+    _max?: NestedBytesFilter<$PrismaModel>
+  }
+
   export type CourseCreateNestedManyWithoutUserInput = {
     create?: XOR<CourseCreateWithoutUserInput, CourseUncheckedCreateWithoutUserInput> | CourseCreateWithoutUserInput[] | CourseUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CourseCreateOrConnectWithoutUserInput | CourseCreateOrConnectWithoutUserInput[]
@@ -31041,6 +32341,10 @@ export namespace Prisma {
     update?: XOR<XOR<KonsentrasiKeahlianUpdateToOneWithWhereWithoutMasterUnitsInput, KonsentrasiKeahlianUpdateWithoutMasterUnitsInput>, KonsentrasiKeahlianUncheckedUpdateWithoutMasterUnitsInput>
   }
 
+  export type BytesFieldUpdateOperationsInput = {
+    set?: Bytes
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -31335,6 +32639,23 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type NestedBytesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Bytes
+  }
+
+  export type NestedBytesWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Bytes
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBytesFilter<$PrismaModel>
+    _max?: NestedBytesFilter<$PrismaModel>
   }
 
   export type CourseCreateWithoutUserInput = {

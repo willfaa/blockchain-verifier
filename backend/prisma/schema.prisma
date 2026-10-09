@@ -369,3 +369,16 @@ model MasterCompetencyUnit {
 
   @@map("master_competency_units")
 }
+
+// --- HYPERLEDGER FABRIC WALLET STORAGE (DATABASE-BACKED) ---
+model FabricWallet {
+  id        String   @id @default(uuid())
+  namespace String   @default("default") // "root", "admin", "student", "lecture"
+  label     String   // e.g. "admin", or user email
+  data      Bytes    // Serialized Identity JSON buffer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([namespace, label])
+  @@map("fabric_wallets")
+}

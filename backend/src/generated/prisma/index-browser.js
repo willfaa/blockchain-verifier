@@ -344,6 +344,15 @@ exports.Prisma.MasterCompetencyUnitScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.FabricWalletScalarFieldEnum = {
+  id: 'id',
+  namespace: 'namespace',
+  label: 'label',
+  data: 'data',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -398,7 +407,8 @@ exports.Prisma.ModelName = {
   BidangKeahlian: 'BidangKeahlian',
   ProgramKeahlian: 'ProgramKeahlian',
   KonsentrasiKeahlian: 'KonsentrasiKeahlian',
-  MasterCompetencyUnit: 'MasterCompetencyUnit'
+  MasterCompetencyUnit: 'MasterCompetencyUnit',
+  FabricWallet: 'FabricWallet'
 };
 
 /**
