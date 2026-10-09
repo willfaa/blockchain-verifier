@@ -454,11 +454,12 @@ export default function CertificateEditor({
 
   // Drag and Drop & Renaming group state
   const [draggedLayerKey, setDraggedLayerKey] = useState<string | null>(null);
+  const [dragOverLayerKey, setDragOverLayerKey] = useState<string | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<"above" | "below" | null>(null);
   const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [tempGroupName, setTempGroupName] = useState<string>("");
   const [activeAddMenuGroupId, setActiveAddMenuGroupId] = useState<string | null>(null);
-  const [activeMoveMenuKey, setActiveMoveMenuKey] = useState<string | null>(null);
   const [targetUploadGroupId, setTargetUploadGroupId] = useState<string | null>(null);
   const groupImageUploadRef = useRef<HTMLInputElement>(null);
   const lastEmittedConfigRef = useRef<CertificateLayoutConfig | null>(null);
@@ -2748,25 +2749,27 @@ export default function CertificateEditor({
 
   const activeCategories = isTranscript ? transcriptCategories : standardCategories;
 
-  // Helper untuk menentukan layer yang masuk ke dalam kategori/grup manapun
+  // Helper untuk menentukan layer yang masuk ke dalam kategori/grup manapun (diurutkan descending zIndex seperti Figma)
   const getMemberKeysForCategory = (catKey: string, defaultKeys: string[]) => {
-    return Object.keys(elements).filter((k) => {
-      const el = elements[k];
-      if (!el) return false;
-      // Jika layer dipindahkan ke grup ini secara manual
-      if (el.groupId) {
-        return el.groupId === catKey;
-      }
-      // Jika tidak ada groupId manual, cek defaultKeys
-      return defaultKeys.includes(k);
-    });
+    return Object.keys(elements)
+      .filter((k) => {
+        const el = elements[k];
+        if (!el) return false;
+        if (el.groupId) {
+          return el.groupId === catKey;
+        }
+        return defaultKeys.includes(k);
+      })
+      .sort((a, b) => (elements[b]?.zIndex ?? 10) - (elements[a]?.zIndex ?? 10));
   };
 
   const getMemberKeysForCustomGroup = (gId: string) => {
-    return Object.keys(elements).filter((k) => {
-      const el = elements[k];
-      return el && el.groupId === gId;
-    });
+    return Object.keys(elements)
+      .filter((k) => {
+        const el = elements[k];
+        return el && el.groupId === gId;
+      })
+      .sort((a, b) => (elements[b]?.zIndex ?? 10) - (elements[a]?.zIndex ?? 10));
   };
 
   // Kumpulkan semua keys yang sudah terpetakan ke grup/kategori
@@ -2778,7 +2781,9 @@ export default function CertificateEditor({
     getMemberKeysForCustomGroup(gId).forEach((k) => allAssignedKeys.add(k));
   });
 
-  const independentCustomKeys = Object.keys(elements).filter((k) => !allAssignedKeys.has(k));
+  const independentCustomKeys = Object.keys(elements)
+    .filter((k) => !allAssignedKeys.has(k))
+    .sort((a, b) => (elements[b]?.zIndex ?? 10) - (elements[a]?.zIndex ?? 10));
 
   const primarySelectedEl = selectedIds.length === 1 ? elements[selectedIds[0]] : null;
 
@@ -2790,15 +2795,109 @@ export default function CertificateEditor({
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  // Pindahkan layer ke group manapun (Drag & Drop)
+  // Pindahkan layer dan atur ulang z-index layaknya Figma (layer atas = zIndex tinggi, layer bawah = zIndex rendah)
+  const handleReorderLayer = (
+    sourceKey: string,
+    targetKey: string,
+    position: "above" | "below",
+    targetGroupId?: string | null
+  ) => {
+    if (!elements[sourceKey] || !elements[targetKey] || sourceKey === targetKey) return;
+
+    setElements((prev) => {
+      // 1. Ambil semua keys terurut dari atas ke bawah (Figma stacking order: index 0 = teratas)
+      const allKeys = Object.keys(prev).sort(
+        (a, b) => (prev[b]?.zIndex ?? 10) - (prev[a]?.zIndex ?? 10)
+      );
+
+      // 2. Hapus sourceKey
+      const remainingKeys = allKeys.filter((k) => k !== sourceKey);
+
+      // 3. Cari index target
+      const targetIdx = remainingKeys.indexOf(targetKey);
+      if (targetIdx === -1) return prev;
+
+      // 4. Sisipkan sourceKey sebelum target (jika above) atau sesudah target (jika below)
+      const insertIdx = position === "above" ? targetIdx : targetIdx + 1;
+      remainingKeys.splice(insertIdx, 0, sourceKey);
+
+      // 5. Tentukan grup tujuan (gunakan targetGroupId bila disediakan, atau ikuti targetKey)
+      const resolvedGroupId =
+        targetGroupId !== undefined
+          ? targetGroupId || undefined
+          : prev[targetKey]?.groupId;
+
+      // 6. Normalisasi z-index dari atas ke bawah:
+      // index 0 mendapatkan zIndex paling tinggi, index terakhir mendapatkan zIndex paling rendah
+      const next: Record<string, LayoutElement> = {};
+      const total = remainingKeys.length;
+
+      remainingKeys.forEach((k, idx) => {
+        const currentEl = prev[k];
+        if (!currentEl) return;
+        const newZ = (total - idx) * 2 + 5;
+        if (k === sourceKey) {
+          next[k] = {
+            ...currentEl,
+            groupId: resolvedGroupId,
+            zIndex: newZ,
+          };
+        } else {
+          next[k] = {
+            ...currentEl,
+            zIndex: newZ,
+          };
+        }
+      });
+
+      pushHistory(next);
+      return next;
+    });
+
+    const label = elements[sourceKey]?.label || sourceKey;
+    toast.success(`Layer "${label}" dipindahkan ${position === "above" ? "ke atas" : "ke bawah"}`);
+  };
+
+  // Pindahkan layer ke header group manapun (Drag & Drop ke header folder)
   const handleMoveLayerToGroup = (layerKey: string, targetGroupId: string | null) => {
     if (!elements[layerKey]) return;
     setElements((prev) => {
-      const next = { ...prev };
-      next[layerKey] = {
-        ...next[layerKey],
-        groupId: targetGroupId || undefined,
-      };
+      const allKeys = Object.keys(prev).sort(
+        (a, b) => (prev[b]?.zIndex ?? 10) - (prev[a]?.zIndex ?? 10)
+      );
+      const remainingKeys = allKeys.filter((k) => k !== layerKey);
+
+      let insertIdx = 0;
+      if (targetGroupId) {
+        const firstGroupKeyIdx = remainingKeys.findIndex(
+          (k) => prev[k]?.groupId === targetGroupId
+        );
+        if (firstGroupKeyIdx !== -1) {
+          insertIdx = firstGroupKeyIdx;
+        }
+      }
+      remainingKeys.splice(insertIdx, 0, layerKey);
+
+      const next: Record<string, LayoutElement> = {};
+      const total = remainingKeys.length;
+      remainingKeys.forEach((k, idx) => {
+        const currentEl = prev[k];
+        if (!currentEl) return;
+        const newZ = (total - idx) * 2 + 5;
+        if (k === layerKey) {
+          next[k] = {
+            ...currentEl,
+            groupId: targetGroupId || undefined,
+            zIndex: newZ,
+          };
+        } else {
+          next[k] = {
+            ...currentEl,
+            zIndex: newZ,
+          };
+        }
+      });
+
       pushHistory(next);
       return next;
     });
@@ -3002,18 +3101,16 @@ export default function CertificateEditor({
     reader.readAsDataURL(file);
   };
 
-  // Daftar opsi grup lengkap untuk fitur Pindah Grup
-  const allGroupOptions = [
-    ...activeCategories.map((c) => ({ id: c.key, name: c.title })),
-    ...Object.keys(customGroups).map((gId) => ({ id: gId, name: customGroups[gId].name })),
-    { id: "root", name: "Tanpa Grup (Layer Bebas)" },
-  ];
-
   // Render Row Layer Item
-  const renderLayerItem = (key: string, el: LayoutElement, isInsideGroup = false) => {
+  const renderLayerItem = (
+    key: string,
+    el: LayoutElement,
+    isInsideGroup = false,
+    currentGroupId?: string | null
+  ) => {
     const isSelected = selectedIds.includes(key);
     const isDraggingThis = draggedLayerKey === key;
-    const isMoveMenuOpen = activeMoveMenuKey === key;
+    const isDragOverThis = dragOverLayerKey === key;
 
     return (
       <div
@@ -3025,36 +3122,70 @@ export default function CertificateEditor({
         }}
         onDragEnd={() => {
           setDraggedLayerKey(null);
+          setDragOverLayerKey(null);
+          setDragOverPosition(null);
           setDragOverGroupId(null);
         }}
-        className={`flex items-center justify-between p-2 rounded-xl cursor-pointer relative group/item transition-all ${
-          isInsideGroup ? "ml-3 border-l-2 border-neon-purple/30 pl-2.5" : ""
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = "move";
+          if (draggedLayerKey && draggedLayerKey !== key) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const pos = e.clientY < midY ? "above" : "below";
+            if (dragOverLayerKey !== key || dragOverPosition !== pos) {
+              setDragOverLayerKey(key);
+              setDragOverPosition(pos);
+            }
+          }
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          if (dragOverLayerKey === key) {
+            setDragOverLayerKey(null);
+            setDragOverPosition(null);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const sourceKey = e.dataTransfer.getData("text/plain") || draggedLayerKey;
+          if (sourceKey && sourceKey !== key) {
+            handleReorderLayer(sourceKey, key, dragOverPosition || "above", currentGroupId);
+          }
+          setDragOverLayerKey(null);
+          setDragOverPosition(null);
+          setDraggedLayerKey(null);
+          setDragOverGroupId(null);
+        }}
+        className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg cursor-grab active:cursor-grabbing relative group/item transition-all select-none ${
+          isInsideGroup ? "ml-1" : ""
         } ${
-          isDraggingThis ? "opacity-40 scale-95 border-dashed border-cyan-400" : ""
+          isDraggingThis ? "opacity-30 scale-98" : ""
+        } ${
+          isDragOverThis && dragOverPosition === "above"
+            ? "border-t-2 border-t-cyan-400 bg-cyan-500/10"
+            : ""
+        } ${
+          isDragOverThis && dragOverPosition === "below"
+            ? "border-b-2 border-b-cyan-400 bg-cyan-500/10"
+            : ""
         } ${
           isSelected
             ? el.isCustom
               ? "bg-neon-purple/20 border border-neon-purple/50 shadow-sm"
               : "bg-cyan-500/20 border border-cyan-500/50 shadow-sm"
-            : "hover:bg-white/5 border border-transparent"
+            : !isDragOverThis
+            ? "hover:bg-white/5 border border-transparent"
+            : ""
         }`}
         onClick={(e) => handleSelectElement(key, e)}
       >
-        <div className="flex items-center gap-1.5 overflow-hidden flex-1">
-          {/* Drag Handle Icon */}
-          <div
-            className={`p-0.5 rounded cursor-grab active:cursor-grabbing text-white/20 hover:text-cyan-400 shrink-0 ${
-              el.locked ? "opacity-30 cursor-not-allowed" : ""
-            }`}
-            title={el.locked ? "Layer terkunci" : "Tahan & seret untuk memindahkan layer ke grup manapun"}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <GripVertical size={13} />
-          </div>
-
+        <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0 pr-1">
           {isSelected ? (
             <CheckSquare
-              size={14}
+              size={13}
               className={
                 el.isCustom
                   ? "text-neon-purple shrink-0"
@@ -3062,7 +3193,7 @@ export default function CertificateEditor({
               }
             />
           ) : (
-            <Square size={14} className="text-white/20 shrink-0" />
+            <Square size={13} className="text-white/20 shrink-0" />
           )}
           {renderLayerThumbnail(el)}
           {editingLabelId === key ? (
@@ -3138,62 +3269,22 @@ export default function CertificateEditor({
           </span>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Menu Cepat Pindah Grup */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveMoveMenuKey(isMoveMenuOpen ? null : key);
-              }}
-              className="p-1 text-white/30 hover:text-cyan-300 hover:bg-white/10 rounded transition-colors"
-              title="Pindahkan ke grup lain"
-            >
-              <FolderPlus size={13} />
-            </button>
-            {isMoveMenuOpen && (
-              <div
-                className="absolute right-0 top-full mt-1 w-52 bg-slate-900 border border-white/15 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in duration-150"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-2 py-1 text-[10px] font-bold text-white/40 border-b border-white/10 uppercase tracking-wider">
-                  Pindahkan Ke Grup
-                </div>
-                <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                  {allGroupOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        handleMoveLayerToGroup(key, opt.id === "root" ? null : opt.id);
-                        setActiveMoveMenuKey(null);
-                      }}
-                      className="w-full text-left px-2 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 rounded-lg truncate flex items-center gap-1.5"
-                    >
-                      <Folder size={11} className="text-cyan-400 shrink-0" />
-                      <span className="truncate">{opt.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
+        {/* Action icons (lock, eye, trash) dengan margin rapat & tanpa FolderPlus */}
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               handleToggleLock(key);
             }}
-            className={`p-1 rounded ${
+            className={`p-1 rounded transition-colors ${
               el.locked
                 ? "text-amber-400 hover:text-amber-300"
                 : "text-white/30 hover:text-white"
             }`}
             title={el.locked ? "Buka kunci posisi" : "Kunci posisi elemen"}
           >
-            {el.locked ? <Lock size={13} /> : <Unlock size={13} />}
+            {el.locked ? <Lock size={12} /> : <Unlock size={12} />}
           </button>
           <button
             type="button"
@@ -3201,14 +3292,14 @@ export default function CertificateEditor({
               e.stopPropagation();
               updateElement(key, { visible: !el.visible });
             }}
-            className={`p-1 rounded ${
+            className={`p-1 rounded transition-colors ${
               el.visible
                 ? "text-slate-400 hover:text-white"
                 : "text-rose-500 hover:text-rose-400"
             }`}
             title={el.visible ? "Sembunyikan layer" : "Tampilkan layer"}
           >
-            {el.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+            {el.visible ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
           <button
             type="button"
@@ -3219,7 +3310,7 @@ export default function CertificateEditor({
             className="p-1 text-slate-500 hover:text-red-400 rounded transition-colors"
             title="Hapus layer ini dari kanvas"
           >
-            <Trash2 size={13} />
+            <Trash2 size={12} />
           </button>
         </div>
       </div>
@@ -3490,10 +3581,10 @@ export default function CertificateEditor({
                   setDragOverGroupId(null);
                   setDraggedLayerKey(null);
                 }}
-                className={`border rounded-2xl p-1.5 transition-all ${
+                className={`transition-all rounded-xl p-1 mb-1 ${
                   isDragOver
-                    ? "border-neon-purple bg-neon-purple/20 ring-2 ring-neon-purple/40 shadow-lg"
-                    : "border-neon-purple/30 bg-neon-purple/5"
+                    ? "bg-neon-purple/20 ring-1 ring-neon-purple/50 shadow-md"
+                    : "hover:bg-white/[0.02]"
                 }`}
               >
                 <div
@@ -3675,9 +3766,9 @@ export default function CertificateEditor({
                 </div>
 
                 {!isCollapsed && (
-                  <div className="space-y-1 mt-1 pl-1">
+                  <div className="space-y-0.5 mt-0.5 ml-3 pl-2.5 border-l border-neon-purple/30">
                     {memberKeys.map((key) =>
-                      renderLayerItem(key, elements[key], true),
+                      renderLayerItem(key, elements[key], true, gId),
                     )}
                   </div>
                 )}
@@ -3718,12 +3809,12 @@ export default function CertificateEditor({
                   setDragOverGroupId(null);
                   setDraggedLayerKey(null);
                 }}
-                className={`border rounded-2xl p-1.5 transition-all ${
+                className={`transition-all rounded-xl p-1 mb-1 ${
                   isDragOver
-                    ? "border-cyan-400 bg-cyan-500/20 ring-2 ring-cyan-400/40 shadow-lg"
+                    ? "bg-cyan-500/20 ring-1 ring-cyan-400/50 shadow-md"
                     : isSignerGroup
-                    ? "border-purple-500/20 bg-purple-500/[0.03]"
-                    : "border-white/5 bg-white/[0.02]"
+                    ? "hover:bg-purple-500/[0.04]"
+                    : "hover:bg-white/[0.02]"
                 }`}
               >
                 <div
@@ -3922,17 +4013,34 @@ export default function CertificateEditor({
                 </div>
 
                 {!isCollapsed && (
-                  <div className="space-y-1 mt-1 pl-1">
+                  <div className="space-y-0.5 mt-0.5 ml-3 pl-2.5 border-l border-white/10">
                     {memberKeys.map((key) => {
                       const el = elements[key];
                       if (!el) return null;
-                      return renderLayerItem(key, el, true);
+                      return renderLayerItem(key, el, true, cat.key);
                     })}
                   </div>
                 )}
               </div>
             );
           })}
+
+          {/* Layer Bebas / Tanpa Grup */}
+          {independentCustomKeys.length > 0 && (
+            <div className="pt-2 border-t border-white/5 space-y-0.5">
+              <div className="px-2 py-1 text-[10px] font-bold text-white/40 uppercase tracking-wider flex items-center gap-1.5">
+                <FolderMinus size={11} className="text-white/40" />
+                <span>Layer Bebas (Tanpa Grup)</span>
+              </div>
+              <div className="space-y-0.5">
+                {independentCustomKeys.map((key) => {
+                  const el = elements[key];
+                  if (!el) return null;
+                  return renderLayerItem(key, el, false, null);
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Zona Drop: Keluarkan Layer dari Grup (Layer Bebas) */}
           <div
