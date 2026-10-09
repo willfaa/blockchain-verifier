@@ -1492,31 +1492,14 @@ export default function CertificateEditor({
 
   // Handler seleksi elemen
   const handleSelectElement = (id: string, e?: React.MouseEvent | React.SyntheticEvent | any) => {
-    const targetEl = elements[id];
     const isMulti = (e as React.MouseEvent)?.ctrlKey || (e as React.MouseEvent)?.metaKey || (e as React.MouseEvent)?.shiftKey;
-
-    if (targetEl?.groupId) {
-      const groupMemberIds = Object.keys(elements).filter((k) => elements[k]?.groupId === targetEl.groupId);
-      if (isMulti) {
-        setSelectedIds((prev) => {
-          const already = groupMemberIds.every((gId) => prev.includes(gId));
-          return already ? prev.filter((pId) => !groupMemberIds.includes(pId)) : Array.from(new Set([...prev, ...groupMemberIds]));
-        });
-      } else {
-        setSelectedIds((prev) => {
-          const alreadyAll = groupMemberIds.every((gId) => prev.includes(gId));
-          return alreadyAll ? prev : groupMemberIds;
-        });
-      }
-      return;
-    }
 
     if (isMulti) {
       setSelectedIds((prev) =>
         prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
       );
     } else {
-      setSelectedIds((prev) => (prev.includes(id) ? prev : [id]));
+      setSelectedIds([id]);
     }
   };
 
