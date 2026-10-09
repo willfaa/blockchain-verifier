@@ -4280,194 +4280,202 @@ export default function CertificateEditor({
           </div>
         </div>
 
-        {/* Multi-Selection, Layer Ordering & Alignment Quick Bar */}
-        {selectedIds.length > 0 && (
-          <div className="bg-slate-900/95 backdrop-blur border-b border-cyan-500/30 px-6 py-2 flex flex-wrap items-center justify-between gap-4 z-20 shrink-0">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-cyan-400 font-mono bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/20">
-                {selectedIds.length}{" "}
-                {selectedIds.length === 1
-                  ? "Elemen Terpilih"
-                  : "Elemen Terpilih"}
-              </span>
+        {/* Workspace Canvas & Floating Quick Bar Wrapper */}
+        <div className="flex-1 relative overflow-hidden flex flex-col min-h-0">
+          {/* Multi-Selection, Layer Ordering & Alignment Floating Quick Bar */}
+          {selectedIds.length > 0 && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-auto max-w-[95%]">
+              <div className="bg-slate-900/95 backdrop-blur-md border border-cyan-500/40 px-4 py-1.5 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs font-bold text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20 whitespace-nowrap">
+                    {selectedIds.length}{" "}
+                    {selectedIds.length === 1
+                      ? "Elemen Terpilih"
+                      : "Elemen Terpilih"}
+                  </span>
 
-              {isShiftPressed && (
-                <span className="text-[10px] font-bold text-neon-purple bg-neon-purple/10 px-2 py-0.5 rounded border border-neon-purple/20">
-                  Shift: Kunci Rasio (X & Y Sync)
-                </span>
-              )}
+                  {isShiftPressed && (
+                    <span className="text-[10px] font-bold text-neon-purple bg-neon-purple/10 px-2 py-0.5 rounded border border-neon-purple/20 whitespace-nowrap">
+                      Shift: Kunci Rasio
+                    </span>
+                  )}
 
-              {/* Group / Ungroup Buttons on Selection Bar */}
-              {selectedIds.length > 1 && (
-                <button
-                  type="button"
-                  onClick={handleGroupSelected}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/40"
-                  title="Kelompokkan Elemen (Ctrl+G)"
-                >
-                  <Boxes size={13} /> Group
-                </button>
-              )}
-              {selectedIds.some((id) => elements[id]?.groupId) && (
-                <button
-                  type="button"
-                  onClick={handleUngroupSelected}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40"
-                  title="Pisahkan Grup (Ctrl+Shift+G)"
-                >
-                  <FolderMinus size={13} /> Ungroup
-                </button>
-              )}
+                  {/* Group / Ungroup Buttons on Selection Bar */}
+                  {selectedIds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={handleGroupSelected}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/40 whitespace-nowrap"
+                      title="Kelompokkan Elemen (Ctrl+G)"
+                    >
+                      <Boxes size={13} /> Group
+                    </button>
+                  )}
+                  {selectedIds.some((id) => elements[id]?.groupId) && (
+                    <button
+                      type="button"
+                      onClick={handleUngroupSelected}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 whitespace-nowrap"
+                      title="Pisahkan Grup (Ctrl+Shift+G)"
+                    >
+                      <FolderMinus size={13} /> Ungroup
+                    </button>
+                  )}
 
-              {/* Lock Button for Selected Elements */}
-              <button
-                type="button"
-                onClick={() =>
-                  selectedIds.forEach((id) => handleToggleLock(id))
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/80 border border-white/10"
-                title="Kunci / Buka Kunci Elemen Terpilih"
-              >
-                {selectedIds.some((id) => elements[id]?.locked) ? (
-                  <>
-                    <Unlock size={13} className="text-amber-400" /> Buka Kunci
-                  </>
-                ) : (
-                  <>
-                    <Lock size={13} className="text-white/60" /> Kunci Objek
-                  </>
-                )}
-              </button>
+                  {/* Lock Button for Selected Elements */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectedIds.forEach((id) => handleToggleLock(id))
+                    }
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 whitespace-nowrap"
+                    title="Kunci / Buka Kunci Elemen Terpilih"
+                  >
+                    {selectedIds.some((id) => elements[id]?.locked) ? (
+                      <>
+                        <Unlock size={13} className="text-amber-400" /> Buka Kunci
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={13} className="text-white/60" /> Kunci
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Layer Ordering */}
+                  <div className="flex items-center gap-0.5 bg-slate-950/80 px-1.5 py-0.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mr-1 hidden sm:inline">
+                      Layer:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleBringToFront}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Bawa ke Paling Depan (Top Layer)"
+                    >
+                      <ChevronsUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBringForward}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Maju 1 Layer (+1)"
+                    >
+                      <ArrowUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendBackward}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Mundur 1 Layer (-1)"
+                    >
+                      <ArrowDown size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendToBack}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Kirim ke Paling Belakang"
+                    >
+                      <ChevronsDown size={14} />
+                    </button>
+                  </div>
+
+                  {/* Alignment Tools */}
+                  <div className="flex items-center gap-0.5 bg-slate-950/80 px-1.5 py-0.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mr-1 hidden sm:inline">
+                      Ratakan:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleAlignLeft}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Rata Kiri"
+                    >
+                      <AlignLeft size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAlignCenterHorizontal}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Rata Tengah Horizontal (Canvas Center)"
+                    >
+                      <AlignCenter size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAlignRight}
+                      className="p-1 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
+                      title="Rata Kanan"
+                    >
+                      <AlignRight size={14} />
+                    </button>
+
+                    <div className="w-px h-3.5 bg-white/15 mx-0.5" />
+
+                    <button
+                      type="button"
+                      onClick={handleAlignTop}
+                      className="p-1 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
+                      title="Rata Atas"
+                    >
+                      <AlignVerticalJustifyStart size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAlignMiddleVertical}
+                      className="p-1 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
+                      title="Rata Tengah Vertikal"
+                    >
+                      <AlignVerticalJustifyCenter size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAlignBottom}
+                      className="p-1 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
+                      title="Rata Bawah"
+                    >
+                      <AlignVerticalJustifyEnd size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
 
-            {/* Layer Ordering */}
-            <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-white/10">
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mr-1 hidden sm:inline">
-                Layer:
-              </span>
-              <button
-                type="button"
-                onClick={handleBringToFront}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Bawa ke Paling Depan (Top Layer)"
-              >
-                <ChevronsUp size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleBringForward}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Maju 1 Layer (+1)"
-              >
-                <ArrowUp size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleSendBackward}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Mundur 1 Layer (-1)"
-              >
-                <ArrowDown size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleSendToBack}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Kirim ke Paling Belakang (Behind All Objects / Background)"
-              >
-                <ChevronsDown size={15} />
-              </button>
-            </div>
-
-            {/* Alignment Tools */}
-            <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-white/10">
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mr-1 hidden sm:inline">
-                Ratakan:
-              </span>
-              <button
-                type="button"
-                onClick={handleAlignLeft}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Rata Kiri"
-              >
-                <AlignLeft size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleAlignCenterHorizontal}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Rata Tengah Horizontal (Canvas Center)"
-              >
-                <AlignCenter size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleAlignRight}
-                className="p-1.5 rounded-lg text-white/70 hover:text-cyan-400 hover:bg-white/10"
-                title="Rata Kanan"
-              >
-                <AlignRight size={15} />
-              </button>
-
-              <div className="w-px h-4 bg-white/15 mx-1" />
-
-              <button
-                type="button"
-                onClick={handleAlignTop}
-                className="p-1.5 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
-                title="Rata Atas"
-              >
-                <AlignVerticalJustifyStart size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleAlignMiddleVertical}
-                className="p-1.5 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
-                title="Rata Tengah Vertikal"
-              >
-                <AlignVerticalJustifyCenter size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleAlignBottom}
-                className="p-1.5 rounded-lg text-white/70 hover:text-neon-purple hover:bg-white/10"
-                title="Rata Bawah"
-              >
-                <AlignVerticalJustifyEnd size={15} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Editor Main Canvas Workspace */}
-        <div
-          ref={containerRef}
-          className="flex-1 relative overflow-auto bg-slate-950/80 p-8 custom-scrollbar flex items-center justify-center"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              setSelectedIds([]);
-            }
-          }}
-        >
-          {/* Scaled Artboard Container Wrapper */}
+          {/* Editor Main Canvas Scrollable Workspace */}
           <div
-            className="relative shrink-0 m-auto"
-            style={{
-              width: Math.round(canvasWidth * scale),
-              height: Math.round(canvasHeight * scale),
-            }}
+            ref={containerRef}
+            className="flex-1 relative overflow-auto bg-slate-950/80 custom-scrollbar"
             onMouseDown={(e) => {
               if (e.target === e.currentTarget) {
                 setSelectedIds([]);
               }
             }}
           >
-            {/* Paper Frame Canvas */}
-            <div
-              className="relative shadow-[0_25px_80px_rgba(0,0,0,0.95)] select-none border-2 border-cyan-500/30 rounded-sm shrink-0 overflow-hidden"
-              style={{
-                width: canvasWidth,
-                height: canvasHeight,
+            {/* Centering Wrapper for Canvas */}
+            <div className="min-w-full min-h-full flex items-center justify-center p-8">
+              {/* Scaled Artboard Container Wrapper */}
+              <div
+                className="relative shrink-0"
+                style={{
+                  width: Math.round(canvasWidth * scale),
+                  height: Math.round(canvasHeight * scale),
+                }}
+                onMouseDown={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setSelectedIds([]);
+                  }
+                }}
+              >
+                {/* Paper Frame Canvas */}
+                <div
+                  className="relative shadow-[0_25px_80px_rgba(0,0,0,0.95)] select-none border-2 border-cyan-500/30 rounded-sm shrink-0 overflow-hidden"
+                  style={{
+                    width: canvasWidth,
+                    height: canvasHeight,
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",
                 backgroundColor: canvasBgColor,
@@ -4631,6 +4639,10 @@ export default function CertificateEditor({
                     className={`group ${el.locked ? "cursor-default" : "cursor-move"}`}
                   >
                     <div
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleSelectElement(el.id, e);
+                      }}
                       className={`relative w-full h-full flex items-center ${
                         el.align === "center"
                           ? "justify-center"
@@ -4943,12 +4955,14 @@ export default function CertificateEditor({
                 );
               })}
             </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Panel Properti Bawah — Kompak, Responsif, & Kaya Fitur */}
         <div
-          className="min-h-[88px] max-h-[105px] shrink-0 border-t border-white/10 bg-slate-900 px-4 py-2 overflow-x-auto overflow-y-hidden custom-scrollbar flex items-center z-10"
+          className="h-[88px] shrink-0 border-t border-white/10 bg-slate-900 px-4 py-2 overflow-x-auto overflow-y-hidden custom-scrollbar flex items-center z-10"
           style={{ transition: "none" }}
         >
           {primarySelectedEl ? (
