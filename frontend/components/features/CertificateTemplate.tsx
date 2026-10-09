@@ -140,28 +140,28 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
     const s3 = instructors?.[2];
 
     const dynamicValues: Record<string, string> = {
-      universityTitle: institutionName || "UNIVERSITAS NEGERI SURABAYA",
-      certificateTitle: "SERTIFIKAT UJI KOMPETENSI KEAHLIAN",
+      universityTitle: institutionName || "NAMA LEMBAGA / SATUAN PENDIDIKAN",
+      certificateTitle: "SERTIFIKAT KOMPETENSI KEAHLIAN",
       certIdLabel: `ID: ${finalId}`,
       certificateNumber: `No: UKK/${finalId.substring(0, 8).toUpperCase()}`,
       presentedTo: "DIBERIKAN KEPADA",
       studentName: studentName,
-      schoolName: institutionName || "SMK NEGERI 1 SURABAYA",
+      schoolName: institutionName || "Satuan Pendidikan / Lembaga",
       majorProgram: dynamicMajorProgram,
       majority: cleanMajority,
       program: isProgramRedundant ? "" : cleanProgram,
-      studentId: `NISN / ID : ${studentId}`,
+      studentId: `ID : ${studentId}`,
       courseSubtitle: "Telah memenuhi standar kelulusan dan kompetensi pada skema:",
       courseTitle: courseName,
-      instructorName: s1?.name || instructorName,
-      instructorTitle: s1?.title || "KEPALA SEKOLAH / PENGUJI",
-      instructorNip: s1?.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : (instructorNip ? (instructorNip.startsWith("NIP") ? instructorNip : `NIP: ${instructorNip}`) : ""),
-      signer1Name: s1?.name || instructorName,
-      signer1Title: s1?.title || "KEPALA SEKOLAH / PENGUJI",
-      signer1Nip: s1?.nip ? (s1.nip.startsWith("NIP") ? s1.nip : `NIP: ${s1.nip}`) : (instructorNip ? (instructorNip.startsWith("NIP") ? instructorNip : `NIP: ${instructorNip}`) : ""),
-      signer2Name: s2?.name || "Ir. Hendra Kusuma, M.Kom.",
-      signer2Title: s2?.title || "ASESOR MITRA INDUSTRI (DUDI)",
-      signer2Nip: s2?.nip || "PT. TELKOM INDONESIA TBK",
+      instructorName: s1?.name || instructorName || "Nama Penandatangan 1",
+      instructorTitle: s1?.title || "Kepala Lembaga / Penguji",
+      instructorNip: s1?.nip !== undefined && s1.nip !== "" ? s1.nip : (instructorNip || ""),
+      signer1Name: s1?.name || instructorName || "Nama Penandatangan 1",
+      signer1Title: s1?.title || "Kepala Lembaga / Penguji",
+      signer1Nip: s1?.nip !== undefined && s1.nip !== "" ? s1.nip : (instructorNip || ""),
+      signer2Name: s2?.name || "Nama Penandatangan 2",
+      signer2Title: s2?.title || "Asesor / Mitra Industri",
+      signer2Nip: s2?.nip || "",
       signer3Name: s3?.name || "",
       signer3Title: s3?.title || "",
       signer3Nip: s3?.nip || "",
@@ -470,7 +470,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
             <span className="font-sans text-2xl text-slate-200 font-bold italic">{instructorName}</span>
           </div>
           <p className="text-white font-bold uppercase tracking-widest text-xs">Head Instructor</p>
-          <p className="text-cyan-400 text-[10px] font-mono mt-0.5">NIP: {instructorNip}</p>
+          {instructorNip && <p className="text-cyan-400 text-[10px] font-mono mt-0.5">{instructorNip}</p>}
         </div>
 
         <div className="text-center pb-2">

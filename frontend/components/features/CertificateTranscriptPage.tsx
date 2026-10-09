@@ -93,15 +93,15 @@ export const resolveTranscriptBgUrl = (path: string | null | undefined): string 
 };
 
 export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
-  studentName = "Student Name",
+  studentName = "Nama Peserta",
   studentId = "0123456789",
-  majority = "Teknik Komputer dan Jaringan",
-  program = "Teknik Komputer Jaringan",
+  majority = "Kompetensi Keahlian",
+  program = "Program Keahlian",
   courseTitle,
   units = [],
   averageScore,
-  examinerName = "Sonny Michael Wijaya, S.Kom",
-  examinerTitle = "Penguji / Asesor Uji Kompetensi",
+  examinerName = "Nama Penandatangan",
+  examinerTitle = "Penguji / Penandatangan",
   examinerNip,
   schoolName,
   institutionLogo,
@@ -214,27 +214,27 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   const finalSubHeaderTitle = subHeaderTitle || "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)";
   const finalFooterNote = footerNote || "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA";
 
-  // Bangun daftar penandatangan / penguji untuk Halaman 2 (Format Khusus: hanya Nama dan Identitas / NIP)
+  // Bangun daftar penandatangan / penguji untuk Halaman 2 (Format Khusus: hanya Nama dan Identitas)
   const displaySigners: { title: string; name: string; identity: string }[] = [];
   if (instructors && instructors.length > 0) {
     instructors.forEach((inst, idx) => {
       displaySigners.push({
-        title: inst.title || (idx === 0 ? "Penguji Internal" : idx === 1 ? "Penguji Eksternal (DUDI)" : `Penguji ${idx + 1}`),
+        title: inst.title || (idx === 0 ? "Penandatangan 1" : idx === 1 ? "Penandatangan 2" : `Penandatangan ${idx + 1}`),
         name: inst.name || "-",
-        identity: inst.nip ? (inst.nip.startsWith("NIP") ? inst.nip : `NIP: ${inst.nip}`) : "",
+        identity: inst.nip || "",
       });
     });
   } else if (transcriptSigner && transcriptSigner.name) {
     displaySigners.push({
-      title: transcriptSigner.title || examinerTitle || "Penguji",
+      title: transcriptSigner.title || examinerTitle || "Penandatangan",
       name: transcriptSigner.name,
       identity: transcriptSigner.nip || examinerNip || "",
     });
   } else {
     displaySigners.push({
-      title: examinerTitle || "Penguji Internal",
-      name: examinerName || "Sonny Michael Wijaya, S.Kom",
-      identity: examinerNip ? (examinerNip.startsWith("NIP") ? examinerNip : `NIP: ${examinerNip}`) : "NIP: 197204121998021003",
+      title: examinerTitle || "Penandatangan 1",
+      name: examinerName || "Nama Penandatangan 1",
+      identity: examinerNip || "",
     });
   }
 
@@ -245,35 +245,31 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       subHeaderTitle: finalSubHeaderTitle,
       courseSubtitle: courseTitle
         ? `Skema Sertifikasi: ${courseTitle}`
-        : "Skema Sertifikasi: Uji Kompetensi Keahlian",
+        : "Skema Sertifikasi: Program Keahlian",
       studentNameMeta: `Nama : ${studentName}`,
       studentIdMeta: `NIS / ID : ${studentId}`,
-      schoolNameMeta: `Satuan Pendidikan : ${institutionName || schoolName || "SMK NEGERI 1 SURABAYA"}`,
+      schoolNameMeta: `Satuan Pendidikan : ${institutionName || schoolName || "Satuan Pendidikan / Lembaga"}`,
       majorProgramMeta: `Kompetensi Keahlian : ${(majority || program || "").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
       // Signer dynamic texts
-      signer1Title: (instructors && instructors[0]?.title) || (transcriptSigner?.title || examinerTitle) || "Penguji Internal",
-      signer1Name: (instructors && instructors[0]?.name) || (transcriptSigner?.name || examinerName) || "Sonny Michael Wijaya, S.Kom",
-      signer1Nip: (() => {
-        const nip = (instructors && instructors[0]?.nip) || transcriptSigner?.nip || examinerNip;
-        if (!nip) return "";
-        return nip.startsWith("NIP") ? nip : `NIP: ${nip}`;
-      })(),
-      signer2Title: (instructors && instructors[1]?.title) || "Penguji Eksternal / Mitra DUDI",
-      signer2Name: (instructors && instructors[1]?.name) || "Ir. Hendra Kusuma, M.Kom.",
-      signer2Nip: (instructors && instructors[1]?.nip) || "PT. TELKOM INDONESIA TBK",
+      signer1Title: (instructors && instructors[0]?.title) || (transcriptSigner?.title || examinerTitle) || "Penandatangan 1",
+      signer1Name: (instructors && instructors[0]?.name) || (transcriptSigner?.name || examinerName) || "Nama Penandatangan 1",
+      signer1Nip: (instructors && instructors[0]?.nip) || transcriptSigner?.nip || examinerNip || "",
+      signer2Title: (instructors && instructors[1]?.title) || "Penandatangan 2",
+      signer2Name: (instructors && instructors[1]?.name) || "Nama Penandatangan 2",
+      signer2Nip: (instructors && instructors[1]?.nip) || "",
     };
 
     if (instructors && instructors.length > 0) {
       instructors.forEach((inst, idx) => {
         const num = idx + 1;
-        dynamicValues[`signer${num}Title`] = inst.title || (idx === 0 ? "Penguji Internal" : "Penguji Eksternal");
-        dynamicValues[`signer${num}Name`] = inst.name;
-        dynamicValues[`signer${num}Nip`] = inst.nip ? (inst.nip.startsWith("NIP") ? inst.nip : `NIP: ${inst.nip}`) : "";
+        dynamicValues[`signer${num}Title`] = inst.title || `Penandatangan ${num}`;
+        dynamicValues[`signer${num}Name`] = inst.name || "";
+        dynamicValues[`signer${num}Nip`] = inst.nip || "";
       });
       dynamicValues["instructorName"] = instructors[0]?.name || "";
-      dynamicValues["instructorTitle"] = instructors[0]?.title || "Penguji Internal";
+      dynamicValues["instructorTitle"] = instructors[0]?.title || "Penandatangan 1";
       dynamicValues["instructorNip"] = instructors[0]?.nip || "";
     }
 

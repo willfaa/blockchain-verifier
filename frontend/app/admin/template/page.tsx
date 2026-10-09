@@ -120,16 +120,16 @@ export default function CertificateTemplatePage() {
   const [instructors, setInstructors] = useState<InstructorSetting[]>([
     {
       id: "signer1",
-      name: "Drs. H. Mulyono, M.Pd.",
-      title: "KEPALA SEKOLAH / PENGUJI INTERNAL",
+      name: "Nama Penandatangan 1",
+      title: "Kepala Lembaga / Penguji",
       nip: "197204121998021003",
       signatureUrl: null,
     },
     {
       id: "signer2",
-      name: "Ir. Hendra Kusuma, M.Kom.",
-      title: "ASESOR MITRA INDUSTRI (DUDI)",
-      nip: "PT. TELKOM INDONESIA TBK",
+      name: "Nama Penandatangan 2",
+      title: "Asesor / Mitra Industri",
+      nip: "PT. Mitra Industri / ID Reg",
       signatureUrl: null,
     },
   ]);
@@ -338,7 +338,7 @@ export default function CertificateTemplatePage() {
     const newInstructor: InstructorSetting = {
       id: `signer${nextIdx}`,
       name: "",
-      title: nextIdx === 2 ? "ASESOR MITRA INDUSTRI (DUDI)" : `ASESOR / PENANDATANGAN ${nextIdx}`,
+      title: nextIdx === 2 ? "Asesor / Mitra Industri" : `Penandatangan ${nextIdx}`,
       nip: "",
       signatureUrl: null,
     };
@@ -1336,7 +1336,7 @@ export default function CertificateTemplatePage() {
                           placeholder={
                             isFirst
                               ? "contoh: Dr. Budi Santoso, M.T."
-                              : "contoh: Ir. Hendra Kusuma, M.Kom."
+                              : `contoh: Nama Penandatangan ${idx + 1}`
                           }
                           className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-semibold text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
                         />
@@ -1354,8 +1354,8 @@ export default function CertificateTemplatePage() {
                           }
                           placeholder={
                             isFirst
-                              ? "contoh: KEPALA SEKOLAH / PENGUJI INTERNAL"
-                              : "contoh: ASESOR MITRA INDUSTRI (DUDI)"
+                              ? "contoh: Kepala Sekolah / Pimpinan Lembaga"
+                              : "contoh: Asesor / Mitra Industri"
                           }
                           className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
                         />
@@ -1373,8 +1373,8 @@ export default function CertificateTemplatePage() {
                           }
                           placeholder={
                             isFirst
-                              ? "contoh: 197204121998021003"
-                              : "contoh: PT. TELKOM INDONESIA TBK"
+                              ? "contoh: 197204121998021003 / ID"
+                              : "contoh: Nama Instansi / No. Registrasi / ID"
                           }
                           className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-neon-purple/50 transition-all"
                         />
@@ -1736,21 +1736,21 @@ export default function CertificateTemplatePage() {
                       type="text"
                       value={transcriptConfig.transcriptSigner?.name || ""}
                       onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, name: e.target.value } }))}
-                      placeholder="Nama Penandatangan (wajib)"
+                      placeholder="Nama Penandatangan (contoh: Dr. Budi Santoso, M.T.)"
                       className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-semibold text-xs focus:outline-none focus:border-emerald-400"
                     />
                     <input
                       type="text"
                       value={transcriptConfig.transcriptSigner?.title || ""}
                       onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, title: e.target.value } }))}
-                      placeholder="Jabatan / Gelar (contoh: Kepala Sekolah / Ketua Tim Penguji)"
+                      placeholder="Jabatan / Gelar (contoh: Kepala Lembaga / Ketua Penguji)"
                       className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
                     />
                     <input
                       type="text"
                       value={transcriptConfig.transcriptSigner?.nip || ""}
                       onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, nip: e.target.value } }))}
-                      placeholder="NIP / No. Registrasi (opsional)"
+                      placeholder="NIP / No. Registrasi / Instansi (opsional)"
                       className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-400"
                     />
                   </div>
@@ -1976,10 +1976,9 @@ export default function CertificateTemplatePage() {
                   studentId="2024150042"
                   majority="Teknik Informatika"
                   program="Rekayasa Perangkat Lunak"
-                  courseTitle="Blockchain & Distributed Systems"
-                  examinerName={instructors[0]?.name || instructorName || "Sonny Michael Wijaya, S.Kom"}
-                  examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
-                  examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
+                  examinerName={instructors[0]?.name || instructorName || "Nama Penandatangan 1"}
+                  examinerNip={instructors[0]?.nip || instructorNip || ""}
+                  examinerTitle={instructors[0]?.title || "Penandatangan 1"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
                   instructors={instructors}
                   institutionLogo={resolveUploadUrl(institutionLogo)}
@@ -2176,10 +2175,9 @@ export default function CertificateTemplatePage() {
                   studentId="2024150042"
                   majority="Teknik Informatika"
                   program="Rekayasa Perangkat Lunak"
-                  courseTitle="Blockchain & Distributed Systems"
-                  examinerName={instructors[0]?.name || instructorName || "Sonny Michael Wijaya, S.Kom"}
-                  examinerNip={instructors[0]?.nip || instructorNip || "197204121998021003"}
-                  examinerTitle={instructors[0]?.title || "Penguji / Asesor Uji Kompetensi"}
+                  examinerName={instructors[0]?.name || instructorName || "Nama Penandatangan 1"}
+                  examinerNip={instructors[0]?.nip || instructorNip || ""}
+                  examinerTitle={instructors[0]?.title || "Penandatangan 1"}
                   signatureUrl={instructors[0]?.signatureUrl || null}
                   instructors={instructors}
                   institutionLogo={resolveUploadUrl(institutionLogo)}
