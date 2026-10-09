@@ -4567,6 +4567,9 @@ export default function CertificateEditor({
                     position={{ x: currentBoxX, y: currentBoxY }}
                     size={{ width: renderW, height: renderH }}
                     lockAspectRatio={el.lockAspectRatio || isShiftPressed}
+                    onMouseDown={(e) => {
+                      handleSelectElement(el.id, e);
+                    }}
                     onDragStart={(e, d) => {
                       handleSelectElement(el.id, e);
                       handleDragStart(el.id, boxX, boxY, e);
@@ -4622,10 +4625,6 @@ export default function CertificateEditor({
                     className={`group ${el.locked ? "cursor-default" : "cursor-move"}`}
                   >
                     <div
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        handleSelectElement(el.id, e);
-                      }}
                       className={`relative w-full h-full flex items-center ${
                         el.align === "center"
                           ? "justify-center"
