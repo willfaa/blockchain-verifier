@@ -43,6 +43,21 @@ export interface InstructorSetting {
   signatureUrl?: string | null;
 }
 
+export interface TranscriptSignerItem {
+  id: string;
+  title: string;       // Jabatan / Peran (e.g. "Penguji Internal")
+  subTitle?: string;   // Sub-label Dwibahasa opsional (e.g. "Internal Assessor")
+  name: string;        // Nama Penandatangan (e.g. "TEGUH AGUS SETIAWAN S.Kom")
+  identity?: string;   // Identitas / Instansi / NIP (e.g. "SMKS SENOPATI SEDATI")
+}
+
+export interface TranscriptSignerPlacement {
+  marginTop?: number;   // Jarak ke bawah tabel (px), default 32
+  marginLeft?: number;  // Offset geser dari tepi kiri (px), default 0
+  align?: "left" | "center" | "right"; // default "left"
+  labelWidth?: number;  // Lebar kolom jabatan (px), default 190
+}
+
 export interface TranscriptConfigSetting {
   headerTitle?: string;
   subHeaderTitle?: string;
@@ -52,7 +67,11 @@ export interface TranscriptConfigSetting {
   showCodeColumn?: boolean;      // Kolom Kode/Tipe Unit SKKNI
   showScoreColumn?: boolean;     // Kolom Nilai angka
   showStandardColumn?: boolean;  // Kolom Standar (SKKNI/IDUKA)
-  // Penandatangan khusus Halaman 2 (Transkrip) — terpisah dari halaman 1
+  // Pengaturan posisi & tata letak penandatangan di bawah tabel
+  signerPlacement?: TranscriptSignerPlacement;
+  // Penandatangan khusus Halaman 2 (Transkrip) — dinamis multi-signer
+  transcriptSigners?: TranscriptSignerItem[];
+  // Fallback backward-compatibility penandatangan lama
   transcriptSigner?: {
     name?: string;
     title?: string;
@@ -168,12 +187,28 @@ export default function CertificateTemplatePage() {
     showCodeColumn: true,
     showScoreColumn: true,
     showStandardColumn: true,
-    transcriptSigner: {
-      name: "",
-      title: "Kepala Sekolah / Ketua Tim Penguji",
-      nip: "",
-      signatureUrl: null,
+    signerPlacement: {
+      marginTop: 32,
+      marginLeft: 0,
+      align: "left",
+      labelWidth: 190,
     },
+    transcriptSigners: [
+      {
+        id: "ts_1",
+        title: "Penguji Internal",
+        subTitle: "Internal Assessor",
+        name: "TEGUH AGUS SETIAWAN S.Kom",
+        identity: "SMKS SENOPATI SEDATI",
+      },
+      {
+        id: "ts_2",
+        title: "Penguji Eksternal",
+        subTitle: "External Assessor",
+        name: "BAMBANG SOERJOHANDOKO",
+        identity: "PT SKILL INDOTIMUR AGUNG",
+      },
+    ],
   });
 
   // Zoom & Fullscreen Lightbox State
@@ -294,9 +329,27 @@ export default function CertificateTemplatePage() {
         if (d.institutionSubtext) setInstitutionSubtext(d.institutionSubtext);
 
         if (d.transcriptConfig) {
+          const cfg = d.transcriptConfig;
+          let signers = cfg.transcriptSigners;
+          if (!signers || signers.length === 0) {
+            if (cfg.transcriptSigner?.name) {
+              signers = [
+                {
+                  id: "ts_1",
+                  title: cfg.transcriptSigner.title || "Penguji Internal",
+                  subTitle: "Internal Assessor",
+                  name: cfg.transcriptSigner.name,
+                  identity: cfg.transcriptSigner.nip || "",
+                },
+              ];
+            }
+          }
+
           setTranscriptConfig((prev) => ({
             ...prev,
-            ...d.transcriptConfig,
+            ...cfg,
+            ...(signers && signers.length > 0 ? { transcriptSigners: signers } : {}),
+            signerPlacement: cfg.signerPlacement || prev.signerPlacement,
           }));
         }
 
@@ -709,6 +762,60 @@ export default function CertificateTemplatePage() {
     } finally {
       setSavingTranscriptConfig(false);
     }
+  };
+
+  const handleAddTranscriptSigner = () => {
+    setTranscriptConfig((prev) => {
+      const current = prev.transcriptSigners || [];
+      const nextIdx = current.length + 1;
+      const newSigner: TranscriptSignerItem = {
+        id: `ts_${Date.now()}`,
+        title: nextIdx === 1 ? "Penguji Internal" : nextIdx === 2 ? "Penguji Eksternal" : `Penandatangan ${nextIdx}`,
+        subTitle: nextIdx === 1 ? "Internal Assessor" : nextIdx === 2 ? "External Assessor" : "",
+        name: "",
+        identity: "",
+      };
+      return {
+        ...prev,
+        transcriptSigners: [...current, newSigner],
+      };
+    });
+  };
+
+  const handleRemoveTranscriptSigner = (id: string) => {
+    setTranscriptConfig((prev) => ({
+      ...prev,
+      transcriptSigners: (prev.transcriptSigners || []).filter((s) => s.id !== id),
+    }));
+  };
+
+  const handleUpdateTranscriptSigner = (
+    id: string,
+    updates: Partial<TranscriptSignerItem>,
+  ) => {
+    setTranscriptConfig((prev) => ({
+      ...prev,
+      transcriptSigners: (prev.transcriptSigners || []).map((s) =>
+        s.id === id ? { ...s, ...updates } : s,
+      ),
+    }));
+  };
+
+  const handleUpdateSignerPlacement = (
+    updates: Partial<TranscriptSignerPlacement>,
+  ) => {
+    setTranscriptConfig((prev) => ({
+      ...prev,
+      signerPlacement: {
+        ...(prev.signerPlacement || {
+          marginTop: 32,
+          marginLeft: 0,
+          align: "left",
+          labelWidth: 190,
+        }),
+        ...updates,
+      },
+    }));
   };
 
   const handleSaveConfig = async (config: CertificateLayoutConfig) => {
@@ -1721,38 +1828,205 @@ export default function CertificateTemplatePage() {
                 </div>
 
                 {/* Penandatangan Khusus Halaman 2 (Transkrip) */}
-                <div className="border-t border-white/5 pt-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                <div className="border-t border-white/5 pt-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">Penandatangan Halaman 2 (Transkrip)</p>
+                        <p className="text-[10px] text-white/30">Daftar penguji/penandatangan khusus transkrip (cukup nama & identitas). Posisi selalu pas di bawah tabel.</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">Penandatangan Halaman 2 (Transkrip)</p>
-                      <p className="text-[10px] text-white/30">Selalu tampil di bawah tabel kompetensi. Terpisah dari penandatangan Halaman 1.</p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddTranscriptSigner}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold transition-all"
+                    >
+                      <Plus size={13} />
+                      <span>Tambah Signer</span>
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={transcriptConfig.transcriptSigner?.name || ""}
-                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, name: e.target.value } }))}
-                      placeholder="Nama Penandatangan (contoh: Dr. Budi Santoso, M.T.)"
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-semibold text-xs focus:outline-none focus:border-emerald-400"
-                    />
-                    <input
-                      type="text"
-                      value={transcriptConfig.transcriptSigner?.title || ""}
-                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, title: e.target.value } }))}
-                      placeholder="Jabatan / Gelar (contoh: Kepala Lembaga / Ketua Penguji)"
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
-                    />
-                    <input
-                      type="text"
-                      value={transcriptConfig.transcriptSigner?.nip || ""}
-                      onChange={(e) => setTranscriptConfig((prev) => ({ ...prev, transcriptSigner: { ...prev.transcriptSigner, nip: e.target.value } }))}
-                      placeholder="NIP / No. Registrasi / Instansi (opsional)"
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-400"
-                    />
+
+                  {/* List Kartu Penandatangan */}
+                  <div className="space-y-3">
+                    {(transcriptConfig.transcriptSigners || []).map((signer, idx) => (
+                      <div
+                        key={signer.id || idx}
+                        className="bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-3.5 space-y-2.5 transition-all"
+                      >
+                        <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            Penandatangan #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTranscriptSigner(signer.id)}
+                            className="p-1 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                            title="Hapus Penandatangan Ini"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[9px] font-bold text-white/40 uppercase mb-1">
+                              Peran / Jabatan
+                            </label>
+                            <input
+                              type="text"
+                              value={signer.title}
+                              onChange={(e) => handleUpdateTranscriptSigner(signer.id, { title: e.target.value })}
+                              placeholder="Contoh: Penguji Internal"
+                              className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-white/40 uppercase mb-1">
+                              Sub-Label / Dwibahasa (Opsional)
+                            </label>
+                            <input
+                              type="text"
+                              value={signer.subTitle || ""}
+                              onChange={(e) => handleUpdateTranscriptSigner(signer.id, { subTitle: e.target.value })}
+                              placeholder="Contoh: Internal Assessor (kosongkan jika tidak dipakai)"
+                              className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[9px] font-bold text-white/40 uppercase mb-1">
+                              Nama Lengkap & Gelar
+                            </label>
+                            <input
+                              type="text"
+                              value={signer.name}
+                              onChange={(e) => handleUpdateTranscriptSigner(signer.id, { name: e.target.value })}
+                              placeholder="Contoh: TEGUH AGUS SETIAWAN S.Kom"
+                              className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2 text-white font-bold text-xs focus:outline-none focus:border-emerald-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-white/40 uppercase mb-1">
+                              Identitas / Instansi / NIP (Opsional)
+                            </label>
+                            <input
+                              type="text"
+                              value={signer.identity || ""}
+                              onChange={(e) => handleUpdateTranscriptSigner(signer.id, { identity: e.target.value })}
+                              placeholder="Contoh: SMKS SENOPATI SEDATI"
+                              className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-2 text-white font-medium text-xs focus:outline-none focus:border-emerald-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {(transcriptConfig.transcriptSigners || []).length === 0 && (
+                      <div className="text-center py-6 border border-dashed border-white/10 rounded-2xl text-white/40 text-xs">
+                        Belum ada penandatangan Halaman 2. Klik "Tambah Signer" di atas.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Panel Pengaturan Tata Letak & Posisi Signer */}
+                  <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-3">
+                    <p className="text-xs font-bold text-white flex items-center gap-2">
+                      <Layout size={13} className="text-amber-400" />
+                      Pengaturan Posisi Signer di Bawah Tabel
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] font-bold text-white/40 uppercase">
+                            Jarak Bawah Tabel
+                          </label>
+                          <span className="text-[10px] font-mono font-bold text-amber-400">
+                            {transcriptConfig.signerPlacement?.marginTop ?? 32}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="8"
+                          max="120"
+                          step="4"
+                          value={transcriptConfig.signerPlacement?.marginTop ?? 32}
+                          onChange={(e) => handleUpdateSignerPlacement({ marginTop: Number(e.target.value) })}
+                          className="w-full accent-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] font-bold text-white/40 uppercase">
+                            Geser Margin Kiri
+                          </label>
+                          <span className="text-[10px] font-mono font-bold text-amber-400">
+                            {transcriptConfig.signerPlacement?.marginLeft ?? 0}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          step="5"
+                          value={transcriptConfig.signerPlacement?.marginLeft ?? 0}
+                          onChange={(e) => handleUpdateSignerPlacement({ marginLeft: Number(e.target.value) })}
+                          className="w-full accent-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] font-bold text-white/40 uppercase">
+                            Lebar Kolom Jabatan
+                          </label>
+                          <span className="text-[10px] font-mono font-bold text-amber-400">
+                            {transcriptConfig.signerPlacement?.labelWidth ?? 190}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="120"
+                          max="300"
+                          step="10"
+                          value={transcriptConfig.signerPlacement?.labelWidth ?? 190}
+                          onChange={(e) => handleUpdateSignerPlacement({ labelWidth: Number(e.target.value) })}
+                          className="w-full accent-amber-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/40 uppercase mb-1.5">
+                        Perataan Posisi (Alignment)
+                      </label>
+                      <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-xl border border-white/5">
+                        {[
+                          { id: "left", label: "Rata Kiri (Standar)" },
+                          { id: "center", label: "Rata Tengah" },
+                          { id: "right", label: "Rata Kanan" },
+                        ].map((al) => (
+                          <button
+                            key={al.id}
+                            type="button"
+                            onClick={() => handleUpdateSignerPlacement({ align: al.id as any })}
+                            className={`flex-1 py-1 rounded-lg text-xs font-semibold transition-all ${
+                              (transcriptConfig.signerPlacement?.align ?? "left") === al.id
+                                ? "bg-amber-500 text-slate-950 shadow font-bold"
+                                : "text-white/40 hover:text-white"
+                            }`}
+                          >
+                            {al.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1994,6 +2268,11 @@ export default function CertificateTemplatePage() {
                   headerTitle={transcriptConfig.headerTitle}
                   subHeaderTitle={transcriptConfig.subHeaderTitle}
                   footerNote={transcriptConfig.footerNote}
+                  showCodeColumn={transcriptConfig.showCodeColumn ?? true}
+                  showScoreColumn={transcriptConfig.showScoreColumn ?? true}
+                  showStandardColumn={transcriptConfig.showStandardColumn ?? true}
+                  transcriptSigners={transcriptConfig.transcriptSigners}
+                  signerPlacement={transcriptConfig.signerPlacement}
                   layoutConfig={transcriptLayoutConfig}
                 />
               </div>
@@ -2193,6 +2472,11 @@ export default function CertificateTemplatePage() {
                   headerTitle={transcriptConfig.headerTitle}
                   subHeaderTitle={transcriptConfig.subHeaderTitle}
                   footerNote={transcriptConfig.footerNote}
+                  showCodeColumn={transcriptConfig.showCodeColumn ?? true}
+                  showScoreColumn={transcriptConfig.showScoreColumn ?? true}
+                  showStandardColumn={transcriptConfig.showStandardColumn ?? true}
+                  transcriptSigners={transcriptConfig.transcriptSigners}
+                  signerPlacement={transcriptConfig.signerPlacement}
                   layoutConfig={transcriptLayoutConfig}
                 />
               </div>

@@ -530,6 +530,15 @@ export function VerificationTranscriptViewer({
                       paperHeightCm={layoutSettings.paperHeightCm || defaultH}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
                       bgPath={layoutSettings.transcriptTemplate}
+                      theme={layoutSettings.transcriptConfig?.theme || "light"}
+                      headerTitle={layoutSettings.transcriptConfig?.headerTitle}
+                      subHeaderTitle={layoutSettings.transcriptConfig?.subHeaderTitle}
+                      footerNote={layoutSettings.transcriptConfig?.footerNote}
+                      showCodeColumn={layoutSettings.transcriptConfig?.showCodeColumn ?? true}
+                      showScoreColumn={layoutSettings.transcriptConfig?.showScoreColumn ?? true}
+                      showStandardColumn={layoutSettings.transcriptConfig?.showStandardColumn ?? true}
+                      transcriptSigners={layoutSettings.transcriptConfig?.transcriptSigners}
+                      signerPlacement={layoutSettings.transcriptConfig?.signerPlacement}
                       layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   </div>

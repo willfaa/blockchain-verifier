@@ -4002,6 +4002,8 @@ export default function SmartIssueCertificatePage() {
                       showScoreColumn={layoutSettings.transcriptConfig?.showScoreColumn ?? true}
                       showStandardColumn={layoutSettings.transcriptConfig?.showStandardColumn ?? true}
                       transcriptSigner={layoutSettings.transcriptConfig?.transcriptSigner}
+                      transcriptSigners={layoutSettings.transcriptConfig?.transcriptSigners}
+                      signerPlacement={layoutSettings.transcriptConfig?.signerPlacement}
                       layoutConfig={layoutSettings.transcriptLayoutConfig}
                     />
                   )}
