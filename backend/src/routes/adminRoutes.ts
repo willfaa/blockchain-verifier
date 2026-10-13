@@ -58,6 +58,21 @@ const certController = new CertController();
 
 // Base Path: /api/admin
 router.use(verifyToken);
+
+/**
+ * PUBLIC / ISSUER READ-ONLY ENDPOINTS (Teachers & Admins)
+ * Accessible by authenticated teachers to populate UKK exam schemes, competency units, and certificate presets
+ */
+router.get("/departments/bidang", getBidangList);
+router.get("/departments/program", getProgramList);
+router.get("/departments/konsentrasi", getKonsentrasiList);
+router.get("/departments/units", getMasterCompetencyUnits);
+router.get("/settings/details", getCertificateDetails);
+router.get("/settings/template-preview", getCertificateTemplatePreview);
+router.get("/settings/layout-config", getCertificateLayoutConfig);
+router.get("/settings/transcript-layout-config", getTranscriptLayoutConfig);
+
+// All subsequent routes strictly require Administrator privileges:
 router.use(verifyAdmin);
 
 /**
@@ -149,39 +164,33 @@ router.post(
 );
 router.delete("/settings/logo", deleteInstitutionLogo);
 
-router.get("/settings/template-preview", getCertificateTemplatePreview);
-router.get("/settings/layout-config", getCertificateLayoutConfig);
+// Layout Config Mutations (Admin Only)
 router.post("/settings/layout-config", updateCertificateLayoutConfig);
 router.delete("/settings/layout-config", resetCertificateLayoutConfig);
 
-// Page 2 Transcript Visual Layout Config Endpoints
-router.get("/settings/transcript-layout-config", getTranscriptLayoutConfig);
+// Page 2 Transcript Visual Layout Config Mutations (Admin Only)
 router.post("/settings/transcript-layout-config", updateTranscriptLayoutConfig);
 router.delete("/settings/transcript-layout-config", resetTranscriptLayoutConfig);
 
 /**
- * EXPERTISE FIELDS CRUD (BIDANG, PROGRAM, KONSENTRASI KEAHLIAN)
+ * EXPERTISE FIELDS CRUD MUTATIONS (BIDANG, PROGRAM, KONSENTRASI KEAHLIAN) - Admin Only
  */
-// Bidang
-router.get("/departments/bidang", getBidangList);
+// Bidang Mutations
 router.post("/departments/bidang", createBidang);
 router.put("/departments/bidang/:id", updateBidang);
 router.delete("/departments/bidang/:id", deleteBidang);
 
-// Program
-router.get("/departments/program", getProgramList);
+// Program Mutations
 router.post("/departments/program", createProgram);
 router.put("/departments/program/:id", updateProgram);
 router.delete("/departments/program/:id", deleteProgram);
 
-// Konsentrasi
-router.get("/departments/konsentrasi", getKonsentrasiList);
+// Konsentrasi Mutations
 router.post("/departments/konsentrasi", createKonsentrasi);
 router.put("/departments/konsentrasi/:id", updateKonsentrasi);
 router.delete("/departments/konsentrasi/:id", deleteKonsentrasi);
 
-// Master Competency Units (Level 4 - SKKNI / IDUKA Bank)
-router.get("/departments/units", getMasterCompetencyUnits);
+// Master Competency Units Mutations (Level 4 - SKKNI / IDUKA Bank) - Admin Only
 router.post("/departments/units", createMasterCompetencyUnit);
 router.put("/departments/units/:id", updateMasterCompetencyUnit);
 router.delete("/departments/units/:id", deleteMasterCompetencyUnit);

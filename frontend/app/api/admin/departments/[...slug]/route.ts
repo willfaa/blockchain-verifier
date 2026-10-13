@@ -42,6 +42,8 @@ export async function GET(
         url += `&konsentrasiKeahlianId=eq.${encodeURIComponent(konsentrasiId)}`;
       }
       url += `&order=order.asc,createdAt.asc`;
+    } else if (level === "konsentrasi") {
+      url = `${SUPABASE_API_URL}/rest/v1/${table}?select=*,programKeahlian:program_keahlian(*,bidangKeahlian:bidang_keahlian(*))&order=name.asc`;
     } else {
       url += `&order=name.asc`;
     }
