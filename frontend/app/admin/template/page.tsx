@@ -2067,6 +2067,7 @@ export default function CertificateTemplatePage() {
                 institutionName={institutionName}
                 institutionSubtext={institutionSubtext}
                 instructors={instructors}
+                transcriptConfig={transcriptConfig}
                 onConfigChange={handleTranscriptLayoutConfigChange}
                 onSave={handleSaveTranscriptLayoutConfig}
                 onReset={handleResetTranscriptLayoutConfig}

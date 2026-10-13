@@ -40,6 +40,26 @@ export interface TranscriptSignerPlacement {
   labelWidth?: number;  // Lebar kolom jabatan (px), default 190
 }
 
+export interface TranscriptConfigSetting {
+  headerTitle?: string;
+  subHeaderTitle?: string;
+  courseSubtitle?: string;
+  footerNote?: string;
+  theme?: "light" | "formal_border" | "gold_accent" | "dark" | string;
+  showCodeColumn?: boolean;
+  showScoreColumn?: boolean;
+  showStandardColumn?: boolean;
+  showAverageRow?: boolean;
+  signerPlacement?: TranscriptSignerPlacement;
+  transcriptSigners?: TranscriptSignerItem[];
+  transcriptSigner?: {
+    name?: string;
+    title?: string;
+    nip?: string;
+    signatureUrl?: string | null;
+  };
+}
+
 export interface TranscriptProps {
   studentName?: string;
   studentId?: string;

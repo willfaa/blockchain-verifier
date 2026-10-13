@@ -60,6 +60,11 @@ import {
   X,
   PenTool,
 } from "lucide-react";
+import type {
+  TranscriptConfigSetting,
+  TranscriptSignerItem,
+  TranscriptSignerPlacement,
+} from "./CertificateTranscriptPage";
 
 export interface CustomGroup {
   id: string;
@@ -165,6 +170,7 @@ export interface CertificateEditorProps {
   institutionName?: string | null;
   institutionSubtext?: string | null;
   instructors?: InstructorSetting[];
+  transcriptConfig?: TranscriptConfigSetting;
   onConfigChange?: (config: CertificateLayoutConfig) => void;
   onSave: (config: CertificateLayoutConfig) => Promise<void>;
   onReset: () => Promise<void>;
@@ -324,11 +330,11 @@ export const DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS: Record<string, LayoutElemen
   blockchainHashNote: { id: "blockchainHashNote", type: "text", label: "Keterangan Kunci Blockchain", text: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain", x: 877, y: 1158, width: 1100, height: 20, fontSize: 10, fontFamily: "Courier New", color: "#94a3b8", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 17 },
 
   // Signer 1 (Internal) - Left Bottom (X = 420)
-  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Jabatan Penandatangan 1", x: 420, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
-  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 420, y: 1090, width: 140, height: 65, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
-  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 420, y: 1130, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: true, locked: false, zIndex: 20 },
-  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Nama Penandatangan 1", x: 420, y: 1150, width: 340, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
-  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP / ID Penandatangan 1", text: "197204121998021003", x: 420, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Jabatan Penandatangan 1", x: 420, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 18 },
+  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 420, y: 1090, width: 140, height: 65, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: false, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
+  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 420, y: 1130, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: false, locked: false, zIndex: 20 },
+  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Nama Penandatangan 1", x: 420, y: 1150, width: 340, height: 25, fontSize: 14, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 21 },
+  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP / ID Penandatangan 1", text: "197204121998021003", x: 420, y: 1175, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 22 },
 
   // Signer 2 (Eksternal / DUDI) - Right Bottom (X = 1334)
   signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Penandatangan 2", text: "Jabatan Penandatangan 2", x: 1334, y: 1040, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 23 },
@@ -359,7 +365,7 @@ export const DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS: Record<string, LayoutElement>
     x: 620,
     y: 750,
     width: 1120,
-    height: 720,
+    height: 480,
     fontSize: 12,
     tableFontSize: 12,
     tableHeaderFontSize: 13,
@@ -387,11 +393,11 @@ export const DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS: Record<string, LayoutElement>
   footerNote: { id: "footerNote", type: "text", label: "Catatan Kaki Transkrip", text: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA", x: 620, y: 1500, width: 1000, height: 25, fontSize: 10, fontFamily: "Courier New", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 16 },
   
   // Signer 1 (Internal) - Left Column (X = 320)
-  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Jabatan Penandatangan 1", x: 320, y: 1560, width: 340, height: 25, fontSize: 12, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 18 },
-  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 320, y: 1610, width: 140, height: 60, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: true, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
-  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 320, y: 1650, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: true, locked: false, zIndex: 20 },
-  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Nama Penandatangan 1", x: 320, y: 1670, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: true, align: "center", locked: false, zIndex: 21 },
-  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP / ID Penandatangan 1", text: "197204121998021003", x: 320, y: 1695, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: true, align: "center", locked: false, zIndex: 22 },
+  signer1Title: { id: "signer1Title", type: "text", label: "Jabatan Penandatangan 1", text: "Jabatan Penandatangan 1", x: 320, y: 1560, width: 340, height: 25, fontSize: 12, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 18 },
+  signer1Signature: { id: "signer1Signature", type: "image", label: "Tanda Tangan Penandatangan 1", x: 320, y: 1610, width: 140, height: 60, fontSize: 0, fontFamily: "Arial", color: "#ffffff", bold: false, italic: false, visible: false, imageUrl: "", lockAspectRatio: true, locked: false, zIndex: 19 },
+  signer1Line: { id: "signer1Line", type: "line", label: "Garis Tanda Tangan 1", x: 320, y: 1650, width: 260, height: 2, fontSize: 0, fontFamily: "Arial", color: "#334155", bold: false, italic: false, visible: false, locked: false, zIndex: 20 },
+  signer1Name: { id: "signer1Name", type: "text", label: "Nama Penandatangan 1", text: "Nama Penandatangan 1", x: 320, y: 1670, width: 340, height: 25, fontSize: 13, fontFamily: "Arial", color: "#0f172a", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 21 },
+  signer1Nip: { id: "signer1Nip", type: "text", label: "NIP / ID Penandatangan 1", text: "197204121998021003", x: 320, y: 1695, width: 340, height: 20, fontSize: 11, fontFamily: "Courier New", color: "#64748b", bold: false, italic: false, visible: false, align: "center", locked: false, zIndex: 22 },
 
   // Signer 2 (Eksternal / DUDI) - Right Column (X = 920)
   signer2Title: { id: "signer2Title", type: "text", label: "Jabatan Penandatangan 2", text: "Jabatan Penandatangan 2", x: 920, y: 1560, width: 340, height: 25, fontSize: 12, fontFamily: "Arial", color: "#475569", bold: true, italic: false, visible: false, align: "center", locked: false, zIndex: 23 },
@@ -415,6 +421,7 @@ export default function CertificateEditor({
   institutionName,
   institutionSubtext,
   instructors,
+  transcriptConfig,
   onConfigChange,
   onSave,
   onReset,
@@ -424,6 +431,62 @@ export default function CertificateEditor({
   const rawDefaults = isTranscript
     ? (layout === "VERTICAL" ? DEFAULT_TRANSCRIPT_VERTICAL_ELEMENTS : DEFAULT_TRANSCRIPT_HORIZONTAL_ELEMENTS)
     : (layout === "VERTICAL" ? DEFAULT_VERTICAL_ELEMENTS : DEFAULT_HORIZONTAL_ELEMENTS);
+
+  // Bangun daftar penandatangan Halaman 2 (Transkrip) Dinamis
+  const transcriptSignersList: TranscriptSignerItem[] = [];
+  if (transcriptConfig?.transcriptSigners && transcriptConfig.transcriptSigners.length > 0) {
+    transcriptConfig.transcriptSigners.forEach((s, idx) => {
+      transcriptSignersList.push({
+        id: s.id || `ts_${idx}`,
+        title: s.title || (idx === 0 ? "Penguji Internal" : "Penguji Eksternal"),
+        subTitle: s.subTitle || "",
+        name: s.name || "-",
+        identity: s.identity || "",
+      });
+    });
+  } else if (transcriptConfig?.transcriptSigner && transcriptConfig.transcriptSigner.name) {
+    transcriptSignersList.push({
+      id: "ts_legacy",
+      title: transcriptConfig.transcriptSigner.title || "Penguji Internal",
+      subTitle: "",
+      name: transcriptConfig.transcriptSigner.name,
+      identity: transcriptConfig.transcriptSigner.nip || "",
+    });
+  } else if (instructors && instructors.length > 0) {
+    instructors.forEach((inst, idx) => {
+      transcriptSignersList.push({
+        id: inst.id || `inst_${idx}`,
+        title: inst.title || (idx === 0 ? "Penguji Internal" : "Penguji Eksternal"),
+        subTitle: idx === 0 ? "Internal Assessor" : idx === 1 ? "External Assessor" : "",
+        name: inst.name || "-",
+        identity: inst.nip || "",
+      });
+    });
+  } else {
+    transcriptSignersList.push(
+      {
+        id: "ts_def_1",
+        title: "Penguji Internal",
+        subTitle: "Internal Assessor",
+        name: "TEGUH AGUS SETIAWAN S.Kom",
+        identity: "SMKS SENOPATI SEDATI",
+      },
+      {
+        id: "ts_def_2",
+        title: "Penguji Eksternal",
+        subTitle: "External Assessor",
+        name: "BAMBANG SOERJOHANDOKO",
+        identity: "PT SKILL INDOTIMUR AGUNG",
+      }
+    );
+  }
+
+  const signerPlacement = transcriptConfig?.signerPlacement || {
+    marginTop: 32,
+    marginLeft: 0,
+    align: "left",
+    labelWidth: 190,
+  };
 
   // Inject dynamic institution logo & name & subtext into defaults if provided
   const defaultElements: Record<string, LayoutElement> = { ...rawDefaults };
@@ -444,6 +507,26 @@ export default function CertificateEditor({
       ...defaultElements.majorProgram,
       text: institutionSubtext,
     };
+  }
+  if (isTranscript && transcriptConfig) {
+    if (transcriptConfig.headerTitle && defaultElements.headerTitle) {
+      defaultElements.headerTitle = {
+        ...defaultElements.headerTitle,
+        text: transcriptConfig.headerTitle,
+      };
+    }
+    if (transcriptConfig.subHeaderTitle && defaultElements.subHeaderTitle) {
+      defaultElements.subHeaderTitle = {
+        ...defaultElements.subHeaderTitle,
+        text: transcriptConfig.subHeaderTitle,
+      };
+    }
+    if (transcriptConfig.footerNote && defaultElements.footerNote) {
+      defaultElements.footerNote = {
+        ...defaultElements.footerNote,
+        text: transcriptConfig.footerNote,
+      };
+    }
   }
 
   // Elements, Custom Groups & Category Titles state
@@ -468,6 +551,28 @@ export default function CertificateEditor({
   useEffect(() => {
     onConfigChangeRef.current = onConfigChange;
   }, [onConfigChange]);
+
+  // Sinkronisasi teks dinamis transkrip saat transcriptConfig diperbarui di form
+  useEffect(() => {
+    if (!isTranscript || !transcriptConfig) return;
+    setElements((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      if (transcriptConfig.headerTitle && next.headerTitle && next.headerTitle.text !== transcriptConfig.headerTitle) {
+        next.headerTitle = { ...next.headerTitle, text: transcriptConfig.headerTitle };
+        changed = true;
+      }
+      if (transcriptConfig.subHeaderTitle && next.subHeaderTitle && next.subHeaderTitle.text !== transcriptConfig.subHeaderTitle) {
+        next.subHeaderTitle = { ...next.subHeaderTitle, text: transcriptConfig.subHeaderTitle };
+        changed = true;
+      }
+      if (transcriptConfig.footerNote && next.footerNote && next.footerNote.text !== transcriptConfig.footerNote) {
+        next.footerNote = { ...next.footerNote, text: transcriptConfig.footerNote };
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [isTranscript, transcriptConfig?.headerTitle, transcriptConfig?.subHeaderTitle, transcriptConfig?.footerNote]);
 
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1047,6 +1152,26 @@ export default function CertificateEditor({
         text: institutionSubtext,
       };
     }
+    if (isTranscript && transcriptConfig) {
+      if (transcriptConfig.headerTitle && fallbackDefaults.headerTitle) {
+        fallbackDefaults.headerTitle = {
+          ...fallbackDefaults.headerTitle,
+          text: transcriptConfig.headerTitle,
+        };
+      }
+      if (transcriptConfig.subHeaderTitle && fallbackDefaults.subHeaderTitle) {
+        fallbackDefaults.subHeaderTitle = {
+          ...fallbackDefaults.subHeaderTitle,
+          text: transcriptConfig.subHeaderTitle,
+        };
+      }
+      if (transcriptConfig.footerNote && fallbackDefaults.footerNote) {
+        fallbackDefaults.footerNote = {
+          ...fallbackDefaults.footerNote,
+          text: transcriptConfig.footerNote,
+        };
+      }
+    }
     applyInstructorsToElements(fallbackDefaults, instructors);
 
     if (initialConfig) {
@@ -1080,6 +1205,26 @@ export default function CertificateEditor({
           label: "Sub-Judul Lembaga",
           ...(institutionSubtext ? { text: institutionSubtext } : {}),
         };
+      }
+      if (isTranscript && transcriptConfig) {
+        if (transcriptConfig.headerTitle && merged.headerTitle) {
+          merged.headerTitle = {
+            ...merged.headerTitle,
+            text: transcriptConfig.headerTitle,
+          };
+        }
+        if (transcriptConfig.subHeaderTitle && merged.subHeaderTitle) {
+          merged.subHeaderTitle = {
+            ...merged.subHeaderTitle,
+            text: transcriptConfig.subHeaderTitle,
+          };
+        }
+        if (transcriptConfig.footerNote && merged.footerNote) {
+          merged.footerNote = {
+            ...merged.footerNote,
+            text: transcriptConfig.footerNote,
+          };
+        }
       }
       applyInstructorsToElements(merged, instructors);
 
@@ -2745,7 +2890,6 @@ export default function CertificateEditor({
       title: categoryTitles["footer"] || "Catatan Kaki & Blockchain",
       keys: ["footerNote", "blockchainHashNote"],
     },
-    ...signerSubgroups,
   ];
 
   const activeCategories = isTranscript ? transcriptCategories : standardCategories;
@@ -4546,6 +4690,15 @@ export default function CertificateEditor({
                 const isSelected = selectedIds.includes(el.id);
                 if (!el.visible && !isSelected) return null;
 
+                // Sembunyikan elemen legacy signer terpisah jika sedang mengedit transkrip (karena penandatangan sudah terpadu di bawah tabel)
+                const legacyTranscriptSignerKeys = [
+                  "signer1Title", "signer1Name", "signer1Signature", "signer1Line", "signer1Nip",
+                  "signer2Title", "signer2Name", "signer2Signature", "signer2Line", "signer2Nip",
+                ];
+                if (isTranscript && legacyTranscriptSignerKeys.includes(el.id)) {
+                  return null;
+                }
+
                 const { boxX, boxY, renderW, renderH } = getBoxPosition(el);
 
                 let currentBoxX = boxX;
@@ -4565,7 +4718,7 @@ export default function CertificateEditor({
                     key={el.id}
                     scale={scale}
                     position={{ x: currentBoxX, y: currentBoxY }}
-                    size={{ width: renderW, height: renderH }}
+                    size={{ width: renderW, height: el.type === "table" ? "auto" : renderH }}
                     lockAspectRatio={el.lockAspectRatio || isShiftPressed}
                     onMouseDown={(e) => {
                       handleSelectElement(el.id, e);
@@ -4615,7 +4768,7 @@ export default function CertificateEditor({
                     }}
                     dragGrid={[1, 1]}
                     disableDragging={el.locked}
-                    enableResizing={!el.locked ? undefined : false}
+                    enableResizing={!el.locked ? (el.type === "table" ? { top: false, right: true, bottom: false, left: true, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false } : undefined) : false}
                     enableUserSelectHack={false}
                     style={{
                       zIndex: el.zIndex !== undefined ? el.zIndex : 10,
@@ -4625,7 +4778,9 @@ export default function CertificateEditor({
                     className={`group ${el.locked ? "cursor-default" : "cursor-move"}`}
                   >
                     <div
-                      className={`relative w-full h-full flex items-center ${
+                      className={`relative w-full h-full flex ${
+                        el.type === "table" ? "items-start" : "items-center"
+                      } ${
                         el.align === "center"
                           ? "justify-center"
                           : el.align === "right"
@@ -4725,135 +4880,243 @@ export default function CertificateEditor({
                       )}
 
                       {/* Table Element Render (Tabel Kompetensi Transkrip Halaman 2) */}
-                      {el.type === "table" && (
-                        <div
-                          className="w-full h-full flex flex-col pointer-events-none rounded-xl overflow-hidden shadow-sm border select-none"
-                          style={{
-                            borderColor: el.tableBorderColor || "#cbd5e1",
-                            backgroundColor: el.tableRowBg || "#ffffff",
-                            fontFamily: el.fontFamily || "Arial",
-                          }}
-                        >
-                          <table className="w-full border-collapse text-left" style={{ height: "100%" }}>
-                            <thead>
-                              <tr
-                                style={{
-                                  backgroundColor: el.tableHeaderBg || "#0f172a",
-                                  color: el.tableHeaderColor || "#ffffff",
-                                  fontSize: `${el.tableHeaderFontSize || 14}px`,
-                                  fontWeight: el.bold !== undefined ? (el.bold ? "bold" : "normal") : "bold",
-                                  fontStyle: el.italic ? "italic" : "normal",
-                                }}
-                              >
-                                <th className="py-2.5 px-3 border-r text-center w-12" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                  NO
-                                </th>
-                                {el.showCodeColumn !== false && (
-                                  <th className="py-2.5 px-3 border-r w-48 font-mono" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                    KODE UNIT
-                                  </th>
-                                )}
-                                <th className="py-2.5 px-3 border-r" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                  JUDUL UNIT KOMPETENSI
-                                </th>
-                                {el.showStandardColumn !== false && (
-                                  <th className="py-2.5 px-3 border-r text-center w-36" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                    STANDAR
-                                  </th>
-                                )}
-                                {el.showScoreColumn !== false && (
-                                  <th className="py-2.5 px-3 text-center w-24" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                    NILAI
-                                  </th>
-                                )}
-                              </tr>
-                            </thead>
-                            <tbody
+                      {el.type === "table" && (() => {
+                        const showCode =
+                          transcriptConfig?.showCodeColumn !== undefined
+                            ? transcriptConfig.showCodeColumn
+                            : el.showCodeColumn !== false;
+                        const showStandard =
+                          transcriptConfig?.showStandardColumn !== undefined
+                            ? transcriptConfig.showStandardColumn
+                            : el.showStandardColumn !== false;
+                        const showScore =
+                          transcriptConfig?.showScoreColumn !== undefined
+                            ? transcriptConfig.showScoreColumn
+                            : el.showScoreColumn !== false;
+                        const showAverage = el.showAverageRow !== false;
+
+                        return (
+                          <div
+                            className="w-full flex flex-col pointer-events-none select-none"
+                            style={{
+                              fontFamily: el.fontFamily || "Arial",
+                            }}
+                          >
+                            {/* Tabel Unit Kompetensi (Tinggi otomatis sesuai baris, tanpa kotak kosong berlebih) */}
+                            <div
+                              className="w-full overflow-hidden rounded-xl border shadow-sm"
                               style={{
-                                fontSize: `${el.tableFontSize || 13}px`,
-                                color: el.tableTextColor || "#0f172a",
-                                fontWeight: el.bold ? "bold" : "normal",
-                                fontStyle: el.italic ? "italic" : "normal",
+                                borderColor: el.tableBorderColor || "#cbd5e1",
+                                backgroundColor: el.tableRowBg || "#ffffff",
                               }}
                             >
-                              {[
-                                { no: "1", code: "J.620100.004.01", title: "Menerapkan Prinsip-prinsip Keselamatan dan Kesehatan Kerja Lingkungan", standard: "SKKNI", score: "88" },
-                                { no: "2", code: "J.620100.005.02", title: "Menulis Kode dengan Prinsip Terstruktur & Clean Architecture", standard: "SKKNI", score: "92" },
-                                { no: "3", code: "J.620100.012.01", title: "Mengimplementasikan Rancangan Entitas dan Basis Data Relasional", standard: "SKKNI", score: "90" },
-                                { no: "4", code: "J.620100.017.02", title: "Membuat Desain Antarmuka Pengguna (UI/UX) Terintegrasi Modern", standard: "SKKNI", score: "95" },
-                                { no: "5", code: "J.620100.025.02", title: "Melakukan Pengujian Unit Perangkat Lunak (Automated Testing)", standard: "SKKNI", score: "89" },
-                              ].map((row, idx) => (
-                                <tr
-                                  key={row.no}
-                                  className="border-t"
+                              <table className="w-full border-collapse text-left">
+                                <thead>
+                                  <tr
+                                    style={{
+                                      backgroundColor: el.tableHeaderBg || "#0f172a",
+                                      color: el.tableHeaderColor || "#ffffff",
+                                      fontSize: `${el.tableHeaderFontSize || 14}px`,
+                                      fontWeight: el.bold !== undefined ? (el.bold ? "bold" : "normal") : "bold",
+                                      fontStyle: el.italic ? "italic" : "normal",
+                                    }}
+                                  >
+                                    <th className="py-2.5 px-3 border-r text-center w-12" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                      NO
+                                    </th>
+                                    {showCode && (
+                                      <th className="py-2.5 px-3 border-r w-48 font-mono" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                        KODE UNIT
+                                      </th>
+                                    )}
+                                    <th className="py-2.5 px-3 border-r" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                      JUDUL UNIT KOMPETENSI
+                                    </th>
+                                    {showStandard && (
+                                      <th className="py-2.5 px-3 border-r text-center w-36" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                        STANDAR
+                                      </th>
+                                    )}
+                                    {showScore && (
+                                      <th className="py-2.5 px-3 text-center w-24" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                        NILAI
+                                      </th>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody
                                   style={{
-                                    borderColor: el.tableBorderColor || "#cbd5e1",
-                                    backgroundColor: idx % 2 === 1 ? (el.tableRowAltBg || "#f8fafc") : (el.tableRowBg || "#ffffff"),
+                                    fontSize: `${el.tableFontSize || 13}px`,
+                                    color: el.tableTextColor || "#0f172a",
+                                    fontWeight: el.bold ? "bold" : "normal",
+                                    fontStyle: el.italic ? "italic" : "normal",
                                   }}
                                 >
-                                  <td className="py-2 px-3 border-r text-center font-bold" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                    {row.no}
-                                  </td>
-                                  {el.showCodeColumn !== false && (
-                                    <td className="py-2 px-3 border-r font-mono text-[11px]" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                      {row.code}
-                                    </td>
-                                  )}
-                                  <td className="py-2 px-3 border-r font-medium truncate" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                    {row.title}
-                                  </td>
-                                  {el.showStandardColumn !== false && (
-                                    <td className="py-2 px-3 border-r text-center text-[11px] font-semibold text-slate-500" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
-                                      {row.standard}
-                                    </td>
-                                  )}
-                                  {el.showScoreColumn !== false && (
-                                    <td
-                                      className="py-2 px-3 text-center font-bold font-mono"
+                                  {[
+                                    { no: "1", code: "J.620100.004.01", title: "Menerapkan Prinsip-prinsip Keselamatan dan Kesehatan Kerja Lingkungan", standard: "SKKNI", score: "88" },
+                                    { no: "2", code: "J.620100.005.02", title: "Menulis Kode dengan Prinsip Terstruktur & Clean Architecture", standard: "SKKNI", score: "92" },
+                                    { no: "3", code: "J.620100.012.01", title: "Mengimplementasikan Rancangan Entitas dan Basis Data Relasional", standard: "SKKNI", score: "90" },
+                                    { no: "4", code: "J.620100.017.02", title: "Membuat Desain Antarmuka Pengguna (UI/UX) Terintegrasi Modern", standard: "SKKNI", score: "95" },
+                                    { no: "5", code: "J.620100.025.02", title: "Melakukan Pengujian Unit Perangkat Lunak (Automated Testing)", standard: "SKKNI", score: "89" },
+                                  ].map((row, idx) => (
+                                    <tr
+                                      key={row.no}
+                                      className="border-t"
                                       style={{
                                         borderColor: el.tableBorderColor || "#cbd5e1",
-                                        color: el.tableScoreColor || el.tableTextColor || "#0f172a",
+                                        backgroundColor: idx % 2 === 1 ? (el.tableRowAltBg || "#f8fafc") : (el.tableRowBg || "#ffffff"),
                                       }}
                                     >
-                                      {row.score}
-                                    </td>
-                                  )}
-                                </tr>
-                              ))}
-                              {el.showAverageRow !== false && (
-                                <tr
-                                  className="border-t font-bold"
-                                  style={{
-                                    borderColor: el.tableBorderColor || "#cbd5e1",
-                                    backgroundColor: el.tableRowAltBg || "#f1f5f9",
-                                  }}
-                                >
-                                  <td
-                                    colSpan={
-                                      1 +
-                                      (el.showCodeColumn !== false ? 1 : 0) +
-                                      1 +
-                                      (el.showStandardColumn !== false ? 1 : 0)
-                                    }
-                                    className="py-2 px-4 text-right tracking-wider uppercase text-[11px] border-r"
-                                    style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
-                                  >
-                                    NILAI RATA-RATA / PREDIKAT
-                                  </td>
-                                  {el.showScoreColumn !== false && (
-                                    <td
-                                      className="py-2 px-3 text-center font-bold font-mono text-emerald-600"
-                                      style={{ color: el.tableScoreColor || "#059669" }}
+                                      <td className="py-2 px-3 border-r text-center font-bold" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                        {row.no}
+                                      </td>
+                                      {showCode && (
+                                        <td className="py-2 px-3 border-r font-mono text-[11px]" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                          {row.code}
+                                        </td>
+                                      )}
+                                      <td className="py-2 px-3 border-r font-medium truncate" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                        {row.title}
+                                      </td>
+                                      {showStandard && (
+                                        <td className="py-2 px-3 border-r text-center text-[11px] font-semibold text-slate-500" style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}>
+                                          {row.standard}
+                                        </td>
+                                      )}
+                                      {showScore && (
+                                        <td
+                                          className="py-2 px-3 text-center font-bold font-mono"
+                                          style={{
+                                            borderColor: el.tableBorderColor || "#cbd5e1",
+                                            color: el.tableScoreColor || el.tableTextColor || "#0f172a",
+                                          }}
+                                        >
+                                          {row.score}
+                                        </td>
+                                      )}
+                                    </tr>
+                                  ))}
+                                  {showAverage && (
+                                    <tr
+                                      className="border-t font-bold"
+                                      style={{
+                                        borderColor: el.tableBorderColor || "#cbd5e1",
+                                        backgroundColor: el.tableRowAltBg || "#f1f5f9",
+                                      }}
                                     >
-                                      90.8
-                                    </td>
+                                      <td
+                                        colSpan={
+                                          1 +
+                                          (showCode ? 1 : 0) +
+                                          1 +
+                                          (showStandard ? 1 : 0)
+                                        }
+                                        className="py-2 px-4 text-right tracking-wider uppercase text-[11px] border-r"
+                                        style={{ borderColor: el.tableBorderColor || "#cbd5e1" }}
+                                      >
+                                        NILAI RATA-RATA / PREDIKAT
+                                      </td>
+                                      {showScore && (
+                                        <td
+                                          className="py-2 px-3 text-center font-bold font-mono text-emerald-600"
+                                          style={{ color: el.tableScoreColor || "#059669" }}
+                                        >
+                                          90.8
+                                        </td>
+                                      )}
+                                    </tr>
                                   )}
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Penandatangan Halaman 2 (Selalu pas di bawah tabel, sinkron dengan preview teacher) */}
+                            {isTranscript && transcriptSignersList.length > 0 && (
+                              <div
+                                style={{
+                                  marginTop: `${signerPlacement.marginTop ?? 32}px`,
+                                  marginLeft: `${signerPlacement.marginLeft ?? 0}px`,
+                                }}
+                                className={`flex flex-col gap-4 ${
+                                  signerPlacement.align === "right"
+                                    ? "items-end text-right"
+                                    : signerPlacement.align === "center"
+                                    ? "items-center text-center"
+                                    : "items-start text-left"
+                                }`}
+                              >
+                                {transcriptSignersList.map((s, idx) => (
+                                  <div
+                                    key={s.id || idx}
+                                    className={`flex items-start text-xs ${
+                                      signerPlacement.align === "right"
+                                        ? "justify-end"
+                                        : signerPlacement.align === "center"
+                                        ? "justify-center"
+                                        : "justify-start"
+                                    }`}
+                                    style={{ gap: "28px" }}
+                                  >
+                                    {/* Kolom Kiri: Jabatan & Sub-label dwibahasa opsional */}
+                                    <div
+                                      style={{ width: `${signerPlacement.labelWidth ?? 190}px`, flexShrink: 0 }}
+                                      className={
+                                        signerPlacement.align === "right"
+                                          ? "text-right"
+                                          : signerPlacement.align === "center"
+                                          ? "text-center"
+                                          : "text-left"
+                                      }
+                                    >
+                                      <div
+                                        className={`font-bold tracking-tight ${
+                                          canvasBgColor === "#0B0F19" ? "text-slate-100" : "text-slate-900"
+                                        }`}
+                                        style={{ fontSize: `${el.fontSize || 13}px` }}
+                                      >
+                                        {s.title}
+                                      </div>
+                                      {s.subTitle && (
+                                        <div
+                                          className={`italic font-medium ${
+                                            canvasBgColor === "#0B0F19" ? "text-slate-400" : "text-slate-500"
+                                          }`}
+                                          style={{ fontSize: `${Math.max(10, (el.fontSize || 13) - 2)}px` }}
+                                        >
+                                          {s.subTitle}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Kolom Kanan: Nama Penandatangan & Identitas / Instansi */}
+                                    <div
+                                      className="font-semibold leading-relaxed"
+                                      style={{ fontSize: `${el.fontSize || 13}px` }}
+                                    >
+                                      <span
+                                        className={`font-bold tracking-wide uppercase ${
+                                          canvasBgColor === "#0B0F19" ? "text-white" : "text-slate-950"
+                                        }`}
+                                      >
+                                        {s.name}
+                                      </span>
+                                      {s.identity && (
+                                        <span
+                                          className={`ml-2 font-normal ${
+                                            canvasBgColor === "#0B0F19" ? "text-slate-300" : "text-slate-700"
+                                          }`}
+                                        >
+                                          ( {s.identity} )
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* Line Element Render */}
                       {el.type === "line" && (
