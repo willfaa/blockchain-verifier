@@ -742,6 +742,8 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
               ? transcriptConfig.showStandardColumn
               : defaultTranscriptConfig.showStandardColumn,
         }
+      : defaultTranscriptConfig;
+
     let transcriptLayoutConfig = null;
     if (transcriptLayoutSetting?.value) {
       try {
