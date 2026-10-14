@@ -755,12 +755,63 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Konfigurasi desain transkrip nilai (Halaman 2) berhasil disimpan!");
         setPreviewKey(Date.now());
+
+        // Broadcast to other open tabs (e.g. Teacher dashboard)
+        if (typeof window !== "undefined") {
+          if ("BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("chainnesa_settings_sync");
+            bc.postMessage({ type: "SETTINGS_UPDATED", transcriptConfig });
+            bc.close();
+          }
+          localStorage.setItem("chainnesa_settings_updated_at", String(Date.now()));
+        }
       }
     } catch (err) {
       console.error(err);
       toast.error("Gagal menyimpan konfigurasi transkrip");
     } finally {
       setSavingTranscriptConfig(false);
+    }
+  };
+
+  const handleToggleTranscriptColumn = async (
+    key: "showCodeColumn" | "showScoreColumn" | "showStandardColumn"
+  ) => {
+    const nextVal = !(transcriptConfig[key] ?? true);
+    const updated = {
+      ...transcriptConfig,
+      [key]: nextVal,
+    };
+    setTranscriptConfig(updated);
+
+    // Keep visual layout config table element in sync
+    setTranscriptLayoutConfig((prev: any) => {
+      if (!prev) return prev;
+      const elements = prev.elements ? { ...prev.elements } : { ...prev };
+      if (elements.tableCompetencies) {
+        elements.tableCompetencies = {
+          ...elements.tableCompetencies,
+          [key]: nextVal,
+        };
+      }
+      return prev.elements ? { ...prev, elements } : elements;
+    });
+
+    // Auto-save toggle immediately to prevent race conditions across tabs/dashboards
+    try {
+      await api.post("/admin/settings/details", {
+        transcriptConfig: updated,
+      });
+      if (typeof window !== "undefined") {
+        if ("BroadcastChannel" in window) {
+          const bc = new BroadcastChannel("chainnesa_settings_sync");
+          bc.postMessage({ type: "SETTINGS_UPDATED", transcriptConfig: updated });
+          bc.close();
+        }
+        localStorage.setItem("chainnesa_settings_updated_at", String(Date.now()));
+      }
+    } catch (err) {
+      console.error("Auto-sync toggle error:", err);
     }
   };
 
@@ -880,6 +931,33 @@ export default function CertificateTemplatePage() {
       if (res.data.ok) {
         toast.success("Konfigurasi tata letak transkrip (Halaman 2) berhasil disimpan");
         setTranscriptLayoutConfig(config);
+
+        // Sync tableCompetencies column booleans to transcriptConfig if present
+        const tableEl = (config.elements as any)?.tableCompetencies;
+        let syncedTranscriptConfig = transcriptConfig;
+        if (tableEl) {
+          syncedTranscriptConfig = {
+            ...transcriptConfig,
+            ...(tableEl.showCodeColumn !== undefined ? { showCodeColumn: tableEl.showCodeColumn } : {}),
+            ...(tableEl.showScoreColumn !== undefined ? { showScoreColumn: tableEl.showScoreColumn } : {}),
+            ...(tableEl.showStandardColumn !== undefined ? { showStandardColumn: tableEl.showStandardColumn } : {}),
+          };
+          setTranscriptConfig(syncedTranscriptConfig);
+          try {
+            await api.post("/admin/settings/details", { transcriptConfig: syncedTranscriptConfig });
+          } catch (e) {}
+        }
+
+        // Broadcast to other open tabs (e.g. Teacher dashboard)
+        if (typeof window !== "undefined") {
+          if ("BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("chainnesa_settings_sync");
+            bc.postMessage({ type: "SETTINGS_UPDATED", transcriptConfig: syncedTranscriptConfig });
+            bc.close();
+          }
+          localStorage.setItem("chainnesa_settings_updated_at", String(Date.now()));
+        }
+
         // Switch to transcript preview tab — React component is immediately in sync
         setActivePreviewTab("transcript");
       }
@@ -1814,7 +1892,7 @@ export default function CertificateTemplatePage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setTranscriptConfig((prev) => ({ ...prev, [key]: !(prev[key] ?? true) }))}
+                        onClick={() => handleToggleTranscriptColumn(key)}
                         className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
                           (transcriptConfig[key] ?? true) ? "bg-amber-500" : "bg-white/10"
                         }`}

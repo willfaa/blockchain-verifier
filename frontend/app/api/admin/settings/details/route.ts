@@ -54,6 +54,57 @@ export async function GET(request: NextRequest) {
       } catch (e) {}
     }
 
+    const defaultTranscriptConfig = {
+      headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
+      subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
+      footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
+      theme: "light",
+      showCodeColumn: true,
+      showScoreColumn: true,
+      showStandardColumn: true,
+      signerPlacement: {
+        marginTop: 32,
+        marginLeft: 0,
+        align: "left",
+        labelWidth: 190,
+      },
+      transcriptSigners: [
+        {
+          id: "ts_1",
+          title: "Penguji Internal",
+          subTitle: "Internal Assessor",
+          name: "TEGUH AGUS SETIAWAN S.Kom",
+          identity: "SMKS SENOPATI SEDATI",
+        },
+        {
+          id: "ts_2",
+          title: "Penguji Eksternal",
+          subTitle: "External Assessor",
+          name: "BAMBANG SOERJOHANDOKO",
+          identity: "PT SKILL INDOTIMUR AGUNG",
+        },
+      ],
+    };
+
+    const resolvedTranscriptConfig = transcriptConfig
+      ? {
+          ...defaultTranscriptConfig,
+          ...transcriptConfig,
+          showCodeColumn:
+            transcriptConfig.showCodeColumn !== undefined
+              ? transcriptConfig.showCodeColumn
+              : defaultTranscriptConfig.showCodeColumn,
+          showScoreColumn:
+            transcriptConfig.showScoreColumn !== undefined
+              ? transcriptConfig.showScoreColumn
+              : defaultTranscriptConfig.showScoreColumn,
+          showStandardColumn:
+            transcriptConfig.showStandardColumn !== undefined
+              ? transcriptConfig.showStandardColumn
+              : defaultTranscriptConfig.showStandardColumn,
+        }
+      : defaultTranscriptConfig;
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -62,7 +113,7 @@ export async function GET(request: NextRequest) {
         instructors,
         certificateTemplate: settings["default_certificate_template"] || null,
         transcriptTemplate: settings["default_transcript_template"] || null,
-        transcriptConfig,
+        transcriptConfig: resolvedTranscriptConfig,
         institutionLogo: settings["institution_logo"] || null,
         institutionName: settings["institution_name"] || "UNIVERSITAS NEGERI SURABAYA",
         institutionSubtext: settings["institution_subtext"] || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",

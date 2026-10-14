@@ -1895,9 +1895,24 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       certificateTemplate: map["default_certificate_template"] || null,
       bgPath: map["default_certificate_template"] || null,
       transcriptTemplate: map["default_transcript_template"] || null,
-      transcriptBgPath: map["default_transcript_template"] || null,
-      transcriptConfig: transcriptConfig || defaultTranscriptConfig,
-      layoutConfig: layoutConfig,
+      transcriptConfig: transcriptConfig
+        ? {
+            ...defaultTranscriptConfig,
+            ...transcriptConfig,
+            showCodeColumn:
+              transcriptConfig.showCodeColumn !== undefined
+                ? transcriptConfig.showCodeColumn
+                : defaultTranscriptConfig.showCodeColumn,
+            showScoreColumn:
+              transcriptConfig.showScoreColumn !== undefined
+                ? transcriptConfig.showScoreColumn
+                : defaultTranscriptConfig.showScoreColumn,
+            showStandardColumn:
+              transcriptConfig.showStandardColumn !== undefined
+                ? transcriptConfig.showStandardColumn
+                : defaultTranscriptConfig.showStandardColumn,
+          }
+        : defaultTranscriptConfig,
       transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: map["institution_name"] || map["default_certificate_school_name"] || "SMK Mitra IDUKA",
       institutionLogo: map["institution_logo"] || null,

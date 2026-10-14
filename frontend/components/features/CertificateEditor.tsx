@@ -4893,7 +4893,7 @@ export default function CertificateEditor({
                           transcriptConfig?.showScoreColumn !== undefined
                             ? transcriptConfig.showScoreColumn
                             : el.showScoreColumn !== false;
-                        const showAverage = el.showAverageRow !== false;
+                        const showAverage = el.showAverageRow !== false && showScore !== false;
 
                         return (
                           <div

@@ -693,6 +693,55 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
       }
     }
 
+    const defaultTranscriptConfig = {
+      headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
+      subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
+      footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
+      theme: "light",
+      showCodeColumn: true,
+      showScoreColumn: true,
+      showStandardColumn: true,
+      signerPlacement: {
+        marginTop: 32,
+        marginLeft: 0,
+        align: "left",
+        labelWidth: 190,
+      },
+      transcriptSigners: [
+        {
+          id: "ts_1",
+          title: "Penguji Internal",
+          subTitle: "Internal Assessor",
+          name: "TEGUH AGUS SETIAWAN S.Kom",
+          identity: "SMKS SENOPATI SEDATI",
+        },
+        {
+          id: "ts_2",
+          title: "Penguji Eksternal",
+          subTitle: "External Assessor",
+          name: "BAMBANG SOERJOHANDOKO",
+          identity: "PT SKILL INDOTIMUR AGUNG",
+        },
+      ],
+    };
+
+    const resolvedTranscriptConfig = transcriptConfig
+      ? {
+          ...defaultTranscriptConfig,
+          ...transcriptConfig,
+          showCodeColumn:
+            transcriptConfig.showCodeColumn !== undefined
+              ? transcriptConfig.showCodeColumn
+              : defaultTranscriptConfig.showCodeColumn,
+          showScoreColumn:
+            transcriptConfig.showScoreColumn !== undefined
+              ? transcriptConfig.showScoreColumn
+              : defaultTranscriptConfig.showScoreColumn,
+          showStandardColumn:
+            transcriptConfig.showStandardColumn !== undefined
+              ? transcriptConfig.showStandardColumn
+              : defaultTranscriptConfig.showStandardColumn,
+        }
     let transcriptLayoutConfig = null;
     if (transcriptLayoutSetting?.value) {
       try {
@@ -710,7 +759,7 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
         instructors,
         certificateTemplate: templateSetting?.value || null,
         transcriptTemplate: transcriptTemplateSetting?.value || null,
-        transcriptConfig,
+        transcriptConfig: resolvedTranscriptConfig,
         transcriptLayoutConfig,
         institutionLogo: institutionLogoSetting?.value || null,
         institutionName: institutionNameSetting?.value || "UNIVERSITAS NEGERI SURABAYA",

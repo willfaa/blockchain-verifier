@@ -95,7 +95,24 @@ export async function GET(request: NextRequest) {
       bgPath: settings["default_certificate_template"] || null,
       transcriptTemplate: settings["default_transcript_template"] || null,
       transcriptBgPath: settings["default_transcript_template"] || null,
-      transcriptConfig: transcriptConfig || defaultTranscriptConfig,
+      transcriptConfig: transcriptConfig
+        ? {
+            ...defaultTranscriptConfig,
+            ...transcriptConfig,
+            showCodeColumn:
+              transcriptConfig.showCodeColumn !== undefined
+                ? transcriptConfig.showCodeColumn
+                : defaultTranscriptConfig.showCodeColumn,
+            showScoreColumn:
+              transcriptConfig.showScoreColumn !== undefined
+                ? transcriptConfig.showScoreColumn
+                : defaultTranscriptConfig.showScoreColumn,
+            showStandardColumn:
+              transcriptConfig.showStandardColumn !== undefined
+                ? transcriptConfig.showStandardColumn
+                : defaultTranscriptConfig.showStandardColumn,
+          }
+        : defaultTranscriptConfig,
       layoutConfig: layoutConfig,
       transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: settings["institution_name"] || settings["default_certificate_school_name"] || "SMK Mitra IDUKA",

@@ -339,18 +339,19 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       dynamicValues["instructorNip"] = instructors[0]?.nip || "";
     }
 
-    // Override column visibility on tableCompetencies element from props
+    // Override column visibility on tableCompetencies element from props with strict priority
     const overriddenElements: Record<string, LayoutElement> = {};
     let hasTable = false;
     Object.entries(elements).forEach(([k, el]) => {
-      if (el.type === "table") {
+      const isTable = el.type === "table" || k === "tableCompetencies" || el.id === "tableCompetencies";
+      if (isTable) {
         hasTable = true;
         overriddenElements[k] = {
           ...el,
           visible: true,
-          ...(showCodeColumnProp !== undefined ? { showCodeColumn: showCodeColumnProp } : {}),
-          ...(showScoreColumnProp !== undefined ? { showScoreColumn: showScoreColumnProp } : {}),
-          ...(showStandardColumnProp !== undefined ? { showStandardColumn: showStandardColumnProp } : {}),
+          showCodeColumn: showCodeColumnProp !== undefined ? showCodeColumnProp : (el.showCodeColumn !== false),
+          showScoreColumn: showScoreColumnProp !== undefined ? showScoreColumnProp : (el.showScoreColumn !== false),
+          showStandardColumn: showStandardColumnProp !== undefined ? showStandardColumnProp : (el.showStandardColumn !== false),
         };
       } else {
         overriddenElements[k] = el;
@@ -720,7 +721,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                         );
                       })}
 
-                      {el.showAverageRow !== false && (
+                      {el.showAverageRow !== false && el.showScoreColumn !== false && (
                         <tr
                           className="border-t font-bold"
                           style={{
@@ -740,14 +741,12 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
                           >
                             NILAI RATA-RATA / PREDIKAT
                           </td>
-                          {el.showScoreColumn !== false && (
-                            <td
-                              className="py-2 px-3 text-center font-bold font-mono"
-                              style={{ color: el.tableScoreColor || "#059669" }}
-                            >
-                              {calculatedAvg}
-                            </td>
-                          )}
+                          <td
+                            className="py-2 px-3 text-center font-bold font-mono"
+                            style={{ color: el.tableScoreColor || "#059669" }}
+                          >
+                            {calculatedAvg}
+                          </td>
                         </tr>
                       )}
                     </tbody>

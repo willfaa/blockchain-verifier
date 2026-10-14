@@ -351,6 +351,26 @@ export default function SmartIssueCertificatePage() {
     transcriptConfig: DEFAULT_TRANSCRIPT_CONFIG,
   });
 
+  const mergeTranscriptConfig = (incoming: any, fallback: any) => {
+    if (!incoming) return fallback;
+    return {
+      ...fallback,
+      ...incoming,
+      showCodeColumn:
+        incoming.showCodeColumn !== undefined
+          ? incoming.showCodeColumn
+          : fallback?.showCodeColumn ?? true,
+      showScoreColumn:
+        incoming.showScoreColumn !== undefined
+          ? incoming.showScoreColumn
+          : fallback?.showScoreColumn ?? true,
+      showStandardColumn:
+        incoming.showStandardColumn !== undefined
+          ? incoming.showStandardColumn
+          : fallback?.showStandardColumn ?? true,
+    };
+  };
+
   // 1. Fetch Courses, Majors, Layout Settings, and Student Directory on Mount
   useEffect(() => {
     const initData = async () => {
@@ -395,7 +415,10 @@ export default function SmartIssueCertificatePage() {
           setLayoutSettings((prev: any) => ({
             ...prev,
             ...s,
-            transcriptConfig: s.transcriptConfig || prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG,
+            transcriptConfig: mergeTranscriptConfig(
+              s.transcriptConfig,
+              prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG
+            ),
           }));
 
           // Set default examiner
@@ -420,6 +443,62 @@ export default function SmartIssueCertificatePage() {
       }
     };
     initData();
+  }, []);
+
+  // 1a. Real-time synchronization: listen for admin layout & transcript column toggle updates
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const fetchLatestSettings = async () => {
+      try {
+        const res = await api.get("/lms/settings");
+        if (res.data?.settings) {
+          const s = res.data.settings;
+          setLayoutSettings((prev: any) => ({
+            ...prev,
+            ...s,
+            transcriptConfig: mergeTranscriptConfig(
+              s.transcriptConfig,
+              prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG
+            ),
+          }));
+        }
+      } catch (err) {
+        console.warn("Real-time settings sync failed:", err);
+      }
+    };
+
+    let bc: BroadcastChannel | null = null;
+    if ("BroadcastChannel" in window) {
+      bc = new BroadcastChannel("chainnesa_settings_sync");
+      bc.onmessage = (event) => {
+        if (event.data?.type === "SETTINGS_UPDATED") {
+          if (event.data.transcriptConfig) {
+            setLayoutSettings((prev: any) => ({
+              ...prev,
+              transcriptConfig: mergeTranscriptConfig(
+                event.data.transcriptConfig,
+                prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG
+              ),
+            }));
+          } else {
+            fetchLatestSettings();
+          }
+        }
+      };
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "chainnesa_settings_updated_at") {
+        fetchLatestSettings();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   // 1b. Check existing certificate for Pre-Issued mode (Amankan Berkas Jadi)
@@ -959,10 +1038,28 @@ export default function SmartIssueCertificatePage() {
   };
 
   // Open Preview Modal (Single or Specific Student from Batch)
-  const handleOpenPreviewForStudent = (student: StudentRecord) => {
+  const handleOpenPreviewForStudent = async (student: StudentRecord) => {
     setPreviewTargetStudent(student);
     setPreviewTab("front");
     setShowModal(true);
+
+    // Refresh latest settings so teacher preview strictly and instantly reflects Admin column toggles
+    try {
+      const res = await api.get("/lms/settings");
+      if (res.data?.settings) {
+        const s = res.data.settings;
+        setLayoutSettings((prev: any) => ({
+          ...prev,
+          ...s,
+          transcriptConfig: mergeTranscriptConfig(
+            s.transcriptConfig,
+            prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG
+          ),
+        }));
+      }
+    } catch (e) {
+      console.warn("Could not refresh settings on preview open:", e);
+    }
   };
 
   // Compile full Competency Items for Target Student
