@@ -1830,6 +1830,38 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       ];
     }
 
+    const defaultTranscriptConfig = {
+      headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
+      subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
+      footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
+      theme: "light",
+      showCodeColumn: true,
+      showScoreColumn: true,
+      showStandardColumn: true,
+      signerPlacement: {
+        marginTop: 32,
+        marginLeft: 0,
+        align: "left",
+        labelWidth: 190,
+      },
+      transcriptSigners: [
+        {
+          id: "ts_1",
+          title: "Penguji Internal",
+          subTitle: "Internal Assessor",
+          name: "TEGUH AGUS SETIAWAN S.Kom",
+          identity: "SMKS SENOPATI SEDATI",
+        },
+        {
+          id: "ts_2",
+          title: "Penguji Eksternal",
+          subTitle: "External Assessor",
+          name: "BAMBANG SOERJOHANDOKO",
+          identity: "PT SKILL INDOTIMUR AGUNG",
+        },
+      ],
+    };
+
     let transcriptConfig = null;
     if (map["default_transcript_config"]) {
       try {
@@ -1863,7 +1895,8 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       certificateTemplate: map["default_certificate_template"] || null,
       bgPath: map["default_certificate_template"] || null,
       transcriptTemplate: map["default_transcript_template"] || null,
-      transcriptConfig: transcriptConfig,
+      transcriptBgPath: map["default_transcript_template"] || null,
+      transcriptConfig: transcriptConfig || defaultTranscriptConfig,
       layoutConfig: layoutConfig,
       transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: map["institution_name"] || map["default_certificate_school_name"] || "SMK Mitra IDUKA",

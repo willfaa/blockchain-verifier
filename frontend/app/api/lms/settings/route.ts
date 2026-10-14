@@ -40,6 +40,45 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const defaultTranscriptConfig = {
+      headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
+      subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
+      footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
+      theme: "light",
+      showCodeColumn: true,
+      showScoreColumn: true,
+      showStandardColumn: true,
+      signerPlacement: {
+        marginTop: 32,
+        marginLeft: 0,
+        align: "left",
+        labelWidth: 190,
+      },
+      transcriptSigners: [
+        {
+          id: "ts_1",
+          title: "Penguji Internal",
+          subTitle: "Internal Assessor",
+          name: "TEGUH AGUS SETIAWAN S.Kom",
+          identity: "SMKS SENOPATI SEDATI",
+        },
+        {
+          id: "ts_2",
+          title: "Penguji Eksternal",
+          subTitle: "External Assessor",
+          name: "BAMBANG SOERJOHANDOKO",
+          identity: "PT SKILL INDOTIMUR AGUNG",
+        },
+      ],
+    };
+
+    let transcriptConfig = null;
+    if (settings["default_transcript_config"]) {
+      try {
+        transcriptConfig = JSON.parse(settings["default_transcript_config"]);
+      } catch (e) {}
+    }
+
     const payload = {
       certificateLayout: settings["certificate_layout"] || "HORIZONTAL",
       certificatePaperSize: settings["certificate_paper_size"] || "A4",
@@ -56,9 +95,13 @@ export async function GET(request: NextRequest) {
       bgPath: settings["default_certificate_template"] || null,
       transcriptTemplate: settings["default_transcript_template"] || null,
       transcriptBgPath: settings["default_transcript_template"] || null,
+      transcriptConfig: transcriptConfig || defaultTranscriptConfig,
       layoutConfig: layoutConfig,
       transcriptLayoutConfig: transcriptLayoutConfig,
-      schoolName: settings["default_certificate_school_name"] || "SMK Mitra IDUKA",
+      schoolName: settings["institution_name"] || settings["default_certificate_school_name"] || "SMK Mitra IDUKA",
+      institutionLogo: settings["institution_logo"] || null,
+      institutionName: settings["institution_name"] || "UNIVERSITAS NEGERI SURABAYA",
+      institutionSubtext: settings["institution_subtext"] || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
     };
 
     return NextResponse.json({

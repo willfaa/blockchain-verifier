@@ -308,8 +308,48 @@ export default function SmartIssueCertificatePage() {
       .slice(0, 10);
   }, [allStudents, preIssuedStudentSearch]);
 
+  const DEFAULT_TRANSCRIPT_CONFIG = {
+    headerTitle: "KOMPETENSI KEAHLIAN REKAYASA PERANGKAT LUNAK",
+    subHeaderTitle: "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)",
+    footerNote: "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA",
+    theme: "light",
+    showCodeColumn: true,
+    showScoreColumn: true,
+    showStandardColumn: true,
+    signerPlacement: {
+      marginTop: 32,
+      marginLeft: 0,
+      align: "left" as const,
+      labelWidth: 190,
+    },
+    transcriptSigners: [
+      {
+        id: "ts_1",
+        title: "Penguji Internal",
+        subTitle: "Internal Assessor",
+        name: "TEGUH AGUS SETIAWAN S.Kom",
+        identity: "SMKS SENOPATI SEDATI",
+      },
+      {
+        id: "ts_2",
+        title: "Penguji Eksternal",
+        subTitle: "External Assessor",
+        name: "BAMBANG SOERJOHANDOKO",
+        identity: "PT SKILL INDOTIMUR AGUNG",
+      },
+    ],
+  };
+
   // Admin / Public LMS Layout Settings State
-  const [layoutSettings, setLayoutSettings] = useState<any>({});
+  const [layoutSettings, setLayoutSettings] = useState<any>({
+    certificateLayout: "HORIZONTAL",
+    certificatePaperSize: "A4",
+    paperWidthCm: 29.7,
+    paperHeightCm: 21.0,
+    institutionName: "UNIVERSITAS NEGERI SURABAYA",
+    institutionSubtext: "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
+    transcriptConfig: DEFAULT_TRANSCRIPT_CONFIG,
+  });
 
   // 1. Fetch Courses, Majors, Layout Settings, and Student Directory on Mount
   useEffect(() => {
@@ -352,7 +392,11 @@ export default function SmartIssueCertificatePage() {
           settingsRes.value?.data?.settings
         ) {
           const s = settingsRes.value.data.settings;
-          setLayoutSettings(s);
+          setLayoutSettings((prev: any) => ({
+            ...prev,
+            ...s,
+            transcriptConfig: s.transcriptConfig || prev.transcriptConfig || DEFAULT_TRANSCRIPT_CONFIG,
+          }));
 
           // Set default examiner
           if (Array.isArray(s.instructors) && s.instructors.length > 0) {
@@ -916,12 +960,6 @@ export default function SmartIssueCertificatePage() {
 
   // Open Preview Modal (Single or Specific Student from Batch)
   const handleOpenPreviewForStudent = (student: StudentRecord) => {
-    if (!selectedKonsentrasiId && !assignmentSchemeTitle) {
-      toast.error(
-        "Harap pilih Program & Konsentrasi Keahlian terlebih dahulu.",
-      );
-      return;
-    }
     setPreviewTargetStudent(student);
     setPreviewTab("front");
     setShowModal(true);
@@ -3346,7 +3384,25 @@ export default function SmartIssueCertificatePage() {
                               const firstStd = allStudents.find(
                                 (s) => s.id === selectedStudentIds[0],
                               );
-                              if (firstStd) handleOpenPreviewForStudent(firstStd);
+                              if (firstStd) {
+                                handleOpenPreviewForStudent(firstStd);
+                                return;
+                              }
+                            }
+                            if (allStudents.length > 0) {
+                              handleOpenPreviewForStudent(allStudents[0]);
+                            } else {
+                              const sampleStd: StudentRecord = {
+                                id: "sample_std",
+                                name: "John Doe",
+                                studentId: "2024150042",
+                                nim: "2024150042",
+                                nisn: "2024150042",
+                                email: "johndoe@unesa.ac.id",
+                                majority: selectedKonsentrasiName || "Teknik Informatika",
+                                studyProgram: selectedProgramName || "Rekayasa Perangkat Lunak",
+                              };
+                              handleOpenPreviewForStudent(sampleStd);
                             }
                           }}
                           className="flex-1 sm:flex-initial px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
@@ -3859,12 +3915,13 @@ export default function SmartIssueCertificatePage() {
                 >
                   {previewTab === "front" ? (
                     <CertificateTemplate
-                      studentName={activeTargetStudent.name}
+                      studentName={activeTargetStudent?.name || "John Doe"}
                       studentId={
-                        activeTargetStudent.studentId ||
-                        activeTargetStudent.nim ||
-                        activeTargetStudent.nisn ||
-                        activeTargetStudent.id
+                        activeTargetStudent?.studentId ||
+                        activeTargetStudent?.nim ||
+                        activeTargetStudent?.nisn ||
+                        activeTargetStudent?.id ||
+                        "2024150042"
                       }
                       courseName={
                         assignmentSchemeTitle ||
@@ -3878,7 +3935,7 @@ export default function SmartIssueCertificatePage() {
                               ? (typeof activeTargetStudent.studyProgram === "object"
                                   ? (activeTargetStudent.studyProgram as any)?.name
                                   : activeTargetStudent.studyProgram)
-                              : "") || ""
+                              : "") || "Rekayasa Perangkat Lunak"
                       }
                       majority={
                         selectedKonsentrasiId
@@ -3887,7 +3944,7 @@ export default function SmartIssueCertificatePage() {
                               ? (typeof activeTargetStudent.majority === "object"
                                   ? (activeTargetStudent.majority as any)?.name
                                   : activeTargetStudent.majority)
-                              : "") || ""
+                              : "") || "Teknik Informatika"
                       }
                       issuedAt={new Date().toISOString()}
                       layout={layoutSettings.certificateLayout || "HORIZONTAL"}
@@ -3919,12 +3976,13 @@ export default function SmartIssueCertificatePage() {
                     />
                   ) : (
                     <CertificateTranscriptPage
-                      studentName={activeTargetStudent.name}
+                      studentName={activeTargetStudent?.name || "John Doe"}
                       studentId={
-                        activeTargetStudent.studentId ||
-                        activeTargetStudent.nim ||
-                        activeTargetStudent.nisn ||
-                        activeTargetStudent.id
+                        activeTargetStudent?.studentId ||
+                        activeTargetStudent?.nim ||
+                        activeTargetStudent?.nisn ||
+                        activeTargetStudent?.id ||
+                        "2024150042"
                       }
                       majority={
                         selectedKonsentrasiId
@@ -3933,7 +3991,7 @@ export default function SmartIssueCertificatePage() {
                               ? (typeof activeTargetStudent.majority === "object"
                                   ? (activeTargetStudent.majority as any)?.name
                                   : activeTargetStudent.majority)
-                              : "") || ""
+                              : "") || "Teknik Informatika"
                       }
                       program={
                         selectedKonsentrasiId
@@ -3942,7 +4000,7 @@ export default function SmartIssueCertificatePage() {
                               ? (typeof activeTargetStudent.studyProgram === "object"
                                   ? (activeTargetStudent.studyProgram as any)?.name
                                   : activeTargetStudent.studyProgram)
-                              : "") || ""
+                              : "") || "Rekayasa Perangkat Lunak"
                       }
                       courseTitle={
                         assignmentSchemeTitle ||
@@ -3975,6 +4033,7 @@ export default function SmartIssueCertificatePage() {
                           layoutSettings.instructors[0]?.signatureUrl) ||
                         null
                       }
+                      instructors={layoutSettings.instructors}
                       institutionLogo={layoutSettings.institutionLogo}
                       institutionName={layoutSettings.institutionName}
                       institutionSubtext={layoutSettings.institutionSubtext}
