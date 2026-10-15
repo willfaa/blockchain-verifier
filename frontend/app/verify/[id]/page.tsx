@@ -64,8 +64,9 @@ export default async function VerificationPage({
 
   const apiBase = getApiBase();
   const IPFS_GATEWAY =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-    "https://green-real-rhinoceros-350.mypinata.cloud";
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY && !process.env.NEXT_PUBLIC_IPFS_GATEWAY.includes("mypinata.cloud")
+      ? process.env.NEXT_PUBLIC_IPFS_GATEWAY
+      : "";
 
   // 1. Direct Supabase Cloud Fetch (Instant ~30ms, Zero Port/Tunnel Dependency)
   try {
@@ -457,7 +458,7 @@ export default async function VerificationPage({
                       const artifactUrl = isHttp
                         ? cleanCid
                         : cleanCid
-                        ? `${IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "")}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+                        ? `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
                         : cert.frontUrl || "#";
 
                       return (
@@ -469,12 +470,17 @@ export default async function VerificationPage({
                             className="block w-full text-center rounded-2xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neon-blue hover:text-white transition-all shadow-2xl overflow-hidden relative group/btn"
                           >
                             <span className="relative z-10">
-                              Access Decentralized Artifact
+                              Access Decentralized Artifact (IPFS)
                             </span>
                           </a>
-                          <p className="text-[9px] text-center text-white/20 mt-4 font-bold uppercase tracking-widest font-mono">
-                            {cleanCid && !isHttp ? `IPFS CID: ${cleanCid.substring(0, 22)}...` : "Decentralized Storage Mirror"}
-                          </p>
+                          <div className="flex flex-col items-center gap-1.5 mt-3">
+                            <p className="text-[10px] text-center text-neon-blue font-bold uppercase tracking-widest font-mono">
+                              {cleanCid && !isHttp ? `CID: ${cleanCid.substring(0, 18)}...` : "Decentralized Storage Mirror"}
+                            </p>
+                            <span className="text-[9px] text-white/40 text-center font-mono">
+                              Verified Zero-Reset Gateway Proxy Active
+                            </span>
+                          </div>
                         </>
                       );
                     })()}

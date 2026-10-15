@@ -50,14 +50,16 @@ export const getIpfsGatewayUrl = (cid?: string | null): string => {
 
   const strippedCid = cleanCid.replace(/^ipfs:\/\//, "");
 
-  const gateway =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-    "https://green-real-rhinoceros-350.mypinata.cloud";
+  const customGw = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
+  if (customGw && !customGw.includes("mypinata.cloud")) {
+    const normalizedGateway = customGw
+      .replace(/\/ipfs\/?$/, "")
+      .replace(/\/$/, "");
+    return `${normalizedGateway}/ipfs/${strippedCid}`;
+  }
 
-  const normalizedGateway = gateway
-    .replace(/\/ipfs\/?$/, "")
-    .replace(/\/$/, "");
-  return `${normalizedGateway}/ipfs/${strippedCid}`;
+  // Safe local proxy avoiding Indonesian ISP connection resets
+  return `/api/ipfs/${strippedCid}`;
 };
 
 /**

@@ -82,31 +82,41 @@ export async function fetchCertificateFromSupabase(id: string) {
       } catch (e) {}
     }
 
-    // Smart Resolution for Certificate Images & Decentralized IPFS
+    // Smart Resolution for Certificate Images & Decentralized IPFS (Bypasses ISP Block)
     const cleanCid = item.cid ? item.cid.trim() : "";
     const isCidHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
-    const ipfsGateway =
-      process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-      "https://green-real-rhinoceros-350.mypinata.cloud";
-    const normalizedGateway = ipfsGateway.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
+    const certIdentifier = item.certId || item.id || "";
 
+    // 1. Resolve Front Certificate Image URL
     let resolvedFrontUrl = item.frontUrl || "";
+    if (resolvedFrontUrl && resolvedFrontUrl.includes("mypinata.cloud")) {
+      resolvedFrontUrl = ""; // Discard blocked Pinata gateway URL in favor of unblocked Supabase CDN/proxy
+    }
     if (!resolvedFrontUrl) {
-      if (isCidHttp) {
+      if (isCidHttp && !cleanCid.includes("mypinata.cloud")) {
         resolvedFrontUrl = cleanCid;
+      } else if (certIdentifier) {
+        // High-speed unblocked Supabase CDN Mirror
+        resolvedFrontUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${certIdentifier}_front.jpg`;
       } else if (cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("Qm000") && !cleanCid.startsWith("undefined")) {
-        resolvedFrontUrl = `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`;
+        resolvedFrontUrl = `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`;
       }
     }
 
-    // Safely resolve transcript URL without EVER fabricating a non-existent _transcript.png URL
+    // 2. Resolve Transcript (Page 2) Image URL
     let resolvedTranscriptUrl: string | undefined = item.transcriptUrl || item.backUrl || undefined;
+    if (resolvedTranscriptUrl && resolvedTranscriptUrl.includes("mypinata.cloud")) {
+      resolvedTranscriptUrl = undefined; // Discard blocked Pinata gateway URL
+    }
+
     if (!resolvedTranscriptUrl && competencyUnits && typeof competencyUnits === "object" && !Array.isArray(competencyUnits)) {
-      if (competencyUnits.transcriptUrl) {
+      if (competencyUnits.transcriptUrl && !competencyUnits.transcriptUrl.includes("mypinata.cloud")) {
         resolvedTranscriptUrl = competencyUnits.transcriptUrl;
+      } else if (certIdentifier && competencyUnits.isTranscriptImage) {
+        resolvedTranscriptUrl = `${SUPABASE_API_URL}/storage/v1/object/public/lms/certificates/${certIdentifier}_transcript.jpg`;
       } else if (competencyUnits.transcriptCid) {
         const transCid = String(competencyUnits.transcriptCid).trim();
-        resolvedTranscriptUrl = `${normalizedGateway}/ipfs/${transCid.replace(/^ipfs:\/\//, "")}`;
+        resolvedTranscriptUrl = `/api/ipfs/${transCid.replace(/^ipfs:\/\//, "")}`;
       }
     }
 

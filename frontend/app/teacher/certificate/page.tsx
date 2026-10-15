@@ -4269,15 +4269,18 @@ export default function SmartIssueCertificatePage() {
             preIssuedSuccessResult.record?.cid ||
             "";
           const frontUrl =
-            (cid &&
-            !cid.startsWith("PENDING") &&
-            !cid.startsWith("undefined") &&
-            !cid.startsWith("http")
-              ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${cid.replace(/^ipfs:\/\//, "")}`
+            (preIssuedSuccessResult.frontUrl && !preIssuedSuccessResult.frontUrl.includes("mypinata.cloud")
+              ? preIssuedSuccessResult.frontUrl
               : "") ||
-            preIssuedSuccessResult.frontUrl ||
-            preIssuedSuccessResult.record?.frontUrl ||
-            "";
+            (preIssuedSuccessResult.record?.frontUrl && !preIssuedSuccessResult.record.frontUrl.includes("mypinata.cloud")
+              ? preIssuedSuccessResult.record.frontUrl
+              : "") ||
+            (certId
+              ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_front.jpg`
+              : "") ||
+            (cid && !cid.startsWith("PENDING") && !cid.startsWith("undefined") && !cid.startsWith("http")
+              ? `/api/ipfs/${cid.replace(/^ipfs:\/\//, "")}`
+              : "");
 
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">

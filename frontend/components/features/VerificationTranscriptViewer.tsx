@@ -89,25 +89,37 @@ export function VerificationTranscriptViewer({
 
   const cleanCid = cid ? cid.trim() : "";
   const isCidHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
-  const normalizedGateway = (ipfsGateway || "https://green-real-rhinoceros-350.mypinata.cloud")
-    .replace(/\/ipfs\/?$/, "")
-    .replace(/\/$/, "");
 
-  // Prioritize Decentralized IPFS Gateway URL for genuine blockchain artifact preview
-  const ipfsFrontUrl =
-    isCidHttp
-      ? cleanCid
-      : cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("undefined") && !cleanCid.startsWith("Qm000")
-      ? `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
-      : "";
+  // Unblocked Image Resolution (Bypasses Indonesian ISP block on *.mypinata.cloud)
+  const safeFrontUrl =
+    (frontUrl && !frontUrl.includes("mypinata.cloud") ? frontUrl : "") ||
+    (certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_front.jpg` : "") ||
+    (cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("Qm000") && !cleanCid.startsWith("undefined")
+      ? `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+      : "");
 
-  const effectiveFrontImage = ipfsFrontUrl || frontUrl || "";
-  const effectiveTranscriptImage = transcriptUrl || "";
+  const safeTranscriptUrl =
+    (transcriptUrl && !transcriptUrl.includes("mypinata.cloud") ? transcriptUrl : "") ||
+    (certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_transcript.jpg` : "");
+
+  const [frontImageSrc, setFrontImageSrc] = useState<string>(safeFrontUrl);
+  const [transcriptImageSrc, setTranscriptImageSrc] = useState<string>(safeTranscriptUrl);
+
+  useEffect(() => {
+    setFrontImageSrc(safeFrontUrl);
+  }, [safeFrontUrl]);
+
+  useEffect(() => {
+    setTranscriptImageSrc(safeTranscriptUrl);
+  }, [safeTranscriptUrl]);
+
+  const effectiveFrontImage = frontImageSrc;
+  const effectiveTranscriptImage = transcriptImageSrc;
 
   const isPreIssued =
     layoutMode === "PRE_ISSUED_STAMP" ||
     Boolean(frontUrl) ||
-    Boolean(ipfsFrontUrl);
+    Boolean(effectiveFrontImage);
 
   // Determine whether certificate has a genuine 2nd page (Transcript / Duplex)
   const hasSecondPage =
@@ -337,6 +349,13 @@ export function VerificationTranscriptViewer({
                 <img
                   src={effectiveFrontImage}
                   alt={`Sertifikat ${studentName}`}
+                  onError={() => {
+                    if (cleanCid && !frontImageSrc.startsWith("/api/ipfs")) {
+                      setFrontImageSrc(`/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`);
+                    } else if (certId && !frontImageSrc.includes("_front.png")) {
+                      setFrontImageSrc(`https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_front.png`);
+                    }
+                  }}
                   style={{
                     width: `${frontZoom}%`,
                     maxWidth: frontZoom <= 100 ? "100%" : "none",
@@ -405,7 +424,7 @@ export function VerificationTranscriptViewer({
                 href={
                   isCidHttp
                     ? cleanCid
-                    : `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+                    : `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
                 }
                 target="_blank"
                 rel="noreferrer"
@@ -482,6 +501,11 @@ export function VerificationTranscriptViewer({
                 <img
                   src={effectiveTranscriptImage}
                   alt={`Transkrip ${studentName}`}
+                  onError={() => {
+                    if (certId && !transcriptImageSrc.includes("_transcript.png")) {
+                      setTranscriptImageSrc(`https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_transcript.png`);
+                    }
+                  }}
                   style={{
                     width: `${transcriptZoom}%`,
                     maxWidth: transcriptZoom <= 100 ? "100%" : "none",

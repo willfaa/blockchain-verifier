@@ -36,14 +36,17 @@ interface Certificate {
   };
 }
 
-const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://green-real-rhinoceros-350.mypinata.cloud";
-
 function getCertImageUrl(cert: Certificate): string {
+  if (cert.frontUrl && !cert.frontUrl.includes("mypinata.cloud")) {
+    return cert.frontUrl;
+  }
+  if (cert.certId) {
+    return `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${cert.certId}_front.jpg`;
+  }
   const cid = cert.cid?.trim() || "";
   if (!cid || cid.startsWith("PENDING") || cid.startsWith("undefined") || cid.startsWith("Qm000")) return "";
   if (cid.startsWith("http://") || cid.startsWith("https://")) return cid;
-  const gw = IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "");
-  return `${gw}/ipfs/${cid.replace(/^ipfs:\/\//, "")}`;
+  return `/api/ipfs/${cid.replace(/^ipfs:\/\//, "")}`;
 }
 
 export default function MyCertificatesPage() {

@@ -209,9 +209,7 @@ export async function POST(request: NextRequest) {
       formattedUnits = {
         isTranscriptImage: true,
         transcriptCid: transcriptCid || undefined,
-        transcriptUrl: transcriptCid
-          ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${transcriptCid}`
-          : transcriptUrl || undefined,
+        transcriptUrl: transcriptUrl || (transcriptCid ? `/api/ipfs/${transcriptCid}` : undefined),
       };
     }
 
@@ -255,10 +253,8 @@ export async function POST(request: NextRequest) {
       hash,
       txId,
       cid,
-      frontUrl: cid ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${cid}` : frontUrl,
-      transcriptUrl: transcriptCid
-        ? `https://green-real-rhinoceros-350.mypinata.cloud/ipfs/${transcriptCid}`
-        : transcriptUrl || undefined,
+      frontUrl: frontUrl || (cid ? `/api/ipfs/${cid}` : ""),
+      transcriptUrl: transcriptUrl || (transcriptCid ? `/api/ipfs/${transcriptCid}` : undefined),
       verificationUrl,
       record: certRecord,
     });

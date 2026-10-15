@@ -30,10 +30,6 @@ export default function CertificateLedgerPage() {
   const [sortBy, setSortBy] = useState("issuedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const IPFS_GATEWAY =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-    "https://green-real-rhinoceros-350.mypinata.cloud";
-
   const [syncingLedger, setSyncingLedger] = useState(false);
 
   const fetchCertificates = async () => {
@@ -296,17 +292,13 @@ export default function CertificateLedgerPage() {
       label: "Proof & Verification",
       render: (r: any) => {
         const certId = r.certId || r.id;
-        const cid = r.cid || r.frontUrl;
+        const cleanCid = r.cid ? r.cid.trim().replace(/^ipfs:\/\//, "") : "";
 
-        // Resolve smart asset URL
-        let assetUrl = "";
-        if (cid) {
-          if (cid.startsWith("http") || cid.startsWith("/storage")) {
-            assetUrl = cid;
-          } else if (cid.startsWith("Qm") || cid.startsWith("bafy")) {
-            assetUrl = `${IPFS_GATEWAY}/ipfs/${cid}`;
-          }
-        }
+        // Resolve smart unblocked asset URL
+        const assetUrl =
+          (r.frontUrl && !r.frontUrl.includes("mypinata.cloud") ? r.frontUrl : "") ||
+          (certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${certId}_front.jpg` : "") ||
+          (cleanCid ? `/api/ipfs/${cleanCid}` : "");
 
         return (
           <div className="flex items-center gap-1.5 flex-wrap">

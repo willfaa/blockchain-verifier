@@ -28,10 +28,6 @@ interface VerifyResult {
   [key: string]: any;
 }
 
-const IPFS_GATEWAY =
-  process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-  "https://green-real-rhinoceros-350.mypinata.cloud";
-
 export default function VerifyPage() {
   const router = useRouter();
   const [certId, setCertId] = useState("");
@@ -63,11 +59,10 @@ export default function VerifyPage() {
 
   const cleanCid = result?.cid ? result.cid.trim() : "";
   const isHttp = cleanCid.startsWith("http://") || cleanCid.startsWith("https://");
-  const ipfsUrl = cleanCid
-    ? isHttp
-      ? cleanCid
-      : `${IPFS_GATEWAY.replace(/\/ipfs\/?$/, "").replace(/\/$/, "")}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
-    : result?.frontUrl || null;
+  const ipfsUrl =
+    (result?.frontUrl && !result.frontUrl.includes("mypinata.cloud") ? result.frontUrl : "") ||
+    (result?.certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${result.certId}_front.jpg` : "") ||
+    (cleanCid ? (isHttp ? cleanCid : `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`) : null);
   const downloadName = result?.certId
     ? `${result.certId}.png`
     : "certificate.png";

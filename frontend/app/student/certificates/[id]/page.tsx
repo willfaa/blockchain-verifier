@@ -80,8 +80,9 @@ export default function StudentCertificateDetailPage() {
   const [hasSubmittedCorrection, setHasSubmittedCorrection] = useState(false);
 
   const IPFS_GATEWAY =
-    process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
-    "https://green-real-rhinoceros-350.mypinata.cloud";
+    process.env.NEXT_PUBLIC_IPFS_GATEWAY && !process.env.NEXT_PUBLIC_IPFS_GATEWAY.includes("mypinata.cloud")
+      ? process.env.NEXT_PUBLIC_IPFS_GATEWAY
+      : "";
 
   useEffect(() => {
     // Fetch certificate settings & layout from public LMS settings endpoint
@@ -140,18 +141,20 @@ export default function StudentCertificateDetailPage() {
     ""
   );
 
-  const ipfsFrontUrl =
-    isCidHttp
-      ? cleanCid
-      : cleanCid &&
-        !cleanCid.startsWith("PENDING") &&
-        !cleanCid.startsWith("undefined") &&
-        !cleanCid.startsWith("Qm000")
-      ? `${normalizedGateway}/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
-      : "";
+  // Safe unblocked resolution (bypasses Indonesian ISP block on *.mypinata.cloud)
+  const safeFrontUrl =
+    (cert?.frontUrl && !cert.frontUrl.includes("mypinata.cloud") ? cert.frontUrl : "") ||
+    (cert?.certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${cert.certId}_front.jpg` : "") ||
+    (cleanCid && !cleanCid.startsWith("PENDING") && !cleanCid.startsWith("Qm000") && !cleanCid.startsWith("undefined")
+      ? `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}`
+      : "");
 
-  const effectiveFrontImage = ipfsFrontUrl || cert?.frontUrl || "";
-  const effectiveTranscriptImage = cert?.transcriptUrl || "";
+  const safeTranscriptUrl =
+    (cert?.transcriptUrl && !cert.transcriptUrl.includes("mypinata.cloud") ? cert.transcriptUrl : "") ||
+    (cert?.certId ? `https://pitbddduxxntkhawzxrr.supabase.co/storage/v1/object/public/lms/certificates/${cert.certId}_transcript.jpg` : "");
+
+  const effectiveFrontImage = safeFrontUrl;
+  const effectiveTranscriptImage = safeTranscriptUrl;
 
   const isPreIssued =
     cert?.layoutMode === "PRE_ISSUED_STAMP" ||
@@ -263,7 +266,7 @@ export default function StudentCertificateDetailPage() {
 
             {effectiveFrontImage && (
               <a
-                href={effectiveFrontImage}
+                href={cleanCid ? `/api/ipfs/${cleanCid.replace(/^ipfs:\/\//, "")}` : effectiveFrontImage}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border border-slate-700 text-slate-300"
