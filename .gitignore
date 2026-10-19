@@ -15,3 +15,6 @@ fabric-network/wallet/
 # Graphify Knowledge Graph
 graphify-out/
 .graphify/
+
+# Archify Architecture Artifacts
+.archify/
