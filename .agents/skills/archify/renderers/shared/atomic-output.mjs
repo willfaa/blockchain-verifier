@@ -70,8 +70,8 @@ function captureRegularFileHandle(filePath, initial, subject) {
   }
   if (!handle.isFile() || !current.isFile()
     || handle.ino === 0n || current.ino === 0n
-    || handle.dev !== initial.dev || handle.ino !== initial.ino
-    || current.dev !== handle.dev || current.ino !== handle.ino) {
+    || (process.platform !== 'win32' && handle.dev !== initial.dev) || handle.ino !== initial.ino
+    || (process.platform !== 'win32' && current.dev !== handle.dev) || current.ino !== handle.ino) {
     return relation('unknown', `${subject}-changed-during-inspection`, {
       [pathKey]: filePath,
     });
@@ -229,9 +229,9 @@ function inspectRegularFileDescriptor({
   if (beforeHandle.ino === 0n || beforePath.ino === 0n) {
     return relation('unknown', `${subject}-identity-unavailable`, { filePath });
   }
-  if (beforeHandle.dev !== identity.device
+  if ((process.platform !== 'win32' && beforeHandle.dev !== identity.device)
     || beforeHandle.ino !== identity.inode
-    || beforePath.dev !== beforeHandle.dev
+    || (process.platform !== 'win32' && beforePath.dev !== beforeHandle.dev)
     || beforePath.ino !== beforeHandle.ino) {
     return relation(phase === 'inspection' ? 'unknown' : 'different',
       `${subject}-${phase === 'inspection' ? 'changed-during-inspection' : 'identity-changed'}`,
@@ -269,8 +269,8 @@ function inspectRegularFileDescriptor({
   }
   if (!afterHandle.isFile() || !afterPath.isFile()
     || afterHandle.ino === 0n || afterPath.ino === 0n
-    || afterHandle.dev !== identity.device || afterHandle.ino !== identity.inode
-    || afterPath.dev !== afterHandle.dev || afterPath.ino !== afterHandle.ino) {
+    || (process.platform !== 'win32' && afterHandle.dev !== identity.device) || afterHandle.ino !== identity.inode
+    || (process.platform !== 'win32' && afterPath.dev !== afterHandle.dev) || afterPath.ino !== afterHandle.ino) {
     return relation(phase === 'inspection' ? 'unknown' : 'different',
       `${subject}-${phase === 'inspection' ? 'changed-during-inspection' : 'identity-changed'}`,
       { filePath });
@@ -346,7 +346,7 @@ export function captureRegularFileBinding(filePath, {
   }
   const identity = { device: initial.dev, inode: initial.ino };
   if (expectedIdentity !== undefined
-    && (identity.device !== expectedIdentity.device
+    && ((process.platform !== 'win32' && identity.device !== expectedIdentity.device)
       || identity.inode !== expectedIdentity.inode)) {
     const closeFailure = closeCapturedDescriptor(descriptor, subject, resolvedPath);
     return closeFailure || relation('different', `${subject}-identity-changed`, {
