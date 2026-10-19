@@ -10,7 +10,7 @@
     "generate": "prisma generate",
     "postinstall": "prisma generate",
     "clean-uploads": "node clean-uploads.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ts-node src/tests/security.test.ts"
   },
   "keywords": [],
   "author": "",

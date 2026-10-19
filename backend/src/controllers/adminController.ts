@@ -434,27 +434,33 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
       return safeResponse(res, 400, { error: "Invalid data" });
 
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-    const results = await Promise.all(
-      users.map(async (u) => {
-        try {
-          const { studentId, ...rest } = u;
-          await db.user.create({
-            data: {
-              ...rest,
-              password: hashedPassword,
-              isApproved: true,
-              isActive: true,
-              // Handle optional fields mapping studentId
-              studentId: u.role === "STUDENT" ? (studentId || null) : null,
-              nip: u.role === "TEACHER" ? u.nip : null,
-            },
-          });
-          return { email: u.email, status: "ok" };
-        } catch (e: any) {
-          return { email: u.email, status: "error", message: e.message };
-        }
-      })
-    );
+    const results: any[] = [];
+    const CHUNK_SIZE = 15;
+    for (let i = 0; i < users.length; i += CHUNK_SIZE) {
+      const chunk = users.slice(i, i + CHUNK_SIZE);
+      const chunkResults = await Promise.all(
+        chunk.map(async (u) => {
+          try {
+            const { studentId, ...rest } = u;
+            await db.user.create({
+              data: {
+                ...rest,
+                password: hashedPassword,
+                isApproved: true,
+                isActive: true,
+                // Handle optional fields mapping studentId
+                studentId: u.role === "STUDENT" ? (studentId || null) : null,
+                nip: u.role === "TEACHER" ? u.nip : null,
+              },
+            });
+            return { email: u.email, status: "ok" };
+          } catch (e: any) {
+            return { email: u.email, status: "error", message: e.message };
+          }
+        })
+      );
+      results.push(...chunkResults);
+    }
 
     return safeResponse(res, 200, { ok: true, results });
   } catch (error: any) {

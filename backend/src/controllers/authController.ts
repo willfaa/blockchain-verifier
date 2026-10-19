@@ -136,11 +136,14 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "24h" },
     );
 
+    // Exclude password hash before returning
+    const { password: _, ...safeUser } = user;
+
     // Kirim Response
     res.json({
       ok: true,
       user: {
-        ...user,
+        ...safeUser,
         currentSessionId,
         token: token,
       },

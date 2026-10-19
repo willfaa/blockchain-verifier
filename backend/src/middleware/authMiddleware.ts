@@ -20,22 +20,34 @@ declare global {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "unesa_blockchain_secret_jwt_key_2026";
-const FALLBACK_SECRETS = [
-  JWT_SECRET,
-  "unesa_blockchain_secret_jwt_key_2026",
-  "rahasia_default",
-  "rahasia_default_jangan_dipakai_prod",
-];
 
 function decodeTokenSafely(token: string): any {
-  for (const secret of FALLBACK_SECRETS) {
-    try {
-      return jwt.verify(token, secret);
-    } catch (e) {
-      // try next secret
-    }
+  return jwt.verify(token, JWT_SECRET);
+}
+
+// In-memory session cache to avoid DB saturation under heavy traffic (e.g. exams)
+const sessionCache = new Map<string, { currentSessionId: string | null; isActive: boolean; expiresAt: number }>();
+
+async function getCachedUserSession(userId: string) {
+  const now = Date.now();
+  const cached = sessionCache.get(userId);
+  if (cached && cached.expiresAt > now) {
+    return cached;
   }
-  throw new Error("Invalid or Expired Token.");
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { currentSessionId: true, isActive: true },
+  });
+
+  if (user) {
+    sessionCache.set(userId, {
+      currentSessionId: user.currentSessionId,
+      isActive: user.isActive,
+      expiresAt: now + 30000, // 30s TTL
+    });
+  }
+  return user;
 }
 
 export const verifyToken = async (
@@ -58,11 +70,8 @@ export const verifyToken = async (
       return res.status(401).json({ error: "Access Denied. Invalid token format." });
     }
 
-    // Validate active session
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { currentSessionId: true, isActive: true },
-    });
+    // Validate active session with 30s cache
+    const user = await getCachedUserSession(userId);
 
     if (!user) {
       return res.status(401).json({ error: "User not found." });
@@ -111,10 +120,7 @@ export const optionalVerifyToken = async (
     const userId = decoded.id || decoded.userId;
     if (!userId) return next();
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { currentSessionId: true, isActive: true },
-    });
+    const user = await getCachedUserSession(userId);
 
     if (user && user.isActive) {
       req.user = {
