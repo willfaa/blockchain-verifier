@@ -7,7 +7,7 @@ import {
   insertCertificateToSupabase,
   uploadToSupabaseStorage,
 } from "@/lib/supabase";
-import { pinFileToPinata } from "@/lib/ipfs";
+import { pinFileToPinata, createSha256Cid } from "@/lib/ipfs";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +86,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Helper for image format detection
+    const detectImageMime = (buf: Buffer) => {
+      const isJpeg = buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8;
+      return {
+        mime: isJpeg ? "image/jpeg" : "image/png",
+        ext: isJpeg ? "jpg" : "png",
+      };
+    };
+
     // 1. Resolve User in Supabase (Guarantees valid userId to satisfy foreign key & NOT NULL constraint)
     let user = await findUserByIdentifier(studentId);
     if (!user) {
@@ -110,43 +119,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const userId = user?.id || crypto.randomUUID();
+    if (!user) {
+      return NextResponse.json(
+        { ok: false, error: "Gagal menemukan atau membuat profil akun siswa di database." },
+        { status: 400 }
+      );
+    }
+
+    const userId = user.id;
 
     // 2. Upload Page 1 and Page 2 (if present) to Supabase Storage
     let frontUrl = "";
     let transcriptUrl = "";
 
-    const isJpeg1 =
-      page1Buffer &&
-      page1Buffer.length > 3 &&
-      page1Buffer[0] === 0xff &&
-      page1Buffer[1] === 0xd8;
-    const page1Mime = isJpeg1 ? "image/jpeg" : "image/png";
-    const page1Ext = isJpeg1 ? "jpg" : "png";
-
     if (page1Buffer) {
-      const page1RemotePath = `certificates/${certId}_front.${page1Ext}`;
+      const { mime, ext } = detectImageMime(page1Buffer);
       const uploaded1 = await uploadToSupabaseStorage(
         page1Buffer,
-        page1RemotePath,
-        page1Mime,
+        `certificates/${certId}_front.${ext}`,
+        mime,
         "lms"
       );
       if (uploaded1) frontUrl = uploaded1;
     }
 
     if (page2Buffer) {
-      const isJpeg2 =
-        page2Buffer.length > 3 &&
-        page2Buffer[0] === 0xff &&
-        page2Buffer[1] === 0xd8;
-      const page2Mime = isJpeg2 ? "image/jpeg" : "image/png";
-      const page2Ext = isJpeg2 ? "jpg" : "png";
-      const page2RemotePath = `certificates/${certId}_transcript.${page2Ext}`;
+      const { mime, ext } = detectImageMime(page2Buffer);
       const uploaded2 = await uploadToSupabaseStorage(
         page2Buffer,
-        page2RemotePath,
-        page2Mime,
+        `certificates/${certId}_transcript.${ext}`,
+        mime,
         "lms"
       );
       if (uploaded2) transcriptUrl = uploaded2;
@@ -174,9 +176,10 @@ export async function POST(request: NextRequest) {
     // 4. Pin Certificate Image Directly to Pinata IPFS (Primary Decentralized Storage)
     let ipfsCid = "";
     if (page1Buffer) {
+      const { mime, ext } = detectImageMime(page1Buffer);
       try {
         console.log(`[IPFS] Pinning Stamped Certificate Image for ${certId} directly to Pinata...`);
-        ipfsCid = await pinFileToPinata(page1Buffer, `${certId}_front.${page1Ext}`, page1Mime);
+        ipfsCid = await pinFileToPinata(page1Buffer, `${certId}_front.${ext}`, mime);
       } catch (ipfsErr: any) {
         console.warn("[IPFS Direct Image Pinning Note]:", ipfsErr.message);
       }
@@ -185,24 +188,19 @@ export async function POST(request: NextRequest) {
     // Also pin transcript image if present
     let transcriptCid = "";
     if (page2Buffer) {
+      const { mime, ext } = detectImageMime(page2Buffer);
       try {
-        const isJpeg2 =
-          page2Buffer.length > 3 &&
-          page2Buffer[0] === 0xff &&
-          page2Buffer[1] === 0xd8;
-        const page2Mime = isJpeg2 ? "image/jpeg" : "image/png";
-        const page2Ext = isJpeg2 ? "jpg" : "png";
-        transcriptCid = await pinFileToPinata(page2Buffer, `${certId}_transcript.${page2Ext}`, page2Mime);
+        transcriptCid = await pinFileToPinata(page2Buffer, `${certId}_transcript.${ext}`, mime);
       } catch (e: any) {}
     }
 
-    // Fallback CID if pinning was skipped or failed
+    // Fallback spec-compliant Base58 multihash CID if pinning was skipped or failed
     if (!ipfsCid) {
-      ipfsCid = `Qm${hash.substring(0, 44)}`;
+      ipfsCid = createSha256Cid(page1Buffer || hash);
     }
 
     const cid = ipfsCid;
-    const txId = `TX_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const txId = "PENDING_FABRIC_SYNC";
 
     let formattedUnits = competencyUnits;
     if (page2Buffer && !competencyUnits) {
@@ -232,9 +230,9 @@ export async function POST(request: NextRequest) {
       signers: signers ? JSON.stringify(signers) : null,
       competencyUnits: formattedUnits ? JSON.stringify(formattedUnits) : null,
       layoutMode: page2Buffer ? "DUPLEX_2_PAGES" : "PRE_ISSUED_STAMP",
-      blockchainSyncStatus: "SYNCED",
+      blockchainSyncStatus: "PENDING_SYNC",
       blockchainTxId: txId,
-      syncedAt: new Date().toISOString(),
+      syncedAt: null,
     };
 
     const inserted = await insertCertificateToSupabase(certRecord);
@@ -248,7 +246,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      message: "Sertifikat Jadi Berhasil Diamankan & Terverifikasi Blockchain!",
+      message: "Sertifikat Berhasil Diamankan & Masuk Antrean Ledger Blockchain!",
       certId,
       hash,
       txId,

@@ -7,7 +7,7 @@ import {
   fetchCourseUnitsFromSupabase,
   insertCertificateToSupabase,
 } from "@/lib/supabase";
-import { pinFileToPinata } from "@/lib/ipfs";
+import { pinFileToPinata, createSha256Cid } from "@/lib/ipfs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (!ipfsCid) {
-      ipfsCid = `Qm${hash.substring(0, 44)}`;
+      ipfsCid = createSha256Cid(hash);
     }
 
     // 4. Insert Certificate to Supabase Database

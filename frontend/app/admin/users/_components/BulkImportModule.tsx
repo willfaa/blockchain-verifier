@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, FileSpreadsheet, KeyRound } from "lucide-react";
+import { Upload, FileSpreadsheet, KeyRound, FileDown } from "lucide-react";
 import * as XLSX from "xlsx";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -14,6 +14,50 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
   const [batchPassword, setBatchPassword] = useState("");
   const [importing, setImporting] = useState(false);
 
+  const handleDownloadTemplate = () => {
+    try {
+      const templateRows = [
+        {
+          Name: "Ahmad Pratama",
+          Email: "ahmad.pratama@example.com",
+          Role: "STUDENT",
+          Majority: "Teknik Komputer dan Jaringan",
+          StudyProgram: "Teknik Komputer dan Informatika",
+          StudentId: "20241001",
+          NIP: "",
+        },
+        {
+          Name: "Budi Santoso, M.Kom.",
+          Email: "budi.santoso@example.com",
+          Role: "TEACHER",
+          Majority: "Teknik Komputer dan Jaringan",
+          StudyProgram: "Teknik Komputer dan Informatika",
+          StudentId: "",
+          NIP: "198501012010011001",
+        },
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateRows);
+      ws["!cols"] = [
+        { wch: 24 }, // Name
+        { wch: 30 }, // Email
+        { wch: 12 }, // Role
+        { wch: 32 }, // Majority
+        { wch: 32 }, // StudyProgram
+        { wch: 18 }, // StudentId
+        { wch: 24 }, // NIP
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+      XLSX.writeFile(wb, "Template_Import_Users.xlsx");
+      toast.success("Template Excel berhasil diunduh!");
+    } catch (err: any) {
+      console.error("[Download Template Error]:", err);
+      toast.error("Gagal mengunduh template Excel");
+    }
+  };
+
   const handleFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -21,13 +65,33 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const bstr = evt.target?.result;
-      const wb = XLSX.read(bstr, { type: "binary" });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws);
-      setBulkData(data);
-      toast.success(`Parsed ${data.length} rows`);
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: "binary" });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rawData = XLSX.utils.sheet_to_json<any>(ws);
+
+        // Normalize header keys & ensure role is uppercase
+        const normalizedData = rawData.map((row) => {
+          const roleRaw = (row.role || row.Role || "STUDENT").toString().trim().toUpperCase();
+          const role = roleRaw.includes("TEACH") || roleRaw.includes("GURU") ? "TEACHER" : "STUDENT";
+          return {
+            name: (row.name || row.Name || row.nama || row.Nama || "").toString().trim(),
+            email: (row.email || row.Email || "").toString().trim(),
+            role,
+            majority: (row.majority || row.Majority || row.jurusan || row.Jurusan || "").toString().trim(),
+            studyProgram: (row.studyProgram || row.StudyProgram || row.program || row.Program || "").toString().trim(),
+            studentId: (row.studentId || row.StudentId || row.nim || row.NIM || row.nisn || row.NISN || "").toString().trim(),
+            nip: (row.nip || row.NIP || "").toString().trim(),
+          };
+        });
+
+        setBulkData(normalizedData);
+        toast.success(`Berhasil membaca ${normalizedData.length} baris data user`);
+      } catch (parseErr) {
+        toast.error("Gagal memproses file Excel. Pastikan format file valid.");
+      }
     };
     reader.readAsBinaryString(file);
   };
@@ -74,9 +138,21 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
             Upload an Excel file (.xlsx) containing user data.
           </p>
           <p className="text-slate-500 text-xs mt-1">
-            Columns required: Name, Email, Role (student/teacher), Majority,
-            StudyProgram, NIM (optional), NIP (optional)
+            Columns required: Name, Email, Role (STUDENT/TEACHER), Majority,
+            StudyProgram, StudentId/NIM, NIP
           </p>
+
+          {/* Download Template Button */}
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={handleDownloadTemplate}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-teal-500/10 cursor-pointer"
+            >
+              <FileDown size={15} />
+              Unduh Template Excel (.xlsx)
+            </button>
+          </div>
         </div>
 
         {/* Password */}

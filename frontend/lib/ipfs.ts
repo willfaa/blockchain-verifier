@@ -1,31 +1,43 @@
 // frontend/lib/ipfs.ts
 import crypto from "crypto";
 
-const DEFAULT_JWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJiNGRjODAzNy0xMGE5LTQyOTEtYmI0Yy00ZTRiZTk3YTljNzgiLCJlbWFpbCI6ImZhcnl3aWxkYW55ZmFobWlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImZiZWZmY2IwNGZjOWI2NGE2MzQyIiwic2NvcGVkS2V5U2VjcmV0IjoiMDAzM2MzY2JkMTMwMmJlMjI4YTI4ZTc3ODRmYTJiNjNkMTQwNzdiMGQ1YzhiZWYwZGFlNDc2N2JkNGIxYjZkNCIsImV4cCI6MTgxMzc3ODY4OH0.yN21QPzJImxFaJ828z-2UAae8OeMlKSvHl8H2N4gS_M";
+const B58_CHARS = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/**
+ * Encodes a buffer to Base58 (Bitcoin alphabet) to generate spec-compliant IPFS CIDv0 multihash.
+ */
+function toBase58(buffer: Buffer | Uint8Array): string {
+  const digits = [0];
+  for (let i = 0; i < buffer.length; i++) {
+    let carry = buffer[i];
+    for (let j = 0; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) {
+      digits.push(carry % 58);
+      carry = (carry / 58) | 0;
+    }
+  }
+  for (let i = 0; i < buffer.length && buffer[i] === 0; i++) digits.push(0);
+  return digits.reverse().map((d) => B58_CHARS[d]).join("");
+}
+
+/**
+ * Computes a valid IPFS CIDv0 string (Qm...) directly from SHA-256 data.
+ */
+export function createSha256Cid(data: Buffer | Uint8Array | string): string {
+  const buf = typeof data === "string" ? Buffer.from(data) : Buffer.from(data);
+  const hash = crypto.createHash("sha256").update(buf).digest();
+  const multihash = Buffer.concat([Buffer.from([0x12, 0x20]), hash]);
+  return toBase58(multihash);
+}
 
 export const getPinataAuthHeaders = (): Record<string, string> => {
-  const jwt = (
-    process.env.PINATA_JWT ||
-    process.env.NEXT_PUBLIC_PINATA_JWT ||
-    DEFAULT_JWT
-  )
-    .replace(/^["']|["']$/g, "")
-    .trim();
-  const apiKey = (
-    process.env.PINATA_API_KEY ||
-    process.env.NEXT_PUBLIC_PINATA_API_KEY ||
-    ""
-  )
-    .replace(/^["']|["']$/g, "")
-    .trim();
-  const apiSecret = (
-    process.env.PINATA_API_SECRET ||
-    process.env.NEXT_PUBLIC_PINATA_API_SECRET ||
-    ""
-  )
-    .replace(/^["']|["']$/g, "")
-    .trim();
+  const jwt = (process.env.PINATA_JWT || "").replace(/^["']|["']$/g, "").trim();
+  const apiKey = (process.env.PINATA_API_KEY || "").replace(/^["']|["']$/g, "").trim();
+  const apiSecret = (process.env.PINATA_API_SECRET || "").replace(/^["']|["']$/g, "").trim();
 
   if (jwt) {
     return { Authorization: `Bearer ${jwt}` };
@@ -36,7 +48,7 @@ export const getPinataAuthHeaders = (): Record<string, string> => {
       pinata_secret_api_key: apiSecret,
     };
   }
-  return { Authorization: `Bearer ${DEFAULT_JWT}` };
+  return {};
 };
 
 export const getIpfsGatewayUrl = (cid?: string | null): string => {
@@ -72,11 +84,7 @@ export async function pinFileToPinata(
   mimeType: string = "image/png"
 ): Promise<string> {
   const authHeaders = getPinataAuthHeaders();
-  const fallbackHash = crypto
-    .createHash("sha256")
-    .update(Buffer.from(fileBuffer))
-    .digest("hex");
-  const fallbackCid = `Qm${fallbackHash.substring(0, 44)}`;
+  const fallbackCid = createSha256Cid(Buffer.from(fileBuffer));
 
   try {
     const formData = new FormData();
@@ -119,11 +127,7 @@ export async function pinJsonToPinata(
   name: string,
 ): Promise<string> {
   const authHeaders = getPinataAuthHeaders();
-  const fallbackHash = crypto
-    .createHash("sha256")
-    .update(JSON.stringify(content))
-    .digest("hex");
-  const fallbackCid = `Qm${fallbackHash.substring(0, 44)}`;
+  const fallbackCid = createSha256Cid(JSON.stringify(content));
 
   try {
     const payload = {
