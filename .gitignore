@@ -11,3 +11,7 @@ build
 backend/fabric-network/wallet/
 fabric-network/wallet/
 *.id
+
+# Graphify Knowledge Graph
+graphify-out/
+.graphify/
