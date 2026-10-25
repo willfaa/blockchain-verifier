@@ -30,8 +30,19 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
       toast.success("Template Excel berhasil diunduh!");
     } catch (err: any) {
       console.error("[Download Template Error]:", err);
-      toast.error("Gagal mengunduh template Excel");
+      let errorMsg = "Gagal mengunduh template Excel";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed.error) errorMsg = parsed.error;
+        } catch (_) {}
+      } else if (err.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      }
+      toast.error(errorMsg);
     }
+
   };
 
 

@@ -103,9 +103,11 @@ router.post("/settings", updateSystemSettings);
  * Endpoints:
  * GET /api/admin/users/pending
  * GET /api/admin/users/active
+ * GET /api/admin/users/template
  */
 router.get("/users/pending", getPendingUsers);
 router.get("/users/active", getActiveUsers);
+router.get("/users/template", downloadUserTemplate);
 
 /**
  * USER ACTIONS
@@ -121,8 +123,8 @@ router.delete("/users/:userId", deleteUser);
 /**
  * BULK OPERATIONS
  */
-router.get("/users/template", downloadUserTemplate);
 router.post("/users/bulk", bulkCreateUsers);
+
 
 
 /**
