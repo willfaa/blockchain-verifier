@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { db } from "../config/db";
 import * as xlsx from "xlsx";
 import * as bcrypt from "bcryptjs";
+import fs from "fs";
+import path from "path";
 
 // --- HELPERS ---
 const bufferToExcel = (data: any[], sheetName: string): Buffer => {
@@ -22,25 +24,42 @@ const excelToJSON = (buffer: Buffer) => {
 
 export const downloadUserTemplate = async (req: Request, res: Response) => {
   try {
+    const possiblePaths = [
+      path.resolve(__dirname, "../../uploads/Template_Import_Users.xlsx"),
+      path.join(process.cwd(), "uploads", "Template_Import_Users.xlsx"),
+      path.join(process.cwd(), "backend", "uploads", "Template_Import_Users.xlsx"),
+    ];
+    const templatePath = possiblePaths.find((p) => fs.existsSync(p));
+    if (templatePath) {
+      return res.download(templatePath, "Template_Import_Users.xlsx");
+    }
+
+
     const data = [
       {
-        Name: "John Doe",
-        Email: "john@example.com",
-        Role: "student",
-        Password: "password123",
+        Name: "Ahmad Pratama",
+        Email: "ahmad.pratama@example.com",
+        Role: "STUDENT",
+        Majority: "Teknik Komputer dan Jaringan",
+        StudyProgram: "Teknik Komputer dan Informatika",
+        StudentId: "20241001",
+        NIP: "",
       },
       {
-        Name: "Jane Teacher",
-        Email: "jane@example.com",
-        Role: "teacher",
-        Password: "securePass!",
+        Name: "Budi Santoso, M.Kom.",
+        Email: "budi.santoso@example.com",
+        Role: "TEACHER",
+        Majority: "Teknik Komputer dan Jaringan",
+        StudyProgram: "Teknik Komputer dan Informatika",
+        StudentId: "",
+        NIP: "198501012010011001",
       },
     ];
-    const buffer = bufferToExcel(data, "Users Template");
+    const buffer = bufferToExcel(data, "Users");
 
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="users_template.xlsx"'
+      'attachment; filename="Template_Import_Users.xlsx"'
     );
     res.setHeader(
       "Content-Type",
@@ -51,6 +70,7 @@ export const downloadUserTemplate = async (req: Request, res: Response) => {
     res.status(500).json({ ok: false, error: error.message });
   }
 };
+
 
 export const importUsers = async (req: Request, res: Response) => {
   try {

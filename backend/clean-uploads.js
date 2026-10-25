@@ -126,10 +126,16 @@ async function cleanGarbage() {
     let unusedBytes = 0;
 
     for (const file of diskFiles) {
+      // Ignore system files and static templates
+      if (file.path.endsWith(".gitkeep") || file.path.includes("Template_") || file.path.includes("template")) {
+        continue;
+      }
+
       // Check if file path is in the database set
       if (!referencedFiles.has(file.path)) {
         unusedCount++;
         unusedBytes += file.size;
+
         
         console.log(`🗑️ Unused: ${file.path} (${(file.size / 1024).toFixed(2)} KB)`);
         

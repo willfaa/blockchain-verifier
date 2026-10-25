@@ -52,8 +52,10 @@ import {
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
 import { CertController } from "../controllers/certController";
+import { downloadUserTemplate } from "../controllers/bulkController";
 
 const router = Router();
+
 const certController = new CertController();
 
 // Base Path: /api/admin
@@ -119,7 +121,9 @@ router.delete("/users/:userId", deleteUser);
 /**
  * BULK OPERATIONS
  */
+router.get("/users/template", downloadUserTemplate);
 router.post("/users/bulk", bulkCreateUsers);
+
 
 /**
  * COURSE MANAGEMENT (ADMIN FULL ACCESS)

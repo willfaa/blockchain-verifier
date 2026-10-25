@@ -15,8 +15,10 @@ fabric-network/wallet/
 # Uploads & Temporary Scratch Files
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/Template_Import_Users.xlsx
 backend/scratch/
 frontend/scratch/
+
 
 # Graphify Knowledge Graph
 graphify-out/

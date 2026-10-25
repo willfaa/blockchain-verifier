@@ -14,49 +14,27 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
   const [batchPassword, setBatchPassword] = useState("");
   const [importing, setImporting] = useState(false);
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     try {
-      const templateRows = [
-        {
-          Name: "Ahmad Pratama",
-          Email: "ahmad.pratama@example.com",
-          Role: "STUDENT",
-          Majority: "Teknik Komputer dan Jaringan",
-          StudyProgram: "Teknik Komputer dan Informatika",
-          StudentId: "20241001",
-          NIP: "",
-        },
-        {
-          Name: "Budi Santoso, M.Kom.",
-          Email: "budi.santoso@example.com",
-          Role: "TEACHER",
-          Majority: "Teknik Komputer dan Jaringan",
-          StudyProgram: "Teknik Komputer dan Informatika",
-          StudentId: "",
-          NIP: "198501012010011001",
-        },
-      ];
-
-      const ws = XLSX.utils.json_to_sheet(templateRows);
-      ws["!cols"] = [
-        { wch: 24 }, // Name
-        { wch: 30 }, // Email
-        { wch: 12 }, // Role
-        { wch: 32 }, // Majority
-        { wch: 32 }, // StudyProgram
-        { wch: 18 }, // StudentId
-        { wch: 24 }, // NIP
-      ];
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Users");
-      XLSX.writeFile(wb, "Template_Import_Users.xlsx");
+      const response = await api.get("/admin/users/template", {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Template_Import_Users.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
       toast.success("Template Excel berhasil diunduh!");
     } catch (err: any) {
       console.error("[Download Template Error]:", err);
       toast.error("Gagal mengunduh template Excel");
     }
   };
+
+
 
   const handleFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
