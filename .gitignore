@@ -12,9 +12,16 @@ backend/fabric-network/wallet/
 fabric-network/wallet/
 *.id
 
+# Uploads & Temporary Scratch Files
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/scratch/
+frontend/scratch/
+
 # Graphify Knowledge Graph
 graphify-out/
 .graphify/
 
 # Archify Architecture Artifacts
 .archify/
+
