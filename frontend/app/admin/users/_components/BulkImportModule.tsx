@@ -69,8 +69,9 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
             name: (row.name || row.Name || row.nama || row.Nama || "").toString().trim(),
             email: (row.email || row.Email || "").toString().trim(),
             role,
-            majority: (row.majority || row.Majority || row.jurusan || row.Jurusan || "").toString().trim(),
-            studyProgram: (row.studyProgram || row.StudyProgram || row.program || row.Program || "").toString().trim(),
+            faculty: (row["Bidang Keahlian"] || row.bidangKeahlian || row.faculty || row.Faculty || row.bidang || row.Bidang || "").toString().trim(),
+            studyProgram: (row["Program Keahlian"] || row.programKeahlian || row.studyProgram || row.StudyProgram || row.program || row.Program || "").toString().trim(),
+            majority: (row["Konsentrasi Keahlian"] || row.konsentrasiKeahlian || row.majority || row.Majority || row.konsentrasi || row.Konsentrasi || row.jurusan || row.Jurusan || "").toString().trim(),
             studentId: (row.studentId || row.StudentId || row.nim || row.NIM || row.nisn || row.NISN || "").toString().trim(),
             nip: (row.nip || row.NIP || "").toString().trim(),
           };
@@ -124,12 +125,12 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
             Bulk User Import
           </h2>
           <p className="text-slate-400 text-sm">
-            Upload an Excel file (.xlsx) containing user data.
+            Upload file Excel (.xlsx) data pengguna (Siswa & Guru).
           </p>
           <p className="text-slate-500 text-xs mt-1">
-            Columns required: Name, Email, Role (STUDENT/TEACHER), Majority,
-            StudyProgram, StudentId/NIM, NIP
+            Kolom: Name, Email, Role (STUDENT/TEACHER), Bidang Keahlian, Program Keahlian, Konsentrasi Keahlian, StudentId/NISN, NIP
           </p>
+
 
           {/* Download Template Button */}
           <div className="mt-4 flex justify-center">

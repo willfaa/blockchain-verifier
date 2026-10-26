@@ -1782,7 +1782,7 @@ export default function SmartIssueCertificatePage() {
         { label: "Nama Siswa / Alumni", value: targetStudentName },
         { label: "NISN / Student ID", value: targetStudentId },
         { label: "Nomor Peserta", value: preIssuedCertNumber || "-" },
-        { label: "Program / Jurusan", value: preIssuedMajor || "-" },
+        { label: "Konsentrasi Keahlian", value: preIssuedMajor || "-" },
         { label: "Satuan Pendidikan", value: preIssuedSchoolName || "-" },
         ...(hasDup
           ? [
@@ -2422,7 +2422,7 @@ export default function SmartIssueCertificatePage() {
 
                   <div className="space-y-1">
                     <label className="font-bold text-slate-300">
-                      Jurusan / Keahlian
+                      Konsentrasi Keahlian
                     </label>
                     <input
                       type="text"
@@ -3060,7 +3060,7 @@ export default function SmartIssueCertificatePage() {
                       Direktori Siswa & Seleksi Massal
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Gunakan pencarian, filter jurusan, dan centang siswa yang
+                      Gunakan pencarian, filter konsentrasi, dan centang siswa yang
                       akan diterbitkan sertifikatnya secara massal.
                     </p>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -3068,7 +3068,7 @@ export default function SmartIssueCertificatePage() {
                         {dirMajorFilter === "SELECTED"
                           ? `Sinkron Konsentrasi: ${selectedKonsentrasiName}`
                           : dirMajorFilter === "ALL"
-                            ? "Semua Jurusan"
+                            ? "Semua Konsentrasi Keahlian"
                             : `Filter: ${dirMajorFilter}`}
                       </span>
                       <span className="text-[11px] text-slate-400">
@@ -3122,7 +3122,7 @@ export default function SmartIssueCertificatePage() {
                       <option value="SELECTED">
                         🎯 Sesuai Konsentrasi: {selectedKonsentrasiName}
                       </option>
-                      <option value="ALL">🌐 Semua Jurusan (Lintas Konsentrasi)</option>
+                      <option value="ALL">🌐 Semua Konsentrasi Keahlian</option>
                       {majorsList.map((m) => (
                         <option key={m.id} value={m.name}>
                           {m.name}
@@ -3140,7 +3140,7 @@ export default function SmartIssueCertificatePage() {
                         <th className="py-3 px-4 w-30 text-center">Pilih</th>
                         <th className="py-3 px-4">Nama Siswa</th>
                         <th className="py-3 px-4">NISN / ID</th>
-                        <th className="py-3 px-4">Jurusan / Konsentrasi</th>
+                        <th className="py-3 px-4">Konsentrasi Keahlian</th>
                         <th className="py-3 px-4 text-right">Aksi</th>
                       </tr>
                     </thead>
@@ -3164,7 +3164,7 @@ export default function SmartIssueCertificatePage() {
                               Tidak ada siswa yang terdaftar pada konsentrasi &quot;{selectedKonsentrasiName}&quot;.
                             </p>
                             <p className="text-[11px] text-slate-500 max-w-md mx-auto">
-                              Pilih &quot;Semua Jurusan (Lintas Konsentrasi)&quot; pada dropdown filter di atas jika data jurusan siswa belum diset di profil mereka.
+                              Pilih &quot;Semua Konsentrasi Keahlian&quot; pada dropdown filter di atas jika data konsentrasi siswa belum diset di profil mereka.
                             </p>
                           </td>
                         </tr>
@@ -3649,7 +3649,7 @@ export default function SmartIssueCertificatePage() {
 
                       <div>
                         <p className="text-[10px] uppercase font-bold text-slate-400">
-                          Program / Jurusan
+                          Program & Konsentrasi Keahlian
                         </p>
                         <p className="text-sm font-semibold text-slate-200 truncate">
                           {typeof foundStudent.studyProgram === "object"

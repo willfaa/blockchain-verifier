@@ -49,6 +49,9 @@ export class CertController {
         page2Base64,
       } = req.body || {};
 
+      if (!majority) majority = req.body?.konsentrasiKeahlian || req.body?.bidangKeahlian;
+      if (!program) program = req.body?.programKeahlian || req.body?.konsentrasiKeahlian;
+
       // Parse JSON strings if sent as multipart form data
       if (typeof signers === "string") {
         try { signers = JSON.parse(signers); } catch(e) {}
@@ -256,6 +259,9 @@ export class CertController {
         layoutMode,
       } = req.body ?? {};
 
+      if (!majority) majority = req.body?.konsentrasiKeahlian || req.body?.bidangKeahlian;
+      if (!program) program = req.body?.programKeahlian || req.body?.konsentrasiKeahlian;
+
       // Fallback for compatibility
       if (!studentId) studentId = nim || nisn;
 
@@ -266,7 +272,7 @@ export class CertController {
       if (!certId || !studentId || !name || !majority || !program) {
         return res.status(400).json({
           ok: false,
-          error: "Missing required fields (studentId, name, majority, program)",
+          error: "Missing required fields (studentId, name, majority/konsentrasiKeahlian, program/programKeahlian)",
         });
       }
 

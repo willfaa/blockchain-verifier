@@ -292,7 +292,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-xs font-medium text-slate-300">
-                      Prodi (Program)
+                      Program Keahlian
                     </label>
                     <input
                       required
@@ -303,7 +303,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-300">
-                      Major (Jurusan)
+                      Konsentrasi Keahlian
                     </label>
                     <input
                       required
@@ -328,7 +328,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-300">
-                      Teaching Majority
+                      Konsentrasi Keahlian Guru
                     </label>
                     <input
                       required

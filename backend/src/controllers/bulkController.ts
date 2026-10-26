@@ -40,8 +40,9 @@ export const downloadUserTemplate = async (req: Request, res: Response) => {
         Name: "Ahmad Pratama",
         Email: "ahmad.pratama@example.com",
         Role: "STUDENT",
-        Majority: "Teknik Komputer dan Jaringan",
-        StudyProgram: "Teknik Komputer dan Informatika",
+        "Bidang Keahlian": "Teknologi Informasi",
+        "Program Keahlian": "Pengembangan Perangkat Lunak dan Gim",
+        "Konsentrasi Keahlian": "Rekayasa Perangkat Lunak",
         StudentId: "20241001",
         NIP: "",
       },
@@ -49,13 +50,15 @@ export const downloadUserTemplate = async (req: Request, res: Response) => {
         Name: "Budi Santoso, M.Kom.",
         Email: "budi.santoso@example.com",
         Role: "TEACHER",
-        Majority: "Teknik Komputer dan Jaringan",
-        StudyProgram: "Teknik Komputer dan Informatika",
+        "Bidang Keahlian": "Teknologi Informasi",
+        "Program Keahlian": "Pengembangan Perangkat Lunak dan Gim",
+        "Konsentrasi Keahlian": "Rekayasa Perangkat Lunak",
         StudentId: "",
         NIP: "198501012010011001",
       },
     ];
     const buffer = bufferToExcel(data, "Users");
+
 
     res.setHeader(
       "Content-Disposition",
@@ -85,10 +88,15 @@ export const importUsers = async (req: Request, res: Response) => {
 
     for (const row of users) {
       try {
-        const email = row.Email;
-        const name = row.Name || "Unknown";
-        const role = (row.Role || "student").toLowerCase();
-        const rawPassword = row.Password || defaultPassword || "default123";
+        const email = row.Email || row.email;
+        const name = row.Name || row.name || "Unknown";
+        const role = (row.Role || row.role || "student").toLowerCase();
+        const rawPassword = row.Password || row.password || defaultPassword || "default123";
+        const faculty = (row["Bidang Keahlian"] || row.bidangKeahlian || row.faculty || row.Faculty || "").toString().trim() || null;
+        const studyProgram = (row["Program Keahlian"] || row.programKeahlian || row.studyProgram || row.StudyProgram || "").toString().trim() || null;
+        const majority = (row["Konsentrasi Keahlian"] || row.konsentrasiKeahlian || row.majority || row.Majority || "").toString().trim() || null;
+        const studentId = (row.StudentId || row.studentId || row.nim || row.NIM || row.nisn || row.NISN || "").toString().trim() || null;
+        const nip = (row.NIP || row.nip || "").toString().trim() || null;
 
         if (!email) continue;
 
@@ -100,7 +108,12 @@ export const importUsers = async (req: Request, res: Response) => {
           update: {
             name,
             role,
-            isApproved: true, // Auto-approve imported users
+            isApproved: true,
+            faculty: faculty || undefined,
+            studyProgram: studyProgram || undefined,
+            majority: majority || undefined,
+            studentId: role === "student" ? (studentId || undefined) : undefined,
+            nip: role === "teacher" ? (nip || undefined) : undefined,
           },
           create: {
             email,
@@ -109,6 +122,11 @@ export const importUsers = async (req: Request, res: Response) => {
             role,
             isApproved: true, // Auto-approve
             isVerified: true,
+            faculty,
+            studyProgram,
+            majority,
+            studentId: role === "student" ? studentId : null,
+            nip: role === "teacher" ? nip : null,
           },
         });
         successCount++;

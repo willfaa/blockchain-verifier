@@ -94,7 +94,7 @@ export default function TeacherListPage() {
     },
     {
       key: "majority",
-      label: "Homebase",
+      label: "Konsentrasi Keahlian",
       sortable: true,
       render: (row: any) => (
         <span className="flex items-center gap-2 text-slate-300">

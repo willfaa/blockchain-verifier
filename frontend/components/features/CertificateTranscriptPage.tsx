@@ -134,7 +134,7 @@ export const resolveTranscriptBgUrl = (path: string | null | undefined): string 
 export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   studentName = "Nama Peserta",
   studentId = "0123456789",
-  majority = "Kompetensi Keahlian",
+  majority = "Konsentrasi Keahlian",
   program = "Program Keahlian",
   courseTitle,
   units = [],
@@ -251,7 +251,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
   const resolvedBg = resolveTranscriptBgUrl(bgPath);
   const resolvedSig = resolveTranscriptBgUrl(signatureUrl);
 
-  const finalHeaderTitle = headerTitle || (majority ? `KOMPETENSI KEAHLIAN ${majority.toUpperCase()}` : "KOMPETENSI KEAHLIAN");
+  const finalHeaderTitle = headerTitle || (majority ? `KONSENTRASI KEAHLIAN ${majority.toUpperCase()}` : "KONSENTRASI KEAHLIAN");
   const finalSubHeaderTitle = subHeaderTitle || "DAFTAR KOMPETENSI / SUB. KOMPETENSI (TRANSKRIP NILAI SKKNI)";
   const finalFooterNote = footerNote || "Dokumen Digital Sah & Terverifikasi Blockchain Ledger · Standar SKKNI & IDUKA";
 
@@ -315,7 +315,7 @@ export const CertificateTranscriptPage: React.FC<TranscriptProps> = ({
       studentNameMeta: `Nama : ${studentName}`,
       studentIdMeta: `NIS / ID : ${studentId}`,
       schoolNameMeta: `Satuan Pendidikan : ${institutionName || schoolName || "Satuan Pendidikan / Lembaga"}`,
-      majorProgramMeta: `Kompetensi Keahlian : ${(majority || program || "").toUpperCase()}`,
+      majorProgramMeta: `Konsentrasi Keahlian : ${(majority || program || "").toUpperCase()}`,
       footerNote: finalFooterNote,
       blockchainHashNote: "Kunci Kriptografis Hash Transkrip Terekam di Ledger Blockchain",
       // Signer dynamic texts

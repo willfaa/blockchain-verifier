@@ -99,7 +99,7 @@ export default function StudentListPage() {
     },
     {
       key: "majority",
-      label: "Major",
+      label: "Konsentrasi Keahlian",
       sortable: true,
       render: (row: any) => (
         <span className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function StudentListPage() {
     },
     {
       key: "program",
-      label: "Program",
+      label: "Program Keahlian",
       sortable: true,
       render: (row: any) => (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">

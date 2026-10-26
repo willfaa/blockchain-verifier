@@ -213,7 +213,7 @@ export default function VerifyPage() {
 
                     <div className="space-y-1 md:col-span-2">
                       <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30">
-                        Academic Program
+                        Program & Konsentrasi Keahlian
                       </p>
                       <p className="text-[11px] font-bold text-white uppercase tracking-widest">
                         {result.program} in {result.majority}

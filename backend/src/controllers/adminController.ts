@@ -441,10 +441,22 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
       const chunkResults = await Promise.all(
         chunk.map(async (u) => {
           try {
-            const { studentId, ...rest } = u;
+            const {
+              studentId,
+              bidangKeahlian,
+              programKeahlian,
+              konsentrasiKeahlian,
+              faculty,
+              studyProgram,
+              majority,
+              ...rest
+            } = u;
             await db.user.create({
               data: {
                 ...rest,
+                faculty: faculty || bidangKeahlian || null,
+                studyProgram: studyProgram || programKeahlian || null,
+                majority: majority || konsentrasiKeahlian || null,
                 password: hashedPassword,
                 isApproved: true,
                 isActive: true,
@@ -453,6 +465,7 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
                 nip: u.role === "TEACHER" ? u.nip : null,
               },
             });
+
             return { email: u.email, status: "ok" };
           } catch (e: any) {
             return { email: u.email, status: "error", message: e.message };

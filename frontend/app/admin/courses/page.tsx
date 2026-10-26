@@ -272,7 +272,7 @@ export default function AdminCoursesPage() {
           <p className="text-2xl font-black text-white font-mono">{courses.length}</p>
         </div>
         <div className="p-5 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 backdrop-blur-xl space-y-1">
-          <p className="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Kategori / Jurusan</p>
+          <p className="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Kategori / Konsentrasi Keahlian</p>
           <p className="text-2xl font-black text-cyan-300 font-mono">{categoriesList.length || departments.length}</p>
         </div>
         <div className="p-5 rounded-2xl bg-fuchsia-950/20 border border-fuchsia-500/30 backdrop-blur-xl space-y-1">

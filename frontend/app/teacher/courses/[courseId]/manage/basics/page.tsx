@@ -308,7 +308,7 @@ export default function CourseBasicsPage() {
             <div className="space-y-4">
               <label className="text-neon-soft-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-neon-soft-blue animate-pulse" />{" "}
-                Course Department / Category
+                Bidang / Konsentrasi Keahlian
               </label>
               <div className="relative">
                 <select
@@ -318,7 +318,7 @@ export default function CourseBasicsPage() {
                   className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white text-md font-bold focus:outline-none focus:border-neon-blue/50 focus:bg-white/[0.05] transition-all appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-dark-bg">
-                    -- Select Course Department --
+                    -- Pilih Bidang / Konsentrasi Keahlian --
                   </option>
                   {MAJORITIES.map((m) => (
                     <option key={m} value={m} className="bg-dark-bg">
@@ -337,7 +337,7 @@ export default function CourseBasicsPage() {
               <div className="space-y-8 glass-panel p-10 rounded-[2.5rem] border-transparent shadow-2xl animate-in fade-in duration-700">
                 <div className="flex items-center justify-between gap-6 pb-6 border-b border-white/5">
                   <label className="text-neon-pink text-[10px] uppercase font-bold tracking-widest">
-                    Allowed Study Programs
+                    Program Keahlian yang Diizinkan
                   </label>
                   <button
                     type="button"

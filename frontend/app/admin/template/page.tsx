@@ -1212,7 +1212,7 @@ export default function CertificateTemplatePage() {
 
                 <div>
                   <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                    Sub-Judul / Fakultas / Jurusan / Unit LSP (Header Sekunder)
+                    Sub-Judul / Bidang Keahlian / Konsentrasi Keahlian (Header Sekunder)
                   </label>
                   <input
                     type="text"

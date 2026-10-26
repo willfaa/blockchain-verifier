@@ -330,7 +330,7 @@ export default function EditProfilePage() {
                 <>
                   <div className="glass-panel p-4 rounded-2xl border-white/5 bg-white/[0.02] relative group">
                     <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest block mb-1">
-                      {user.role === "student" ? "Major" : "Department"}
+                      {user.role === "student" ? "Konsentrasi Keahlian" : "Bidang / Konsentrasi Keahlian"}
                     </label>
                     <div className="flex items-center text-white font-bold text-sm">
                       {user.majority || "General"}{" "}

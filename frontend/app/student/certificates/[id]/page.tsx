@@ -757,7 +757,7 @@ export default function StudentCertificateDetailPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Konsentrasi / Jurusan
+                    Konsentrasi Keahlian
                   </label>
                   <input
                     type="text"

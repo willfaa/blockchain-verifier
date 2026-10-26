@@ -31,11 +31,21 @@ export const register = async (req: Request, res: Response) => {
     // Front-end now generates the ID (payload.email) and sends recovery (payload.personalEmail)
     // We trust valid institutional emails end with @chainnesa.com
 
-    // SAFETY NET: Validation
+    // SAFETY NET: Validation with Indonesian field aliases
+    if (!payload.majority && (payload.konsentrasiKeahlian || payload.majorityKeahlian)) {
+      payload.majority = payload.konsentrasiKeahlian || payload.majorityKeahlian;
+    }
+    if (!payload.studyProgram && (payload.programKeahlian || payload.program)) {
+      payload.studyProgram = payload.programKeahlian || payload.program;
+    }
+    if (!payload.faculty && (payload.bidangKeahlian || payload.bidang)) {
+      payload.faculty = payload.bidangKeahlian || payload.bidang;
+    }
+
     if (!payload.majority || !payload.studyProgram) {
       return res
         .status(400)
-        .json({ error: "Academic data (Majority/Program) is incomplete." });
+        .json({ error: "Academic data (Bidang, Program, atau Konsentrasi Keahlian) is incomplete." });
     }
 
     // Ensure data flow:

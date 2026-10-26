@@ -71,7 +71,7 @@ export const UserFilters = ({
             }}
             className="appearance-none bg-[#050510] border border-teal-900/50 rounded-md py-2 pl-9 pr-8 text-xs text-teal-100 focus:border-teal-500/50 focus:outline-none cursor-pointer min-w-[140px] font-mono"
           >
-            <option value="All Majors">Semua Jurusan / Konsentrasi</option>
+            <option value="All Majors">Semua Konsentrasi Keahlian</option>
             {combinedMajors.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -108,11 +108,12 @@ export const UserFilters = ({
         />
         <input
           type="text"
-          placeholder={`Cari nama, NISN, NIP, jurusan...`}
+          placeholder={`Cari nama, NISN, NIP, keahlian...`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-[#050510] border border-teal-900/50 rounded-md py-2 pl-9 pr-4 text-xs text-teal-100 placeholder:text-teal-900/50 focus:outline-none focus:border-teal-500/50 transition-all font-mono"
         />
+
       </div>
     </div>
   );

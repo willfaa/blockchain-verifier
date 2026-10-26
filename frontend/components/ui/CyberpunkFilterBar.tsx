@@ -73,10 +73,10 @@ export default function CyberpunkFilterBar({
 
       {/* Filters */}
       <div className="flex gap-4">
-        {/* MAJOR FILTER */}
+        {/* KONSENTRASI KEAHLIAN FILTER */}
         <div className="w-48">
           <label className="text-xs font-semibold text-slate-500 uppercase ml-1 mb-1 block">
-            Major
+            Konsentrasi Keahlian
           </label>
           <div className="relative">
             <select
@@ -84,7 +84,7 @@ export default function CyberpunkFilterBar({
               value={selectedMajor}
               className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer"
             >
-              <option value="">All Majors</option>
+              <option value="">Semua Konsentrasi</option>
               {MAJORITIES.map((major) => (
                 <option key={major} value={major}>
                   {major}
@@ -98,23 +98,24 @@ export default function CyberpunkFilterBar({
           </div>
         </div>
 
-        {/* PROGRAM FILTER */}
+        {/* PROGRAM KEAHLIAN FILTER */}
         <div className="w-48">
           <label className="text-xs font-semibold text-slate-500 uppercase ml-1 mb-1 block">
-            Program
+            Program Keahlian
           </label>
           <div className="relative">
             <select
               onChange={(e) => onFilterProgram(e.target.value)}
               className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer"
             >
-              <option value="">All Programs</option>
+              <option value="">Semua Program</option>
               {programs.map((prog) => (
                 <option key={prog} value={prog}>
                   {prog}
                 </option>
               ))}
             </select>
+
             <Filter
               className="absolute right-4 top-3.5 text-slate-500 pointer-events-none"
               size={16}

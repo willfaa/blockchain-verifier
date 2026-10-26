@@ -85,7 +85,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
       },
       {
         key: "majority",
-        label: "Konsentrasi / Jurusan",
+        label: "Konsentrasi Keahlian",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">
@@ -196,7 +196,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
       },
       {
         key: "majority",
-        label: "Konsentrasi / Keahlian",
+        label: "Konsentrasi Keahlian",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">
@@ -313,7 +313,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
       },
       {
         key: "majority",
-        label: "Konsentrasi / Jurusan",
+        label: "Konsentrasi Keahlian",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">
@@ -380,7 +380,7 @@ export const getColumns = (activeTab: string, handlers: ColumnHandlers) => {
       },
       {
         key: "majority",
-        label: "Konsentrasi / Jurusan",
+        label: "Konsentrasi Keahlian",
         sortable: true,
         render: (row: any) => (
           <span className="text-slate-300 text-xs text-nowrap">

@@ -200,7 +200,7 @@ export default function WindowsExplorerExpertisePage() {
             type: "program" as const,
             name: p.name,
             childCount: childKonsentrasi.length,
-            childLabel: `${childKonsentrasi.length} Jurusan`,
+            childLabel: `${childKonsentrasi.length} Konsentrasi Keahlian`,
             totalUnits,
             raw: p,
           };
@@ -385,7 +385,7 @@ export default function WindowsExplorerExpertisePage() {
         : item.type === "program"
         ? "Program Keahlian"
         : item.type === "konsentrasi"
-        ? "Konsentrasi Keahlian / Jurusan"
+        ? "Konsentrasi Keahlian"
         : "Unit Kompetensi SKKNI";
 
     const apiEndpoint =
@@ -481,7 +481,7 @@ export default function WindowsExplorerExpertisePage() {
         await fetchData();
       } else if (modalType === "unit") {
         if (!formUnitCode.trim() || !formUnitTitle.trim() || !formKonsentrasiId) {
-          toast.error("Kode Unit, Judul Unit, dan Jurusan wajib diisi");
+          toast.error("Kode Unit, Judul Unit, dan Konsentrasi Keahlian wajib diisi");
           setIsSaving(false);
           return;
         }
@@ -538,7 +538,7 @@ export default function WindowsExplorerExpertisePage() {
                 </span>
               </h1>
               <p className="text-white/40 text-xs mt-1">
-                Jelajahi dan kelola hierarki Bidang Keahlian, Program, Jurusan, dan Master Bank Unit SKKNI layaknya File Explorer.
+                Jelajahi dan kelola hierarki Bidang Keahlian, Program Keahlian, Konsentrasi Keahlian, dan Master Bank Unit SKKNI layaknya File Explorer.
               </p>
             </div>
           </div>
@@ -563,7 +563,7 @@ export default function WindowsExplorerExpertisePage() {
               : currentLevel === 1
               ? "Tambah Program Keahlian"
               : currentLevel === 2
-              ? "Tambah Jurusan / Konsentrasi"
+              ? "Tambah Konsentrasi Keahlian"
               : "Tambah Unit SKKNI Baru"}
           </button>
         </div>
@@ -767,7 +767,7 @@ export default function WindowsExplorerExpertisePage() {
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="p-2 rounded-xl bg-slate-950/60 border border-white/5">
                   <p className="text-xs font-mono font-bold text-white">{konsentrasiList.length}</p>
-                  <p className="text-[9px] text-slate-400">Total Jurusan</p>
+                  <p className="text-[9px] text-slate-400">Konsentrasi Keahlian</p>
                 </div>
                 <div className="p-2 rounded-xl bg-slate-950/60 border border-white/5">
                   <p className="text-xs font-mono font-bold text-emerald-400">{unitsList.length}</p>
@@ -1117,7 +1117,7 @@ export default function WindowsExplorerExpertisePage() {
                   </div>
                   <div>
                     <label className="block text-xs uppercase font-bold tracking-widest text-slate-400 mb-2">
-                      Nama Konsentrasi Keahlian / Jurusan <span className="text-red-400">*</span>
+                      Nama Konsentrasi Keahlian <span className="text-red-400">*</span>
                     </label>
                     <input
                       required
@@ -1137,7 +1137,7 @@ export default function WindowsExplorerExpertisePage() {
                 <>
                   <div>
                     <label className="block text-xs uppercase font-bold tracking-widest text-slate-400 mb-2">
-                      Jurusan / Konsentrasi Keahlian <span className="text-red-400">*</span>
+                      Konsentrasi Keahlian <span className="text-red-400">*</span>
                     </label>
                     <select
                       value={formKonsentrasiId}
