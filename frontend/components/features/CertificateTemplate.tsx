@@ -438,7 +438,7 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
     >
       <div className="text-center z-10 flex flex-col items-center">
         <p className="text-xs tracking-widest text-slate-300 uppercase font-semibold mb-2">
-          Universitas Negeri Surabaya
+          SMK Negeri 1 Surabaya
         </p>
         <h1 className="text-5xl font-extrabold tracking-[0.15em] uppercase text-cyan-300">
           Certificate of Completion

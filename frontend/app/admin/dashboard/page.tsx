@@ -876,7 +876,7 @@ export default function AdminDashboard() {
                   </span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Sistem otomatis mendeteksi perubahan profil akun atau tiket permohonan koreksi nama dari mahasiswa.
+                  Sistem otomatis mendeteksi perubahan profil akun atau tiket permohonan koreksi nama dari siswa.
                 </p>
               </div>
             </div>
@@ -898,7 +898,7 @@ export default function AdminDashboard() {
                     </span>
                     {item.hasPendingCorrection && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-                        Tiket Mahasiswa Masuk
+                        Tiket Siswa Masuk
                       </span>
                     )}
                   </div>

@@ -17,8 +17,7 @@ export default function TeacherListPage() {
 
   // Filter State
   const [search, setSearch] = useState("");
-  // Teacher might likely not have "Program", but technically User schema shares fields.
-  // We'll keep filter bar consistent or simplify it if needed.
+  const [program, setProgram] = useState("");
   const [majority, setMajority] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -30,6 +29,7 @@ export default function TeacherListPage() {
         const params = {
           role: "teacher",
           search,
+          program,
           majority,
           sortBy,
           sortOrder,
@@ -43,7 +43,7 @@ export default function TeacherListPage() {
       }
     }
     fetchData();
-  }, [search, majority, sortBy, sortOrder]);
+  }, [search, program, majority, sortBy, sortOrder]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -93,6 +93,18 @@ export default function TeacherListPage() {
       ),
     },
     {
+      key: "program",
+      label: "Program Keahlian",
+      sortable: true,
+      render: (row: any) => (
+        <span className="text-slate-300 text-xs">
+          {typeof row.studyProgram === "object"
+            ? row.studyProgram?.name
+            : row.studyProgram || "-"}
+        </span>
+      ),
+    },
+    {
       key: "majority",
       label: "Konsentrasi Keahlian",
       sortable: true,
@@ -101,7 +113,7 @@ export default function TeacherListPage() {
           <BookOpen size={14} className="text-slate-500" />
           {typeof row.majority === "object"
             ? row.majority?.name
-            : row.majority || "General"}
+            : row.majority || "-"}
         </span>
       ),
     },
@@ -142,7 +154,7 @@ export default function TeacherListPage() {
 
       <CyberpunkFilterBar
         onSearch={setSearch}
-        onFilterProgram={() => {}} // Not really relevant for teachers usually, ignore
+        onFilterProgram={setProgram}
         onFilterMajority={setMajority}
       />
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import api from "@/lib/api";
 import {
@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MAJORITIES, getProgramsByMajor } from "@/lib/constants/academics";
+import { ACADEMIC_DATA } from "@/lib/constants/academics";
 import { getAvatarUrl } from "@/lib/utils";
 
 interface StudentResult {
@@ -42,6 +42,7 @@ interface StudentResult {
     email: string;
     avatar: string | null;
     program?: { name: string } | string;
+    studyProgram?: { name: string } | string;
     majority?: { name: string } | string;
   };
   hasAttempt: boolean;
@@ -77,6 +78,8 @@ export default function ExamResultsPage() {
   const [scoreFilter, setScoreFilter] = useState<string[]>([]);
   const [selectedMajor, setSelectedMajor] = useState("All Majors");
   const [selectedProgram, setSelectedProgram] = useState("All Programs");
+  const [hierarchyMap, setHierarchyMap] =
+    useState<Record<string, string[]>>(ACADEMIC_DATA);
 
   const [selectedResult, setSelectedResult] = useState<{
     id: string;
@@ -90,7 +93,43 @@ export default function ExamResultsPage() {
 
   useEffect(() => {
     if (courseId) loadResults();
+    api
+      .get("/lms/departments")
+      .then((res) => {
+        if (res.data?.ok && Array.isArray(res.data.data)) {
+          const merged: Record<string, string[]> = {};
+          Object.entries(ACADEMIC_DATA).forEach(([prog, concs]) => {
+            merged[prog] = [...concs];
+          });
+          res.data.data.forEach((bidang: any) => {
+            (bidang.programKeahlian || []).forEach((prog: any) => {
+              if (!prog?.name) return;
+              const existing = merged[prog.name] || [];
+              const childNames = (prog.konsentrasiKeahlian || [])
+                .map((k: any) => k?.name)
+                .filter(Boolean);
+              merged[prog.name] = Array.from(
+                new Set([...existing, ...childNames]),
+              );
+            });
+          });
+          setHierarchyMap(merged);
+        }
+      })
+      .catch(() => {});
   }, [courseId]);
+
+  const availablePrograms = useMemo(
+    () => Object.keys(hierarchyMap).sort(),
+    [hierarchyMap],
+  );
+
+  const availableConcentrations = useMemo(() => {
+    if (!selectedProgram || selectedProgram === "All Programs") {
+      return Array.from(new Set(Object.values(hierarchyMap).flat())).sort();
+    }
+    return (hierarchyMap[selectedProgram] || []).slice().sort();
+  }, [hierarchyMap, selectedProgram]);
 
   useEffect(() => {
     applyFilters();
@@ -142,10 +181,9 @@ export default function ExamResultsPage() {
     }
     if (selectedProgram !== "All Programs") {
       result = result.filter((item) => {
+        const rawProg = item.student.studyProgram ?? item.student.program;
         const progName =
-          typeof item.student.program === "object"
-            ? item.student.program?.name
-            : item.student.program || "";
+          typeof rawProg === "object" ? rawProg?.name : rawProg || "";
         return progName && progName.includes(selectedProgram);
       });
     }
@@ -243,23 +281,24 @@ export default function ExamResultsPage() {
 
           <div className="w-px h-8 bg-white/5 mx-1 hidden lg:block" />
 
+          {/* 1. Program Keahlian (Umum) */}
           <div className="relative group">
             <Filter
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
               size={14}
             />
             <select
-              value={selectedMajor}
+              value={selectedProgram}
               onChange={(e) => {
-                setSelectedMajor(e.target.value);
-                setSelectedProgram("All Programs");
+                setSelectedProgram(e.target.value);
+                setSelectedMajor("All Majors");
               }}
-              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest"
+              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[180px]"
             >
-              <option value="All Majors">All Majors</option>
-              {MAJORITIES.map((m) => (
-                <option key={m} value={m}>
-                  {m.toUpperCase()}
+              <option value="All Programs">Semua Program Keahlian</option>
+              {availablePrograms.map((p) => (
+                <option key={p} value={p}>
+                  {p.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -268,20 +307,21 @@ export default function ExamResultsPage() {
             </div>
           </div>
 
+          {/* 2. Konsentrasi Keahlian (Spesifik) */}
           <div className="relative group">
             <Filter
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
               size={14}
             />
             <select
-              value={selectedProgram}
-              onChange={(e) => setSelectedProgram(e.target.value)}
+              value={selectedMajor}
+              onChange={(e) => setSelectedMajor(e.target.value)}
               className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[180px]"
             >
-              <option value="All Programs">All Programs</option>
-              {getProgramsByMajor(selectedMajor).map((p) => (
-                <option key={p} value={p}>
-                  {p.toUpperCase()}
+              <option value="All Majors">Semua Konsentrasi Keahlian</option>
+              {availableConcentrations.map((m) => (
+                <option key={m} value={m}>
+                  {m.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -363,9 +403,9 @@ export default function ExamResultsPage() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-white uppercase tracking-wider line-clamp-1 max-w-[200px]">
-                        {typeof row.student.program === "object"
-                          ? row.student.program?.name
-                          : row.student.program || "Not Set"}
+                        {typeof (row.student.studyProgram ?? row.student.program) === "object"
+                          ? (row.student.studyProgram ?? row.student.program as any)?.name
+                          : (row.student.studyProgram ?? row.student.program) || "Not Set"}
                       </span>
                       <span className="text-[8px] text-slate-500 font-mono uppercase mt-1 tracking-widest">
                         {typeof row.student.majority === "object"

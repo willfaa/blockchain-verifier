@@ -15,7 +15,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/features/RichTextEditor";
 import { useParams } from "next/navigation";
-import { ACADEMIC_DATA, MAJORITIES } from "@/lib/constants/academics";
+import { ACADEMIC_DATA } from "@/lib/constants/academics";
 import { CyberpunkLoader } from "@/components/ui/CyberpunkLoader";
 import { getAssetUrl, compressAndResizeImage, getApiBase } from "@/lib/utils";
 
@@ -33,6 +33,8 @@ export default function CourseBasicsPage() {
   });
 
   const [allowedPrograms, setAllowedPrograms] = useState<string[]>([]);
+  const [hierarchyMap, setHierarchyMap] =
+    useState<Record<string, string[]>>(ACADEMIC_DATA);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -49,6 +51,30 @@ export default function CourseBasicsPage() {
     fetchCourse();
     fetchSystemLayout();
     setMounted(true);
+    api
+      .get("/lms/departments")
+      .then((res) => {
+        if (res.data?.ok && Array.isArray(res.data.data)) {
+          const merged: Record<string, string[]> = {};
+          Object.entries(ACADEMIC_DATA).forEach(([prog, concs]) => {
+            merged[prog] = [...concs];
+          });
+          res.data.data.forEach((bidang: any) => {
+            (bidang.programKeahlian || []).forEach((prog: any) => {
+              if (!prog?.name) return;
+              const existing = merged[prog.name] || [];
+              const childNames = (prog.konsentrasiKeahlian || [])
+                .map((k: any) => k?.name)
+                .filter(Boolean);
+              merged[prog.name] = Array.from(
+                new Set([...existing, ...childNames]),
+              );
+            });
+          });
+          setHierarchyMap(merged);
+        }
+      })
+      .catch(() => {});
   }, [courseId]);
 
   const fetchSystemLayout = async () => {
@@ -72,7 +98,11 @@ export default function CourseBasicsPage() {
           title: course.title || "",
           description: course.description || "",
           thumbnail: course.imageUrl || "", // Schema uses imageUrl
-          category: course.categoryId || "", // Schema uses categoryId
+          category:
+            course.category?.name ||
+            course.studyProgram ||
+            course.categoryId ||
+            "",
         });
 
         // Handle allowedPrograms
@@ -123,21 +153,21 @@ export default function CourseBasicsPage() {
   };
 
   const handleSelectAll = () => {
-    const majority = formData.category;
-    if (!majority || !ACADEMIC_DATA[majority]) return;
+    const selectedProg = formData.category;
+    if (!selectedProg || !hierarchyMap[selectedProg]) return;
 
-    const currentMajorPrograms = ACADEMIC_DATA[majority];
-    const allSelected = currentMajorPrograms.every((p) =>
+    const currentConcentrations = hierarchyMap[selectedProg];
+    const allSelected = currentConcentrations.every((p) =>
       allowedPrograms.includes(p)
     );
 
     if (allSelected) {
       setAllowedPrograms((prev) =>
-        prev.filter((p) => !currentMajorPrograms.includes(p))
+        prev.filter((p) => !currentConcentrations.includes(p))
       );
     } else {
       setAllowedPrograms((prev) =>
-        Array.from(new Set([...prev, ...currentMajorPrograms]))
+        Array.from(new Set([...prev, ...currentConcentrations]))
       );
     }
   };
@@ -240,8 +270,9 @@ export default function CourseBasicsPage() {
 
   if (loading) return <CyberpunkLoader text="Preparing Course Data..." />;
 
+  const availablePrograms = Object.keys(hierarchyMap).sort();
   const currentPrograms = formData.category
-    ? ACADEMIC_DATA[formData.category]
+    ? hierarchyMap[formData.category] || []
     : [];
 
   return (
@@ -308,7 +339,7 @@ export default function CourseBasicsPage() {
             <div className="space-y-4">
               <label className="text-neon-soft-blue text-[10px] uppercase font-bold tracking-widest flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-neon-soft-blue animate-pulse" />{" "}
-                Bidang / Konsentrasi Keahlian
+                Program Keahlian
               </label>
               <div className="relative">
                 <select
@@ -318,9 +349,9 @@ export default function CourseBasicsPage() {
                   className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white text-md font-bold focus:outline-none focus:border-neon-blue/50 focus:bg-white/[0.05] transition-all appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-dark-bg">
-                    -- Pilih Bidang / Konsentrasi Keahlian --
+                    -- Pilih Program Keahlian --
                   </option>
-                  {MAJORITIES.map((m) => (
+                  {availablePrograms.map((m) => (
                     <option key={m} value={m} className="bg-dark-bg">
                       {m}
                     </option>
@@ -333,11 +364,11 @@ export default function CourseBasicsPage() {
               </div>
             </div>
 
-            {formData.category && currentPrograms && (
+            {formData.category && currentPrograms.length > 0 && (
               <div className="space-y-8 glass-panel p-10 rounded-[2.5rem] border-transparent shadow-2xl animate-in fade-in duration-700">
                 <div className="flex items-center justify-between gap-6 pb-6 border-b border-white/5">
                   <label className="text-neon-pink text-[10px] uppercase font-bold tracking-widest">
-                    Program Keahlian yang Diizinkan
+                    Konsentrasi Keahlian yang Diizinkan
                   </label>
                   <button
                     type="button"
@@ -346,7 +377,7 @@ export default function CourseBasicsPage() {
                   >
                     {currentPrograms.every((p) => allowedPrograms.includes(p))
                       ? "Clear All Selections"
-                      : "Allow All Programs"}
+                      : "Izinkan Semua Konsentrasi"}
                   </button>
                 </div>
 

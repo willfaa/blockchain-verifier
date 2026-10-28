@@ -125,9 +125,42 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 // 2. Pending Users
 export const getPendingUsers = async (req: Request, res: Response) => {
   try {
+    const { search, majority, program, sortBy, sortOrder } = req.query;
+    const whereClause: any = { isApproved: false };
+
+    if (program && program !== "All Programs")
+      whereClause.studyProgram = String(program);
+    if (majority && majority !== "All Majors")
+      whereClause.majority = String(majority);
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: String(search), mode: "insensitive" } },
+        { email: { contains: String(search), mode: "insensitive" } },
+        { studentId: { contains: String(search), mode: "insensitive" } },
+        { nip: { contains: String(search), mode: "insensitive" } },
+        { majority: { contains: String(search), mode: "insensitive" } },
+        { studyProgram: { contains: String(search), mode: "insensitive" } },
+      ];
+    }
+
+    const allowedSortFields = [
+      "name",
+      "email",
+      "role",
+      "createdAt",
+      "majority",
+      "studyProgram",
+    ];
+    const sortField = allowedSortFields.includes(String(sortBy))
+      ? String(sortBy)
+      : "createdAt";
+
     const users = await db.user.findMany({
-      where: { isApproved: false },
-      orderBy: { createdAt: "desc" },
+      where: whereClause,
+      orderBy: {
+        [sortField]: String(sortOrder) === "asc" ? "asc" : "desc",
+      },
       select: {
         id: true,
         name: true,
@@ -604,7 +637,35 @@ export const updateAdminCourse = async (req: Request, res: Response) => {
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    if (categoryId !== undefined) {
+      if (!categoryId || !String(categoryId).trim()) {
+        updateData.categoryId = null;
+        updateData.studyProgram = null;
+      } else {
+        const val = String(categoryId).trim();
+        const byId = await db.category.findUnique({ where: { id: val } }).catch(() => null);
+        if (byId) {
+          updateData.categoryId = byId.id;
+          updateData.studyProgram = byId.name;
+        } else {
+          let catName = val;
+          const kons = await db.konsentrasiKeahlian.findUnique({ where: { id: val } }).catch(() => null);
+          if (kons) {
+            catName = kons.name;
+          } else {
+            const prog = await db.programKeahlian.findUnique({ where: { id: val } }).catch(() => null);
+            if (prog) catName = prog.name;
+          }
+          const cat = await db.category.upsert({
+            where: { name: catName },
+            update: {},
+            create: { name: catName },
+          });
+          updateData.categoryId = cat.id;
+          updateData.studyProgram = cat.name;
+        }
+      }
+    }
     if (allowedPrograms !== undefined) {
       try {
         updateData.allowedPrograms = typeof allowedPrograms === "string" ? JSON.parse(allowedPrograms) : allowedPrograms;
@@ -783,8 +844,8 @@ export const getCertificateDetails = async (req: Request, res: Response) => {
         transcriptConfig: resolvedTranscriptConfig,
         transcriptLayoutConfig,
         institutionLogo: institutionLogoSetting?.value || null,
-        institutionName: institutionNameSetting?.value || "UNIVERSITAS NEGERI SURABAYA",
-        institutionSubtext: institutionSubtextSetting?.value || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
+        institutionName: institutionNameSetting?.value || "SMK NEGERI 1 SURABAYA",
+        institutionSubtext: institutionSubtextSetting?.value || "BIDANG KEAHLIAN TEKNOLOGI INFORMASI",
       }
     });
   } catch (error: any) {
@@ -1140,16 +1201,16 @@ export const getCertificateTemplatePreview = async (req: Request, res: Response)
 
     const previewData = {
       name: "John Doe",
-      studentId: "2024150042",
+      studentId: "0084547653",
       courseName: "Blockchain & Distributed Systems",
-      majority: "Teknik Informatika",
-      program: "Rekayasa Perangkat Lunak",
+      majority: "Rekayasa Perangkat Lunak",
+      program: "Pengembangan Perangkat Lunak dan Gim",
       certId: "CERT-2024-0001",
       issuedAt,
       issuerId: req.user?.id || "ADMIN",
       instructorName,
       instructorNip,
-      instructorMajor: "Teknik Informatika",
+      instructorMajor: "Rekayasa Perangkat Lunak",
       signers,
       layout,
       paperSize,

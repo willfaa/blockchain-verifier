@@ -52,13 +52,12 @@ export const useUserManagement = () => {
         };
 
         params.role = roleMap[activeTab] || activeTab.toUpperCase();
-
-        // Filter Application
-        if (searchQuery) params.search = searchQuery;
-        if (selectedMajor !== "All Majors") params.majority = selectedMajor;
-        if (selectedProgram !== "All Programs")
-          params.program = selectedProgram;
       }
+
+      // Filter Application (Program Keahlian [Umum] & Konsentrasi Keahlian [Spesifik])
+      if (searchQuery) params.search = searchQuery;
+      if (selectedProgram !== "All Programs") params.program = selectedProgram;
+      if (selectedMajor !== "All Majors") params.majority = selectedMajor;
 
       console.log(
         `[AdminFetch] Requesting ${endpoint} with role: ${params.role}`

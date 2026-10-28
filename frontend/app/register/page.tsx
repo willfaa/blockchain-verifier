@@ -33,8 +33,8 @@ export default function RegisterPage() {
   // Dynamic Academic Fields
   const [departmentsData, setDepartmentsData] = useState<any[]>([]);
   const [selectedBidang, setSelectedBidang] = useState("");
-  const [majority, setMajority] = useState(""); // Program Keahlian
-  const [program, setProgram] = useState(""); // Konsentrasi Keahlian
+  const [program, setProgram] = useState(""); // Program Keahlian (Umum)
+  const [majority, setMajority] = useState(""); // Konsentrasi Keahlian (Spesifik)
 
   // Fetch departments dynamic hierarchy on mount
   useEffect(() => {
@@ -279,7 +279,7 @@ export default function RegisterPage() {
             {/* Student ID or NIP */}
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1">
-                {role === "student" ? "Student ID" : "NIP (Teacher ID)"}
+                {role === "student" ? "NISN / Student ID" : "NIP (Teacher ID)"}
               </label>
               <input
                 required
@@ -291,7 +291,7 @@ export default function RegisterPage() {
                 }
                 className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none"
                 placeholder={
-                  role === "student" ? "e.g. 1805097..." : "e.g. 198001..."
+                  role === "student" ? "e.g. 0084547653" : "e.g. 198001..."
                 }
               />
             </div>
@@ -308,8 +308,8 @@ export default function RegisterPage() {
                   value={selectedBidang}
                   onChange={(e) => {
                     setSelectedBidang(e.target.value);
-                    setMajority(""); // Reset child program
-                    setProgram(""); // Reset child concentration
+                    setProgram(""); // Reset child program
+                    setMajority(""); // Reset child concentration
                   }}
                   className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none appearance-none cursor-pointer"
                 >
@@ -329,11 +329,11 @@ export default function RegisterPage() {
                 </label>
                 <select
                   required
-                  value={majority}
+                  value={program}
                   disabled={!selectedBidang}
                   onChange={(e) => {
-                    setMajority(e.target.value);
-                    setProgram(""); // Reset child concentration
+                    setProgram(e.target.value);
+                    setMajority(""); // Reset child concentration
                   }}
                   className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer"
                 >
@@ -356,16 +356,16 @@ export default function RegisterPage() {
                 </label>
                 <select
                   required
-                  value={program}
-                  disabled={!majority}
-                  onChange={(e) => setProgram(e.target.value)}
+                  value={majority}
+                  disabled={!program}
+                  onChange={(e) => setMajority(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer"
                 >
                   <option value="">-- Select Konsentrasi Keahlian --</option>
-                  {majority &&
+                  {program &&
                     departmentsData
                       .find((b: any) => b.name === selectedBidang)
-                      ?.programKeahlian?.find((p: any) => p.name === majority)
+                      ?.programKeahlian?.find((p: any) => p.name === program)
                       ?.konsentrasiKeahlian?.map((conc: any) => (
                         <option key={conc.id} value={conc.name}>
                           {conc.name}

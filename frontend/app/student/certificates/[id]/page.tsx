@@ -195,7 +195,7 @@ export default function StudentCertificateDetailPage() {
       });
 
       if (res.data.ok) {
-        toast.success("Pengajuan koreksi data berhasil dikirim ke Admin/Dosen!");
+        toast.success("Pengajuan koreksi data berhasil dikirim ke Admin/Guru!");
         setShowCorrectionModal(false);
         setHasSubmittedCorrection(true);
       }
@@ -290,7 +290,7 @@ export default function StudentCertificateDetailPage() {
           <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-300 text-xs">
             <AlertCircle size={18} className="shrink-0" />
             <span>
-              Pengajuan koreksi data Anda telah terkirim. Admin/Dosen akan meninjau dan menerbitkan ulang sertifikat pengganti jika disetujui.
+              Pengajuan koreksi data Anda telah terkirim. Admin/Guru akan meninjau dan menerbitkan ulang sertifikat pengganti jika disetujui.
             </span>
           </div>
         )}
@@ -663,7 +663,7 @@ export default function StudentCertificateDetailPage() {
                   <Award className="text-slate-500 mt-0.5" size={16} />
                   <div>
                     <p className="text-xs uppercase tracking-wider text-slate-500 font-bold">
-                      Nama Mahasiswa
+                      Nama Siswa
                     </p>
                     <p className="text-sm font-bold text-white">
                       {cert.studentName}
@@ -727,7 +727,7 @@ export default function StudentCertificateDetailPage() {
                     Ajukan Koreksi Data Sertifikat
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Koreksi ejaan nama, program studi, atau keahlian
+                    Koreksi ejaan nama, program keahlian, atau konsentrasi keahlian
                   </p>
                 </div>
               </div>
@@ -750,33 +750,33 @@ export default function StudentCertificateDetailPage() {
                   value={requestedName}
                   onChange={(e) => setRequestedName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
-                  placeholder="Contoh: Budi Santoso, S.Kom."
+                  placeholder="Contoh: Ahmad Pratama"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Konsentrasi Keahlian
+                    Program Keahlian
                   </label>
                   <input
                     type="text"
                     value={requestedProgram}
                     onChange={(e) => setRequestedProgram(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
-                    placeholder="Teknik Informatika"
+                    placeholder="Pengembangan Perangkat Lunak dan Gim"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Bidang Keahlian
+                    Konsentrasi Keahlian
                   </label>
                   <input
                     type="text"
                     value={requestedMajority}
                     onChange={(e) => setRequestedMajority(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500"
-                    placeholder="Software Engineering"
+                    placeholder="Rekayasa Perangkat Lunak"
                   />
                 </div>
               </div>

@@ -105,7 +105,8 @@ export default function AdminCoursesPage() {
     setFormData({
       title: course.title || "",
       description: course.description || "",
-      categoryId: course.categoryId || "",
+      categoryId:
+        course.category?.name || course.studyProgram || course.categoryId || "",
     });
 
     // Allowed programs parsing
@@ -477,7 +478,7 @@ export default function AdminCoursesPage() {
                     {departments.map((dept) =>
                       dept.programKeahlian.map((prog: any) =>
                         prog.konsentrasiKeahlian.map((conc: any) => (
-                          <option key={conc.id} value={conc.id}>
+                          <option key={conc.id} value={conc.name}>
                             {dept.name} &gt; {prog.name} &gt; {conc.name}
                           </option>
                         ))

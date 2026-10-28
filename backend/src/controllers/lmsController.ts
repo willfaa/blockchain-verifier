@@ -18,6 +18,32 @@ import { uploadFileToSupabase } from "../utils/supabaseStorage";
 const sanitizePath = (str: string) =>
   str.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 
+const resolveCourseCategory = async (categoryInput?: string) => {
+  if (!categoryInput || !String(categoryInput).trim()) {
+    return { categoryId: null, studyProgram: null };
+  }
+  const val = String(categoryInput).trim();
+
+  const byId = await db.category.findUnique({ where: { id: val } }).catch(() => null);
+  if (byId) return { categoryId: byId.id, studyProgram: byId.name };
+
+  let categoryName = val;
+  const kons = await db.konsentrasiKeahlian.findUnique({ where: { id: val } }).catch(() => null);
+  if (kons) {
+    categoryName = kons.name;
+  } else {
+    const prog = await db.programKeahlian.findUnique({ where: { id: val } }).catch(() => null);
+    if (prog) categoryName = prog.name;
+  }
+
+  const cat = await db.category.upsert({
+    where: { name: categoryName },
+    update: {},
+    create: { name: categoryName },
+  });
+  return { categoryId: cat.id, studyProgram: cat.name };
+};
+
 export const createCourse = async (req: Request, res: Response) => {
   try {
     const { title, description, categoryId } = req.body;
@@ -69,6 +95,10 @@ export const createCourse = async (req: Request, res: Response) => {
       }
     }
 
+    const resolvedCat = categoryId
+      ? await resolveCourseCategory(categoryId)
+      : { categoryId: null, studyProgram: null };
+
     const course = await db.course.create({
       data: {
         id: courseId,
@@ -77,9 +107,11 @@ export const createCourse = async (req: Request, res: Response) => {
         userId,
         imageUrl,
         certificateTemplate,
-        categoryId,
+        categoryId: resolvedCat.categoryId,
+        studyProgram: resolvedCat.studyProgram,
         isPublished: false,
       },
+      include: { category: true },
     });
 
     return res.json({ ok: true, data: course });
@@ -92,7 +124,7 @@ export const createCourse = async (req: Request, res: Response) => {
 export const updateCourse = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
-    const { title, description, isPublished, categoryId } = req.body;
+    const { title, description, isPublished, categoryId, allowedPrograms } = req.body;
 
     // @ts-ignore
     const userId = req.user?.id || req.user?.userId;
@@ -109,7 +141,21 @@ export const updateCourse = async (req: Request, res: Response) => {
     const updateData: any = {};
     if (title) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (categoryId) updateData.categoryId = categoryId;
+    if (categoryId !== undefined) {
+      const resolvedCat = await resolveCourseCategory(categoryId);
+      updateData.categoryId = resolvedCat.categoryId;
+      updateData.studyProgram = resolvedCat.studyProgram;
+    }
+    if (allowedPrograms !== undefined) {
+      try {
+        updateData.allowedPrograms =
+          typeof allowedPrograms === "string"
+            ? JSON.parse(allowedPrograms)
+            : allowedPrograms;
+      } catch (e) {
+        updateData.allowedPrograms = allowedPrograms;
+      }
+    }
 
     // Handle Boolean Conversion from FormData
     if (isPublished !== undefined) {
@@ -166,6 +212,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     const updated = await db.course.update({
       where: { id: courseId },
       data: updateData,
+      include: { category: true },
     });
 
     return res.json({ ok: true, data: updated });
@@ -221,6 +268,7 @@ export const getCourses = async (req: Request, res: Response) => {
       where: { isPublished: true },
       include: {
         user: { select: { name: true, avatar: true } },
+        category: true,
         _count: { select: { modules: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -243,6 +291,7 @@ export const getCourseById = async (req: Request, res: Response) => {
       where: { id: courseId },
       include: {
         user: { select: { id: true, name: true, avatar: true } },
+        category: true,
         modules: {
           orderBy: { position: "asc" },
           include: {
@@ -630,17 +679,74 @@ export const getExamResults = async (req: Request, res: Response) => {
     });
     const exam = moduleWithExam?.exams?.[0];
 
-    if (!exam) return res.json({ ok: true, data: [] });
-
-    const results = await db.examResult.findMany({
-      where: { examId: exam.id },
+    const enrollments = await db.enrollment.findMany({
+      where: { courseId },
       include: {
-        student: { select: { name: true, email: true, avatar: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            studyProgram: true,
+            majority: true,
+          },
+        },
       },
-      orderBy: { finishedAt: "desc" },
     });
 
-    return res.json({ ok: true, data: results });
+    const results = exam
+      ? await db.examResult.findMany({
+          where: { examId: exam.id },
+          include: {
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+                studyProgram: true,
+                majority: true,
+              },
+            },
+          },
+          orderBy: { score: "desc" },
+        })
+      : [];
+
+    const studentMap = new Map<string, any>();
+    enrollments.forEach((e) => {
+      if (e.user) studentMap.set(e.user.id, e.user);
+    });
+    results.forEach((r) => {
+      if (r.student && !studentMap.has(r.student.id)) {
+        studentMap.set(r.student.id, r.student);
+      }
+    });
+
+    const formatted = Array.from(studentMap.values()).map((student) => {
+      const attempts = results.filter((r) => r.studentId === student.id);
+      const bestAttempt = attempts[0] || null;
+      return {
+        student: {
+          id: student.id,
+          name: student.name,
+          email: student.email,
+          avatar: student.avatar,
+          program: student.studyProgram,
+          studyProgram: student.studyProgram,
+          majority: student.majority,
+        },
+        hasAttempt: attempts.length > 0,
+        attemptsCount: attempts.length,
+        bestScore: bestAttempt ? bestAttempt.score : 0,
+        status: bestAttempt ? bestAttempt.status : "NOT_STARTED",
+        lastAttemptAt: bestAttempt ? bestAttempt.finishedAt : null,
+        resultId: bestAttempt ? bestAttempt.id : null,
+      };
+    });
+
+    return res.json({ ok: true, data: formatted });
   } catch (error: any) {
     console.error("[LMS] getExamResults Error:", error.message);
     return res.json({ ok: true, data: [] });
@@ -1916,8 +2022,8 @@ export const getSystemSettingsPublic = async (req: Request, res: Response) => {
       transcriptLayoutConfig: transcriptLayoutConfig,
       schoolName: map["institution_name"] || map["default_certificate_school_name"] || "SMK Mitra IDUKA",
       institutionLogo: map["institution_logo"] || null,
-      institutionName: map["institution_name"] || "UNIVERSITAS NEGERI SURABAYA",
-      institutionSubtext: map["institution_subtext"] || "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
+      institutionName: map["institution_name"] || "SMK NEGERI 1 SURABAYA",
+      institutionSubtext: map["institution_subtext"] || "BIDANG KEAHLIAN TEKNOLOGI INFORMASI",
     };
 
     return res.json({

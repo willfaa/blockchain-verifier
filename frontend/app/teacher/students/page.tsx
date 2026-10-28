@@ -88,26 +88,13 @@ export default function StudentListPage() {
     },
     {
       key: "studentId",
-      label: "Student ID",
+      label: "NISN / Student ID",
       sortable: true,
       render: (row: any) => (
         <div className="flex items-center gap-2 font-mono text-cyan-400">
           <Hash size={14} />
           {row.studentId || "-"}
         </div>
-      ),
-    },
-    {
-      key: "majority",
-      label: "Konsentrasi Keahlian",
-      sortable: true,
-      render: (row: any) => (
-        <span className="flex items-center gap-2">
-          <BookOpen size={14} className="text-fuchsia-500" />
-          {typeof row.majority === "object"
-            ? row.majority?.name
-            : row.majority || "-"}
-        </span>
       ),
     },
     {
@@ -120,6 +107,19 @@ export default function StudentListPage() {
           {typeof row.studyProgram === "object"
             ? row.studyProgram?.name
             : row.studyProgram || "-"}
+        </span>
+      ),
+    },
+    {
+      key: "majority",
+      label: "Konsentrasi Keahlian",
+      sortable: true,
+      render: (row: any) => (
+        <span className="flex items-center gap-2">
+          <BookOpen size={14} className="text-fuchsia-500" />
+          {typeof row.majority === "object"
+            ? row.majority?.name
+            : row.majority || "-"}
         </span>
       ),
     },

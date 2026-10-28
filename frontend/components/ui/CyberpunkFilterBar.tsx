@@ -1,9 +1,10 @@
-// frontend/components/CyberpunkFilterBar.tsx
+// frontend/components/ui/CyberpunkFilterBar.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Search, Filter, X } from "lucide-react";
-import { MAJORITIES, getProgramsByMajor } from "@/lib/constants/academics"; // Import Data
+import { ACADEMIC_DATA } from "@/lib/constants/academics";
+import api from "@/lib/api";
 
 interface FilterBarProps {
   onSearch: (value: string) => void;
@@ -17,14 +18,40 @@ export default function CyberpunkFilterBar({
   onFilterMajority,
 }: FilterBarProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMajor, setSelectedMajor] = useState(""); // Track internal state
-  const [programs, setPrograms] = useState<string[]>([]); // Dynamic options
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const [selectedMajor, setSelectedMajor] = useState("");
+  const [hierarchyMap, setHierarchyMap] = useState<Record<string, string[]>>(
+    ACADEMIC_DATA,
+  );
 
-  // Load programs when Major changes
   useEffect(() => {
-    const availablePrograms = getProgramsByMajor(selectedMajor || null);
-    setPrograms(availablePrograms);
-  }, [selectedMajor]);
+    api
+      .get("/lms/departments")
+      .then((res) => {
+        if (res.data?.ok && Array.isArray(res.data.data)) {
+          const merged: Record<string, string[]> = {};
+          Object.entries(ACADEMIC_DATA).forEach(([prog, concs]) => {
+            merged[prog] = [...concs];
+          });
+
+          res.data.data.forEach((bidang: any) => {
+            (bidang.programKeahlian || []).forEach((prog: any) => {
+              if (!prog?.name) return;
+              const existing = merged[prog.name] || [];
+              const childNames = (prog.konsentrasiKeahlian || [])
+                .map((k: any) => k?.name)
+                .filter(Boolean);
+              merged[prog.name] = Array.from(
+                new Set([...existing, ...childNames]),
+              );
+            });
+          });
+
+          setHierarchyMap(merged);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Debounce Search
   useEffect(() => {
@@ -35,10 +62,28 @@ export default function CyberpunkFilterBar({
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, onSearch]);
 
+  const availablePrograms = useMemo(
+    () => Object.keys(hierarchyMap).sort(),
+    [hierarchyMap],
+  );
+
+  const availableConcentrations = useMemo(() => {
+    if (!selectedProgram) {
+      return Array.from(new Set(Object.values(hierarchyMap).flat())).sort();
+    }
+    return (hierarchyMap[selectedProgram] || []).slice().sort();
+  }, [hierarchyMap, selectedProgram]);
+
+  const handleProgramChange = (value: string) => {
+    setSelectedProgram(value);
+    setSelectedMajor("");
+    onFilterProgram(value);
+    onFilterMajority("");
+  };
+
   const handleMajorChange = (value: string) => {
     setSelectedMajor(value);
     onFilterMajority(value);
-    onFilterProgram(""); // Reset program when major changes
   };
 
   return (
@@ -53,7 +98,7 @@ export default function CyberpunkFilterBar({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Name, Student ID, or Email..."
+            placeholder="Cari nama, NISN, NIP, atau email..."
             className="w-full bg-[#0d0b2f]/50 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-600"
           />
           <Search
@@ -71,23 +116,23 @@ export default function CyberpunkFilterBar({
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4">
-        {/* KONSENTRASI KEAHLIAN FILTER */}
-        <div className="w-48">
+      {/* Filters (Bertingkat: Program Keahlian [Umum] -> Konsentrasi Keahlian [Spesifik]) */}
+      <div className="flex gap-4 flex-wrap">
+        {/* 1. PROGRAM KEAHLIAN FILTER (UMUM) */}
+        <div className="w-56">
           <label className="text-xs font-semibold text-slate-500 uppercase ml-1 mb-1 block">
-            Konsentrasi Keahlian
+            Program Keahlian
           </label>
           <div className="relative">
             <select
-              onChange={(e) => handleMajorChange(e.target.value)}
-              value={selectedMajor}
-              className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+              onChange={(e) => handleProgramChange(e.target.value)}
+              value={selectedProgram}
+              className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer text-sm truncate"
             >
-              <option value="">Semua Konsentrasi</option>
-              {MAJORITIES.map((major) => (
-                <option key={major} value={major}>
-                  {major}
+              <option value="">Semua Program Keahlian</option>
+              {availablePrograms.map((prog) => (
+                <option key={prog} value={prog}>
+                  {prog}
                 </option>
               ))}
             </select>
@@ -98,24 +143,24 @@ export default function CyberpunkFilterBar({
           </div>
         </div>
 
-        {/* PROGRAM KEAHLIAN FILTER */}
-        <div className="w-48">
+        {/* 2. KONSENTRASI KEAHLIAN FILTER (SPESIFIK) */}
+        <div className="w-56">
           <label className="text-xs font-semibold text-slate-500 uppercase ml-1 mb-1 block">
-            Program Keahlian
+            Konsentrasi Keahlian
           </label>
           <div className="relative">
             <select
-              onChange={(e) => onFilterProgram(e.target.value)}
-              className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+              onChange={(e) => handleMajorChange(e.target.value)}
+              value={selectedMajor}
+              className="w-full appearance-none bg-[#0d0b2f]/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-cyan-500/50 cursor-pointer text-sm truncate"
             >
-              <option value="">Semua Program</option>
-              {programs.map((prog) => (
-                <option key={prog} value={prog}>
-                  {prog}
+              <option value="">Semua Konsentrasi Keahlian</option>
+              {availableConcentrations.map((conc) => (
+                <option key={conc} value={conc}>
+                  {conc}
                 </option>
               ))}
             </select>
-
             <Filter
               className="absolute right-4 top-3.5 text-slate-500 pointer-events-none"
               size={16}
