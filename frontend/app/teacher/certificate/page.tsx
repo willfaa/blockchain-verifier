@@ -346,8 +346,8 @@ export default function SmartIssueCertificatePage() {
     certificatePaperSize: "A4",
     paperWidthCm: 29.7,
     paperHeightCm: 21.0,
-    institutionName: "UNIVERSITAS NEGERI SURABAYA",
-    institutionSubtext: "FAKULTAS TEKNIK - JURUSAN TEKNIK INFORMATIKA",
+    institutionName: "SMKS SENOPATI SEDATI",
+    institutionSubtext: "KOMPETENSI KEAHLIAN SEKOLAH MENENGAH KEJURUAN",
     transcriptConfig: DEFAULT_TRANSCRIPT_CONFIG,
   });
 
@@ -495,9 +495,40 @@ export default function SmartIssueCertificatePage() {
     };
     window.addEventListener("storage", handleStorage);
 
+    const refreshUsersAndMajors = async () => {
+      try {
+        const [studentsRes, majorsRes] = await Promise.allSettled([
+          api.get("/users?role=student"),
+          api.get("/admin/departments/konsentrasi"),
+        ]);
+        if (
+          studentsRes.status === "fulfilled" &&
+          studentsRes.value?.data?.data
+        ) {
+          setAllStudents(studentsRes.value.data.data || []);
+        }
+        if (majorsRes.status === "fulfilled" && majorsRes.value?.data?.data) {
+          setMajorsList(majorsRes.value.data.data || []);
+        }
+      } catch (_) {}
+    };
+
+    let usersBc: BroadcastChannel | null = null;
+    if ("BroadcastChannel" in window) {
+      usersBc = new BroadcastChannel("chainnesa_users_sync");
+      usersBc.onmessage = (event) => {
+        if (event.data?.type === "USERS_UPDATED") {
+          refreshUsersAndMajors();
+        }
+      };
+    }
+    window.addEventListener("focus", refreshUsersAndMajors);
+
     return () => {
       if (bc) bc.close();
+      if (usersBc) usersBc.close();
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", refreshUsersAndMajors);
     };
   }, []);
 

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "../generated/prisma";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -6,7 +7,11 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const getDatabaseUrl = () => {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
   if (process.env.POSTGRES_URL) return process.env.POSTGRES_URL;
-  if (process.env.SUPABASE_URL && (process.env.SUPABASE_URL.startsWith("postgresql://") || process.env.SUPABASE_URL.startsWith("postgres://"))) {
+  if (
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_URL.startsWith("postgresql://") ||
+      process.env.SUPABASE_URL.startsWith("postgres://"))
+  ) {
     return process.env.SUPABASE_URL;
   }
   if (process.env.POSTGRES_HOST) {
@@ -21,10 +26,13 @@ const getDatabaseUrl = () => {
 };
 
 const connectionString = getDatabaseUrl();
-const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1") || connectionString.includes("5433");
-const pool = new Pool({ 
+const isLocal =
+  connectionString.includes("localhost") ||
+  connectionString.includes("127.0.0.1") ||
+  connectionString.includes("5433");
+const pool = new Pool({
   connectionString,
-  ssl: isLocal ? false : { rejectUnauthorized: false }
+  ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
 // 2. Create the Prisma Adapter

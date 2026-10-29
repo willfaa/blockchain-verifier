@@ -28,9 +28,6 @@ export const register = async (req: Request, res: Response) => {
       payload.studentId = payload.nisn;
     }
 
-    // Front-end now generates the ID (payload.email) and sends recovery (payload.personalEmail)
-    // We trust valid institutional emails end with @chainnesa.com
-
     // SAFETY NET: Validation with Indonesian field aliases
     if (!payload.majority && (payload.konsentrasiKeahlian || payload.majorityKeahlian)) {
       payload.majority = payload.konsentrasiKeahlian || payload.majorityKeahlian;
@@ -48,13 +45,9 @@ export const register = async (req: Request, res: Response) => {
         .json({ error: "Academic data (Bidang, Program, atau Konsentrasi Keahlian) is incomplete." });
     }
 
-    // Ensure data flow:
-    // payload.email -> Institutional Email
-    // payload.personalEmail -> Personal Email
-
     const user = await registerUser({
       ...payload,
-      // Ensure we map correctly just in case, though frontend sends matching keys
+      role: String(payload.role || "student").toLowerCase(),
       email: payload.email,
       personalEmail: payload.personalEmail,
     });
@@ -92,7 +85,6 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      // User requested specific error messages for "correlated word"
       return res.status(401).json({ error: "User not found" });
     }
 
@@ -102,9 +94,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid password" });
     }
 
-    // STRICT ROLE CHECK
+    // STRICT ROLE CHECK (Case-insensitive)
     // Enforce portal isolation: Students, Teachers, and Admins must use their respective portals
-    if (req.body.role && user.role !== req.body.role) {
+    const normalizedUserRole = String(user.role || "").toLowerCase();
+    if (
+      req.body.role &&
+      normalizedUserRole !== String(req.body.role).toLowerCase()
+    ) {
       return res.status(403).json({
         error: `Access Denied: You cannot login as ${req.body.role} with this account. Please use the appropriate login portal.`,
       });
@@ -132,13 +128,12 @@ export const login = async (req: Request, res: Response) => {
     });
 
     // --- GENERATE TOKEN ---
-    // Logika fallback: cari identifier unik
     const uniqueId = user.email || user.studentId || user.nip;
 
     const token = jwt.sign(
       {
         id: user.id,
-        role: user.role,
+        role: normalizedUserRole,
         identifier: uniqueId,
         sessionId: currentSessionId,
       },
@@ -154,6 +149,7 @@ export const login = async (req: Request, res: Response) => {
       ok: true,
       user: {
         ...safeUser,
+        role: normalizedUserRole,
         currentSessionId,
         token: token,
       },
@@ -183,14 +179,12 @@ export const findStudentByStudentId = async (req: Request, res: Response) => {
 // 4. GET CURRENT USER (Protected)
 export const getMe = async (req: Request, res: Response) => {
   try {
-    // 1. Get ID from Token (middleware populates this)
     const userId = (req as any).user?.id || (req as any).user?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized: No User ID" });
     }
 
-    // 2. Find User in DB
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -199,7 +193,7 @@ export const getMe = async (req: Request, res: Response) => {
         email: true,
         personalEmail: true,
         role: true,
-        avatar: true, // Needed for profile image
+        avatar: true,
         bio: true,
         studentId: true,
         nip: true,
@@ -209,13 +203,16 @@ export const getMe = async (req: Request, res: Response) => {
       },
     });
 
-    // 3. Handle Not Found
     if (!user) {
       return res.status(404).json({ error: "User not found in database" });
     }
 
-    // 4. Success
-    res.json({ ok: true, data: user, user }); // Return 'user' directly too for compatibility
+    const normalizedUser = {
+      ...user,
+      role: String(user.role || "").toLowerCase(),
+    };
+
+    res.json({ ok: true, data: normalizedUser, user: normalizedUser });
   } catch (error) {
     console.error("GetMe Error:", error);
     res.status(500).json({ error: "Server Error" });

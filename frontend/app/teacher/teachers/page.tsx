@@ -1,7 +1,7 @@
 // frontend/app/teacher/teachers/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
 import CyberpunkDataTable from "@/components/ui/CyberpunkDataTable";
 import CyberpunkFilterBar from "@/components/ui/CyberpunkFilterBar";
@@ -13,8 +13,6 @@ export default function TeacherListPage() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper resolved dynamically via global getAvatarUrl
-
   // Filter State
   const [search, setSearch] = useState("");
   const [program, setProgram] = useState("");
@@ -22,28 +20,49 @@ export default function TeacherListPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const params = {
-          role: "teacher",
-          search,
-          program,
-          majority,
-          sortBy,
-          sortOrder,
-        };
-        const res = await api.get("/users", { params });
-        setTeachers(res.data.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        role: "teacher",
+        search,
+        program,
+        majority,
+        sortBy,
+        sortOrder,
+      };
+      const res = await api.get("/users", { params });
+      setTeachers(res.data.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
   }, [search, program, majority, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Real-time sync when Admin adds/updates users or when window regains focus
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let bc: BroadcastChannel | null = null;
+    if ("BroadcastChannel" in window) {
+      bc = new BroadcastChannel("chainnesa_users_sync");
+      bc.onmessage = (event) => {
+        if (event.data?.type === "USERS_UPDATED") {
+          fetchData();
+        }
+      };
+    }
+    const handleFocus = () => fetchData();
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [fetchData]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -156,6 +175,7 @@ export default function TeacherListPage() {
         onSearch={setSearch}
         onFilterProgram={setProgram}
         onFilterMajority={setMajority}
+        data={teachers}
       />
 
       <CyberpunkDataTable

@@ -10,6 +10,7 @@ import { User, TabType } from "./types";
  */
 export const useUserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [allTabUsers, setAllTabUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Requirement: Default to "all" (All Users)
@@ -22,6 +23,25 @@ export const useUserManagement = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  const getTabEndpointAndRole = useCallback((tab: TabType) => {
+    if (tab === "pending") {
+      return { endpoint: "/admin/users/pending", role: undefined };
+    }
+    const roleMap: Record<string, string> = {
+      all: "ALL",
+      admin: "ADMIN",
+      admins: "ADMIN",
+      teacher: "TEACHER",
+      teachers: "TEACHER",
+      student: "STUDENT",
+      students: "STUDENT",
+    };
+    return {
+      endpoint: "/admin/users/active",
+      role: roleMap[tab] || tab.toUpperCase(),
+    };
+  }, []);
+
   // --- FETCH LOGIC ---
   const fetchUsers = useCallback(async () => {
     if (activeTab === "bulk") return;
@@ -31,46 +51,31 @@ export const useUserManagement = () => {
     setLoading(true);
 
     try {
-      let endpoint = "";
-      let params: any = { sortBy, sortOrder };
+      const { endpoint, role } = getTabEndpointAndRole(activeTab);
+      const params: any = { sortBy, sortOrder };
+      if (role) params.role = role;
 
-      if (activeTab === "pending") {
-        endpoint = "/admin/users/pending";
-      } else {
-        // Core Alignment: Target the /active endpoint for all approved users
-        endpoint = "/admin/users/active";
-
-        // Role Mapping layer (supports both singular and plural for robustness)
-        const roleMap: Record<string, string> = {
-          all: "ALL",
-          admin: "ADMIN",
-          admins: "ADMIN",
-          teacher: "TEACHER",
-          teachers: "TEACHER",
-          student: "STUDENT",
-          students: "STUDENT",
-        };
-
-        params.role = roleMap[activeTab] || activeTab.toUpperCase();
-      }
+      const isUnfiltered =
+        !searchQuery &&
+        selectedProgram === "All Programs" &&
+        selectedMajor === "All Majors";
 
       // Filter Application (Program Keahlian [Umum] & Konsentrasi Keahlian [Spesifik])
       if (searchQuery) params.search = searchQuery;
       if (selectedProgram !== "All Programs") params.program = selectedProgram;
       if (selectedMajor !== "All Majors") params.majority = selectedMajor;
 
-      console.log(
-        `[AdminFetch] Requesting ${endpoint} with role: ${params.role}`
-      );
       const res = await api.get(endpoint, { params });
+      const fetched: User[] =
+        res.data?.ok && Array.isArray(res.data.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+            ? res.data
+            : [];
 
-      // Handle common response structures
-      if (res.data?.ok && Array.isArray(res.data.data)) {
-        setUsers(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setUsers(res.data);
-      } else {
-        setUsers([]);
+      setUsers(fetched);
+      if (isUnfiltered) {
+        setAllTabUsers(fetched);
       }
     } catch (error: any) {
       console.error("[AdminFetch] Critical Error:", error);
@@ -90,12 +95,46 @@ export const useUserManagement = () => {
     searchQuery,
     selectedMajor,
     selectedProgram,
+    getTabEndpointAndRole,
   ]);
+
+  // Ensure allTabUsers stays synced when switching tabs while a filter is already active
+  useEffect(() => {
+    if (activeTab === "bulk") return;
+    if (
+      !searchQuery &&
+      selectedProgram === "All Programs" &&
+      selectedMajor === "All Majors"
+    ) {
+      return;
+    }
+    const { endpoint, role } = getTabEndpointAndRole(activeTab);
+    api
+      .get(endpoint, { params: role ? { role } : {} })
+      .then((res) => {
+        const list =
+          res.data?.ok && Array.isArray(res.data.data)
+            ? res.data.data
+            : Array.isArray(res.data)
+              ? res.data
+              : [];
+        setAllTabUsers(list);
+      })
+      .catch(() => {});
+  }, [activeTab, getTabEndpointAndRole]);
 
   // Sync on state change
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const notifyUsersUpdated = () => {
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      const bc = new BroadcastChannel("chainnesa_users_sync");
+      bc.postMessage({ type: "USERS_UPDATED", timestamp: Date.now() });
+      bc.close();
+    }
+  };
 
   // --- ACTIONS ---
 
@@ -105,6 +144,7 @@ export const useUserManagement = () => {
       await api.put(`/admin/users/${id}/${action}`);
       toast.success(isVerify ? "User verified!" : "User unverified!");
       fetchUsers();
+      notifyUsersUpdated();
     } catch (err) {
       toast.error("Process failed");
     }
@@ -116,6 +156,7 @@ export const useUserManagement = () => {
       await api.put(`/admin/users/${id}/${action}`);
       toast.success(isBan ? "User banned!" : "User unbanned!");
       fetchUsers();
+      notifyUsersUpdated();
     } catch (err) {
       toast.error("Process failed");
     }
@@ -126,6 +167,7 @@ export const useUserManagement = () => {
       await api.delete(`/admin/users/${id}`);
       toast.success("Identity deleted from registry");
       fetchUsers();
+      notifyUsersUpdated();
     } catch (err) {
       toast.error("Deletion failed");
     }
@@ -136,6 +178,7 @@ export const useUserManagement = () => {
       await api.put(`/admin/users/${id}/approve`);
       toast.success("Authorization granted!");
       fetchUsers();
+      notifyUsersUpdated();
     } catch (err) {
       toast.error("Approval failed");
     }
@@ -152,6 +195,7 @@ export const useUserManagement = () => {
 
   return {
     users,
+    allTabUsers,
     loading,
     activeTab,
     setActiveTab,

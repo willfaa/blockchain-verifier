@@ -17,10 +17,8 @@ import {
 import {
   Trash2,
   Search,
-  User,
   Filter,
   Users,
-  X,
   ShieldAlert,
   ChevronRight,
   Terminal,
@@ -85,6 +83,32 @@ export default function StudentManagementPage() {
     return (hierarchyMap[selectedProgram] || []).slice().sort();
   }, [hierarchyMap, selectedProgram]);
 
+  const populatedPrograms = useMemo(() => {
+    const set = new Set<string>();
+    students.forEach((s) => {
+      const prog = s?.user?.studyProgram ?? s?.user?.program;
+      if (prog) set.add(String(prog).trim());
+    });
+    return set;
+  }, [students]);
+
+  const populatedConcentrations = useMemo(() => {
+    const set = new Set<string>();
+    students.forEach((s) => {
+      const prog = s?.user?.studyProgram ?? s?.user?.program;
+      if (
+        selectedProgram &&
+        selectedProgram !== "All Programs" &&
+        prog !== selectedProgram
+      ) {
+        return;
+      }
+      const maj = s?.user?.majority;
+      if (maj) set.add(String(maj).trim());
+    });
+    return set;
+  }, [students, selectedProgram]);
+
   const fetchStudents = async () => {
     try {
       setLoading(true);
@@ -107,10 +131,10 @@ export default function StudentManagementPage() {
     setKicking(true);
     try {
       await api.delete(
-        `/lms/courses/${courseId}/students/${selectedStudent.user.id}`
+        `/lms/courses/${courseId}/students/${selectedStudent.user.id}`,
       );
       setStudents((prev) =>
-        prev.filter((s) => s.user.id !== selectedStudent.user.id)
+        prev.filter((s) => s.user.id !== selectedStudent.user.id),
       );
       setConfirmOpen(false);
       toast.success("Student removed from course");
@@ -140,6 +164,12 @@ export default function StudentManagementPage() {
   if (loading && students.length === 0)
     return <CyberpunkLoader text="Loading Student Records..." />;
 
+  const isSearchActive = Boolean(search.trim());
+  const isProgramActive =
+    Boolean(selectedProgram) && selectedProgram !== "All Programs";
+  const isMajorActive =
+    Boolean(selectedMajor) && selectedMajor !== "All Majors";
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-8">
@@ -167,14 +197,20 @@ export default function StudentManagementPage() {
       <div className="bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-6 backdrop-blur-xl flex flex-wrap gap-4 items-center">
         <div className="relative flex-1 min-w-[300px]">
           <Search
-            className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500"
+            className={`absolute left-5 top-1/2 -translate-y-1/2 ${
+              isSearchActive ? "text-emerald-400" : "text-slate-500"
+            }`}
             size={18}
           />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Student Name, ID, or Email..."
-            className="w-full bg-black/40 border border-white/5 rounded-2xl py-3.5 pl-14 pr-6 text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
+            className={`w-full rounded-2xl py-3.5 pl-14 pr-6 text-sm font-mono focus:outline-none transition-all placeholder:text-white/10 ${
+              isSearchActive
+                ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                : "bg-black/40 border border-white/5 text-white focus:border-cyan-500/50"
+            }`}
           />
         </div>
 
@@ -182,7 +218,9 @@ export default function StudentManagementPage() {
           {/* 1. Program Keahlian (Umum) */}
           <div className="relative group">
             <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                isProgramActive ? "text-emerald-400" : "text-slate-500"
+              }`}
               size={14}
             />
             <select
@@ -191,14 +229,40 @@ export default function StudentManagementPage() {
                 setSelectedProgram(e.target.value);
                 setSelectedMajor("All Majors");
               }}
-              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[200px]"
+              className={`appearance-none rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black transition-all outline-none cursor-pointer uppercase tracking-widest min-w-[200px] ${
+                isProgramActive
+                  ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                  : "bg-black/40 border border-white/5 text-white hover:border-white/20 focus:border-cyan-500/50"
+              }`}
             >
-              <option value="All Programs">SEMUA PROGRAM KEAHLIAN</option>
-              {availablePrograms.map((p) => (
-                <option key={p} value={p}>
-                  {p.toUpperCase()}
-                </option>
-              ))}
+              <option
+                value="All Programs"
+                className="bg-[#050510] text-white"
+                style={{ backgroundColor: "#050510", color: "#ffffff" }}
+              >
+                SEMUA PROGRAM KEAHLIAN
+              </option>
+              {availablePrograms.map((p) => {
+                const hasData = populatedPrograms.has(p);
+                return (
+                  <option
+                    key={p}
+                    value={p}
+                    className={
+                      hasData
+                        ? "bg-emerald-900 text-emerald-200 font-semibold"
+                        : "bg-[#050510] text-white"
+                    }
+                    style={
+                      hasData
+                        ? { backgroundColor: "#064e3b", color: "#a7f3d0" }
+                        : { backgroundColor: "#050510", color: "#ffffff" }
+                    }
+                  >
+                    {p.toUpperCase()}
+                  </option>
+                );
+              })}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
               <ChevronRight size={14} className="rotate-90" />
@@ -208,20 +272,48 @@ export default function StudentManagementPage() {
           {/* 2. Konsentrasi Keahlian (Spesifik) */}
           <div className="relative group">
             <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                isMajorActive ? "text-emerald-400" : "text-slate-500"
+              }`}
               size={14}
             />
             <select
               value={selectedMajor}
               onChange={(e) => setSelectedMajor(e.target.value)}
-              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[200px]"
+              className={`appearance-none rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black transition-all outline-none cursor-pointer uppercase tracking-widest min-w-[200px] ${
+                isMajorActive
+                  ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                  : "bg-black/40 border border-white/5 text-white hover:border-white/20 focus:border-cyan-500/50"
+              }`}
             >
-              <option value="All Majors">SEMUA KONSENTRASI KEAHLIAN</option>
-              {availableConcentrations.map((m) => (
-                <option key={m} value={m}>
-                  {m.toUpperCase()}
-                </option>
-              ))}
+              <option
+                value="All Majors"
+                className="bg-[#050510] text-white"
+                style={{ backgroundColor: "#050510", color: "#ffffff" }}
+              >
+                SEMUA KONSENTRASI KEAHLIAN
+              </option>
+              {availableConcentrations.map((m) => {
+                const hasData = populatedConcentrations.has(m);
+                return (
+                  <option
+                    key={m}
+                    value={m}
+                    className={
+                      hasData
+                        ? "bg-emerald-900 text-emerald-200 font-semibold"
+                        : "bg-[#050510] text-white"
+                    }
+                    style={
+                      hasData
+                        ? { backgroundColor: "#064e3b", color: "#a7f3d0" }
+                        : { backgroundColor: "#050510", color: "#ffffff" }
+                    }
+                  >
+                    {m.toUpperCase()}
+                  </option>
+                );
+              })}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
               <ChevronRight size={14} className="rotate-90" />
@@ -289,7 +381,7 @@ export default function StudentManagementPage() {
                       <span className="text-[11px] font-mono font-black text-slate-400 uppercase">
                         {new Date(enrollment.enrolledAt).toLocaleDateString(
                           undefined,
-                          { day: "2-digit", month: "short", year: "numeric" }
+                          { day: "2-digit", month: "short", year: "numeric" },
                         )}
                       </span>
                       <span className="text-[8px] text-slate-600 font-mono mt-0.5">

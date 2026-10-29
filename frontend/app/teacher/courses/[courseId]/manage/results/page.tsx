@@ -6,14 +6,11 @@ import api from "@/lib/api";
 import {
   Search,
   CheckCircle,
-  XCircle,
   AlertCircle,
-  Clock,
   Target,
   Filter,
   FileSpreadsheet,
   Trash2,
-  Users,
   Trophy,
   History,
   ChevronRight,
@@ -89,7 +86,6 @@ export default function ExamResultsPage() {
     id: string;
     studentName: string;
   } | null>(null);
-  const [grading, setGrading] = useState(false);
 
   useEffect(() => {
     if (courseId) loadResults();
@@ -131,6 +127,35 @@ export default function ExamResultsPage() {
     return (hierarchyMap[selectedProgram] || []).slice().sort();
   }, [hierarchyMap, selectedProgram]);
 
+  const populatedPrograms = useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((item) => {
+      const rawProg = item?.student?.studyProgram ?? item?.student?.program;
+      const prog = typeof rawProg === "object" ? rawProg?.name : rawProg;
+      if (prog) set.add(String(prog).trim());
+    });
+    return set;
+  }, [data]);
+
+  const populatedConcentrations = useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((item) => {
+      const rawProg = item?.student?.studyProgram ?? item?.student?.program;
+      const prog = typeof rawProg === "object" ? rawProg?.name : rawProg;
+      if (
+        selectedProgram &&
+        selectedProgram !== "All Programs" &&
+        prog !== selectedProgram
+      ) {
+        return;
+      }
+      const rawMaj = item?.student?.majority;
+      const maj = typeof rawMaj === "object" ? rawMaj?.name : rawMaj;
+      if (maj) set.add(String(maj).trim());
+    });
+    return set;
+  }, [data, selectedProgram]);
+
   useEffect(() => {
     applyFilters();
   }, [data, search, statusFilter, scoreFilter, selectedMajor, selectedProgram]);
@@ -154,7 +179,7 @@ export default function ExamResultsPage() {
       result = result.filter(
         (item) =>
           item.student.name.toLowerCase().includes(q) ||
-          item.student.email.toLowerCase().includes(q)
+          item.student.email.toLowerCase().includes(q),
       );
     }
     if (statusFilter.length > 0)
@@ -216,7 +241,7 @@ export default function ExamResultsPage() {
     if (!resultToDelete) return;
     try {
       const res = await api.delete(
-        `/lms/exams/submissions/${resultToDelete.id}`
+        `/lms/exams/submissions/${resultToDelete.id}`,
       );
       if (res.data.ok) {
         toast.success("Assessment records reset");
@@ -230,6 +255,12 @@ export default function ExamResultsPage() {
 
   if (loading && data.length === 0)
     return <CyberpunkLoader text="Loading Assessment Data" />;
+
+  const isSearchActive = Boolean(search.trim());
+  const isProgramActive =
+    Boolean(selectedProgram) && selectedProgram !== "All Programs";
+  const isMajorActive =
+    Boolean(selectedMajor) && selectedMajor !== "All Majors";
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
@@ -253,7 +284,9 @@ export default function ExamResultsPage() {
       <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-wrap gap-4 items-center">
         <div className="relative flex-1 min-w-[260px]">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            className={`absolute left-4 top-1/2 -translate-y-1/2 ${
+              isSearchActive ? "text-emerald-400" : "text-slate-500"
+            }`}
             size={18}
           />
           <input
@@ -261,7 +294,11 @@ export default function ExamResultsPage() {
             placeholder="Filter by Student Name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
+            className={`w-full pl-12 pr-4 py-3 rounded-2xl text-sm font-mono focus:outline-none transition-all placeholder:text-white/10 ${
+              isSearchActive
+                ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                : "bg-black/40 border border-white/5 text-white focus:border-cyan-500/50"
+            }`}
           />
         </div>
 
@@ -284,7 +321,9 @@ export default function ExamResultsPage() {
           {/* 1. Program Keahlian (Umum) */}
           <div className="relative group">
             <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                isProgramActive ? "text-emerald-400" : "text-slate-500"
+              }`}
               size={14}
             />
             <select
@@ -293,14 +332,40 @@ export default function ExamResultsPage() {
                 setSelectedProgram(e.target.value);
                 setSelectedMajor("All Majors");
               }}
-              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[180px]"
+              className={`appearance-none rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black transition-all outline-none cursor-pointer uppercase tracking-widest min-w-[180px] ${
+                isProgramActive
+                  ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                  : "bg-black/40 border border-white/5 text-white hover:border-white/20 focus:border-cyan-500/50"
+              }`}
             >
-              <option value="All Programs">Semua Program Keahlian</option>
-              {availablePrograms.map((p) => (
-                <option key={p} value={p}>
-                  {p.toUpperCase()}
-                </option>
-              ))}
+              <option
+                value="All Programs"
+                className="bg-[#050510] text-white"
+                style={{ backgroundColor: "#050510", color: "#ffffff" }}
+              >
+                Semua Program Keahlian
+              </option>
+              {availablePrograms.map((p) => {
+                const hasData = populatedPrograms.has(p);
+                return (
+                  <option
+                    key={p}
+                    value={p}
+                    className={
+                      hasData
+                        ? "bg-emerald-900 text-emerald-200 font-semibold"
+                        : "bg-[#050510] text-white"
+                    }
+                    style={
+                      hasData
+                        ? { backgroundColor: "#064e3b", color: "#a7f3d0" }
+                        : { backgroundColor: "#050510", color: "#ffffff" }
+                    }
+                  >
+                    {p.toUpperCase()}
+                  </option>
+                );
+              })}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
               <ChevronRight size={14} className="rotate-90" />
@@ -310,20 +375,48 @@ export default function ExamResultsPage() {
           {/* 2. Konsentrasi Keahlian (Spesifik) */}
           <div className="relative group">
             <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                isMajorActive ? "text-emerald-400" : "text-slate-500"
+              }`}
               size={14}
             />
             <select
               value={selectedMajor}
               onChange={(e) => setSelectedMajor(e.target.value)}
-              className="appearance-none bg-black/40 border border-white/5 rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black text-white hover:border-white/20 transition-all focus:border-cyan-500/50 outline-none cursor-pointer uppercase tracking-widest min-w-[180px]"
+              className={`appearance-none rounded-xl py-2.5 pl-10 pr-10 text-[10px] font-black transition-all outline-none cursor-pointer uppercase tracking-widest min-w-[180px] ${
+                isMajorActive
+                  ? "bg-emerald-950/70 border border-emerald-500/60 text-emerald-200 focus:border-emerald-400"
+                  : "bg-black/40 border border-white/5 text-white hover:border-white/20 focus:border-cyan-500/50"
+              }`}
             >
-              <option value="All Majors">Semua Konsentrasi Keahlian</option>
-              {availableConcentrations.map((m) => (
-                <option key={m} value={m}>
-                  {m.toUpperCase()}
-                </option>
-              ))}
+              <option
+                value="All Majors"
+                className="bg-[#050510] text-white"
+                style={{ backgroundColor: "#050510", color: "#ffffff" }}
+              >
+                Semua Konsentrasi Keahlian
+              </option>
+              {availableConcentrations.map((m) => {
+                const hasData = populatedConcentrations.has(m);
+                return (
+                  <option
+                    key={m}
+                    value={m}
+                    className={
+                      hasData
+                        ? "bg-emerald-900 text-emerald-200 font-semibold"
+                        : "bg-[#050510] text-white"
+                    }
+                    style={
+                      hasData
+                        ? { backgroundColor: "#064e3b", color: "#a7f3d0" }
+                        : { backgroundColor: "#050510", color: "#ffffff" }
+                    }
+                  >
+                    {m.toUpperCase()}
+                  </option>
+                );
+              })}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover:text-cyan-500 transition-colors">
               <ChevronRight size={14} className="rotate-90" />
@@ -403,9 +496,15 @@ export default function ExamResultsPage() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-white uppercase tracking-wider line-clamp-1 max-w-[200px]">
-                        {typeof (row.student.studyProgram ?? row.student.program) === "object"
-                          ? (row.student.studyProgram ?? row.student.program as any)?.name
-                          : (row.student.studyProgram ?? row.student.program) || "Not Set"}
+                        {typeof (
+                          row.student.studyProgram ?? row.student.program
+                        ) === "object"
+                          ? (
+                              (row.student.studyProgram ??
+                                row.student.program) as any
+                            )?.name
+                          : (row.student.studyProgram ?? row.student.program) ||
+                            "Not Set"}
                       </span>
                       <span className="text-[8px] text-slate-500 font-mono uppercase mt-1 tracking-widest">
                         {typeof row.student.majority === "object"
@@ -441,8 +540,8 @@ export default function ExamResultsPage() {
                             row.bestScore >= 80
                               ? "bg-green-500"
                               : row.bestScore >= 50
-                              ? "bg-yellow-500"
-                              : "bg-fuchsia-500"
+                                ? "bg-yellow-500"
+                                : "bg-fuchsia-500"
                           }`}
                           style={{
                             width: `${row.hasAttempt ? row.bestScore : 0}%`,
@@ -454,10 +553,10 @@ export default function ExamResultsPage() {
                           row.bestScore >= 80
                             ? "text-green-400"
                             : row.bestScore >= 50
-                            ? "text-yellow-400"
-                            : row.bestScore > 0
-                            ? "text-fuchsia-400"
-                            : "text-slate-700"
+                              ? "text-yellow-400"
+                              : row.bestScore > 0
+                                ? "text-fuchsia-400"
+                                : "text-slate-700"
                         }`}
                       >
                         {row.hasAttempt
@@ -482,7 +581,7 @@ export default function ExamResultsPage() {
                                   month: "short",
                                   day: "2-digit",
                                   year: "numeric",
-                                }
+                                },
                               )
                             : "--/--/--"}
                         </p>
@@ -494,7 +593,7 @@ export default function ExamResultsPage() {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: false,
-                                }
+                                },
                               )
                             : "00:00:00"}
                         </p>

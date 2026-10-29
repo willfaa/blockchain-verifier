@@ -1,8 +1,8 @@
 // frontend/app/teacher/students/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import api from "@/lib/api"; // Helper
+import React, { useState, useEffect, useCallback } from "react";
+import api from "@/lib/api";
 import CyberpunkDataTable from "@/components/ui/CyberpunkDataTable";
 import CyberpunkFilterBar from "@/components/ui/CyberpunkFilterBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,8 +13,6 @@ export default function StudentListPage() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper resolved dynamically via global getAvatarUrl
-
   // Filter State
   const [search, setSearch] = useState("");
   const [program, setProgram] = useState("");
@@ -22,30 +20,49 @@ export default function StudentListPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // Fetch Data
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const params = {
-          role: "student",
-          search,
-          program,
-          majority,
-          sortBy,
-          sortOrder,
-        };
-        const res = await api.get("/users", { params });
-        setStudents(res.data.data);
-      } catch (error) {
-        console.error("Failed to fetch students", error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        role: "student",
+        search,
+        program,
+        majority,
+        sortBy,
+        sortOrder,
+      };
+      const res = await api.get("/users", { params });
+      setStudents(res.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch students", error);
+    } finally {
+      setLoading(false);
     }
-
-    fetchData();
   }, [search, program, majority, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Real-time sync when Admin adds/updates users or when window regains focus
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let bc: BroadcastChannel | null = null;
+    if ("BroadcastChannel" in window) {
+      bc = new BroadcastChannel("chainnesa_users_sync");
+      bc.onmessage = (event) => {
+        if (event.data?.type === "USERS_UPDATED") {
+          fetchData();
+        }
+      };
+    }
+    const handleFocus = () => fetchData();
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [fetchData]);
 
   // Handle Sort
   const handleSort = (field: string) => {
@@ -65,7 +82,6 @@ export default function StudentListPage() {
       sortable: true,
       render: (row: any) => (
         <div className="flex items-center gap-3">
-          {/* Avatar Student */}
           <Avatar className="h-9 w-9 border border-white/10 shadow-lg shadow-cyan-500/20">
             <AvatarImage
               src={getAvatarUrl(row.image || row.avatar || row.avatarUrl)}
@@ -151,6 +167,7 @@ export default function StudentListPage() {
         onSearch={setSearch}
         onFilterProgram={setProgram}
         onFilterMajority={setMajority}
+        data={students}
       />
 
       <CyberpunkDataTable

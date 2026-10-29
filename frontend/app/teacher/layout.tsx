@@ -50,7 +50,8 @@ export default function TeacherLayout({
     } else {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed.role !== "teacher" && parsed.role !== "admin") {
+        const role = String(parsed.role || "").toLowerCase();
+        if (role !== "teacher" && role !== "admin") {
           router.push("/courses"); // Redirect unauthorized users
         }
       } catch (e) {

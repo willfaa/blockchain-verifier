@@ -42,10 +42,7 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
       }
       toast.error(errorMsg);
     }
-
   };
-
-
 
   const handleFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,24 +58,76 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
         const ws = wb.Sheets[wsname];
         const rawData = XLSX.utils.sheet_to_json<any>(ws);
 
-        // Normalize header keys & ensure role is uppercase
+        // Normalize header keys & ensure role is lowercase ('student' / 'teacher')
         const normalizedData = rawData.map((row) => {
-          const roleRaw = (row.role || row.Role || "STUDENT").toString().trim().toUpperCase();
-          const role = roleRaw.includes("TEACH") || roleRaw.includes("GURU") ? "TEACHER" : "STUDENT";
+          const roleRaw = (row.role || row.Role || "student")
+            .toString()
+            .trim()
+            .toUpperCase();
+          const role =
+            roleRaw.includes("TEACH") || roleRaw.includes("GURU")
+              ? "teacher"
+              : "student";
           return {
-            name: (row.name || row.Name || row.nama || row.Nama || "").toString().trim(),
+            name: (row.name || row.Name || row.nama || row.Nama || "")
+              .toString()
+              .trim(),
             email: (row.email || row.Email || "").toString().trim(),
             role,
-            faculty: (row["Bidang Keahlian"] || row.bidangKeahlian || row.faculty || row.Faculty || row.bidang || row.Bidang || "").toString().trim(),
-            studyProgram: (row["Program Keahlian"] || row.programKeahlian || row.studyProgram || row.StudyProgram || row.program || row.Program || "").toString().trim(),
-            majority: (row["Konsentrasi Keahlian"] || row.konsentrasiKeahlian || row.majority || row.Majority || row.konsentrasi || row.Konsentrasi || row.jurusan || row.Jurusan || "").toString().trim(),
-            studentId: (row.studentId || row.StudentId || row.nim || row.NIM || row.nisn || row.NISN || "").toString().trim(),
+            faculty: (
+              row["Bidang Keahlian"] ||
+              row.bidangKeahlian ||
+              row.faculty ||
+              row.Faculty ||
+              row.bidang ||
+              row.Bidang ||
+              ""
+            )
+              .toString()
+              .trim(),
+            studyProgram: (
+              row["Program Keahlian"] ||
+              row.programKeahlian ||
+              row.studyProgram ||
+              row.StudyProgram ||
+              row.program ||
+              row.Program ||
+              ""
+            )
+              .toString()
+              .trim(),
+            majority: (
+              row["Konsentrasi Keahlian"] ||
+              row.konsentrasiKeahlian ||
+              row.majority ||
+              row.Majority ||
+              row.konsentrasi ||
+              row.Konsentrasi ||
+              row.jurusan ||
+              row.Jurusan ||
+              ""
+            )
+              .toString()
+              .trim(),
+            studentId: (
+              row.studentId ||
+              row.StudentId ||
+              row.nim ||
+              row.NIM ||
+              row.nisn ||
+              row.NISN ||
+              ""
+            )
+              .toString()
+              .trim(),
             nip: (row.nip || row.NIP || "").toString().trim(),
           };
         });
 
         setBulkData(normalizedData);
-        toast.success(`Berhasil membaca ${normalizedData.length} baris data user`);
+        toast.success(
+          `Berhasil membaca ${normalizedData.length} baris data user`,
+        );
       } catch (parseErr) {
         toast.error("Gagal memproses file Excel. Pastikan format file valid.");
       }
@@ -97,12 +146,17 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
         defaultPassword: batchPassword,
       })
       .then((res) => {
-        toast.success(res.data.message);
+        toast.success(res.data.message || "Bulk import berhasil!");
         if (res.data.errors?.length > 0) {
           console.error(res.data.errors);
           toast.warning(
-            `Failed to import ${res.data.errors.length} users. Check console.`
+            `Failed to import ${res.data.errors.length} users. Check console.`,
           );
+        }
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          const bc = new BroadcastChannel("chainnesa_users_sync");
+          bc.postMessage({ type: "USERS_UPDATED", timestamp: Date.now() });
+          bc.close();
         }
         // Cleanup
         setBulkFile(null);
@@ -128,9 +182,9 @@ export const BulkImportModule = ({ onSuccess }: BulkImportModuleProps) => {
             Upload file Excel (.xlsx) data pengguna (Siswa & Guru).
           </p>
           <p className="text-slate-500 text-xs mt-1">
-            Kolom: Name, Email, Role (STUDENT/TEACHER), Bidang Keahlian, Program Keahlian, Konsentrasi Keahlian, StudentId/NISN, NIP
+            Kolom: Name, Email, Role (STUDENT/TEACHER), Bidang Keahlian, Program
+            Keahlian, Konsentrasi Keahlian, StudentId/NISN, NIP
           </p>
-
 
           {/* Download Template Button */}
           <div className="mt-4 flex justify-center">

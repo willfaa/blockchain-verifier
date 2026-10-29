@@ -482,22 +482,80 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
               faculty,
               studyProgram,
               majority,
+              role: rawRole,
+              nip,
               ...rest
             } = u;
-            await db.user.create({
-              data: {
+            const normalizedRole = String(rawRole || "student")
+              .trim()
+              .toLowerCase();
+            const resolvedFaculty =
+              (faculty || bidangKeahlian || "").toString().trim() || null;
+            const resolvedProgram =
+              (studyProgram || programKeahlian || "").toString().trim() || null;
+            const resolvedMajor =
+              (majority || konsentrasiKeahlian || "").toString().trim() || null;
+            const resolvedStudentId =
+              normalizedRole === "student" ? studentId || null : null;
+            const resolvedNip =
+              normalizedRole === "teacher" ? nip || null : null;
+
+            await db.user.upsert({
+              where: { email: u.email },
+              update: {
                 ...rest,
-                faculty: faculty || bidangKeahlian || null,
-                studyProgram: studyProgram || programKeahlian || null,
-                majority: majority || konsentrasiKeahlian || null,
+                role: normalizedRole,
+                faculty: resolvedFaculty || undefined,
+                studyProgram: resolvedProgram || undefined,
+                majority: resolvedMajor || undefined,
+                isApproved: true,
+                isVerified: true,
+                isActive: true,
+                studentId: resolvedStudentId || undefined,
+                nip: resolvedNip || undefined,
+              },
+              create: {
+                ...rest,
+                role: normalizedRole,
+                faculty: resolvedFaculty,
+                studyProgram: resolvedProgram,
+                majority: resolvedMajor,
                 password: hashedPassword,
                 isApproved: true,
+                isVerified: true,
                 isActive: true,
-                // Handle optional fields mapping studentId
-                studentId: u.role === "STUDENT" ? (studentId || null) : null,
-                nip: u.role === "TEACHER" ? u.nip : null,
+                studentId: resolvedStudentId,
+                nip: resolvedNip,
               },
             });
+
+            // Auto-sync hierarchy into Bidang -> Program -> Konsentrasi tables if provided
+            if (resolvedProgram && resolvedMajor) {
+              try {
+                const bidangName = resolvedFaculty || "Teknologi Informasi";
+                const bidang = await db.bidangKeahlian.upsert({
+                  where: { name: bidangName },
+                  update: {},
+                  create: { name: bidangName },
+                });
+                const prog = await db.programKeahlian.upsert({
+                  where: { name: resolvedProgram },
+                  update: {},
+                  create: {
+                    name: resolvedProgram,
+                    bidangKeahlianId: bidang.id,
+                  },
+                });
+                await db.konsentrasiKeahlian.upsert({
+                  where: { name: resolvedMajor },
+                  update: {},
+                  create: {
+                    name: resolvedMajor,
+                    programKeahlianId: prog.id,
+                  },
+                });
+              } catch (_) {}
+            }
 
             return { email: u.email, status: "ok" };
           } catch (e: any) {
@@ -508,7 +566,11 @@ export const bulkCreateUsers = async (req: Request, res: Response) => {
       results.push(...chunkResults);
     }
 
-    return safeResponse(res, 200, { ok: true, results });
+    return safeResponse(res, 200, {
+      ok: true,
+      message: `Successfully imported ${results.filter((r) => r.status === "ok").length} users`,
+      results,
+    });
   } catch (error: any) {
     return safeResponse(res, 500, { error: "Bulk import failed" });
   }

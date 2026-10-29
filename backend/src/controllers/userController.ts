@@ -9,8 +9,8 @@ export const getUsers = async (req: Request, res: Response) => {
     const {
       role, // "student" | "teacher"
       search, // matches name, email, studentId, or nip
-      program, // exact match
-      majority, // exact match
+      program, // exact or partial match
+      majority, // exact or partial match
       sortBy, // "name" | "studentId" | "majority" | "program" | "createdAt"
       sortOrder, // "asc" | "desc"
     } = req.query;
@@ -19,9 +19,12 @@ export const getUsers = async (req: Request, res: Response) => {
       isApproved: true, // Auto-filter: Only show approved users in public lists
     };
 
-    // 1. Role Filter
+    // 1. Role Filter (Case-insensitive so both 'student'/'STUDENT' and 'teacher'/'TEACHER' match)
     if (role) {
-      whereClause.role = String(role);
+      whereClause.role = {
+        equals: String(role),
+        mode: "insensitive",
+      };
     }
 
     // 2. Search Filter (Multi-field)
@@ -30,17 +33,23 @@ export const getUsers = async (req: Request, res: Response) => {
       whereClause.OR = [
         { name: { contains: searchStr, mode: "insensitive" } },
         { email: { contains: searchStr, mode: "insensitive" } },
-        { studentId: { contains: searchStr } }, // Case sensitive biasanya untuk ID/Code
-        { nip: { contains: searchStr } },
+        { studentId: { contains: searchStr, mode: "insensitive" } },
+        { nip: { contains: searchStr, mode: "insensitive" } },
       ];
     }
 
-    // 3. Exact MAtch Filters (Updated to Partial/Contains for flexibility with departments.ts)
+    // 3. Partial/Contains Filters (Case-insensitive)
     if (program) {
-      whereClause.studyProgram = { contains: String(program) };
+      whereClause.studyProgram = {
+        contains: String(program),
+        mode: "insensitive",
+      };
     }
     if (majority) {
-      whereClause.majority = { contains: String(majority) };
+      whereClause.majority = {
+        contains: String(majority),
+        mode: "insensitive",
+      };
     }
 
     // 4. Sorting
@@ -52,7 +61,8 @@ export const getUsers = async (req: Request, res: Response) => {
 
       // Mapping sortBy ke field Prisma
       if (field === "name") orderBy = { name: order };
-      else if (field === "nisn" || field === "studentId") orderBy = { studentId: order };
+      else if (field === "nisn" || field === "studentId")
+        orderBy = { studentId: order };
       else if (field === "majority") orderBy = { majority: order };
       else if (field === "program" || field === "studyProgram")
         orderBy = { studyProgram: order };

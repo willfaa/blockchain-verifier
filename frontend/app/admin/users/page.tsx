@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import CyberpunkDataTable from "@/components/ui/CyberpunkDataTable";
-import { FileSpreadsheet } from "lucide-react";
 
 import { useUserManagement } from "./_components/useUserManagement";
 import { TabType } from "./_components/types";
@@ -14,6 +13,7 @@ import { getColumns } from "./_components/Columns";
 export default function UserManagementPage() {
   const {
     users,
+    allTabUsers,
     loading,
     activeTab,
     setActiveTab,
@@ -30,7 +30,6 @@ export default function UserManagementPage() {
     banUser,
     deleteUser,
     approveUser,
-    fetchUsers, // exposed for manual refresh
   } = useUserManagement();
 
   // --- LOCAL UI STATE FOR DIALOGS ---
@@ -128,6 +127,7 @@ export default function UserManagementPage() {
         <div className="glass-panel p-6 rounded-3xl border-transparent">
           <UserFilters
             activeTab={activeTab}
+            users={allTabUsers.length > 0 ? allTabUsers : users}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             selectedMajor={selectedMajor}
