@@ -50,6 +50,7 @@ export default function AdminDashboard() {
   const [selectedDiscrepancy, setSelectedDiscrepancy] = useState<any | null>(null);
   const [showSupersedeModal, setShowSupersedeModal] = useState(false);
   const [submittingSupersede, setSubmittingSupersede] = useState(false);
+  const submittingSupersedeRef = useRef(false);
 
   // Hybrid Mirror Ledger Queue State
   const [syncStats, setSyncStats] = useState({ pendingCount: 0, syncedCount: 0, failedCount: 0 });
@@ -365,6 +366,7 @@ export default function AdminDashboard() {
   };
 
   const openSupersedeModal = (item: any) => {
+    if (submittingSupersedeRef.current) return;
     setSelectedDiscrepancy(item);
     const cert = item.certificate;
     const req = item.pendingRequest;
@@ -380,12 +382,17 @@ export default function AdminDashboard() {
 
   const handleSupersedeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingSupersedeRef.current) return;
     if (!selectedDiscrepancy || !supersedeReason.trim()) {
       toast.error("Mohon isi alasan koreksi & penerbitan ulang.");
       return;
     }
 
+    submittingSupersedeRef.current = true;
     setSubmittingSupersede(true);
+    setShowSupersedeModal(false);
+    toast.loading("Memproses supersede dan penerbitan ulang sertifikat...", { id: "supersede_process" });
+
     try {
       const payload = {
         oldCertId: selectedDiscrepancy.certificate.certId || selectedDiscrepancy.certificate.id,
@@ -415,16 +422,16 @@ export default function AdminDashboard() {
       }
 
       if (resData?.ok) {
-        toast.success("Sertifikat berhasil digantikan (Superseded) dan diterbitkan ulang!");
-        setShowSupersedeModal(false);
+        toast.success("Sertifikat berhasil digantikan (Superseded) dan diterbitkan ulang!", { id: "supersede_process" });
         fetchStats(false);
       } else {
-        toast.error(resData?.error || "Gagal melakukan supersede sertifikat");
+        toast.error(resData?.error || "Gagal melakukan supersede sertifikat", { id: "supersede_process" });
       }
     } catch (err: any) {
       console.error("Failed to supersede certificate:", err);
-      toast.error(err.response?.data?.error || err.message || "Gagal melakukan supersede sertifikat");
+      toast.error(err.response?.data?.error || err.message || "Gagal melakukan supersede sertifikat", { id: "supersede_process" });
     } finally {
+      submittingSupersedeRef.current = false;
       setSubmittingSupersede(false);
     }
   };
@@ -929,8 +936,9 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
+                    disabled={submittingSupersede}
                     onClick={() => openSupersedeModal(item)}
-                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-amber-500/20 disabled:opacity-50"
                   >
                     <Edit3 size={14} />
                     <span>Koreksi & Re-Issue</span>
